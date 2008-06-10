@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<project name="SAMP" default="build" basedir=".">
+
+  <property name="srcdir" value="${basedir}/src"/>
+  <property name="javadir" value="${srcdir}/java"/>
+  <property name="libdir" value="${srcdir}/lib"/>
+  <property name="build.dir" value="${basedir}/build"/>
+  <property name="build.classes" value="${build.dir}/classes"/>
+
+  <path id="libpath">
+    <pathelement path="${libdir}/xmlrpc-1.2-b1.jar"/>
+  </path>
+
+  <target name="build"
+          description="compiles the source code">
+    <mkdir dir="${build.classes}"/>
+    <javac srcdir="${javadir}"
+           destdir="${build.classes}"
+           debug="true"
+           deprecation="false"
+           source="1.4">
+      <classpath refid="libpath"/>
+    </javac>
+  </target>
+
+  <target name="jar"
+          depends="build"
+          description="writes jar file">
+    <jar destfile="${basedir}/samp.jar"
+         basedir="${build.classes}">
+      <manifest>
+        <attribute name="Built-By" value="${user.name}"/>
+        <attribute name="Class-Path" value="${classpath}"/>
+        <attribute name="Main-Class" value="??"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="clean"
+          description="cleans up">
+    <delete dir="${build.dir}"/>
+    <delete file="${basedir}/samp.jar"/>
+  </target>
+
+</project>
