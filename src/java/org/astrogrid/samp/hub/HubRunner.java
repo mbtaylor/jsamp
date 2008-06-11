@@ -58,7 +58,7 @@ public class HubRunner {
         URL url = new URL( "http://"
                          + InetAddress.getLocalHost().getCanonicalHostName()
                          + ":" + port + "/" );
-        server_.addHandler( "samp.hub", new XmlRpcHub( hub ) );
+        server_.addHandler( "samp.hub", new HubXmlRpcHandler( hub ) );
         lockInfo_ = new LockInfo( secret, url.toString() );
         if ( lockfile != null ) {
             LockWriter writer =

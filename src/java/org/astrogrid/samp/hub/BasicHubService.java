@@ -142,7 +142,7 @@ public class BasicHubService implements HubService {
         String mtype = msg.getMType();
         Client recipient = getClient( recipientId );
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
-            recipient.getCallable()
+            recipient.getReceiver()
                      .receiveNotification( caller.getPublicId(), msg );
         }
         else {
@@ -160,7 +160,7 @@ public class BasicHubService implements HubService {
         Client recipient = getClient( recipientId );
         String msgId = MessageId.encode( caller, msgTag, false );
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
-            recipient.getCallable()
+            recipient.getReceiver()
                      .receiveCall( caller.getPublicId(), msgId, msg );
         }
         else {
@@ -179,7 +179,7 @@ public class BasicHubService implements HubService {
             Client recipient = recipients[ ic ];
             if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
                 try {
-                    recipient.getCallable()
+                    recipient.getReceiver()
                              .receiveNotification( caller.getPublicId(), msg );
                 }
                 catch ( SampException e ) {
@@ -201,7 +201,7 @@ public class BasicHubService implements HubService {
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             Client recipient = recipients[ ic ];
             if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
-                recipient.getCallable()
+                recipient.getReceiver()
                          .receiveCall( caller.getPublicId(), msgId, msg );
             }
         }
@@ -234,7 +234,7 @@ public class BasicHubService implements HubService {
             }
         }
         else {
-            sender.getCallable()
+            sender.getReceiver()
                   .receiveResponse( caller.getPublicId(), senderTag, resp );
         }
     }
@@ -257,7 +257,7 @@ public class BasicHubService implements HubService {
                                      e );
         }
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
-            recipient.getCallable()
+            recipient.getReceiver()
                      .receiveCall( caller.getPublicId(), hubMsgId.toString(),
                                    msg );
             timeout = Math.min( Math.max( 0, timeout ),

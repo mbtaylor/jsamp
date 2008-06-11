@@ -2,7 +2,6 @@ package org.astrogrid.samp.hub;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.astrogrid.samp.CallableClient;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
@@ -15,14 +14,14 @@ public class Client {
     private final String privateKey_;
     private Subscriptions subscriptions_;
     private Metadata metadata_;
-    private CallableClient callable_;
+    private Receiver receiver_;
 
     public Client( String privateKey, String publicId ) {
         privateKey_ = privateKey;
         publicId_ = publicId;
         subscriptions_ = new Subscriptions();
         metadata_ = new Metadata();
-        callable_ = new NoCallable();
+        receiver_ = new NoReceiver();
     }
 
     public String getPrivateKey() {
@@ -58,30 +57,29 @@ public class Client {
                             : null;
     }
 
-    public void setCallable( CallableClient callable ) {
-        callable_ = callable == null ? new NoCallable() : callable;
+    public void setCallable( Receiver receiver ) {
+        receiver_ = receiver == null ? new NoReceiver() : receiver;
     }
 
-    public CallableClient getCallable() {
-        return callable_;
+    public Receiver getReceiver() {
+        return receiver_;
     }
 
     public boolean isCallable() {
-        return ! ( callable_ instanceof NoCallable );
+        return ! ( receiver_ instanceof NoReceiver );
     }
 
-    private class NoCallable implements CallableClient {
-        public void receiveNotification( String senderId, Message message )
+    private class NoReceiver implements Receiver {
+        public void receiveNotification( String senderId, Map message )
                 throws SampException {
             refuse();
         }
-        public void receiveCall( String senderId, String msgId,
-                                 Message message )
+        public void receiveCall( String senderId, String msgId, Map message )
                 throws SampException {
             refuse();
         }
         public void receiveResponse( String responderId, String msgId,
-                                     Response response )
+                                     Map response )
                 throws SampException {
             refuse();
         }
