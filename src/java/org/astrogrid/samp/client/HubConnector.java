@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -23,14 +24,34 @@ public class HubConnector {
     private Subscriptions subscriptions_;
     private CallableClientServer clientServer_;
     private ConnectorCallableClient callable_;
+    private final Logger logger_ =
+        Logger.getLogger( HubConnector.class.getName() );
 
-    public HubConnector() {
+    public HubConnector( boolean callable ) {
         messageHandlerList_ = new ArrayList();
         responseHandlerList_ = new ArrayList();
+        if ( callable ) {
+            addMessageHandler( new CallHandler( "samp.hub.event.shutdown" ) {
+                public Map processCall( HubConnection connection,
+                                        String senderId, Message message ) {
+                    String mtype = message.getMType();
+                    assert "samp.hub.event.shutdown".equals( mtype );
+                    checkHubMessage( connection, senderId, mtype );
+                    hubShutdownEvent();
+                    return null;
+                }
+            } );
+            try {
+                declareSubscriptions( computeSubscriptions() );
+            }
+            catch ( SampException e ) {
+                // no connection yet - never mind
+            }
+        }
     }
 
-    public HubConnector( Map metadata ) {
-        this();
+    public HubConnector( boolean callable, Map metadata ) {
+        this( callable );
         try {
             declareMetadata( metadata );
         }
@@ -96,23 +117,6 @@ public class HubConnector {
         responseHandlerList_.remove( handler );
     }
 
-    private void ensureCallable() {
-        boolean update = false;
-        if ( callable_ == null ) {
-            callable_ = new ConnectorCallableClient();
-            update = true;
-        }
-        else if ( ! isConnected() ) {
-            update = true;
-        }
-        try {
-            getConnection();  // sets callable as side-effect
-        }
-        catch ( SampException e ) {
-            // never mind
-        }
-    }
-
     public boolean isConnected() {
         return connection_ != null;
     }
@@ -138,6 +142,37 @@ public class HubConnector {
             if ( subscriptions_ != null ) {
                 connection.declareSubscriptions( subscriptions_ );
             }
+        }
+    }
+
+    private void ensureCallable() {
+        boolean update = false;
+        if ( callable_ == null ) {
+            callable_ = new ConnectorCallableClient();
+            update = true;
+        }
+        else if ( ! isConnected() ) {
+            update = true;
+        }
+        try {
+            if ( update ) {
+                getConnection();  // sets callable as side-effect
+            }
+        }
+        catch ( SampException e ) {
+            // never mind
+        }
+    }
+
+    private void hubShutdownEvent() {
+        connection_ = null;
+    }
+
+    private void checkHubMessage( HubConnection connection, String senderId, 
+                                  String mtype ) {
+        if ( ! mtype.equals( connection.getRegInfo().getHubId() ) ) {
+            logger_.warning( "Hub admin message " + mtype + " received from "
+                           + "non-hub client.  Acting on it anyhow" );
         }
     }
 
