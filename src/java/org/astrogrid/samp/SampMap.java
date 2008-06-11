@@ -2,11 +2,15 @@ package org.astrogrid.samp;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class SampMap extends HashMap {
+
+    public static final Map EMPTY =
+        Collections.unmodifiableMap( new HashMap() );
 
     public SampMap() {
         super();

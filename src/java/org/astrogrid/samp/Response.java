@@ -12,6 +12,9 @@ public class Response extends SampMap {
     public static final String WARNING_STATUS = "samp.warning";
     public static final String ERROR_STATUS = "samp.error";
 
+    public static final Response OK = 
+        new Response( OK_STATUS, EMPTY, null );
+
     public Response( String status, Map result, ErrInfo errinfo ) {
         put( STATUS_KEY, status );
         if ( result != null ) {
