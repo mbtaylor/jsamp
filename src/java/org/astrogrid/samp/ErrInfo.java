@@ -1,5 +1,8 @@
 package org.astrogrid.samp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Map;
 
 public class ErrInfo extends SampMap {
@@ -11,6 +14,17 @@ public class ErrInfo extends SampMap {
 
     public ErrInfo() {
         super();
+    }
+
+    public ErrInfo( Throwable e ) {
+        String txt = e.getMessage();
+        if ( txt == null || txt.trim().length() == 0 ) {
+            txt = e.getClass().getName();
+        }
+        put( ERRORTXT_KEY, txt );
+        put( USERTXT_KEY, e.toString() );
+        put( DEBUGTXT_KEY, getStackTrace( e ) );
+        put( CODE_KEY, e.getClass().getName() );
     }
 
     public ErrInfo( Map map ) {
@@ -65,5 +79,27 @@ public class ErrInfo extends SampMap {
         return ( map instanceof ErrInfo || map == null )
              ? (ErrInfo) map
              : new ErrInfo( map );
+    }
+
+    private static String getStackTrace( Throwable e ) {
+        byte[] bbuf;
+        try {
+            ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+            e.printStackTrace( new PrintStream( bOut ) );
+            bOut.close();
+            bbuf = bOut.toByteArray();
+        }
+        catch ( IOException ioex ) {
+            assert false;
+            return "error generating stacktrace";
+        }
+        StringBuffer sbuf = new StringBuffer( bbuf.length );
+        for ( int ic = 0; ic < bbuf.length; ic++ ) {
+            char c = (char) bbuf[ ic ];
+            if ( c >= 0x20 && c <= 0x7e ) {
+                sbuf.append( c );
+            }
+        }
+        return sbuf.toString();
     }
 }
