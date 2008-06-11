@@ -7,6 +7,7 @@
   <property name="libdir" value="${srcdir}/lib"/>
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
+  <property name="build.docs" value="${build.dir}/docs"/>
 
   <path id="libpath">
     <pathelement path="${libdir}/xmlrpc-1.2-b1.jar"/>
@@ -37,9 +38,23 @@
     </jar>
   </target>
 
+  <target name="javadoc"
+          description="builds API documentation">
+    <mkdir dir="${build.docs}"/>
+    <javadoc useexternalfile="yes"
+             destdir="${build.docs}"
+             source="1.4"
+             classpathref="libpath">
+      <packageset dir="${javadir}" defaultexcludes="yes">
+        <include name="**"/>
+      </packageset>
+    </javadoc>
+  </target>
+
   <target name="clean"
           description="cleans up">
     <delete dir="${build.dir}"/>
+    <delete dir="${build.docs}"/>
     <delete file="${basedir}/samp.jar"/>
   </target>
 
