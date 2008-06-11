@@ -30,7 +30,13 @@ public class HubConnector {
     }
 
     public HubConnector( Map metadata ) {
-        declareMetadata( metadata );
+        this();
+        try {
+            declareMetadata( metadata );
+        }
+        catch ( SampException e ) {
+            throw new AssertionError( e );
+        }
     }
 
     public void declareMetadata( Map metadata ) throws SampException {
