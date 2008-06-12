@@ -22,6 +22,7 @@ public class XmlRpcHubConnection implements HubConnection {
     private final XmlRpcClient xClient_;
     private final RegInfo regInfo_;
     private CallableClientServer callableServer_;
+    private boolean unregistered_;
 
     public XmlRpcHubConnection( URL hubUrl, String secret )
             throws SampException {
@@ -36,6 +37,11 @@ public class XmlRpcHubConnection implements HubConnection {
         else {
             throw new SampException( "Bad return value from hub register method"                                   + " - not a map" );
         }
+        Runtime.getRuntime().addShutdownHook( new Thread() {
+            public void run() {
+                finish();
+            }
+        } );
     }
 
     public RegInfo getRegInfo() {
@@ -65,6 +71,7 @@ public class XmlRpcHubConnection implements HubConnection {
         if ( callableServer_ != null ) {
             callableServer_.removeClient( regInfo_.getPrivateKey() );
         }
+        unregistered_ = true;
     }
 
     public void declareMetadata( Map meta ) throws SampException {
@@ -150,6 +157,25 @@ public class XmlRpcHubConnection implements HubConnection {
         catch ( IOException e ) {
             throw new SampException( e.getMessage(), e );
         }
+    }
+
+    private void finish() {
+        if ( ! unregistered_ ) {
+            try {
+                unregister();
+            }
+            catch ( SampException e ) {
+            }
+        }
+    }
+
+    public void finalize() throws Exception {
+        try {
+            super.finalize();
+        }
+        catch ( Throwable e ) {
+        }
+        finish();
     }
 
     private static Object asType( Object obj, Class clazz, String name )
