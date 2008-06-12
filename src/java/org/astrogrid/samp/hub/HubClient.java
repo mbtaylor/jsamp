@@ -8,7 +8,7 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
-public class Client {
+public class HubClient {
 
     private final String publicId_;
     private final String privateKey_;
@@ -16,7 +16,7 @@ public class Client {
     private Metadata metadata_;
     private Receiver receiver_;
 
-    public Client( String privateKey, String publicId ) {
+    public HubClient( String privateKey, String publicId ) {
         privateKey_ = privateKey;
         publicId_ = publicId;
         subscriptions_ = new Subscriptions();
@@ -84,7 +84,7 @@ public class Client {
             refuse();
         }
         private void refuse() throws SampException {
-            throw new SampException( "Client " + Client.this.toString()
+            throw new SampException( "Client " + HubClient.this.toString()
                                    + " is not callable" );
         }
     }
