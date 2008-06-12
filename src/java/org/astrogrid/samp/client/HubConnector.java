@@ -7,7 +7,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ButtonModel;
+import javax.swing.DefaultButtonModel;
+import javax.swing.SwingUtilities;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -19,39 +23,51 @@ public class HubConnector {
 
     private final List messageHandlerList_;
     private final List responseHandlerList_;
+    private final ConnectorCallableClient callable_;
+    private final Map responseMap_;
+    private RegisterButtonModel regModel_;
+    private boolean isActive_;
     private HubConnection connection_;
     private Metadata metadata_;
     private Subscriptions subscriptions_;
     private CallableClientServer clientServer_;
-    private ConnectorCallableClient callable_;
+    private int iCall_;
     private final Logger logger_ =
         Logger.getLogger( HubConnector.class.getName() );
 
-    public HubConnector( boolean callable ) {
+    public HubConnector() {
         messageHandlerList_ = new ArrayList();
         responseHandlerList_ = new ArrayList();
-        if ( callable ) {
-            addMessageHandler( new CallHandler( "samp.hub.event.shutdown" ) {
-                public Map processCall( HubConnection connection,
-                                        String senderId, Message message ) {
-                    String mtype = message.getMType();
-                    assert "samp.hub.event.shutdown".equals( mtype );
-                    checkHubMessage( connection, senderId, mtype );
-                    hubShutdownEvent();
-                    return null;
+        callable_ = new ConnectorCallableClient();
+        responseMap_ = Collections.synchronizedMap( new HashMap() );
+        addMessageHandler( new CallHandler( "samp.hub.event.shutdown" ) {
+            public Map processCall( HubConnection connection,
+                                    String senderId, Message message ) {
+                String mtype = message.getMType();
+                assert "samp.hub.event.shutdown".equals( mtype );
+                checkHubMessage( connection, senderId, mtype );
+                disconnect();
+                return null;
+            }
+        } );
+        addResponseHandler( new ResponseHandler() {
+            public boolean ownsTag( String msgTag ) {
+                return responseMap_.containsKey( msgTag );
+            }
+            public void receiveResponse( HubConnection connection,
+                                         String responderId, String msgTag,
+                                         Response response ) {
+                if ( responseMap_.containsKey( msgTag ) &&
+                     responseMap_.get( msgTag ) == null ) {
+                    responseMap_.put( msgTag, response );
+                    responseMap_.notifyAll();
                 }
-            } );
-            try {
-                declareSubscriptions( computeSubscriptions() );
             }
-            catch ( SampException e ) {
-                // no connection yet - never mind
-            }
-        }
+        } );
     }
 
-    public HubConnector( boolean callable, Map metadata ) {
-        this( callable );
+    public HubConnector( Map metadata ) {
+        this();
         try {
             declareMetadata( metadata );
         }
@@ -77,7 +93,6 @@ public class HubConnector {
             throws SampException {
         Subscriptions subs = Subscriptions.asSubscriptions( subscriptions );
         subs.check();
-        ensureCallable();
         subscriptions_ = subs;
         if ( isConnected() ) {
             connection_.declareSubscriptions( subs );
@@ -100,7 +115,6 @@ public class HubConnector {
     }
 
     public void addMessageHandler( MessageHandler handler ) {
-        ensureCallable();
         messageHandlerList_.add( handler );
     }
 
@@ -109,12 +123,84 @@ public class HubConnector {
     }
 
     public void addResponseHandler( ResponseHandler handler ) {
-        ensureCallable();
         responseHandlerList_.add( handler );
     }
 
     public void removeResponseHandler( ResponseHandler handler ) {
         responseHandlerList_.remove( handler );
+    }
+
+    public void setActive( boolean active ) {
+        isActive_ = active;
+        if ( regModel_ != null ) {
+            regModel_.updateState();
+        }
+        if ( active ) {
+            if ( connection_ == null ) {
+                try {
+                    getConnection();
+                }
+                catch ( SampException e ) {
+                    logger_.log( Level.WARNING,
+                                 "Hub connection attempt failed", e );
+                }
+            }
+        }
+        else {
+            HubConnection connection = connection_;
+            if ( connection != null ) {
+                disconnect();
+                try {
+                    connection.unregister();
+                }
+                catch ( SampException e ) {
+                }
+            }
+        }
+    }
+
+    public Response callAndWait( String recipientId, Map msg, int timeout )
+            throws SampException {
+        long finish = timeout > 0
+                    ? System.currentTimeMillis() + timeout * 1000
+                    : Long.MAX_VALUE;  // 3e8 years
+        HubConnection connection = getConnection();
+        String msgTag = generateTag();
+        connection.call( recipientId, msgTag, msg );
+        responseMap_.put( msgTag, null );
+        synchronized ( responseMap_ ) {
+            while ( responseMap_.containsKey( msgTag ) &&
+                    responseMap_.get( msgTag ) == null &&
+                    System.currentTimeMillis() < finish ) {
+                long millis = finish - System.currentTimeMillis();
+                if ( millis > 0 ) {
+                    try {
+                        responseMap_.wait( millis );
+                    }
+                    catch ( InterruptedException e ) {
+                        throw new SampException( "Wait interrupted", e );
+                    }
+                }
+            }
+            if ( responseMap_.containsKey( msgTag ) ) {
+                Response response = (Response) responseMap_.remove( msgTag );
+                if ( response != null ) {
+                    return response;
+                }
+                else {
+                    assert System.currentTimeMillis() >= finish;
+                    throw new SampException( "Synchronous call timeout" );
+                } 
+            }
+            else {
+                if ( connection != connection_ ) {
+                    throw new SampException( "Hub connection lost" );
+                }
+                else {
+                    throw new AssertionError();
+                }
+            }
+        }
     }
 
     public boolean isConnected() {
@@ -123,10 +209,15 @@ public class HubConnector {
 
     public HubConnection getConnection() throws SampException {
         HubConnection connection = connection_;
-        if ( connection == null ) {
+        if ( connection == null && isActive_ ) {
             connection = createConnection();
-            configureConnection( connection );
-            connection_ = connection;
+            if ( connection != null ) {
+                configureConnection( connection );
+                connection_ = connection;
+                if ( regModel_ != null ) {
+                    regModel_.updateState();
+                }
+            }
         }
         return connection;
     }
@@ -145,27 +236,22 @@ public class HubConnector {
         }
     }
 
-    private void ensureCallable() {
-        boolean update = false;
-        if ( callable_ == null ) {
-            callable_ = new ConnectorCallableClient();
-            update = true;
+    public ButtonModel getRegisterModel() {
+        if ( regModel_ == null ) {
+            regModel_ = new RegisterButtonModel();
         }
-        else if ( ! isConnected() ) {
-            update = true;
-        }
-        try {
-            if ( update ) {
-                getConnection();  // sets callable as side-effect
-            }
-        }
-        catch ( SampException e ) {
-            // never mind
-        }
+        return regModel_;
     }
 
-    private void hubShutdownEvent() {
+    private void disconnect() {
         connection_ = null;
+        if ( regModel_ != null ) {
+            regModel_.updateState();
+        }
+        synchronized ( responseMap_ ) {
+            responseMap_.clear();
+            responseMap_.notifyAll();
+        }
     }
 
     private void checkHubMessage( HubConnection connection, String senderId, 
@@ -176,15 +262,24 @@ public class HubConnector {
         }
     }
 
+    private String generateTag() {
+        return this.toString() + ":" + ++iCall_;
+    }
+
     public static HubConnection createConnection() throws SampException {
+        LockInfo lockInfo;
         try {
-            LockInfo lockInfo = LockInfo.readLockFile();
-            lockInfo.check();
-            return new XmlRpcHubConnection( lockInfo.getXmlrpcUrl(),
-                                            lockInfo.getSecret() );
+            lockInfo = LockInfo.readLockFile();
         }
         catch ( IOException e ) {
-            throw new SampException( e );
+            throw new SampException( "Error reading lockfile", e );
+        }
+        if ( lockInfo == null ) {
+            return null;
+        }
+        else {
+            return new XmlRpcHubConnection( lockInfo.getXmlrpcUrl(),
+                                            lockInfo.getSecret() );
         }
     }
 
@@ -227,10 +322,67 @@ public class HubConnector {
         public void receiveResponse( String responderId, String msgTag,
                                      Response response )
                 throws SampException {
+            int handleCount = 0;
             for ( Iterator it = responseHandlerList_.iterator();
                   it.hasNext(); ) {
                 ResponseHandler handler = (ResponseHandler) it.next();
-                handler.receiveResponse( conn_, responderId, msgTag, response );
+                if ( handler.ownsTag( msgTag ) ) {
+                    handleCount++;
+                    handler.receiveResponse( conn_, responderId, msgTag,
+                                             response );
+                }
+            }
+            if ( handleCount == 0 ) {
+                logger_.warning( "No handler for message "
+                               + msgTag + " response" );
+            }
+            else if ( handleCount > 1 ) {
+                logger_.warning( "Multiple (" + handleCount + ")"
+                               + " handlers handled message "
+                               + msgTag + " respose" );
+            }
+        }
+    }
+
+    private class RegisterButtonModel extends DefaultButtonModel {
+
+        public RegisterButtonModel() {
+        }
+
+        public void setSelected( boolean wantSelected ) {
+            boolean wasConnected = isConnected();
+            if ( wantSelected && ! wasConnected ) {
+                try {
+                    getConnection();
+                }
+                catch ( SampException e ) {
+                    logger_.log( Level.WARNING,
+                                 "Hub connection attempt failed", e );
+                }
+            }
+            else if ( ! wantSelected && wasConnected ) {
+                setActive( false );
+            }
+        }
+
+        public boolean isSelected() {
+            return isConnected();
+        }
+
+        public boolean isEnabled() {
+            return super.isEnabled() && isActive_;
+        }
+
+        private void updateState() {
+            if ( SwingUtilities.isEventDispatchThread() ) {
+                fireStateChanged();
+            }
+            else {
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        fireStateChanged();
+                    }
+                } );
             }
         }
     }
