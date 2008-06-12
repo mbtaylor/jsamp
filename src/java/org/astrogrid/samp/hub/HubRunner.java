@@ -143,6 +143,9 @@ public class HubRunner {
             logger_.log( Level.WARNING, "Failed to read lockfile", e );
             return false;
         }
+        if ( info == null ) {
+            return false;
+        }
         URL xurl = info.getXmlrpcUrl();
         if ( xurl != null ) {
             try {
