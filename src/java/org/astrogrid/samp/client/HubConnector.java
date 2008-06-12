@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultButtonModel;
+import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.Message;
@@ -26,6 +27,7 @@ public class HubConnector {
     private final ConnectorCallableClient callable_;
     private final Map responseMap_;
     private RegisterButtonModel regModel_;
+    private ClientTracker clientTracker_;
     private boolean isActive_;
     private HubConnection connection_;
     private Metadata metadata_;
@@ -35,21 +37,25 @@ public class HubConnector {
     private final Logger logger_ =
         Logger.getLogger( HubConnector.class.getName() );
 
+    private static final String SHUTDOWN_MTYPE = "samp.hub.event.shutdown";
+
     public HubConnector() {
         messageHandlerList_ = new ArrayList();
         responseHandlerList_ = new ArrayList();
         callable_ = new ConnectorCallableClient();
         responseMap_ = Collections.synchronizedMap( new HashMap() );
-        addMessageHandler( new CallHandler( "samp.hub.event.shutdown" ) {
+        clientTracker_ = new ClientTracker();
+        addMessageHandler( new AbstractMessageHandler( SHUTDOWN_MTYPE ) {
             public Map processCall( HubConnection connection,
                                     String senderId, Message message ) {
                 String mtype = message.getMType();
-                assert "samp.hub.event.shutdown".equals( mtype );
+                assert SHUTDOWN_MTYPE.equals( mtype );
                 checkHubMessage( connection, senderId, mtype );
                 disconnect();
                 return null;
             }
         } );
+        addMessageHandler( clientTracker_ );
         addResponseHandler( new ResponseHandler() {
             public boolean ownsTag( String msgTag ) {
                 return responseMap_.containsKey( msgTag );
@@ -217,6 +223,7 @@ public class HubConnector {
                 if ( regModel_ != null ) {
                     regModel_.updateState();
                 }
+                clientTracker_.initialise( connection );
             }
         }
         return connection;
@@ -243,11 +250,20 @@ public class HubConnector {
         return regModel_;
     }
 
+    public ListModel getClientListModel() {
+        return clientTracker_.getClientListModel();
+    }
+
+    public Map getClientMap() {
+        return clientTracker_.getClientMap();
+    }
+
     private void disconnect() {
         connection_ = null;
         if ( regModel_ != null ) {
             regModel_.updateState();
         }
+        clientTracker_.clear();
         synchronized ( responseMap_ ) {
             responseMap_.clear();
             responseMap_.notifyAll();
@@ -255,7 +271,7 @@ public class HubConnector {
     }
 
     private void checkHubMessage( HubConnection connection, String senderId, 
-                                  String mtype ) {
+                                 String mtype ) {
         if ( ! mtype.equals( connection.getRegInfo().getHubId() ) ) {
             logger_.warning( "Hub admin message " + mtype + " received from "
                            + "non-hub client.  Acting on it anyhow" );
