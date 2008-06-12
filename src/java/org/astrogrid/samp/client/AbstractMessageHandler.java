@@ -10,17 +10,17 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
-public abstract class CallHandler implements MessageHandler {
+public abstract class AbstractMessageHandler implements MessageHandler {
 
     private Subscriptions subscriptions_;
     private final Logger logger_ =
-        Logger.getLogger( CallHandler.class.getName() );
+        Logger.getLogger( AbstractMessageHandler.class.getName() );
 
-    public CallHandler( Map subscriptions ) {
+    protected AbstractMessageHandler( Map subscriptions ) {
         setSubscriptions( subscriptions );
     }
 
-    public CallHandler( String[] mtypes ) {
+    protected AbstractMessageHandler( String[] mtypes ) {
         Map subs = new HashMap();
         for ( int i = 0; i < mtypes.length; i++ ) {
             subs.put( mtypes[ i ], new HashMap() );
@@ -28,7 +28,7 @@ public abstract class CallHandler implements MessageHandler {
         setSubscriptions( subs );
     }
 
-    public CallHandler( String mtype ) {
+    protected AbstractMessageHandler( String mtype ) {
         this( new String[] { mtype } );
     }
 
