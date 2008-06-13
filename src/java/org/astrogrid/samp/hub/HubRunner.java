@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.Date;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -60,15 +61,35 @@ public class HubRunner {
                          + ":" + port + "/" );
         server_.addHandler( "samp.hub", new HubXmlRpcHandler( hub ) );
         lockInfo_ = new LockInfo( secret, url.toString() );
+        lockInfo_.put( "hub.impl", hub.getClass().getName() );
+        lockInfo_.put( "hub.start.millis",
+                       Long.toString( System.currentTimeMillis() ) );
         if ( lockfile != null ) {
-            LockWriter writer =
-                new LockWriter( new FileOutputStream( lockfile ) );
+            FileOutputStream out = new FileOutputStream( lockfile );
+            LockWriter writer = new LockWriter( out );
             try {
+                writer.writeComment( "SAMP Standard Profile lockfile written "
+                                   + new Date() );
+                out.flush();
+                try {
+                    LockWriter.setLockPermissions( lockfile );
+                }
+                catch ( IOException e ) {
+                    logger_.log( Level.WARNING,
+                                 "Failed attempt to change " + lockfile
+                               + " permissions to user read only"
+                               + " - possible security implications", e );
+                }
                 writer.writeAssignments( lockInfo_ );
             }
             finally {
                 try {
-                    writer.close();
+                    if ( writer != null ) {
+                        writer.close();
+                    }
+                    else if ( out != null ) {
+                        out.close();
+                    }
                 }
                 catch ( IOException e ) {
                 }
