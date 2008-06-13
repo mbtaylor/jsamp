@@ -113,24 +113,29 @@ public class BasicHubService implements HubService {
     }
 
     public List getRegisteredClients( Object id ) throws SampException {
-        checkCaller( id );
+        HubClient caller = getCaller( id );
         HubClient[] clients = clientSet_.getClients();
         List idList = new ArrayList( clients.length );
         for ( int ic = 0; ic < clients.length; ic++ ) {
-            idList.add( clients[ ic ].getPublicId() );
+            if ( ! clients[ ic ].equals( caller ) ) {
+                idList.add( clients[ ic ].getPublicId() );
+            }
         }
         return idList;
     }
 
     public Map getSubscribedClients( Object id, String mtype )
             throws SampException {
+        HubClient caller = getCaller( id );
         HubClient[] clients = clientSet_.getClients();
         Map subMap = new TreeMap(); 
         for ( int ic = 0; ic < clients.length; ic++ ) {
             HubClient client = clients[ ic ];
-            Map sub = client.getSubscriptions().getSubscription( mtype );
-            if ( sub != null ) {
-                subMap.put( client.getPublicId(), sub );
+            if ( ! client.equals( caller ) ) {
+                Map sub = client.getSubscriptions().getSubscription( mtype );
+                if ( sub != null ) {
+                    subMap.put( client.getPublicId(), sub );
+                }
             }
         }
         return subMap;
