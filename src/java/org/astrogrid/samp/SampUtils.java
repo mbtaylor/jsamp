@@ -196,7 +196,7 @@ public class SampUtils {
         }
     }
 
-    private static boolean isWindows() {
+    public static boolean isWindows() {
         String osname = System.getProperty( "os.name" );
         if ( osname.toLowerCase().startsWith( "windows" ) ||
              osname.toLowerCase().indexOf( "microsoft" ) >= 0 ) {
