@@ -27,7 +27,7 @@ public class LockInfo extends SampMap {
     private static final Pattern ASSIGNMENT_REGEX =
         Pattern.compile( "(" + TOKEN_REGEX.pattern() + ")=(.*)" );
     private static final Pattern COMMENT_REGEX =
-        Pattern.compile( "#[0x20-0x7f]*" );
+        Pattern.compile( "#[\u0020-\u007f]*" );
 
     public LockInfo() {
     }
@@ -110,7 +110,7 @@ public class LockInfo extends SampMap {
             }
             else {
                 logger_.warning( "Ignoring lockfile line with bad syntax" );
-  System.out.println( line );
+                logger_.info( "Bad line: " + line );
             }
         }
         in.close();
