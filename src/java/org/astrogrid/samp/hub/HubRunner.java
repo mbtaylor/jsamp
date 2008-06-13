@@ -102,23 +102,6 @@ public class HubRunner {
             return;
         }
         shutdown_ = true;
-        if ( hub_ != null ) {
-            try {
-                hub_.shutdown();
-            }
-            catch ( Throwable e ) {
-                logger_.log( Level.WARNING, "Hub service shutdown failed", e );
-            }
-        }
-        if ( server_ != null ) {
-            try {
-                server_.shutdown();
-            }
-            catch ( Throwable e ) {
-                logger_.log( Level.WARNING, "XMLRPC server shutdown failed",
-                             e );
-            }
-        }
         if ( lockfile_ != null ) {
             if ( lockfile_.exists() ) {
                 try {
@@ -141,6 +124,23 @@ public class HubRunner {
             }
             else {
                 logger_.warning( "Lockfile " + lockfile_ + " has disappeared" );
+            }
+        }
+        if ( hub_ != null ) {
+            try {
+                hub_.shutdown();
+            }
+            catch ( Throwable e ) {
+                logger_.log( Level.WARNING, "Hub service shutdown failed", e );
+            }
+        }
+        if ( server_ != null ) {
+            try {
+                server_.shutdown();
+            }
+            catch ( Throwable e ) {
+                logger_.log( Level.WARNING, "XMLRPC server shutdown failed",
+                             e );
             }
         }
     }
