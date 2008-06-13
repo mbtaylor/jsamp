@@ -20,6 +20,7 @@ public class LockInfo extends SampMap {
     public static final String SECRET_KEY = "samp.secret";
     public static final String XMLRPCURL_KEY = "samp.hub.xmlrpc.url";
     public static final String VERSION_KEY = "samp.profile.version";
+    public static final String DEFAULT_VERSION_VALUE = "1.0";
 
     private static final Pattern TOKEN_REGEX =
         Pattern.compile( "[a-zA-Z0-9\\-_\\.]+" );
@@ -38,6 +39,7 @@ public class LockInfo extends SampMap {
     public LockInfo( String secret, String xmlrpcurl ) {
         put( SECRET_KEY, secret );
         put( XMLRPCURL_KEY, xmlrpcurl );
+        put( VERSION_KEY, DEFAULT_VERSION_VALUE );
     }
 
     public URL getXmlrpcUrl() throws DataException {
