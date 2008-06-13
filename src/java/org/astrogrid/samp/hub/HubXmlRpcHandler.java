@@ -17,9 +17,9 @@ public class HubXmlRpcHandler extends SampXmlRpcHandler {
         HubActorImpl( HubService service ) {
             service_ = service;
         }
-        public void isAlive() {
+        public void ping() {
         }
-        public void isAlive( String privateKey ) {
+        public void ping( String privateKey ) {
         }
         public Map register( String secret ) throws SampException {
             return service_.register( secret );

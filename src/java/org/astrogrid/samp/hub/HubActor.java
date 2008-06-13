@@ -9,8 +9,8 @@ import org.astrogrid.samp.SampException;
  * because it's used in another package.  Rats.
  */
 public interface HubActor {
-    void isAlive();
-    void isAlive( String privateKey );
+    void ping();
+    void ping( String privateKey );
     Map register( String secret ) throws SampException;
     void unregister( String privateKey ) throws SampException;
     void declareMetadata( String privateKey, Map metadata )

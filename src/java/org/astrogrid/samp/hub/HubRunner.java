@@ -171,11 +171,11 @@ public class HubRunner {
         if ( xurl != null ) {
             try {
                 XmlRpcClientLite client = new XmlRpcClientLite( xurl );
-                client.execute( "samp.hub.isAlive", new Vector() );
+                client.execute( "samp.hub.ping", new Vector() );
                 return true;
             }
             catch ( Exception e ) {
-                logger_.log( Level.WARNING, "Hub isAlive method failed", e );
+                logger_.log( Level.WARNING, "Hub ping method failed", e );
                 return false;
             }
         }

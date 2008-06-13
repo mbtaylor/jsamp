@@ -10,7 +10,7 @@ import org.astrogrid.samp.Subscriptions;
 public interface HubConnection {
     RegInfo getRegInfo();
     void setCallable( CallableClient callable ) throws SampException;
-    void isAlive() throws SampException;
+    void ping() throws SampException;
     void unregister() throws SampException;
     void declareMetadata( Map meta ) throws SampException;
     Metadata getMetadata( String clientId ) throws SampException;

@@ -48,8 +48,8 @@ public class XmlRpcHubConnection implements HubConnection {
         return regInfo_;
     }
 
-    public void isAlive() throws SampException {
-        rawExec( "samp.hub.isAlive", new Vector() );
+    public void ping() throws SampException {
+        rawExec( "samp.hub.ping", new Vector() );
     }
 
     public void setCallable( CallableClient callable ) throws SampException {
