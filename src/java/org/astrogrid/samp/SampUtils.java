@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.util.Iterator;
@@ -13,13 +14,6 @@ import java.util.Map;
 public class SampUtils {
 
     public static final String LOCKFILE_NAME = ".samp";
-
-    /**
-     * True if spurious java.util.NoSuchElementExceptions should be flagged.
-     * If future JVMs fix this bug, this should be set false or the code
-     * removed.
-     */
-    public static boolean WARN_ABOUT_NOSUCHELEMENTEXCEPTIONS = true;
 
     private SampUtils() {
     }
@@ -123,31 +117,41 @@ public class SampUtils {
     /**
      * Returns an unused port number on the local host.
      *
-     * @param   startPort  suggested port number; ports nearby will be
-     *          chosen if this is in use
+     * @param   startPort  suggested port number; may or may not be used
      * @return  unused port
      */
     public static int getUnusedPort( int startPort ) throws IOException {
+        return true ? findAnyPort()
+                    : scanForPort( startPort );
+    }
+       
+    private static int findAnyPort() throws IOException {
+        ServerSocket socket = new ServerSocket( 0 );
+        try {
+            return socket.getLocalPort();
+        }
+        finally {
+            try {
+                socket.close();
+            }
+            catch ( IOException e ) {
+            }
+        }
+    }
+
+    private static int scanForPort( int startPort ) throws IOException {
         final int nTry = 20;
         for ( int iPort = startPort; iPort < startPort + nTry; iPort++ ) {
             try {
                 Socket trySocket = new Socket( "localhost", iPort );
                 if ( ! trySocket.isClosed() ) {
-
-                    // This line causes "java.util.NoSuchElementException" to
-                    // be written to System.err, at least at J2SE1.4.
-                    // Not my fault!
-                    if ( WARN_ABOUT_NOSUCHELEMENTEXCEPTIONS ) {
-                        WARN_ABOUT_NOSUCHELEMENTEXCEPTIONS = false;
-                        System.err.println(
-                            "Please ignore spurious \""
-                          + "java.util.NoSuchElementException\" messages." );
-                    }
+                    trySocket.shutdownOutput();
+                    trySocket.shutdownInput();
                     trySocket.close();
                 }
             }
             catch ( ConnectException e ) {
-
+    
                 /* Can't connect - this hopefully means that the socket is
                  * unused. */
                 return iPort;
