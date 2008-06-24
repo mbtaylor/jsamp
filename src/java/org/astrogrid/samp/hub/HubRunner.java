@@ -65,6 +65,7 @@ public class HubRunner {
         lockInfo_.put( "hub.start.millis",
                        Long.toString( System.currentTimeMillis() ) );
         if ( lockfile != null ) {
+            logger_.info( "Writing new lockfile " + lockfile );
             FileOutputStream out = new FileOutputStream( lockfile );
             LockWriter writer = new LockWriter( out );
             try {
@@ -73,11 +74,13 @@ public class HubRunner {
                 out.flush();
                 try {
                     LockWriter.setLockPermissions( lockfile );
+                    logger_.info( "Lockfile permissions set to "
+                                + "user access only" );
                 }
                 catch ( IOException e ) {
                     logger_.log( Level.WARNING,
                                  "Failed attempt to change " + lockfile
-                               + " permissions to user read only"
+                               + " permissions to user access only"
                                + " - possible security implications", e );
                 }
                 writer.writeAssignments( lockInfo_ );
@@ -109,7 +112,10 @@ public class HubRunner {
                     if ( lockInfo.getSecret()
                         .equals( lockInfo_.getSecret() ) ) {
                         assert lockInfo.equals( lockInfo_ );
-                        lockfile_.delete();
+                        boolean deleted = lockfile_.delete();
+                        logger_.info( "Lockfile " + lockfile_ + " "
+                                    + ( deleted ? "deleted"
+                                                : "deletion attempt failed" ) );
                     }
                     else {
                         logger_.warning( "Lockfile " + lockfile_ + " has been "
