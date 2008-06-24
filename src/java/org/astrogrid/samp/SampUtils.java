@@ -139,6 +139,13 @@ public class SampUtils {
         }
     }
 
+    /**
+     * Two problems with this one - it may be a bit inefficient, and 
+     * there's an annoying bug in the Apache XML-RPC WebServer class
+     * which causes it to print "java.util.NoSuchElementException" to
+     * the server's System.err for every port scanned by this routine 
+     * that an org.apache.xmlrpc.WebServer server is listening on.
+     */
     private static int scanForPort( int startPort ) throws IOException {
         final int nTry = 20;
         for ( int iPort = startPort; iPort < startPort + nTry; iPort++ ) {
