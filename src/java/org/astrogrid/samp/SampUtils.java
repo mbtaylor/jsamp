@@ -2,7 +2,6 @@ package org.astrogrid.samp;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.Socket;
@@ -117,7 +116,8 @@ public class SampUtils {
     }
 
     public static File getLockFile() {
-        return new File( getHomeDir(), LOCKFILE_NAME );
+        return new File( Platform.getPlatform().getHomeDirectory(),
+                         LOCKFILE_NAME );
     }
 
     /**
@@ -155,55 +155,5 @@ public class SampUtils {
         }
         throw new IOException( "Can't locate an unused port in range " +
                                startPort + " ... " + ( startPort + nTry ) );
-    }
-
-
-    private static File getHomeDir() {
-        if ( ! isWindows() ) {
-            return new File( System.getProperty( "user.home" ) );
-        }
-        else {
-            String userprofile = null;
-            try {
-                userprofile = System.getenv( "USERPROFILE" );
-            }
-
-            // System.getenv is unimplemented at 1.4, and throws an Error.
-            catch ( Throwable e ) {
-                try {
-                    Process proc = Runtime.getRuntime().exec( new String[] {
-                        "cmd", "/c", "echo", "%USERPROFILE%",
-                    } );
-                    proc.waitFor();
-                    InputStream is = proc.getInputStream();
-                    StringBuffer sbuf = new StringBuffer();
-                    for ( int c; ( c = is.read() ) >= 0; ) {
-                        sbuf.append( (char) c );
-                    }
-                    is.close();
-                    userprofile = sbuf.toString();
-                }
-                catch ( Throwable e2 ) {
-                    userprofile = null;
-                }
-            }
-            if ( userprofile != null && userprofile.trim().length() > 0 ) {
-                return new File( userprofile );
-            }
-            else {
-                return new File( System.getProperty( "user.home" ) );
-            }
-        }
-    }
-
-    public static boolean isWindows() {
-        String osname = System.getProperty( "os.name" );
-        if ( osname.toLowerCase().startsWith( "windows" ) ||
-             osname.toLowerCase().indexOf( "microsoft" ) >= 0 ) {
-            return true;
-        }
-        else {
-            return false;
-        }
     }
 }
