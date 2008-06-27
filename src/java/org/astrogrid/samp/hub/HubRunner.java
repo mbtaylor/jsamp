@@ -192,6 +192,8 @@ public class HubRunner {
     }
 
     public static void main( String[] args ) throws IOException {
-        new HubRunner( new BasicHubService(), SampUtils.getLockFile() );
+        BasicHubService hubService = new BasicHubService();
+        hubService.start();
+        new HubRunner( hubService, SampUtils.getLockFile() );
     }
 }
