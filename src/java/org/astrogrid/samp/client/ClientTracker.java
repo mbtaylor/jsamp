@@ -12,7 +12,9 @@ import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
+import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
@@ -62,13 +64,13 @@ class ClientTracker extends AbstractMessageHandler {
                            ? new String[ 0 ]
                            : connection.getRegisteredClients();
         int nc = clientIds.length;
-        Client[] clients = new Client[ nc ];
+        TrackedClient[] clients = new TrackedClient[ nc ];
         for ( int ic = 0; ic < nc; ic++ ) {
-            clients[ ic ] = new Client( clientIds[ ic ] );
+            clients[ ic ] = new TrackedClient( clientIds[ ic ] );
         }
         clientModel_.setClients( clients );
         for ( int ic = 0; ic < nc; ic++ ) {
-            Client client = clients[ ic ];
+            TrackedClient client = clients[ ic ];
             String id = client.getId();
             client.setMetadata( connection.getMetadata( id ) );
             client.setSubscriptions( connection.getSubscriptions( id ) );
@@ -89,19 +91,19 @@ class ClientTracker extends AbstractMessageHandler {
                                               + mtype );
         }
         if ( REGISTER_MTYPE.equals( mtype ) ) {
-            clientModel_.addClient( new Client( id ) );
+            clientModel_.addClient( new TrackedClient( id ) );
         }
         else if ( UNREGISTER_MTYPE.equals( mtype ) ) {
-            Client client = (Client) clientMap_.get( id );
+            TrackedClient client = (TrackedClient) clientMap_.get( id );
             clientModel_.removeClient( client );
         }
         else if ( METADATA_MTYPE.equals( mtype ) ) {
-            Client client = (Client) clientMap_.get( id );
+            TrackedClient client = (TrackedClient) clientMap_.get( id );
             client.setMetadata( (Map) message.getParams().get( "metadata" ) );
             clientModel_.updatedClient( client );
         }
         else if ( SUBSCRIPTIONS_MTYPE.equals( mtype ) ) {
-            Client client = (Client) clientMap_.get( id );
+            TrackedClient client = (TrackedClient) clientMap_.get( id );
             client.setSubscriptions( (Map) message.getParams()
                                                   .get( "subscriptions" ) );
             clientModel_.updatedClient( client );
@@ -110,6 +112,51 @@ class ClientTracker extends AbstractMessageHandler {
             throw new IllegalArgumentException( mtype );
         }
         return null;
+    }
+
+    private static class TrackedClient implements Client {
+
+        private final String id_;
+        private Metadata metadata_;
+        private Subscriptions subscriptions_;
+
+        public TrackedClient( String id ) {
+            id_ = id;
+        }
+
+        public String getId() {
+            return id_;
+        }
+
+        void setMetadata( Map metadata ) {
+            metadata_ = Metadata.asMetadata( metadata );
+        }
+
+        public Metadata getMetadata() {
+            return metadata_;
+        }
+
+        void setSubscriptions( Map subscriptions ) {
+            subscriptions_ = Subscriptions.asSubscriptions( subscriptions );
+        }
+
+        public Subscriptions getSubscriptions() {
+            return subscriptions_;
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof Client ) {
+                TrackedClient other = (TrackedClient) o;
+                return other.id_.equals( this.id_ );
+            }
+            else {
+                return false;
+            }
+        }
+
+        public int hashCode() {
+            return id_.hashCode();
+        }
     }
 
     private static class ClientListModel implements ListModel {

@@ -2,13 +2,14 @@ package org.astrogrid.samp.hub;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
-public class HubClient {
+public class HubClient implements Client {
 
     private final String publicId_;
     private final String privateKey_;
@@ -28,7 +29,7 @@ public class HubClient {
         return privateKey_;
     }
 
-    public String getPublicId() {
+    public String getId() {
         return publicId_;
     }
 
