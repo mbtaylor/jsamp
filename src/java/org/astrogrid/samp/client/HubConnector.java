@@ -250,10 +250,17 @@ public class HubConnector {
         return regModel_;
     }
 
+    /**
+     * ListModel elements are {@link org.astrogrid.samp.Client}s.
+     */
     public ListModel getClientListModel() {
         return clientTracker_.getClientListModel();
     }
 
+    /**
+     * Map keys are public IDs and values are 
+     * {@link org.astrogrid.samp.Client}s.
+     */
     public Map getClientMap() {
         return clientTracker_.getClientMap();
     }
