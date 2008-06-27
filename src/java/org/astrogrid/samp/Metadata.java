@@ -44,7 +44,7 @@ public class Metadata extends SampMap {
         return (String) get( DESCHTML_KEY );
     }
 
-    public void putIconUrl( String url ) {
+    public void setIconUrl( String url ) {
         put( ICONURL_KEY, url );
     }
 
@@ -52,7 +52,7 @@ public class Metadata extends SampMap {
         return getUrl( ICONURL_KEY );
     }
 
-    public void putDocumentationUrl( String url ) {
+    public void setDocumentationUrl( String url ) {
         put( DOCURL_KEY, url );
     }
 
