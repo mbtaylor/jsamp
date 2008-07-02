@@ -24,9 +24,10 @@ public class BasicHubService implements HubService {
     private final Random random_;
     private final KeyGenerator keyGen_;
     private final SortedMap waiterMap_;
-    private ClientSet clientSet_;
-    private HubClient hubClient_;
+    private final ClientSet clientSet_;
+    private final HubClient hubClient_;
     private int clientCount_;
+    private boolean started_;
     private boolean shutdown_;
     private static final char ID_DELIMITER = '_';
     private final Logger logger_ =
@@ -34,11 +35,19 @@ public class BasicHubService implements HubService {
 
     public static final int MAX_TIMEOUT = 12 * 60 * 60;
     public static final int MAX_WAITERS = 100;
- 
+
     public BasicHubService() {
         random_ = new Random( System.currentTimeMillis() );
         password_ = Long.toHexString( random_.nextLong() );
         keyGen_ = new KeyGenerator( "k:", 16, random_ );
+        hubClient_ = new HubClient( keyGen_.next(), "hub" );
+        Metadata meta = new Metadata();
+        meta.setName( "Hub" );
+        meta.put( "author.name", "Mark Taylor" );
+        meta.put( "author.mail", "m.b.taylor@bristol.ac.uk" );
+        meta.setDescriptionText( getClass().getName() );
+        hubClient_.setMetadata( meta );
+        clientSet_ = new BasicClientSet();
         waiterMap_ =
             Collections
            .synchronizedSortedMap( new TreeMap( MessageId.AGE_COMPARATOR ) );
@@ -51,22 +60,16 @@ public class BasicHubService implements HubService {
     }
 
     public void start() {
-        hubClient_ = createHubClient();
-        clientSet_ = createClientSet();
-        clientSet_.add( hubClient_ );
+        getClientSet().add( getHubClient() );
+        started_ = true;
     }
 
-    protected HubClient createHubClient() {
-        HubClient hubClient = new HubClient( keyGen_.next(), "hub" );
-        Metadata meta = new Metadata();
-        meta.setName( "Hub" );
-        meta.setDescriptionText( getClass().getName() );
-        hubClient.setMetadata( meta );
-        return hubClient;
+    protected HubClient getHubClient() {
+        return hubClient_;
     }
 
-    protected ClientSet createClientSet() {
-        return new BasicClientSet();
+    protected ClientSet getClientSet() {
+        return clientSet_;
     }
 
     public String getPassword() {
@@ -74,16 +77,16 @@ public class BasicHubService implements HubService {
     }
 
     public Map register( Object auth ) throws SampException {
-        if ( hubClient_ == null ) {
+        if ( ! started_ ) {
             throw new SampException( "Not started" );
         }
         if ( password_.equals( auth ) ) {
             HubClient client =
                 new HubClient( keyGen_.next(), "c" + ++clientCount_ );
-            clientSet_.add( client );
+            getClientSet().add( client );
             hubEvent( new Message( "samp.hub.event.register" )
                          .addParam( "id", client.getId() ) );
-            return new RegInfo( hubClient_.getId(), client.getId(),
+            return new RegInfo( getHubClient().getId(), client.getId(),
                                 client.getPrivateKey() );
         }
         else {
@@ -93,7 +96,7 @@ public class BasicHubService implements HubService {
 
     public void unregister( Object id ) throws SampException {
         HubClient caller = getCaller( id );
-        clientSet_.remove( caller );
+        getClientSet().remove( caller );
         hubEvent( new Message( "samp.hub.event.unregister" )
                      .addParam( "id", caller.getId() ) );
     }
@@ -134,7 +137,7 @@ public class BasicHubService implements HubService {
 
     public List getRegisteredClients( Object id ) throws SampException {
         HubClient caller = getCaller( id );
-        HubClient[] clients = clientSet_.getClients();
+        HubClient[] clients = getClientSet().getClients();
         List idList = new ArrayList( clients.length );
         for ( int ic = 0; ic < clients.length; ic++ ) {
             if ( ! clients[ ic ].equals( caller ) ) {
@@ -147,7 +150,7 @@ public class BasicHubService implements HubService {
     public Map getSubscribedClients( Object id, String mtype )
             throws SampException {
         HubClient caller = getCaller( id );
-        HubClient[] clients = clientSet_.getClients();
+        HubClient[] clients = getClientSet().getClients();
         Map subMap = new TreeMap(); 
         for ( int ic = 0; ic < clients.length; ic++ ) {
             HubClient client = clients[ ic ];
@@ -200,7 +203,7 @@ public class BasicHubService implements HubService {
         HubClient caller = getCaller( id );
         Message msg = Message.asMessage( message );
         String mtype = msg.getMType();
-        HubClient[] recipients = clientSet_.getClients();
+        HubClient[] recipients = getClientSet().getClients();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
             if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
@@ -223,7 +226,7 @@ public class BasicHubService implements HubService {
         Message msg = Message.asMessage( message );
         String mtype = msg.getMType();
         String msgId = MessageId.encode( caller, msgTag, false );
-        HubClient[] recipients = clientSet_.getClients();
+        HubClient[] recipients = getClientSet().getClients();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
             if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
@@ -344,7 +347,7 @@ public class BasicHubService implements HubService {
 
     private void hubEvent( Message msg ) {
         try {
-            notifyAll( hubClient_.getPrivateKey(), msg );
+            notifyAll( getHubClient().getPrivateKey(), msg );
         }
         catch ( SampException e ) {
             assert false;
@@ -356,7 +359,7 @@ public class BasicHubService implements HubService {
     }
 
     private HubClient getCaller( Object id ) throws SampException {
-        HubClient caller = clientSet_.getFromPrivateKey( (String) id );
+        HubClient caller = getClientSet().getFromPrivateKey( (String) id );
         if ( caller != null ) {
             return caller;
         }
@@ -366,7 +369,7 @@ public class BasicHubService implements HubService {
     }
 
     private HubClient getClient( String id ) throws SampException {
-        HubClient client = clientSet_.getFromPublicId( id );
+        HubClient client = getClientSet().getFromPublicId( id );
         if ( client != null ) {
             return client;
         }
