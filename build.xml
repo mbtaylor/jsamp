@@ -32,7 +32,7 @@
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
-        <attribute name="Class-Path" value="${classpath}"/>
+        <attribute name="Class-Path" value="src/lib/xmlrpc-1.2-b1.jar"/>
         <attribute name="Main-Class" value="??"/>
       </manifest>
     </jar>
