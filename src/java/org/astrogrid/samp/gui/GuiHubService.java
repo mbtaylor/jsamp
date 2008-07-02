@@ -5,23 +5,35 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractListModel;
+import javax.swing.JFrame;
 import javax.swing.ListModel;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.hub.ClientSet;
 import org.astrogrid.samp.hub.HubClient;
-import org.astrogrid.samp.hub.HubService;
-import org.astrogrid.samp.hub.WrapperHubService;
+import org.astrogrid.samp.hub.BasicHubService;
 
-public class GuiHubService extends WrapperHubService {
+public class GuiHubService extends BasicHubService {
 
-    private GuiClientSet clientSet_;
+    private final GuiClientSet clientSet_;
 
-    public GuiHubService( HubService base ) {
-        super( base );
+    public GuiHubService() {
+        clientSet_ = new GuiClientSet( super.getClientSet() );
     }
 
-    protected ClientSet createClientSet() {
-        clientSet_ = new GuiClientSet( super.createClientSet() );
+    public void start() {
+        super.start();
+    }
+
+    public JFrame createHubWindow() {
+        HubView hubView = new HubView();
+        hubView.setClientList( getClientListModel() );
+        JFrame frame = new JFrame( "Hub" );
+        frame.getContentPane().add( hubView );
+        frame.pack();
+        return frame;
+    }
+
+    protected ClientSet getClientSet() {
         return clientSet_;
     }
 
