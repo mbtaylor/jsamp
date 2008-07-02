@@ -22,9 +22,9 @@ public class BasicHubService implements HubService {
 
     private final String password_;
     private final Random random_;
-    private final ClientSet clientSet_;
     private final KeyGenerator keyGen_;
     private final SortedMap waiterMap_;
+    private ClientSet clientSet_;
     private HubClient hubClient_;
     private int clientCount_;
     private boolean shutdown_;
@@ -42,7 +42,6 @@ public class BasicHubService implements HubService {
         waiterMap_ =
             Collections
            .synchronizedSortedMap( new TreeMap( MessageId.AGE_COMPARATOR ) );
-        clientSet_ = new ClientSet();
         Runtime.getRuntime().addShutdownHook(
                 new Thread( "HubService shutdown" ) {
             public void run() {
@@ -53,6 +52,7 @@ public class BasicHubService implements HubService {
 
     public void start() {
         hubClient_ = createHubClient();
+        clientSet_ = createClientSet();
         clientSet_.add( hubClient_ );
     }
 
@@ -63,6 +63,10 @@ public class BasicHubService implements HubService {
         meta.setDescriptionText( getClass().getName() );
         hubClient.setMetadata( meta );
         return hubClient;
+    }
+
+    protected ClientSet createClientSet() {
+        return new BasicClientSet();
     }
 
     public String getPassword() {
@@ -373,10 +377,12 @@ public class BasicHubService implements HubService {
         }
     }
 
-    private static class ClientSet {
+    private static class BasicClientSet implements ClientSet {
 
-        private final Map publicIdMap_ = new TreeMap();
-        private final Map privateKeyMap_ = new HashMap();
+        private final Map publicIdMap_ =
+            Collections.synchronizedMap( new TreeMap() );
+        private final Map privateKeyMap_ =
+            Collections.synchronizedMap( new HashMap() );
 
         public synchronized void add( HubClient client ) {
             assert client.getId().indexOf( ID_DELIMITER ) < 0;
