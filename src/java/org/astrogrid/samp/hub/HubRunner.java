@@ -7,7 +7,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,6 +20,7 @@ import org.apache.xmlrpc.XmlRpcClientLite;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.gui.GuiHubService;
 
 public class HubRunner {
 
@@ -192,8 +197,47 @@ public class HubRunner {
     }
 
     public static void main( String[] args ) throws IOException {
-        BasicHubService hubService = new BasicHubService();
+        int status = runMain( args );
+        if ( status != 0 ) {
+            System.exit( status );
+        }
+    }
+
+    public static int runMain( String[] args ) throws IOException {
+        String usage = new StringBuffer()
+            .append( "   " )
+            .append( "Usage: " )
+            .append( HubRunner.class.getName() )
+            .append( " [-help]" )
+            .append( " [-gui]" )
+            .append( "\n" )
+            .toString();
+        List argList = new ArrayList( Arrays.asList( args ) );
+        boolean gui = false;
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            String arg = (String) it.next();
+            if ( arg.equals( "-gui" ) ) {
+                it.remove();
+                gui = true;
+            }
+            else if ( arg.startsWith( "-h" ) ) {
+                it.remove();
+                System.out.println( usage );
+                return 0;
+            }
+            else {
+                System.err.println( usage );
+                return 1;
+            }
+        }
+        assert argList.isEmpty();
+        
+        HubService hubService = new BasicHubService();
+        if ( gui ) {
+            hubService = new GuiHubService( hubService );
+        }
         hubService.start();
         new HubRunner( hubService, SampUtils.getLockFile() );
+        return 0;
     }
 }
