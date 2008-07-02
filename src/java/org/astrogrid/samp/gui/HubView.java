@@ -1,8 +1,10 @@
 package org.astrogrid.samp.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
@@ -22,6 +24,7 @@ public class HubView extends JPanel {
         super( new BorderLayout() );
 
         jlist_ = new JList();
+        jlist_.setCellRenderer( new ClientListCellRenderer() );
         ListSelectionModel selModel = jlist_.getSelectionModel();
         selModel.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         selModel.addListSelectionListener( new ListSelectionListener() {
@@ -55,7 +58,9 @@ public class HubView extends JPanel {
         clientPanel_ = new ClientPanel();
 
         JSplitPane splitter = new JSplitPane();
-        splitter.setLeftComponent( jlist_ );
+        JScrollPane listScroller = new JScrollPane( jlist_ );
+        listScroller.setPreferredSize( new Dimension( 120, 500 ) );
+        splitter.setLeftComponent( listScroller );
         splitter.setRightComponent( clientPanel_ );
         add( splitter );
     }

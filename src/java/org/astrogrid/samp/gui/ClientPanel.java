@@ -1,6 +1,7 @@
 package org.astrogrid.samp.gui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListModel;
 import javax.swing.border.Border;
@@ -41,12 +43,16 @@ public class ClientPanel extends JPanel {
 
         metaBox_ = Box.createVerticalBox();
         metaBox_.setBorder( createTitledBorder( "Metadata" ) );
-        main.add( metaBox_ );
+        JScrollPane metaScroller = new JScrollPane( metaBox_ );
+        metaScroller.setPreferredSize( new Dimension( WIDTH, 120 ) );
+        main.add( metaScroller );
 
         Box subsBox = Box.createVerticalBox();
         subsBox.setBorder( createTitledBorder( "Subscriptions" ) );
         subsList_ = new JList();
-        subsBox.add( subsList_ );
+        JScrollPane subsScroller = new JScrollPane( subsList_ );
+        subsScroller.setPreferredSize( new Dimension( WIDTH, 120 ) );
+        subsBox.add( subsScroller );
         main.add( subsBox );
     }
 
