@@ -5,6 +5,7 @@ import java.util.Map;
 import org.astrogrid.samp.SampException;
 
 public interface HubService {
+    void start();
     String getPassword();
     Map register( Object auth ) throws SampException;
     void unregister( Object id ) throws SampException;
