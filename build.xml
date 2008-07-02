@@ -51,11 +51,20 @@
     </javadoc>
   </target>
 
+  <target name="export"
+          description="builds export zip file"
+          depends="build, jar, javadoc">
+    <zip destfile="${basedir}/samp_export.zip"
+         basedir="${basedir}"
+         excludes="**/CVS"/>
+  </target>
+
   <target name="clean"
           description="cleans up">
     <delete dir="${build.dir}"/>
     <delete dir="${build.docs}"/>
     <delete file="${basedir}/samp.jar"/>
+    <delete file="${basedir}/samp_export.zip"/>
   </target>
 
 </project>
