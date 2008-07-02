@@ -1,5 +1,6 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.Iterator;
@@ -27,9 +28,12 @@ public class ClientPanel extends JPanel {
     private final Box metaBox_;
     private final JList subsList_;
     private Client client_;
+    private static final int INFO_WIDTH = 240;
 
     public ClientPanel() {
+        super( new BorderLayout() );
         Box main = Box.createVerticalBox();
+        add( main );
 
         Box identBox = Box.createVerticalBox();
         identBox.setBorder( createTitledBorder( "Identity" ) );
@@ -39,27 +43,29 @@ public class ClientPanel extends JPanel {
         idBox.add( new JLabel( "Public ID: " ) );
         idBox.add( idField_ );
         identBox.add( idBox );
-        main.add( identBox );
+        add( identBox, BorderLayout.NORTH );
 
         metaBox_ = Box.createVerticalBox();
-        metaBox_.setBorder( createTitledBorder( "Metadata" ) );
-        JScrollPane metaScroller = new JScrollPane( metaBox_ );
-        metaScroller.setPreferredSize( new Dimension( WIDTH, 120 ) );
+        JPanel metaPanel = new JPanel( new BorderLayout() );
+        metaPanel.add( metaBox_, BorderLayout.NORTH );
+        JScrollPane metaScroller = new JScrollPane( metaPanel );
+        metaScroller.setBorder( createTitledBorder( "Metadata" ) );
+        metaScroller.setPreferredSize( new Dimension( INFO_WIDTH, 120 ) );
         main.add( metaScroller );
 
         Box subsBox = Box.createVerticalBox();
-        subsBox.setBorder( createTitledBorder( "Subscriptions" ) );
         subsList_ = new JList();
         JScrollPane subsScroller = new JScrollPane( subsList_ );
-        subsScroller.setPreferredSize( new Dimension( WIDTH, 120 ) );
+        subsScroller.setBorder( createTitledBorder( "Subscriptions" ) );
+        subsScroller.setPreferredSize( new Dimension( INFO_WIDTH, 120 ) );
         subsBox.add( subsScroller );
         main.add( subsBox );
     }
 
     public void setClient( Client client ) {
-        idField_.setText( client.getId() );
-        setMetadata( client.getMetadata() );
-        setSubscriptions( client.getSubscriptions() );
+        idField_.setText( client == null ? null : client.getId() );
+        setMetadata( client == null ? null : client.getMetadata() );
+        setSubscriptions( client == null ? null : client.getSubscriptions() );
         client_ = client;
     }
 
@@ -69,20 +75,30 @@ public class ClientPanel extends JPanel {
 
     public void setMetadata( Metadata meta ) {
         metaBox_.removeAll();
-        for ( Iterator it = meta.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) it.next();
-            String key = (String) entry.getKey();
-            Object value = entry.getValue();
-            metaBox_.add( new JLabel( key ) );
-            Box valueBox = Box.createHorizontalBox();
-            valueBox.add( Box.createHorizontalStrut( 24 ) );
-            valueBox.add( createViewer( value ) );
+        if ( meta != null ) {
+            for ( Iterator it = meta.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry entry = (Map.Entry) it.next();
+                String key = (String) entry.getKey();
+                Object value = entry.getValue();
+                Box keyBox = Box.createHorizontalBox();
+                keyBox.add( new JLabel( key + ":" ) );
+                keyBox.add( Box.createHorizontalGlue() );
+                metaBox_.add( keyBox );
+                Box valueBox = Box.createHorizontalBox();
+                valueBox.add( Box.createHorizontalStrut( 24 ) );
+                valueBox.add( createViewer( value ) );
+                metaBox_.add( valueBox );
+            }
         }
+        metaBox_.add( Box.createVerticalGlue() );
+        metaBox_.repaint();
+        metaBox_.revalidate();
     }
 
     public void setSubscriptions( Subscriptions subs ) {
         DefaultListModel listModel = new DefaultListModel();
-        listModel.copyInto( subs.keySet().toArray() );
+        listModel.copyInto( subs == null ? new Object[ 0 ]
+                                         : subs.keySet().toArray() );
         subsList_.setModel( listModel );
     }
 
@@ -164,8 +180,9 @@ public class ClientPanel extends JPanel {
     }
 
     private static Border createTitledBorder( String title ) {
-        return BorderFactory
-              .createTitledBorder( BorderFactory
-                                  .createLineBorder( Color.BLACK ), title );
+        return BorderFactory.createCompoundBorder(
+                   BorderFactory.createEmptyBorder( 5, 5, 5, 5 ),
+                   BorderFactory.createTitledBorder(
+                       BorderFactory.createLineBorder( Color.BLACK ), title ) );
     }
 }
