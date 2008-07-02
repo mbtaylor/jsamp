@@ -1,5 +1,8 @@
 package org.astrogrid.samp.hub;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcClientLite;
 import org.astrogrid.samp.LockInfo;
@@ -26,24 +30,27 @@ public class HubRunner {
 
     private final HubService hub_;
     private final File lockfile_;
-    private final WebServer server_;
-    private final LockInfo lockInfo_;
+    private WebServer server_;
+    private LockInfo lockInfo_;
     private boolean shutdown_;
 
     private final static Logger logger_ =
         Logger.getLogger( HubRunner.class.getName() );
 
-    public HubRunner( HubService hub, File lockfile ) throws IOException {
+    public HubRunner( HubService hub, File lockfile ) {
         hub_ = hub;
         lockfile_ = lockfile;
-        if ( lockfile != null && lockfile.exists() ) {
-            if ( isHubAlive( lockfile ) ) {
+    }
+
+    public void start() throws IOException {
+        if ( lockfile_ != null && lockfile_.exists() ) {
+            if ( isHubAlive( lockfile_ ) ) {
                 throw new SampException( "A hub is already running" );
             }
             else {
-                logger_.warning( "Overwriting " + lockfile + " lockfile "
+                logger_.warning( "Overwriting " + lockfile_ + " lockfile "
                                + "for apparently dead hub" );
-                lockfile.delete();
+                lockfile_.delete();
             }
         }
         int port = SampUtils.getUnusedPort( 2112 );
@@ -54,37 +61,38 @@ public class HubRunner {
         catch ( Exception e ) {
             throw new SampException( "Can't start XML-RPC server", e );
         }
+        hub_.start();
         Runtime.getRuntime().addShutdownHook(
                 new Thread( "HubRunner shutdown" ) {
             public void run() {
                 shutdown();
             }
         } );
-        String secret = hub.getPassword();
+        String secret = hub_.getPassword();
         URL url = new URL( "http://"
                          + InetAddress.getLocalHost().getCanonicalHostName()
                          + ":" + port + "/" );
-        server_.addHandler( "samp.hub", new HubXmlRpcHandler( hub ) );
+        server_.addHandler( "samp.hub", new HubXmlRpcHandler( hub_ ) );
         lockInfo_ = new LockInfo( secret, url.toString() );
-        lockInfo_.put( "hub.impl", hub.getClass().getName() );
+        lockInfo_.put( "hub.impl", hub_.getClass().getName() );
         lockInfo_.put( "hub.start.millis",
                        Long.toString( System.currentTimeMillis() ) );
-        if ( lockfile != null ) {
-            logger_.info( "Writing new lockfile " + lockfile );
-            FileOutputStream out = new FileOutputStream( lockfile );
+        if ( lockfile_ != null ) {
+            logger_.info( "Writing new lockfile " + lockfile_ );
+            FileOutputStream out = new FileOutputStream( lockfile_ );
             LockWriter writer = new LockWriter( out );
             try {
                 writer.writeComment( "SAMP Standard Profile lockfile written "
                                    + new Date() );
                 out.flush();
                 try {
-                    LockWriter.setLockPermissions( lockfile );
+                    LockWriter.setLockPermissions( lockfile_ );
                     logger_.info( "Lockfile permissions set to "
                                 + "user access only" );
                 }
                 catch ( IOException e ) {
                     logger_.log( Level.WARNING,
-                                 "Failed attempt to change " + lockfile
+                                 "Failed attempt to change " + lockfile_
                                + " permissions to user access only"
                                + " - possible security implications", e );
                 }
@@ -231,13 +239,39 @@ public class HubRunner {
             }
         }
         assert argList.isEmpty();
-        
-        HubService hubService = new BasicHubService();
-        if ( gui ) {
-            hubService = new GuiHubService( hubService );
-        }
-        hubService.start();
-        new HubRunner( hubService, SampUtils.getLockFile() );
+        runHub( gui );
         return 0;
+    }
+
+    public static void runHub( boolean gui ) throws IOException {
+        File lockfile = SampUtils.getLockFile();
+        
+        final BasicHubService hubService;
+        final HubRunner[] hubRunners = new HubRunner[ 1 ];
+        if ( gui ) {
+            final WindowListener closeWatcher = new WindowAdapter() {
+                public void windowClosed( WindowEvent evt ) {
+                    HubRunner runner = hubRunners[ 0 ];
+                    if ( runner != null ) {
+                        runner.shutdown();
+                    }
+                }
+            };
+            hubService = new GuiHubService() {
+                public void start() {
+                    super.start();
+                    JFrame frame = createHubWindow();
+                    frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+                    frame.addWindowListener( closeWatcher );
+                    frame.setVisible( true );
+                }
+            };
+        }
+        else {
+            hubService = new BasicHubService();
+        }
+        HubRunner runner = new HubRunner( hubService, SampUtils.getLockFile() );
+        hubRunners[ 0 ] = runner;
+        runner.start();
     }
 }
