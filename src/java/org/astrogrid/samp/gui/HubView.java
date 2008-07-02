@@ -65,7 +65,7 @@ public class HubView extends JPanel {
         add( splitter );
     }
 
-    public void setClientList( ListModel clientModel ) {
+    public void setClientListModel( ListModel clientModel ) {
         ListModel oldModel = jlist_.getModel();
         jlist_.getSelectionModel().clearSelection();
         if ( oldModel != null ) {

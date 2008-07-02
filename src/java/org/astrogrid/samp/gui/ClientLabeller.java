@@ -29,7 +29,7 @@ public class ClientLabeller implements ListDataListener {
         urlIconMap_ = new HashMap();
     }
 
-    public void setClientList( ListModel clientList ) {
+    public void setClientListModel( ListModel clientList ) {
         if ( clientList_ != null ) {
             clientList_.removeListDataListener( this );
         }

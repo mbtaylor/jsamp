@@ -26,7 +26,7 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
             Client client = (Client) value;
             ListModel model = list.getModel();
             if ( model != listModel_ ) {
-                labeller_.setClientList( model );
+                labeller_.setClientListModel( model );
                 listModel_ = model;
             }
             jl.setText( labeller_.getLabel( client ) );

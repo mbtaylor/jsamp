@@ -26,7 +26,7 @@ public class GuiHubService extends BasicHubService {
 
     public JFrame createHubWindow() {
         HubView hubView = new HubView();
-        hubView.setClientList( getClientListModel() );
+        hubView.setClientListModel( getClientListModel() );
         JFrame frame = new JFrame( "Hub" );
         frame.getContentPane().add( hubView );
         frame.pack();
