@@ -58,7 +58,7 @@ public class HubClient implements Client {
                             : null;
     }
 
-    public void setCallable( Receiver receiver ) {
+    public void setReceiver( Receiver receiver ) {
         receiver_ = receiver == null ? new NoReceiver() : receiver;
     }
 

@@ -1,5 +1,7 @@
 package org.astrogrid.samp.hub;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import org.astrogrid.samp.SampXmlRpcHandler;
@@ -26,6 +28,18 @@ public class HubXmlRpcHandler extends SampXmlRpcHandler {
         }
         public void unregister( String privateKey ) throws SampException {
             service_.unregister( privateKey );
+        }
+        public void setXmlrpcCallback( String privateKey, String surl )
+                throws SampException {
+            URL url;
+            try {
+                url = new URL( surl );
+            }
+            catch ( MalformedURLException e ) {
+                throw new SampException( "Bad URL: " + surl );
+            }
+            service_.setReceiver( privateKey,
+                                  new XmlRpcReceiver( privateKey, url ) );
         }
         public void declareMetadata( String privateKey, Map metadata )
                 throws SampException {

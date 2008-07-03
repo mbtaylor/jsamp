@@ -9,6 +9,7 @@ public interface HubService {
     String getPassword();
     Map register( Object auth ) throws SampException;
     void unregister( Object id ) throws SampException;
+    void setReceiver( Object id, Receiver receiver ) throws SampException;
     void declareMetadata( Object id, Map meta ) throws SampException;
     Map getMetadata( Object id, String clientId ) throws SampException;
     void declareSubscriptions( Object id, Map subs ) throws SampException;

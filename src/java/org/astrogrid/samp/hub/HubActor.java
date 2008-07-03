@@ -13,6 +13,8 @@ public interface HubActor {
     void ping( String privateKey );
     Map register( String secret ) throws SampException;
     void unregister( String privateKey ) throws SampException;
+    void setXmlrpcCallback( String privateKey, String url )
+            throws SampException;
     void declareMetadata( String privateKey, Map metadata )
             throws SampException;
     Map getMetadata( String privateKey, String clientId )

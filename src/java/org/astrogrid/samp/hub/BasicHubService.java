@@ -101,6 +101,12 @@ public class BasicHubService implements HubService {
                      .addParam( "id", caller.getId() ) );
     }
 
+    public void setReceiver( Object id, Receiver receiver )
+            throws SampException {
+        HubClient caller = getCaller( id );
+        caller.setReceiver( receiver );
+    }
+
     public void declareMetadata( Object id, Map meta ) throws SampException {
         HubClient caller = getCaller( id );
         caller.setMetadata( meta );
