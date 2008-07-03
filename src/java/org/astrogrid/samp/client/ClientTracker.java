@@ -60,9 +60,16 @@ class ClientTracker extends AbstractMessageHandler {
     }
 
     public void initialise( HubConnection connection ) throws SampException {
-        String[] clientIds = connection == null
-                           ? new String[ 0 ]
-                           : connection.getRegisteredClients();
+        String[] clientIds;
+        if ( connection == null ) {
+            clientIds = new String[ 0 ];
+        }
+        else {
+            String[] otherIds = connection.getRegisteredClients();
+            clientIds = new String[ otherIds.length + 1 ];
+            System.arraycopy( otherIds, 0, clientIds, 0, otherIds.length );
+            clientIds[ otherIds.length ] = connection.getRegInfo().getSelfId();
+        }
         int nc = clientIds.length;
         TrackedClient[] clients = new TrackedClient[ nc ];
         for ( int ic = 0; ic < nc; ic++ ) {
@@ -81,7 +88,7 @@ class ClientTracker extends AbstractMessageHandler {
     public Map processCall( HubConnection connection, String senderId,
                             Message message ) {
         String mtype = message.getMType();
-        if ( ! mtype.equals( connection.getRegInfo().getHubId() ) ) {
+        if ( ! senderId.equals( connection.getRegInfo().getHubId() ) ) {
             logger_.warning( "Hub admin message " + mtype + " received from "
                            + "non-hub client.  Acting on it anyhow" );
         }
@@ -90,6 +97,7 @@ class ClientTracker extends AbstractMessageHandler {
             throw new IllegalArgumentException( "id parameter missing in "
                                               + mtype );
         }
+        String selfId = connection.getRegInfo().getSelfId();
         if ( REGISTER_MTYPE.equals( mtype ) ) {
             clientModel_.addClient( new TrackedClient( id ) );
         }
@@ -99,14 +107,31 @@ class ClientTracker extends AbstractMessageHandler {
         }
         else if ( METADATA_MTYPE.equals( mtype ) ) {
             TrackedClient client = (TrackedClient) clientMap_.get( id );
-            client.setMetadata( (Map) message.getParams().get( "metadata" ) );
-            clientModel_.updatedClient( client );
+            if ( client != null ) {
+                client.setMetadata( (Map) message.getParams()
+                                                 .get( "metadata" ) );
+                clientModel_.updatedClient( client );
+            }
+            else if ( id.equals( connection.getRegInfo().getSelfId() ) ) {
+                // ignore - just haven't added self to client list yet
+            }
+            else {
+                logger_.info( "No known client " + id );
+            }
         }
         else if ( SUBSCRIPTIONS_MTYPE.equals( mtype ) ) {
             TrackedClient client = (TrackedClient) clientMap_.get( id );
-            client.setSubscriptions( (Map) message.getParams()
-                                                  .get( "subscriptions" ) );
-            clientModel_.updatedClient( client );
+            if ( client != null ) {
+                client.setSubscriptions( (Map) message.getParams()
+                                                      .get( "subscriptions" ) );
+                clientModel_.updatedClient( client );
+            }
+            else if ( id.equals( connection.getRegInfo().getSelfId() ) ) {
+                // ignore - just haven't added self to client list yet
+            }
+            else {
+                logger_.info( "No known client " + id );
+            }
         }
         else {
             throw new IllegalArgumentException( mtype );
