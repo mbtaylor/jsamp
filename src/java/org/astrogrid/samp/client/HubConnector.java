@@ -279,7 +279,7 @@ public class HubConnector {
 
     private void checkHubMessage( HubConnection connection, String senderId, 
                                  String mtype ) {
-        if ( ! mtype.equals( connection.getRegInfo().getHubId() ) ) {
+        if ( ! senderId.equals( connection.getRegInfo().getHubId() ) ) {
             logger_.warning( "Hub admin message " + mtype + " received from "
                            + "non-hub client.  Acting on it anyhow" );
         }

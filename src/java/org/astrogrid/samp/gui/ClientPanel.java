@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.DefaultListModel;
+import javax.swing.AbstractListModel;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -96,10 +96,17 @@ public class ClientPanel extends JPanel {
     }
 
     public void setSubscriptions( Subscriptions subs ) {
-        DefaultListModel listModel = new DefaultListModel();
-        listModel.copyInto( subs == null ? new Object[ 0 ]
-                                         : subs.keySet().toArray() );
-        subsList_.setModel( listModel );
+        final Object[] subscriptions = subs == null
+                                     ? new Object[ 0 ]
+                                     : subs.keySet().toArray();
+        subsList_.setModel( new AbstractListModel() {
+            public int getSize() {
+                return subscriptions.length;
+            }
+            public Object getElementAt( int index ) {
+                return subscriptions[ index ];
+            }
+        } );
     }
 
     private static JComponent createViewer( Object value ) {
