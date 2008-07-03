@@ -11,6 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.xmlrpc.XmlRpcHandler;
 
 public class SampXmlRpcHandler implements XmlRpcHandler {
@@ -18,6 +20,8 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
     private final String prefix_;
     private final Object actor_;
     private final Map methodMap_;
+    private final Logger logger_ =
+        Logger.getLogger( SampXmlRpcHandler.class.getName() );
 
     public SampXmlRpcHandler( String namespace, Class actorType,
                               Object actor ) {
@@ -35,13 +39,33 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
                 for ( int ic = 0; ic < clazzes.length; ic++ ) {
                     types[ ic ] = SampType.getClassType( clazzes[ ic ] );
                 }
-                Signature sig = new Signature( name, types );
+                Signature sig = new Signature( prefix_ + name, types );
                 methodMap_.put( sig, method );
             }
         }
     }
 
     public Object execute( String fqName, Vector params )
+            throws SampException {
+        logger_.info( fqName + params );
+        try {
+            return doExecute( fqName, params );
+        }
+        catch ( SampException e ) {
+            logger_.warning( e.getMessage() );
+            throw e;
+        }
+        catch ( RuntimeException e ) {
+            logger_.warning( e.getMessage() );
+            throw e;
+        }
+        catch ( Error e ) {
+            logger_.log( Level.WARNING, e.getMessage(), e );
+            throw e;
+        }
+    }
+
+    private Object doExecute( String fqName, Vector params )
             throws SampException {
         if ( fqName.startsWith( prefix_ ) ) {
             String name = fqName.substring( prefix_.length() );
@@ -51,7 +75,7 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
             }
             SampType[] types =
                 (SampType[]) typeList.toArray( new SampType[ 0 ] );
-            Signature sig = new Signature( name, types );
+            Signature sig = new Signature( fqName, types );
             Method method = (Method) methodMap_.get( sig );
             if ( method != null ) {
                 Object result;
@@ -72,13 +96,23 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
                                       : toApache( result );
             }
             else {
+                for ( Iterator it = methodMap_.keySet().iterator();
+                      it.hasNext(); ) {
+                    Signature foundSig = (Signature) it.next();
+                    if ( foundSig.name_.equals( fqName ) ) {
+                        throw new IllegalArgumentException(
+                                "Bad arguments: " + foundSig + " got " 
+                              + sig.typeList_ );
+                    }
+                }
                 throw new UnsupportedOperationException( "Unknown method "
                                                        + fqName );
             }
         }
         else {
             throw new UnsupportedOperationException(
-                "Unrecognised method - does not have prefix " + prefix_ );
+                          "Unrecognized method " + fqName
+                        + " does not have prefix " + prefix_ );
         }
     }
 
@@ -117,18 +151,27 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
     }
 
     private static class SampType {
-        public static final SampType STRING = new SampType( String.class );
-        public static final SampType LIST = new SampType( List.class );
-        public static final SampType MAP = new SampType( Map.class );
+        public static final SampType STRING =
+            new SampType( String.class, "string" );
+        public static final SampType LIST =
+            new SampType( List.class, "list" );
+        public static final SampType MAP =
+            new SampType( Map.class, "map" );
 
         private final Class clazz_;
+        private final String name_;
 
-        public SampType( Class clazz ) {
+        public SampType( Class clazz, String name ) {
             clazz_ = clazz;
+            name_ = name;
         }
 
         public Class getTypeClass() {
             return clazz_;
+        }
+
+        public String toString() {
+            return name_;
         }
 
         public static SampType getClassType( Class clazz ) {
