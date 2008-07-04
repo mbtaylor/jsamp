@@ -5,6 +5,7 @@
   <property name="srcdir" value="${basedir}/src"/>
   <property name="javadir" value="${srcdir}/java"/>
   <property name="libdir" value="${srcdir}/lib"/>
+  <property name="resourcedir" value="${srcdir}/resources"/>
   <property name="build.dir" value="${basedir}/build"/>
   <property name="build.classes" value="${build.dir}/classes"/>
   <property name="build.docs" value="${build.dir}/docs"/>
@@ -23,12 +24,15 @@
            source="1.4">
       <classpath refid="libpath"/>
     </javac>
+    <copy todir="${build.classes}">
+      <fileset dir="${resourcedir}"/>
+    </copy>
   </target>
 
   <target name="jar"
           depends="build"
           description="writes jar file">
-    <jar destfile="${basedir}/samp.jar"
+    <jar destfile="${basedir}/samp.jar">
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
