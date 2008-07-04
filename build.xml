@@ -32,7 +32,7 @@
   <target name="jar"
           depends="build"
           description="writes jar file">
-    <jar destfile="${basedir}/samp.jar">
+    <jar destfile="${basedir}/samp.jar"
          basedir="${build.classes}">
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
