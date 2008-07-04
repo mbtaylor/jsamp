@@ -5,18 +5,24 @@ import java.util.Map;
 
 public class Message extends SampMap {
 
-    public static final String MTYPE_KEY = "samp.mtype";
-    public static final String PARAMS_KEY = "samp.params";
+    public static final String MTYPE_KEY;
+    public static final String PARAMS_KEY;
+    private static final String[] KNOWN_KEYS = new String[] {
+        MTYPE_KEY = "samp.mtype",
+        PARAMS_KEY = "samp.params",
+    };
 
     public Message() {
-        super();
+        super( KNOWN_KEYS );
     }
 
     public Message( Map map ) {
-        super( map );
+        this();
+        putAll( map );
     }
 
     public Message( String mtype, Map params ) {
+        this();
         put( MTYPE_KEY, mtype );
         put( PARAMS_KEY, params == null ? new HashMap() : params );
     }

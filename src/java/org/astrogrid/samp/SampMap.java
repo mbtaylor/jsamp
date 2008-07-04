@@ -2,22 +2,64 @@ package org.astrogrid.samp;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
-public class SampMap extends HashMap {
+public abstract class SampMap extends AbstractMap {
 
+    private final Map baseMap_;
     public static final Map EMPTY =
         Collections.unmodifiableMap( new HashMap() );
 
-    public SampMap() {
+    protected SampMap( String[] knownKeys ) {
         super();
+        final List knownKeyList = Arrays.asList( (String[]) knownKeys.clone() );
+        baseMap_ = new TreeMap( new Comparator() {
+            public int compare( Object o1, Object o2 ) {
+                String s1 = o1.toString();
+                String s2 = o2.toString();
+                int k1 = knownKeyList.indexOf( s1 );
+                int k2 = knownKeyList.indexOf( s2 );
+                if ( k1 >= 0 ) {
+                    if ( k2 >= 0 ) {
+                        return k1 - k2;
+                    }
+                    else {
+                        return -1;
+                    }
+                }
+                else if ( k2 >= 0 ) {
+                    assert k1 < 0;
+                    return +1;
+                }
+                boolean f1 = s1.startsWith( "samp." );
+                boolean f2 = s2.startsWith( "samp." );
+                if ( f1 && ! f2 ) {
+                    return -1;
+                }
+                else if ( ! f1 && f2 ) {
+                    return +1;
+                }
+                else {
+                    return s1.compareTo( s2 );
+                }
+            }
+        } );
     }
 
-    public SampMap( Map map ) {
-        super( map );
+    public Object put( Object key, Object value ) {
+        return baseMap_.put( key, value );
+    }
+
+    public Set entrySet() {
+        return baseMap_.entrySet();
     }
 
     public void check() throws DataException {
@@ -49,11 +91,5 @@ public class SampMap extends HashMap {
                 return null;
             }
         }
-    }
-
-    public static SampMap asSampMap( Map map ) {
-        return ( map instanceof SampMap || map == null )
-             ? (SampMap) map
-             : new SampMap( map );
     }
 }

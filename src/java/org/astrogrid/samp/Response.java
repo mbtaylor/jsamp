@@ -4,9 +4,14 @@ import java.util.Map;
 
 public class Response extends SampMap {
 
-    public static final String STATUS_KEY = "samp.status";
-    public static final String RESULT_KEY = "samp.result";
-    public static final String ERROR_KEY = "samp.error";
+    public static final String STATUS_KEY;
+    public static final String RESULT_KEY;
+    public static final String ERROR_KEY;
+    private static final String[] KNOWN_KEYS = new String[] {
+        STATUS_KEY = "samp.status",
+        RESULT_KEY = "samp.result",
+        ERROR_KEY = "smp.error",
+    };
 
     public static final String OK_STATUS = "samp.ok";
     public static final String WARNING_STATUS = "samp.warning";
@@ -15,7 +20,17 @@ public class Response extends SampMap {
     public static final Response OK = 
         new Response( OK_STATUS, EMPTY, null );
 
+    public Response() {
+        super( KNOWN_KEYS );
+    }
+
+    public Response( Map map ) {
+        this();
+        putAll( map );
+    }
+
     public Response( String status, Map result, ErrInfo errinfo ) {
+        this();
         put( STATUS_KEY, status );
         if ( result != null ) {
             put( RESULT_KEY, result );
@@ -23,14 +38,6 @@ public class Response extends SampMap {
         if ( errinfo != null ) {
             put( ERROR_KEY, errinfo );
         }
-    }
-
-    public Response() {
-        super();
-    }
-
-    public Response( Map map ) {
-        super( map );
     }
 
     public void setStatus( String status ) {

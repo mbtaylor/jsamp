@@ -7,11 +7,12 @@ import java.util.Map;
 public class Subscriptions extends SampMap {
 
     public Subscriptions() {
-        super();
+        super( new String[ 0 ] );
     }
 
     public Subscriptions( Map map ) {
-        super( map );
+        this();
+        putAll( map );
     }
 
     public void addMType( String mtype ) {

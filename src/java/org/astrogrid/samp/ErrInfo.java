@@ -7,16 +7,23 @@ import java.util.Map;
 
 public class ErrInfo extends SampMap {
 
-    public static final String ERRORTXT_KEY = "samp.errortxt";
-    public static final String USERTXT_KEY = "samp.usertxt";
-    public static final String DEBUGTXT_KEY = "samp.debugtxt";
-    public static final String CODE_KEY = "samp.code";
+    public static final String ERRORTXT_KEY;
+    public static final String USERTXT_KEY;
+    public static final String DEBUGTXT_KEY;
+    public static final String CODE_KEY;
+    private static final String[] KNOWN_KEYS = new String[] {
+        ERRORTXT_KEY = "samp.errortxt",
+        USERTXT_KEY = "samp.usertxt",
+        DEBUGTXT_KEY = "samp.debugtxt",
+        CODE_KEY = "samp.code",
+    };
 
     public ErrInfo() {
-        super();
+        super( KNOWN_KEYS );
     }
 
     public ErrInfo( Throwable e ) {
+        this();
         String txt = e.getMessage();
         if ( txt == null || txt.trim().length() == 0 ) {
             txt = e.getClass().getName();
@@ -28,10 +35,12 @@ public class ErrInfo extends SampMap {
     }
 
     public ErrInfo( Map map ) {
-        super( map );
+        this();
+        putAll( map );
     }
 
     public ErrInfo( String errortxt ) {
+        this();
         put( ERRORTXT_KEY, errortxt );
     }
 

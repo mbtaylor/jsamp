@@ -4,18 +4,26 @@ import java.util.Map;
 
 public class RegInfo extends SampMap {
 
-    public static final String HUBID_KEY = "samp.hub-id";
-    public static final String SELFID_KEY = "samp.self-id";
-    public static final String PRIVATEKEY_KEY = "samp.private-key";
+    public static final String HUBID_KEY;
+    public static final String SELFID_KEY;
+    public static final String PRIVATEKEY_KEY;
+    private static final String[] KNOWN_KEYS = new String[] {
+        HUBID_KEY = "samp.hub-id",
+        SELFID_KEY = "samp.self-id",
+        PRIVATEKEY_KEY = "samp.private-key",
+    };
 
     public RegInfo() {
+        super( KNOWN_KEYS );
     }
 
     public RegInfo( Map map ) {
-        super( map );
+        this();
+        putAll( map );
     }
 
     public RegInfo( String hubId, String selfId, String privateKey ) {
+        this();
         put( HUBID_KEY, hubId );
         put( SELFID_KEY, selfId );
         put( PRIVATEKEY_KEY, privateKey );

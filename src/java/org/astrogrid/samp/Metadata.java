@@ -6,18 +6,26 @@ import java.util.Map;
 
 public class Metadata extends SampMap {
 
-    public static final String NAME_KEY = "samp.name";
-    public static final String DESCTEXT_KEY = "samp.description.text";
-    public static final String DESCHTML_KEY = "samp.description.html";
-    public static final String ICONURL_KEY = "samp.icon.url";
-    public static final String DOCURL_KEY = "samp.documentation.url";
+    public static final String NAME_KEY;
+    public static final String DESCTEXT_KEY;
+    public static final String DESCHTML_KEY;
+    public static final String ICONURL_KEY;
+    public static final String DOCURL_KEY;
+    private static final String[] KNOWN_KEYS = new String[] {
+        NAME_KEY = "samp.name",
+        DESCTEXT_KEY = "samp.description.text",
+        DESCHTML_KEY = "samp.description.html",
+        ICONURL_KEY = "samp.icon.url",
+        DOCURL_KEY = "samp.documentation.url",
+    };
 
     public Metadata() {
-        super();
+        super( KNOWN_KEYS );
     }
 
     public Metadata( Map map ) {
-        super( map );
+        this();
+        putAll( map );
     }
 
     public void setName( String name ) {

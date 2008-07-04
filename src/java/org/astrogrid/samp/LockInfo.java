@@ -17,9 +17,14 @@ public class LockInfo extends SampMap {
     private static final Logger logger_ =
         Logger.getLogger( LockInfo.class.getName() );
 
-    public static final String SECRET_KEY = "samp.secret";
-    public static final String XMLRPCURL_KEY = "samp.hub.xmlrpc.url";
-    public static final String VERSION_KEY = "samp.profile.version";
+    public static final String SECRET_KEY;
+    public static final String XMLRPCURL_KEY;
+    public static final String VERSION_KEY;
+    private static final String[] KNOWN_KEYS = new String[] {
+        SECRET_KEY = "samp.secret",
+        XMLRPCURL_KEY = "samp.hub.xmlrpc.url",
+        VERSION_KEY = "samp.profile.version",
+    };
     public static final String DEFAULT_VERSION_VALUE = "1.0";
 
     private static final Pattern TOKEN_REGEX =
@@ -30,13 +35,16 @@ public class LockInfo extends SampMap {
         Pattern.compile( "#[\u0020-\u007f]*" );
 
     public LockInfo() {
+        super( KNOWN_KEYS );
     }
 
     public LockInfo( Map map ) {
-        super( map );
+        this();
+        putAll( map );
     }
 
     public LockInfo( String secret, String xmlrpcurl ) {
+        this();
         put( SECRET_KEY, secret );
         put( XMLRPCURL_KEY, xmlrpcurl );
         put( VERSION_KEY, DEFAULT_VERSION_VALUE );
