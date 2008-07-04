@@ -1,7 +1,8 @@
 package org.astrogrid.samp.gui;
 
 import java.awt.BorderLayout;
-import javax.swing.JToggleButton;
+import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import org.astrogrid.samp.Metadata;
@@ -25,8 +26,12 @@ public class HubMonitor extends JPanel {
         HubView hubView = new HubView();
         hubView.setClientListModel( connector_.getClientListModel() );
         add( hubView, BorderLayout.CENTER );
-        add( new JToggleButton( connector_.getRegisterAction() ),
-             BorderLayout.SOUTH );
+        JPanel connectBox = new JPanel( new BorderLayout() );
+        connectBox.add( new JButton( connector_.getRegisterAction() ),
+                        BorderLayout.CENTER );
+        connectBox.add( connector_.createConnectionIndicator(),
+                        BorderLayout.EAST );
+        add( connectBox, BorderLayout.SOUTH );
         connector_.setActive( true );
     }
 
