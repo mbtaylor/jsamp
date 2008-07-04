@@ -24,7 +24,6 @@ public class HubView extends JPanel {
         super( new BorderLayout() );
 
         jlist_ = new JList();
-        jlist_.setCellRenderer( new ClientListCellRenderer() );
         ListSelectionModel selModel = jlist_.getSelectionModel();
         selModel.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         selModel.addListSelectionListener( new ListSelectionListener() {
@@ -74,6 +73,8 @@ public class HubView extends JPanel {
         jlist_.setModel( clientModel );
         if ( clientModel != null ) {
             clientModel.addListDataListener( listListener_ );
+            jlist_.setCellRenderer( new ClientListCellRenderer( clientModel,
+                                                                null ) );
         }
     }
 
