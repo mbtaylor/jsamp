@@ -1,5 +1,7 @@
 package org.astrogrid.samp.client;
 
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,10 +9,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ButtonModel;
-import javax.swing.DefaultButtonModel;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import org.astrogrid.samp.LockInfo;
@@ -26,18 +30,21 @@ public class HubConnector {
     private final List responseHandlerList_;
     private final ConnectorCallableClient callable_;
     private final Map responseMap_;
-    private RegisterButtonModel regModel_;
+    private RegisterAction regAction_;
     private ClientTracker clientTracker_;
     private boolean isActive_;
     private HubConnection connection_;
     private Metadata metadata_;
     private Subscriptions subscriptions_;
     private CallableClientServer clientServer_;
+    private int autoSec_;
+    private Timer regTimer_;
     private int iCall_;
     private final Logger logger_ =
         Logger.getLogger( HubConnector.class.getName() );
 
     private static final String SHUTDOWN_MTYPE = "samp.hub.event.shutdown";
+    private static final String PING_MTYPE = "samp.app.ping";
 
     public HubConnector() {
         messageHandlerList_ = new ArrayList();
@@ -52,6 +59,12 @@ public class HubConnector {
                 assert SHUTDOWN_MTYPE.equals( mtype );
                 checkHubMessage( connection, senderId, mtype );
                 disconnect();
+                return null;
+            }
+        } );
+        addMessageHandler( new AbstractMessageHandler( PING_MTYPE ) {
+            public Map processCall( HubConnection connection,
+                                    String senderId, Message message ) {
                 return null;
             }
         } );
@@ -79,6 +92,26 @@ public class HubConnector {
         }
         catch ( SampException e ) {
             throw new AssertionError( e );
+        }
+    }
+
+    public void setAutoconnect( int autoSec ) {
+        autoSec_ = autoSec;
+        if ( regTimer_ != null ) {
+            regTimer_.cancel();
+        }
+        if ( autoSec > 0 ) {
+            TimerTask regTask = new TimerTask() {
+                public void run() {
+                    try {
+                        getConnection();
+                    }
+                    catch ( SampException e ) {
+                    }
+                }
+            };
+            regTimer_ = new Timer( true );
+            regTimer_.schedule( regTask, 0, autoSec_ * 1000 );
         }
     }
 
@@ -138,8 +171,8 @@ public class HubConnector {
 
     public void setActive( boolean active ) {
         isActive_ = active;
-        if ( regModel_ != null ) {
-            regModel_.updateState();
+        if ( regAction_ != null ) {
+            regAction_.updateState();
         }
         if ( active ) {
             if ( connection_ == null ) {
@@ -220,8 +253,8 @@ public class HubConnector {
             if ( connection != null ) {
                 configureConnection( connection );
                 connection_ = connection;
-                if ( regModel_ != null ) {
-                    regModel_.updateState();
+                if ( regAction_ != null ) {
+                    regAction_.updateState();
                 }
                 clientTracker_.initialise( connection );
             }
@@ -243,11 +276,11 @@ public class HubConnector {
         }
     }
 
-    public ButtonModel getRegisterModel() {
-        if ( regModel_ == null ) {
-            regModel_ = new RegisterButtonModel();
+    public Action getRegisterAction() {
+        if ( regAction_ == null ) {
+            regAction_ = new RegisterAction();
         }
-        return regModel_;
+        return regAction_;
     }
 
     /**
@@ -267,8 +300,8 @@ public class HubConnector {
 
     private void disconnect() {
         connection_ = null;
-        if ( regModel_ != null ) {
-            regModel_.updateState();
+        if ( regAction_ != null ) {
+            regAction_.updateState();
         }
         clientTracker_.clear();
         synchronized ( responseMap_ ) {
@@ -367,45 +400,53 @@ public class HubConnector {
         }
     }
 
-    private class RegisterButtonModel extends DefaultButtonModel {
+    private class RegisterAction extends AbstractAction {
 
-        public RegisterButtonModel() {
+        public RegisterAction() {
+            doUpdateState();
         }
 
-        public void setSelected( boolean wantSelected ) {
-            boolean wasConnected = isConnected();
-            if ( wantSelected && ! wasConnected ) {
-                try {
-                    getConnection();
-                }
-                catch ( SampException e ) {
-                    logger_.log( Level.WARNING,
-                                 "Hub connection attempt failed", e );
+        public void actionPerformed( ActionEvent evt ) {
+            String cmd = evt.getActionCommand();
+            if ( "REGISTER".equals( cmd ) ) {
+                setActive( true );
+                if ( ! isConnected() ) {
+                    Toolkit.getDefaultToolkit().beep();
                 }
             }
-            else if ( ! wantSelected && wasConnected ) {
+            else if ( "UNREGISTER".equals( cmd ) ) {
                 setActive( false );
             }
-        }
-
-        public boolean isSelected() {
-            return isConnected();
-        }
-
-        public boolean isEnabled() {
-            return super.isEnabled() && isActive_;
+            else {
+                logger_.warning( "Unknown action " + cmd );
+            }
         }
 
         private void updateState() {
             if ( SwingUtilities.isEventDispatchThread() ) {
-                fireStateChanged();
+                doUpdateState();
             }
             else {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        fireStateChanged();
+                        doUpdateState();
                     }
                 } );
+            }
+        }
+
+        private void doUpdateState() {
+            if ( isConnected() ) {
+                putValue( Action.ACTION_COMMAND_KEY, "UNREGISTER" );
+                putValue( Action.NAME, "Unregister from Hub" );
+                putValue( Action.SHORT_DESCRIPTION,
+                          "Disconnect from SAMP hub" );
+            }
+            else {
+                putValue( Action.ACTION_COMMAND_KEY, "REGISTER" );
+                putValue( Action.NAME, "Register with Hub" );
+                putValue( Action.SHORT_DESCRIPTION,
+                          "Attempt to connect to SAMP hub" );
             }
         }
     }
