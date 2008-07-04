@@ -231,14 +231,20 @@ class ClientTracker extends AbstractMessageHandler {
         }
 
         public synchronized void setClients( Client[] clients ) {
+            int nc = clientList_.size();
             clientList_.clear();
+            if ( nc > 0 ) {
+                fireListDataEvent( ListDataEvent.INTERVAL_REMOVED, 0, nc - 1 );
+            }
             clientList_.addAll( Arrays.asList( clients ) );
             for ( int ic = 0; ic < clients.length; ic++ ) {
                 Client client = clients[ ic ];
                 clientMap_.put( client.getId(), client );
             }
-            fireListDataEvent( ListDataEvent.CONTENTS_CHANGED,
-                               0, clientList_.size() - 1 );
+            if ( clients.length > 0 ) {
+                fireListDataEvent( ListDataEvent.INTERVAL_ADDED,
+                                   0, clients.length - 1 );
+            }
         }
 
         public void updatedClient( Client client ) {
