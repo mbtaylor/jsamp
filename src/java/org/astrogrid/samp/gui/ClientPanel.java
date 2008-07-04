@@ -186,7 +186,7 @@ public class ClientPanel extends JPanel {
         return sbuf.toString();
     }
 
-    private static Border createTitledBorder( String title ) {
+    static Border createTitledBorder( String title ) {
         return BorderFactory.createCompoundBorder(
                    BorderFactory.createEmptyBorder( 5, 5, 5, 5 ),
                    BorderFactory.createTitledBorder(
