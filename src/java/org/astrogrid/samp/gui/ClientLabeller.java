@@ -106,7 +106,7 @@ public class ClientLabeller implements ListDataListener {
                                       : name + "-" + nameCount;
             }
         }
-        return client.getId();
+        return null;
     }
 
     private Icon generateIcon( Client client ) {
