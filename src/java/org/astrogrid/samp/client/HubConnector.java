@@ -15,8 +15,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.astrogrid.samp.Client;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -30,6 +37,7 @@ public class HubConnector {
     private final List responseHandlerList_;
     private final ConnectorCallableClient callable_;
     private final Map responseMap_;
+    private final List connectionListenerList_;
     private RegisterAction regAction_;
     private ClientTracker clientTracker_;
     private boolean isActive_;
@@ -51,6 +59,7 @@ public class HubConnector {
         responseHandlerList_ = new ArrayList();
         callable_ = new ConnectorCallableClient();
         responseMap_ = Collections.synchronizedMap( new HashMap() );
+        connectionListenerList_ = new ArrayList();
         clientTracker_ = new ClientTracker();
         addMessageHandler( new AbstractMessageHandler( SHUTDOWN_MTYPE ) {
             public Map processCall( HubConnection connection,
@@ -83,16 +92,6 @@ public class HubConnector {
                 }
             }
         } );
-    }
-
-    public HubConnector( Map metadata ) {
-        this();
-        try {
-            declareMetadata( metadata );
-        }
-        catch ( SampException e ) {
-            throw new AssertionError( e );
-        }
     }
 
     public void setAutoconnect( int autoSec ) {
@@ -171,9 +170,7 @@ public class HubConnector {
 
     public void setActive( boolean active ) {
         isActive_ = active;
-        if ( regAction_ != null ) {
-            regAction_.updateState();
-        }
+        fireConnectionChange();
         if ( active ) {
             if ( connection_ == null ) {
                 try {
@@ -246,6 +243,40 @@ public class HubConnector {
         return connection_ != null;
     }
 
+    public void addConnectionListener( ChangeListener listener ) {
+        connectionListenerList_.add( listener );
+    }
+
+    public void removeConnectionListener( ChangeListener listener ) {
+        connectionListenerList_.remove( listener );
+    }
+
+    private void fireConnectionChange() {
+        final ChangeListener[] listeners = (ChangeListener[])
+                                           connectionListenerList_
+                                          .toArray( new ChangeListener[ 0 ] );
+        if ( listeners.length > 0 ) {
+            if ( SwingUtilities.isEventDispatchThread() ) {
+                doFireConnectionChange( listeners );
+            }
+            else {
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        doFireConnectionChange( listeners );
+                    }
+                } );
+            }
+        }
+    }
+
+    private void doFireConnectionChange( ChangeListener[] listeners ) {
+        assert SwingUtilities.isEventDispatchThread();
+        ChangeEvent evt = new ChangeEvent( this );
+        for ( int i = 0; i < listeners.length; i++ ) {
+            listeners[ i ].stateChanged( evt );
+        }
+    }
+
     public HubConnection getConnection() throws SampException {
         HubConnection connection = connection_;
         if ( connection == null && isActive_ ) {
@@ -253,9 +284,7 @@ public class HubConnector {
             if ( connection != null ) {
                 configureConnection( connection );
                 connection_ = connection;
-                if ( regAction_ != null ) {
-                    regAction_.updateState();
-                }
+                fireConnectionChange();
                 clientTracker_.initialise( connection );
             }
         }
@@ -283,6 +312,26 @@ public class HubConnector {
         return regAction_;
     }
 
+    public JComponent createConnectionIndicator() {
+        return createConnectionIndicator(
+            new ImageIcon( Client.class
+                          .getResource( "images/connected-24.gif" ) ),
+            new ImageIcon( Client.class
+                          .getResource( "images/disconnected-24.gif" ) )
+        );
+    }
+
+    private JComponent createConnectionIndicator( final Icon onIcon,
+                                                  final Icon offIcon ) {
+        final JLabel label = new JLabel( isConnected() ? onIcon : offIcon );
+        addConnectionListener( new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                label.setIcon( isConnected() ? onIcon : offIcon );
+            }
+        } );
+        return label;
+    }
+
     /**
      * ListModel elements are {@link org.astrogrid.samp.Client}s.
      */
@@ -300,9 +349,7 @@ public class HubConnector {
 
     private void disconnect() {
         connection_ = null;
-        if ( regAction_ != null ) {
-            regAction_.updateState();
-        }
+        fireConnectionChange();
         clientTracker_.clear();
         synchronized ( responseMap_ ) {
             responseMap_.clear();
@@ -404,6 +451,11 @@ public class HubConnector {
 
         public RegisterAction() {
             doUpdateState();
+            addConnectionListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    doUpdateState();
+                }
+            } );
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -419,19 +471,6 @@ public class HubConnector {
             }
             else {
                 logger_.warning( "Unknown action " + cmd );
-            }
-        }
-
-        private void updateState() {
-            if ( SwingUtilities.isEventDispatchThread() ) {
-                doUpdateState();
-            }
-            else {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        doUpdateState();
-                    }
-                } );
             }
         }
 
