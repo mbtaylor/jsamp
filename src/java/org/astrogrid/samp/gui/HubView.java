@@ -36,6 +36,7 @@ public class HubView extends JPanel {
 
         listListener_ = new ListDataListener() {
             public void contentsChanged( ListDataEvent evt ) {
+                preferSelection();
                 int isel = jlist_.getSelectedIndex();
                 int i0 = evt.getIndex0();
                 int i1 = evt.getIndex1();
@@ -51,14 +52,23 @@ public class HubView extends JPanel {
                 }
             }
             public void intervalAdded( ListDataEvent evt ) {
+                preferSelection();
+            }
+            private void preferSelection() {
+                if ( jlist_.getSelectedIndex() < 0 &&
+                     jlist_.getModel().getSize() > 0 ) {
+                    jlist_.setSelectedIndex( 0 );
+                }
             }
         };
 
         clientPanel_ = new ClientPanel();
 
         JSplitPane splitter = new JSplitPane();
+        splitter.setOneTouchExpandable( true );
         JScrollPane listScroller = new JScrollPane( jlist_ );
         listScroller.setPreferredSize( new Dimension( 120, 500 ) );
+        listScroller.setBorder( ClientPanel.createTitledBorder( "Clients" ) );
         splitter.setLeftComponent( listScroller );
         splitter.setRightComponent( clientPanel_ );
         add( splitter );
