@@ -1,7 +1,6 @@
 package org.astrogrid.samp.client;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URL;
 import org.apache.xmlrpc.WebServer;
 import org.astrogrid.samp.SampException;
@@ -26,9 +25,8 @@ public class CallableClientServer {
         }
         clientHandler_ = new ClientXmlRpcHandler();
         server_.addHandler( "samp.client", clientHandler_ );
-        url_ = new URL( "http://"
-                      + InetAddress.getLocalHost().getCanonicalHostName()
-                      + ":" + port + "/" );
+        url_ =
+            new URL( "http://" + SampUtils.getLocalhost() + ":" + port + "/" );
     }
 
     public URL getUrl() {

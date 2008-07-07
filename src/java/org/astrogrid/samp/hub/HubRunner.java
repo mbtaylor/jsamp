@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,9 +68,8 @@ public class HubRunner {
             }
         } );
         String secret = hub_.getPassword();
-        URL url = new URL( "http://"
-                         + InetAddress.getLocalHost().getCanonicalHostName()
-                         + ":" + port + "/" );
+        URL url =
+            new URL( "http://" + SampUtils.getLocalhost() + ":" + port + "/" );
         server_.addHandler( "samp.hub", new HubXmlRpcHandler( hub_ ) );
         lockInfo_ = new LockInfo( secret, url.toString() );
         lockInfo_.put( "hub.impl", hub_.getClass().getName() );

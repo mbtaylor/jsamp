@@ -3,10 +3,12 @@ package org.astrogrid.samp;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,7 @@ import java.util.Map;
 public class SampUtils {
 
     public static final String LOCKFILE_NAME = ".samp";
+    public static final String LOCALHOST_PROP = "samp.localhost";
 
     private SampUtils() {
     }
@@ -112,6 +115,19 @@ public class SampUtils {
     public static File getLockFile() {
         return new File( Platform.getPlatform().getHomeDirectory(),
                          LOCKFILE_NAME );
+    }
+
+    public static String getLocalhost() {
+        String hostname = System.getProperty( LOCALHOST_PROP, "" );
+        if ( hostname.length() == 0 ) {
+            try {
+                hostname = InetAddress.getLocalHost().getCanonicalHostName();
+            }
+            catch ( UnknownHostException e ) {
+                hostname = "127.0.0.1";
+            }
+        }
+        return hostname;
     }
 
     /**
