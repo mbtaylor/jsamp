@@ -2,7 +2,11 @@ package org.astrogrid.samp.gui;
 
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListModel;
@@ -41,9 +45,21 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
                     text += " (self)";
                 }
             }
+            Font font = getLabelFont( label == null );
+            int size;
+            try {
+                size = (int)
+                    Math.ceil( font.getMaxCharBounds( ((Graphics2D)
+                                                       list.getGraphics())
+                                                     .getFontRenderContext() )
+                                   .getHeight() );
+            }
+            catch ( NullPointerException e ) {
+                size = 16;
+            }
             jl.setText( text );
-            jl.setFont( getLabelFont( label == null ) );
-            jl.setIcon( labeller_.getIcon( client ) );
+            jl.setFont( font );
+            jl.setIcon( sizeIcon( labeller_.getIcon( client ), size ) );
         }
         return c;
     }
@@ -55,5 +71,67 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
             labelFonts_ = new Font[] { normalFont, aliasFont };
         }
         return labelFonts_[ isAlias ? 1 : 0 ];
+    }
+
+    private static Icon sizeIcon( Icon icon, final int size ) {
+        if ( icon == null ) {
+            return new Icon() {
+                public int getIconWidth() {
+                    return size;
+                }
+                public int getIconHeight() {
+                    return size;
+                }
+                public void paintIcon( Component c, Graphics g, int x, int y ) {
+                }
+            };
+        }
+        else if ( icon.getIconWidth() == size &&
+                  icon.getIconHeight() == size ) {
+            return icon;
+        }
+        else {
+            return new SizedIcon( icon, size );
+        }
+    }
+
+    private static class SizedIcon implements Icon {
+        private final Icon icon_;
+        private final int size_;
+        private final double factor_;
+
+        public SizedIcon( Icon icon, int size ) {
+            icon_ = icon;
+            size_ = size;
+            factor_ =
+                Math.min( 1.0,
+                          Math.min( size / (double) icon.getIconWidth(),
+                                    size / (double) icon.getIconHeight() ) );
+        }
+
+        public int getIconWidth() {
+            return size_;
+        }
+
+        public int getIconHeight() {
+            return size_;
+        }
+
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            int iw = icon_.getIconWidth();
+            int ih = icon_.getIconHeight();
+            if ( factor_ == 1.0 ) {
+                icon_.paintIcon( c, g, ( size_ - iw ) / 2, ( size_ - ih ) / 2 );
+            }
+            else {
+                Graphics2D g2 = (Graphics2D) g;
+                AffineTransform trans = g2.getTransform();
+                g2.translate( ( size_ - iw * factor_ ) / 2,
+                              ( size_ - ih * factor_ ) / 2 );
+                g2.scale( factor_, factor_ );
+                icon_.paintIcon( c, g2, x, y );
+                g2.setTransform( trans );
+            }
+        }
     }
 }
