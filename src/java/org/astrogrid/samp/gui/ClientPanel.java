@@ -3,9 +3,17 @@ package org.astrogrid.samp.gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.AbstractListModel;
@@ -29,6 +37,8 @@ public class ClientPanel extends JPanel {
     private final JList subsList_;
     private Client client_;
     private static final int INFO_WIDTH = 240;
+    private final Logger logger_ =
+        Logger.getLogger( ClientPanel.class.getName() );
 
     public ClientPanel() {
         super( new BorderLayout() );
@@ -109,11 +119,33 @@ public class ClientPanel extends JPanel {
         } );
     }
 
-    private static JComponent createViewer( Object value ) {
+    public void openURL( URL url ) throws IOException {
+        BrowserLauncher.openURL( url.toString() );
+    }
+
+    private JComponent createViewer( Object value ) {
         if ( value instanceof String ) {
             JTextField field = new JTextField();
             field.setEditable( false );
             field.setText( (String) value );
+            try {
+                final URL url = new URL( (String) value );
+                field.setForeground( Color.BLUE );
+                field.addMouseListener( new MouseAdapter() {
+                    public void mouseClicked( MouseEvent evt ) {
+                        try {
+                            openURL( url );
+                        }
+                        catch ( IOException e ) {
+                            Toolkit.getDefaultToolkit().beep();
+                            logger_.warning( "Can't open URL " + url + e );
+                        }
+                    }
+                } );
+            }
+            catch ( MalformedURLException e ) {
+                // not a URL - fine
+            }
             return field;
         }
         else if ( value instanceof List ) {
