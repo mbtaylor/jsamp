@@ -43,6 +43,8 @@ public class BasicHubService implements HubService {
         hubClient_ = new HubClient( keyGen_.next(), "hub" );
         Metadata meta = new Metadata();
         meta.setName( "Hub" );
+        meta.setIconUrl( "http://www.star.bristol.ac.uk/"
+                       + "~mbt/plastic/images/hub.png" );
         meta.put( "author.name", "Mark Taylor" );
         meta.put( "author.mail", "m.b.taylor@bristol.ac.uk" );
         meta.setDescriptionText( getClass().getName() );
