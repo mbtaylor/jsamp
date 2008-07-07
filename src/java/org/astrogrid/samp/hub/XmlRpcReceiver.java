@@ -34,7 +34,8 @@ class XmlRpcReceiver implements Receiver {
     public void receiveResponse( String responderId, String msgTag,
                                  Map response )
             throws SampException {
-        exec( "receiveResponse", new Object[] { responderId, msgTag, } );
+        exec( "receiveResponse",
+              new Object[] { responderId, msgTag, response, } );
     }
 
     private Object exec( String methodName, Object[] params )
