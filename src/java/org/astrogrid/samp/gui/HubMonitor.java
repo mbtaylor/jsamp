@@ -21,6 +21,8 @@ public class HubMonitor extends JPanel {
         Metadata meta = new Metadata();
         meta.setName( "HubMonitor" );
         meta.setDescriptionText( "GUI hub monitor utility" );
+        meta.setIconUrl( "http://www.star.bristol.ac.uk/~mbt/"
+                       + "plastic/images/eye.gif" );
         meta.put( "author", "Mark Taylor" );
         connector_.declareMetadata( meta );
         HubView hubView = new HubView();
@@ -37,7 +39,7 @@ public class HubMonitor extends JPanel {
 
     public static int runMain( String[] args ) throws SampException {
         JFrame frame = new JFrame();
-        frame.getContentPane().add( new HubMonitor( 5 ) );
+        frame.getContentPane().add( new HubMonitor( 2 ) );
         frame.pack();
         frame.setVisible( true );
         frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
