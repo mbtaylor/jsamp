@@ -66,6 +66,16 @@ public abstract class SampMap extends AbstractMap {
         SampUtils.checkMap( this );
     }
 
+    public void checkHasKeys( String[] keys ) throws DataException {
+        for ( int i = 0; i < keys.length; i++ ) {
+            String key = keys[ i ];
+            if ( ! containsKey( key ) ) {
+                throw new DataException( "Required key " + key
+                                       + " not present" );
+            }
+        }
+    }
+
     public String getString( String key ) {
         return (String) get( key );
     }

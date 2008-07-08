@@ -41,6 +41,11 @@ public class RegInfo extends SampMap {
         return getString( PRIVATEKEY_KEY );
     }
 
+    public void check() {
+        super.check();
+        checkHasKeys( new String[] { HUBID_KEY, SELFID_KEY, } );
+    }
+
     public static RegInfo asRegInfo( Map map ) {
         return map instanceof RegInfo
              ? (RegInfo) map

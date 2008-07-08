@@ -68,6 +68,19 @@ public class Response extends SampMap {
         return OK_STATUS.equals( get( STATUS_KEY ) );
     }
 
+    public void check() {
+        super.check();
+        checkHasKeys( new String[] { STATUS_KEY, } );
+        if ( ! containsKey( RESULT_KEY ) && ! containsKey( ERROR_KEY ) ) {
+            throw new DataException( "Neither " + RESULT_KEY + 
+                                     " nor " + ERROR_KEY +
+                                     " keys present" );
+        }
+        if ( containsKey( ERROR_KEY ) ) {
+            ErrInfo.asErrInfo( getMap( ERROR_KEY ) ).check();
+        }
+    }
+
     public static Response asResponse( Map map ) {
         return ( map instanceof Response || map == null )
              ? (Response) map

@@ -78,10 +78,7 @@ public class ErrInfo extends SampMap {
 
     public void check() throws DataException {
         super.check();
-        if ( ! containsKey( ERRORTXT_KEY ) ) {
-            throw new DataException( "Required entry key "
-                                   + ERRORTXT_KEY + " is missing" );
-        }
+        checkHasKeys( new String[] { ERRORTXT_KEY, } );
     }
 
     public static ErrInfo asErrInfo( Map map ) {

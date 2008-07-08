@@ -51,6 +51,11 @@ public class Message extends SampMap {
         return this;
     }
 
+    public void check() throws DataException {
+        super.check();
+        checkHasKeys( new String[] { MTYPE_KEY } );
+    }
+
     public static Message asMessage( Map map ) {
         return ( map instanceof Message || map == null )
              ? (Message) map

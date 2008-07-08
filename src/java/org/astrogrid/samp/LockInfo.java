@@ -64,6 +64,7 @@ public class LockInfo extends SampMap {
 
     public void check() {
         super.check();
+        checkHasKeys( new String[] { SECRET_KEY, XMLRPCURL_KEY, } );
         for ( Iterator it = entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
             Object key = entry.getKey();
