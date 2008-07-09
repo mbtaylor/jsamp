@@ -7,23 +7,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.astrogrid.samp.DataException;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampException;
+import org.astrogrid.samp.SampMap;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.Subscriptions;
 
 public class BasicHubService implements HubService {
 
     private final String password_;
     private final Random random_;
     private final KeyGenerator keyGen_;
-    private final SortedMap waiterMap_;
+    private final Map waiterMap_;
     private final ClientSet clientSet_;
     private final HubClient hubClient_;
     private int clientCount_;
@@ -50,9 +52,7 @@ public class BasicHubService implements HubService {
         meta.setDescriptionText( getClass().getName() );
         hubClient_.setMetadata( meta );
         clientSet_ = new BasicClientSet();
-        waiterMap_ =
-            Collections
-           .synchronizedSortedMap( new TreeMap( MessageId.AGE_COMPARATOR ) );
+        waiterMap_ = Collections.synchronizedMap( new HashMap() );
         Runtime.getRuntime().addShutdownHook(
                 new Thread( "HubService shutdown" ) {
             public void run() {
@@ -111,6 +111,7 @@ public class BasicHubService implements HubService {
 
     public void declareMetadata( Object id, Map meta ) throws SampException {
         HubClient caller = getCaller( id );
+        checkMap( Metadata.asMetadata( meta ) );
         caller.setMetadata( meta );
         hubEvent( new Message( "samp.hub.event.metadata" )
                      .addParam( "id", caller.getId() )
@@ -127,6 +128,7 @@ public class BasicHubService implements HubService {
             throws SampException {
         HubClient caller = getCaller( id );
         if ( caller.isCallable() ) {
+            checkMap( Subscriptions.asSubscriptions( subscriptions ) );
             caller.setSubscriptions( subscriptions );
             hubEvent( new Message( "samp.hub.event.subscriptions" )
                          .addParam( "id", caller.getId() )
@@ -176,6 +178,7 @@ public class BasicHubService implements HubService {
             throws SampException {
         HubClient caller = getCaller( id );
         Message msg = Message.asMessage( message );
+        checkMap( msg );
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
@@ -193,6 +196,7 @@ public class BasicHubService implements HubService {
             throws SampException {
         HubClient caller = getCaller( id );
         Message msg = Message.asMessage( message );
+        checkMap( msg );
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         String msgId = MessageId.encode( caller, msgTag, false );
@@ -210,6 +214,7 @@ public class BasicHubService implements HubService {
     public void notifyAll( Object id, Map message ) throws SampException {
         HubClient caller = getCaller( id );
         Message msg = Message.asMessage( message );
+        checkMap( msg );
         String mtype = msg.getMType();
         HubClient[] recipients = getClientSet().getClients();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
@@ -232,6 +237,7 @@ public class BasicHubService implements HubService {
             throws SampException {
         HubClient caller = getCaller( id );
         Message msg = Message.asMessage( message );
+        checkMap( msg );
         String mtype = msg.getMType();
         String msgId = MessageId.encode( caller, msgTag, false );
         HubClient[] recipients = getClientSet().getClients();
@@ -249,6 +255,7 @@ public class BasicHubService implements HubService {
             throws SampException {
         HubClient caller = getCaller( id );
         Response resp = Response.asResponse( response );
+        checkMap( resp );
         MessageId msgId = MessageId.decode( msgIdStr );
         HubClient sender = getClient( msgId.getSenderId() );
         String senderTag = msgId.getSenderTag();
@@ -281,6 +288,7 @@ public class BasicHubService implements HubService {
             throws SampException {
         HubClient caller = getCaller( id );
         Message msg = Message.asMessage( message );
+        checkMap( msg );
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         MessageId hubMsgId =
@@ -294,6 +302,22 @@ public class BasicHubService implements HubService {
                                      e );
         }
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
+            synchronized ( waiterMap_ ) {
+                if ( MAX_WAITERS > 0 && waiterMap_.size() >= MAX_WAITERS ) {
+                    int excess = waiterMap_.size() - MAX_WAITERS + 1;
+                    List keyList = new ArrayList( waiterMap_.keySet() );
+                    Collections.sort( keyList, MessageId.AGE_COMPARATOR );
+                    logger_.warning( "Pending synchronous calls exceeds limit "
+                                   + MAX_WAITERS + " - giving up on " + excess
+                                   + " oldest" );
+                    for ( int ie = 0; ie < excess; ie++ ) {
+                        Object removed = waiterMap_.remove( keyList.get( ie ) );
+                        assert removed != null;
+                    }
+                    waiterMap_.notifyAll();
+                }
+                waiterMap_.put( hubMsgId, null );
+            }
             recipient.getReceiver()
                      .receiveCall( caller.getId(), hubMsgId.toString(),
                                    msg );
@@ -303,13 +327,6 @@ public class BasicHubService implements HubService {
                         ? System.currentTimeMillis() + timeout * 1000
                         : Long.MAX_VALUE;  // 3e8 years
             synchronized ( waiterMap_ ) {
-                if ( MAX_WAITERS > 0 && waiterMap_.size() >= MAX_WAITERS ) {
-                    while ( waiterMap_.size() >= MAX_WAITERS ) {
-                        waiterMap_.remove( waiterMap_.firstKey() );
-                    }
-                    waiterMap_.notifyAll();
-                }
-                waiterMap_.put( hubMsgId, null );
                 while ( waiterMap_.containsKey( hubMsgId ) &&
                         waiterMap_.get( hubMsgId ) == null &&
                         System.currentTimeMillis() < finish ) {
@@ -366,13 +383,22 @@ public class BasicHubService implements HubService {
         getCaller( id );
     }
 
+    protected void checkMap( SampMap map ) throws SampException {
+        try {
+            map.check();
+        }
+        catch ( DataException e ) {
+            throw new SampException( e.getMessage(), e );
+        }
+    }
+
     private HubClient getCaller( Object id ) throws SampException {
         HubClient caller = getClientSet().getFromPrivateKey( (String) id );
         if ( caller != null ) {
             return caller;
         }
         else {
-            throw new SampException( "Invalid key for caller" );
+            throw new SampException( "Invalid key " + id + " for caller" );
         }
     }
 
