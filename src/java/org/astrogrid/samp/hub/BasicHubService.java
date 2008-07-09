@@ -51,6 +51,10 @@ public class BasicHubService implements HubService {
         meta.put( "author.mail", "m.b.taylor@bristol.ac.uk" );
         meta.setDescriptionText( getClass().getName() );
         hubClient_.setMetadata( meta );
+        HubReceiver hubRec =
+            new HubReceiver( this, hubClient_.getPrivateKey() );
+        hubClient_.setReceiver( hubRec );
+        hubClient_.setSubscriptions( hubRec.getSubscriptions() );
         clientSet_ = new BasicClientSet();
         waiterMap_ = Collections.synchronizedMap( new HashMap() );
         Runtime.getRuntime().addShutdownHook(
