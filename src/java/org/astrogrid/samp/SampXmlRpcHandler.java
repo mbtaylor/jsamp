@@ -52,11 +52,11 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
             return doExecute( fqName, params );
         }
         catch ( SampException e ) {
-            logger_.warning( e.getMessage() );
+            logger_.log( Level.WARNING, e.getMessage(), e );
             throw e;
         }
         catch ( RuntimeException e ) {
-            logger_.warning( e.getMessage() );
+            logger_.log( Level.WARNING, e.getMessage(), e );
             throw e;
         }
         catch ( Error e ) {
