@@ -70,6 +70,10 @@ public class HubClient implements Client {
         return ! ( receiver_ instanceof NoReceiver );
     }
 
+    public String toString() {
+        return getId();
+    }
+
     private class NoReceiver implements Receiver {
         public void receiveNotification( String senderId, Map message )
                 throws SampException {
