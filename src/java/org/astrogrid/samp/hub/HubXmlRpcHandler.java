@@ -7,7 +7,7 @@ import java.util.Map;
 import org.astrogrid.samp.SampXmlRpcHandler;
 import org.astrogrid.samp.SampException;
 
-public class HubXmlRpcHandler extends SampXmlRpcHandler {
+class HubXmlRpcHandler extends SampXmlRpcHandler {
 
     public HubXmlRpcHandler( HubService service ) {
         super( "samp.hub", HubActor.class, new HubActorImpl( service ) );
