@@ -6,7 +6,7 @@ import org.apache.xmlrpc.WebServer;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
 
-public class CallableClientServer {
+class CallableClientServer {
 
     private final URL url_;
     private final WebServer server_;

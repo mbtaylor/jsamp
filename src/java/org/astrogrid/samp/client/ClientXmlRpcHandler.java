@@ -7,7 +7,7 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampXmlRpcHandler;
 
-public class ClientXmlRpcHandler extends SampXmlRpcHandler {
+class ClientXmlRpcHandler extends SampXmlRpcHandler {
 
     private final ClientActorImpl clientActor_;
 
