@@ -33,6 +33,7 @@ import org.astrogrid.samp.Subscriptions;
 
 public class HubConnector {
 
+    private final ClientProfile profile_;
     private final List messageHandlerList_;
     private final List responseHandlerList_;
     private final ConnectorCallableClient callable_;
@@ -44,7 +45,6 @@ public class HubConnector {
     private HubConnection connection_;
     private Metadata metadata_;
     private Subscriptions subscriptions_;
-    private CallableClientServer clientServer_;
     private int autoSec_;
     private Timer regTimer_;
     private int iCall_;
@@ -55,6 +55,11 @@ public class HubConnector {
     private static final String PING_MTYPE = "samp.app.ping";
 
     public HubConnector() {
+        this( new StandardClientProfile() );
+    }
+
+    public HubConnector( ClientProfile profile ) {
+        profile_ = profile;
         messageHandlerList_ = new ArrayList();
         responseHandlerList_ = new ArrayList();
         callable_ = new ConnectorCallableClient();
@@ -280,7 +285,7 @@ public class HubConnector {
     public HubConnection getConnection() throws SampException {
         HubConnection connection = connection_;
         if ( connection == null && isActive_ ) {
-            connection = createConnection();
+            connection = profile_.createHubConnection();
             if ( connection != null ) {
                 configureConnection( connection );
                 connection_ = connection;
@@ -367,23 +372,6 @@ public class HubConnector {
 
     private String generateTag() {
         return this.toString() + ":" + ++iCall_;
-    }
-
-    public static HubConnection createConnection() throws SampException {
-        LockInfo lockInfo;
-        try {
-            lockInfo = LockInfo.readLockFile();
-        }
-        catch ( IOException e ) {
-            throw new SampException( "Error reading lockfile", e );
-        }
-        if ( lockInfo == null ) {
-            return null;
-        }
-        else {
-            return new XmlRpcHubConnection( lockInfo.getXmlrpcUrl(),
-                                            lockInfo.getSecret() );
-        }
     }
 
     private class ConnectorCallableClient implements CallableClient {
