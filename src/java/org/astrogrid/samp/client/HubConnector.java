@@ -55,7 +55,7 @@ public class HubConnector {
     private static final String PING_MTYPE = "samp.app.ping";
 
     public HubConnector() {
-        this( new StandardClientProfile() );
+        this( StandardClientProfile.getInstance() );
     }
 
     public HubConnector( ClientProfile profile ) {
