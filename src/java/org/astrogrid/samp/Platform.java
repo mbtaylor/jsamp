@@ -8,6 +8,12 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+/**
+ * Platform-dependent features required by the SAMP implementation.
+ *
+ * @author   Mark Taylor
+ * @since    14 Jul 2008
+ */
 public abstract class Platform {
 
     private static Platform instance_;
@@ -15,15 +21,29 @@ public abstract class Platform {
     private static final Logger logger_ =
         Logger.getLogger( Platform.class.getName() );
 
+    /**
+     * Constructor.
+     *
+     * @param  name  platform name
+     */
     protected Platform( String name ) {
         name_ = name;
     }
 
+    /**
+     * Returns SAMP's definition of the "home" directory.
+     *
+     * @return   directory containing SAMP lockfile
+     */
     public abstract File getHomeDirectory(); 
 
-    protected abstract String[] getPrivateReadArgs( File file )
-            throws IOException;
-
+    /**
+     * Sets file permissions on a given file so that it cannot be read by
+     * anyone other than its owner.
+     * 
+     * @param  file  file whose permissions are to be altered
+     * @throws   IOException  if permissions cannot be changed
+     */
     public void setPrivateRead( File file ) throws IOException {
         if ( setPrivateReadReflect( file ) ) {
             return;
@@ -33,6 +53,28 @@ public abstract class Platform {
         }
     }
 
+    /**
+     * Returns an array of words to 
+     * {@link java.lang.Runtime#exec(java.lang.String[])} in order
+     * to set permissions on a given file so that it cannot be read by
+     * anyone other than its owner.
+     *
+     * @param  file  file to alter
+     * @return   exec args
+     */
+    protected abstract String[] getPrivateReadArgs( File file )
+            throws IOException;
+
+    /**
+     * Attempt to use the <code>File.setReadable()</code> method to set
+     * permissions on a file so that it cannot be read by anyone other
+     * than its owner.
+     *
+     * @param  file  file to alter
+     * @return   true  if the attempt succeeded, false if it failed because
+     *           we are running the wrong version of java
+     * @throws  IOException if there was some I/O failure
+     */
     private static boolean setPrivateReadReflect( File file )
             throws IOException {
         try {
@@ -79,6 +121,20 @@ public abstract class Platform {
         }
     }
 
+    /**
+     * Attempts a {@java.lang.Runtime#exec(java.lang.String[])} with a given
+     * list of arguments.  The output from stdout is returned as a string;
+     * in the case of error an IOException is thrown with a message giving
+     * the output from stderr.
+     *
+     * <p><strong>Note:</strong> do not use this for cases in which the
+     * output from stdout or stderr might be more than a few characters - 
+     * blocking or deadlock is possible (see {@link java.lang.Process}).
+     *
+     * @param  args  array of words to pass to <code>exec</code>
+     * @return  output from standard output
+     * @throws  IOException  with text from standard error if there is an error
+     */
     private static String exec( String[] args ) throws IOException {
         String argv = Arrays.asList( args ).toString();
         logger_.info( "System exec: " + argv );
@@ -92,7 +148,7 @@ public abstract class Platform {
         }
         catch ( IOException e ) {
             throw (IOException)
-                  new IOException( "Exec faile: " + argv ).initCause( e );
+                  new IOException( "Exec failed: " + argv ).initCause( e );
         }
         if ( process.exitValue() == 0 ) {
             return readStream( process.getInputStream() );
@@ -109,6 +165,13 @@ public abstract class Platform {
         }
     }
 
+    /**
+     * Slurps the contents of an input stream into a string.
+     * The stream is closed.
+     *
+     * @param  in  input stream
+     * @return  contents of <code>in</code>
+     */
     private static String readStream( InputStream in ) throws IOException {
         try {
             StringBuffer sbuf = new StringBuffer();
@@ -126,6 +189,11 @@ public abstract class Platform {
         }
     }
 
+    /**
+     * Returns a <code>Platform</code> instance for the current system.
+     *
+     * @return  platform instance
+     */
     public static Platform getPlatform() {
         if ( instance_ == null ) {
             instance_ = createPlatform();
@@ -133,7 +201,14 @@ public abstract class Platform {
         return instance_;
     }
 
+    /**
+     * Constructs a Platform for the current system.
+     *
+     * @return  new platform
+     */
     private static Platform createPlatform() {
+
+        // Is this reliable?
         String osname = System.getProperty( "os.name" );
         if ( osname.toLowerCase().startsWith( "windows" ) ||
              osname.toLowerCase().indexOf( "microsoft" ) >= 0 ) {
@@ -144,8 +219,14 @@ public abstract class Platform {
         }
     }
 
+    /**
+     * Platform implementation for Un*x-like systems.
+     */
     private static class UnixPlatform extends Platform {
 
+        /**
+         * Constructor.
+         */
         UnixPlatform() {
             super( "Un*x" );
         }
@@ -159,14 +240,22 @@ public abstract class Platform {
         }
     }
 
+    /**
+     * Platform implementation for Microsoft Windows-like systems.
+     */
     private static class WindowsPlatform extends Platform {
 
+        /**
+         * Constructor.
+         */
         WindowsPlatform() {
             super( "MS Windows" );
         }
 
         protected String[] getPrivateReadArgs( File file ) throws IOException {
-  throw new IOException( "Anyone know right command for windows?" );
+
+            // Thanks to Bruno Rino for this.
+            return new String[] { "attrib", "-R", file.toString(), };
         }
 
         public File getHomeDirectory() {

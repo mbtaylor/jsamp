@@ -4,21 +4,50 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ * Represents the set of subscribed messages for a SAMP client.
+ * This has the form of a Map in which each key is an MType (perhaps
+ * wildcarded) and the corresponding values are maps with keys which are
+ * so far undefined (thus typically empty).
+ *
+ * @author   Mark Taylor
+ * @since    14 Jul 2008
+ */
 public class Subscriptions extends SampMap {
 
+    /**
+     * Constructs an empty subscriptions object.
+     */
     public Subscriptions() {
         super( new String[ 0 ] );
     }
 
+    /**
+     * Constructs a subscriptions object based on an existing map.
+     *
+     * @param  map  map containing initial data for this object
+     */
     public Subscriptions( Map map ) {
         this();
         putAll( map );
     }
 
+    /**
+     * Adds a subscription to a given MType.  <code>mtype</code> may include
+     * a wildcard according to the SAMP rules.
+     *
+     * @param  mtype   subscribed MType, possibly wildcarded
+     */
     public void addMType( String mtype ) {
         put( mtype, new HashMap() );
     }
 
+    /**
+     * Determines whether a given (non-wildcarded) MType is subscribed to
+     * by this object.
+     *
+     * @param  mtype  MType to test
+     */
     public boolean isSubscribed( String mtype ) {
         if ( containsKey( mtype ) ) {
             return true;
@@ -31,6 +60,16 @@ public class Subscriptions extends SampMap {
         return false;
     }
 
+    /**
+     * Returns the map which forms the value for a given MType key.
+     * If a wildcarded subscription is recorded which matches
+     * <code>mtype</code>, the corresponding value is returned.
+     * If <code>mtype</code> is not subscribed to, <code>null</code>
+     * is returned.
+     *
+     * @param   mtype  MType to query
+     * @return  map value corresponding to <code>mtype</code>, or null
+     */
     public Map getSubscription( String mtype ) {
         if ( containsKey( mtype ) ) {
             Object value = get( mtype );
@@ -54,12 +93,29 @@ public class Subscriptions extends SampMap {
         }
     }
 
+    /**
+     * Returns a given map in the form of a Subscriptions object.
+     *
+     * @param  map  map
+     * @return  subscriptions
+     */
     public static Subscriptions asSubscriptions( Map map ) {
         return ( map instanceof Subscriptions || map == null )
              ? (Subscriptions) map
              : new Subscriptions( map );
     }
 
+    /**
+     * Performs wildcard matching of MTypes.  The result is the number of
+     * dot-separated "atoms" which match between the two.
+     *
+     * @param  pattern   MType pattern; may contain a wildcard
+     * @param  mtype   unwildcarded MType for comparison with 
+     *         <code>pattern</code>
+     * @return  the number of atoms of <code>pattern</code> which match 
+     *          <code>mtype</code>; if <code>pattern</code>="*" the result is
+     *          0, and if there is no match the result is -1
+     */
     public static int matchLevel( String pattern, String mtype ) {
         if ( mtype.equals( pattern ) ) {
             return countAtoms( pattern );
@@ -77,6 +133,11 @@ public class Subscriptions extends SampMap {
         }
     }
 
+    /**
+     * Counts the number of dot-separated "atoms" in a string.
+     *
+     * @param  text  string to test
+     */
     private static int countAtoms( String text ) {
         int leng = text.length();
         int natom = 1;

@@ -13,22 +13,52 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Contains static utility methods for use with the SAMP toolkit.
+ *
+ * @author   Mark Taylor
+ * @since    15 Jul 2008
+ */
 public class SampUtils {
 
     public static final String LOCKFILE_NAME = ".samp";
     public static final String LOCALHOST_PROP = "samp.localhost";
 
+    /**
+     * Private constructor prevents instantiation.
+     */
     private SampUtils() {
     }
 
+    /**
+     * Returns a <em>SAMP int</em> string representation of an integer.
+     *
+     * @param  i  integer value
+     * @return  SAMP int string
+     */
     public static String encodeInt( int i ) {
         return Integer.toString( i );
     }
 
+    /**
+     * Returns the integer value for a <em>SAMP int</em> string.
+     *
+     * @param   s   SAMP int string
+     * @return  integer value
+     * @throws  NumberFormatException  if conversion fails
+     */
     public static int decodeInt( String s ) {
         return Integer.parseInt( s );
     }
 
+    /**
+     * Returns a <em>SAMP float</em> string representation of a floating point
+     * value.
+     *
+     * @param d  double value
+     * @return  SAMP double string
+     * @throws  IllegalArgumentException  if <code>d</code> is NaN or infinite
+     */
     public static String encodeFloat( double d ) {
         if ( Double.isInfinite( d ) ) {
             throw new IllegalArgumentException( "Infinite value "
@@ -40,14 +70,33 @@ public class SampUtils {
         return Double.toString( d );
     }
 
+    /**
+     * Returns the double value for a <em>SAMP float</em> string.
+     *
+     * @param   s  SAMP float string
+     * @return  double value
+     * @throws   NumberFormatException  if conversion fails
+     */
     public static double decodeFloat( String s ) {
         return Double.parseDouble( s );
     }
 
+    /**
+     * Returns a <em>SAMP boolean</em> string representation of a boolean value.
+     *
+     * @param   b  boolean value
+     * @return  SAMP boolean string
+     */
     public static String encodeBoolean( boolean b ) {
         return encodeInt( b ? 1 : 0 );
     }
 
+    /**
+     * Returns the boolean value for a <em>SAMP boolean</em> string.
+     *
+     * @param  s  SAMP boolean string
+     * @return  false iff <code>s</code> is equal to zero
+     */
     public static boolean decodeBoolean( String s ) {
         try {
             return decodeInt( s ) != 0;
@@ -57,6 +106,15 @@ public class SampUtils {
         }
     }
 
+    /**
+     * Checks that a given object is legal for use in a SAMP context.
+     * This checks that it is either a String, List or Map, that
+     * any Map keys are Strings, and that Map values and List elements are
+     * themselves legal (recursively).
+     * 
+     * @param  obj  object to check
+     * @throws  DataException  in case of an error
+     */
     public static void checkObject( Object obj ) throws DataException {
         if ( obj instanceof Map ) {
             checkMap( (Map) obj );
@@ -76,6 +134,15 @@ public class SampUtils {
         }
     }
 
+    /**
+     * Checks that a given Map is legal for use in a SAMP context.
+     * All its keys must be strings, and its values must be legal
+     * SAMP objects.
+     *
+     * @param  map  map to check
+     * @throws  DataException in case of an error
+     * @see     #checkObject
+     */
     public static void checkMap( Map map ) throws DataException {
         for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
@@ -84,12 +151,27 @@ public class SampUtils {
         }
     }
 
+    /**
+     * Checks that a given List is legal for use in a SAMP context.
+     * All its elements must be legal SAMP objects.
+     *
+     * @param  list  list to check
+     * @throws  DataException in case of error
+     * @see     #checkObject
+     */
     public static void checkList( List list ) throws DataException {
         for ( Iterator it = list.iterator(); it.hasNext(); ) {
             checkObject( it.next() );
         }
     }
 
+    /**
+     * Checks that a given String is legal for use in a SAMP context.
+     * All its characters must be in the range 0x01 - 0x7f.
+     *
+     * @param  string  string to check
+     * @throws  DataException  in case of error
+     */
     public static void checkString( String string ) throws DataException {
         int leng = string.length();
         for ( int i = 0; i < leng; i++ ) {
@@ -101,6 +183,12 @@ public class SampUtils {
         }
     }
 
+    /**
+     * Checks that a string can is a legal URL.
+     *
+     * @param  url  string to check
+     * @throws  DataException  if <code>url</code> is not a legal URL
+     */
     public static void checkUrl( String url ) throws DataException {
         if ( url != null ) {
             try {
@@ -112,11 +200,37 @@ public class SampUtils {
         }
     }
 
+    /**
+     * Returns the location of the Standard Profile lockfile.
+     * This is the file <code>.samp</code> in the user's "home" directory.
+     *
+     * @return  SAMP Standard Profile lockfile
+     */
     public static File getLockFile() {
         return new File( Platform.getPlatform().getHomeDirectory(),
                          LOCKFILE_NAME );
     }
 
+    /**
+     * Returns a string denoting the local host to be used for communicating
+     * local server endpoints and so on.
+     *
+     * <p>This is normally obtained by calling
+     * <pre>
+     *    java.net.InetAddress.getLocalHost().getCanonicalHostName()
+     * </pre>
+     * but this behaviour can be overridden by setting the
+     * {@link #LOCALHOST_PROP} system property to the string which should
+     * be returned instead.  Sometimes local network issues make it 
+     * advantageous to use some non-standard string such as "127.0.0.1".
+     * See, for instance, AstroGrid bugzilla tickets
+     * <a href="http://www.astrogrid.org/bugzilla/show_bug.cgi?id=1799"
+     *    >1799</a>,
+     * <a href="http://www.astrogrid.org/bugzilla/show_bug.cgi?id=2151"
+     *    >2151</a>.
+     *
+     * @return  local host name
+     */
     public static String getLocalhost() {
         String hostname = System.getProperty( LOCALHOST_PROP, "" );
         if ( hostname.length() == 0 ) {
@@ -137,10 +251,22 @@ public class SampUtils {
      * @return  unused port
      */
     public static int getUnusedPort( int startPort ) throws IOException {
+
+        // Current implementation ignores the given startPort and uses
+        // findAnyPort.
         return true ? findAnyPort()
-                    : scanForPort( startPort );
+                    : scanForPort( startPort, 20 );
     }
        
+    /**
+     * Locates an unused server port on the local host.
+     * Potential problem: between when this method completes and when
+     * the return value of this method is used by its caller, it's possible
+     * that the port will get used by somebody else.
+     * Probably this will not happen much in practice??
+     *
+     * @return  unused server port
+     */
     private static int findAnyPort() throws IOException {
         ServerSocket socket = new ServerSocket( 0 );
         try {
@@ -161,9 +287,13 @@ public class SampUtils {
      * which causes it to print "java.util.NoSuchElementException" to
      * the server's System.err for every port scanned by this routine 
      * that an org.apache.xmlrpc.WebServer server is listening on.
+     *
+     * @param  startPort  port to start scanning upwards from
+     * @param  nTry  number of ports in sequence to try before admitting defeat
+     * @return  unused server port
      */
-    private static int scanForPort( int startPort ) throws IOException {
-        final int nTry = 20;
+    private static int scanForPort( int startPort, int nTry )
+            throws IOException {
         for ( int iPort = startPort; iPort < startPort + nTry; iPort++ ) {
             try {
                 Socket trySocket = new Socket( "localhost", iPort );
