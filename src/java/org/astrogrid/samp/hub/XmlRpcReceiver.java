@@ -11,11 +11,24 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampXmlRpcHandler;
 
+/**
+ * Reciever implementation used to communicate with XML-RPC-based callable
+ * clients.
+ *
+ * @author   Mark Taylor
+ * @since    15 Jul 2008
+ */
 class XmlRpcReceiver implements Receiver {
 
     private final String privateKey_;
     private final XmlRpcClient xClient_;
 
+    /**
+     * Constructor.
+     *
+     * @param  SAMP client's private key
+     * @param  url  XML-RPC endpoint for calling the SAMP client
+     */
     public XmlRpcReceiver( String privateKey, URL url ) {
         privateKey_ = privateKey;
         xClient_ = new XmlRpcClientLite( url );
@@ -38,6 +51,14 @@ class XmlRpcReceiver implements Receiver {
               new Object[] { responderId, msgTag, response, } );
     }
 
+    /**
+     * Makes an XML-RPC call to the SAMP callable client represented 
+     * by this receiver.
+     *
+     * @param   methodName  unqualified SAMP callable client API method name
+     * @param   params   array of method parameters
+     * @return  XML-RPC call return value
+     */
     private Object exec( String methodName, Object[] params )
             throws SampException {
         Vector paramVec = new Vector();
@@ -48,6 +69,14 @@ class XmlRpcReceiver implements Receiver {
         return rawExec( "samp.client." + methodName, paramVec );
     }
 
+    /**
+     * Actually makes an XML-RPC call to the SAMP callable client 
+     * represented by this receiver.
+     *
+     * @param   fqName  fully qualified SAMP callable client API method name
+     * @param   params  vector of method parameters
+     * @return  XML-RPC call return value
+     */
     private Object rawExec( String fqName, Vector paramVec )
             throws SampException {
         try {

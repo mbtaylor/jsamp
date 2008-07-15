@@ -11,6 +11,12 @@ import java.util.regex.Pattern;
 import org.astrogrid.samp.Platform;
 import org.astrogrid.samp.SampUtils;
 
+/**
+ * Writes records to a SAMP Standard Profile hub lockfile.
+ *
+ * @author   Mark Taylor
+ * @since    15 Jul 2008
+ */
 public class LockWriter {
 
     private final OutputStream out_;
@@ -18,14 +24,28 @@ public class LockWriter {
     private static final String TOKEN_REGEX = "[a-zA-Z0-9\\-_\\.]+";
     private static final Pattern TOKEN_PATTERN = Pattern.compile( TOKEN_REGEX );
 
+    /**
+     * Constructs a writer for writing to the lockfile in the standard
+     * location ({@link org.astrogrid.samp.SampUtils#getLockFile}).
+     */
     public LockWriter() throws IOException {
         this( new FileOutputStream( SampUtils.getLockFile() ) );
     }
 
+    /**
+     * Constructs a writer for writing to a given output stream.
+     *
+     * @param  out  output stream
+     */
     public LockWriter( OutputStream out ) {
         out_ = out;
     }
 
+    /**
+     * Writes all the assignments in a given map to the lockfile.
+     *
+     * @param   map  assignment set to output
+     */
     public void writeAssignments( Map map ) throws IOException {
         for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
@@ -34,6 +54,12 @@ public class LockWriter {
         }
     }
 
+    /**
+     * Writes a single assignment to the lockfile.
+     *
+     * @param  name  assignment key
+     * @param  value assignment value
+     */
     public void writeAssignment( String name, String value )
             throws IOException {
         if ( TOKEN_PATTERN.matcher( name ).matches() ) {
@@ -45,14 +71,27 @@ public class LockWriter {
         }
     }
 
+    /**
+     * Writes a comment line to the lockfile.
+     *
+     * @param  comment  comment text
+     */
     public void writeComment( String comment ) throws IOException {
         writeLine( "# " + comment );
     }
 
+    /**
+     * Writes a blank line to the lockfile.
+     */
     public void writeLine() throws IOException {
         out_.write( linesep_ );
     }
 
+    /**
+     * Writes a line of text to the lockfile, terminated with a line-end.
+     *
+     * @param  line  line to write
+     */
     protected void writeLine( String line ) throws IOException {
         byte[] bbuf = new byte[ line.length() ];
         for ( int i = 0; i < line.length(); i++ ) {
@@ -67,14 +106,31 @@ public class LockWriter {
         writeLine();
     }
 
+    /**
+     * Closes the output stream.
+     * May be required to ensure that all data is written.
+     */
     public void close() throws IOException {
         out_.close();
     }
 
+    /**
+     * Sets the permissions on a given file suitably for a SAMP Standard
+     * Profile lockfile.  This means that nobody apart from the file's
+     * owner can read it.
+     *
+     * @param  file  file to set access permissions on
+     */
     public static void setLockPermissions( File file ) throws IOException {
         Platform.getPlatform().setPrivateRead( file );
     }
 
+    /**
+     * Returns the platform-specific line separator sequence as an array of
+     * bytes.
+     *
+     * @return  line separator sequence
+     */
     private static final byte[] getLineSeparator() {
         String linesep = System.getProperty( "line.separator" );
         if ( linesep.matches( "[\\r\\n]+" ) ) {

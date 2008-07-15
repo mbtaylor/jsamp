@@ -9,11 +9,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,23 +27,49 @@ import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.gui.GuiHubService;
 
+/**
+ * Runs a SAMP hub using the SAMP Standard Profile.
+ * The {@link #start} method must be called to start it up.
+ *
+ * <p>The {@link #main} method can be used to launch a hub from
+ * the command line.  Use the <code>-help</code> flag for more information.
+ *
+ * @author   Mark Taylor
+ * @since    15 Jul 2008
+ */
 public class HubRunner {
 
     private final HubService hub_;
     private final File lockfile_;
-    private WebServer server_;
     private LockInfo lockInfo_;
+    private WebServer server_;
     private boolean shutdown_;
 
     private final static Logger logger_ =
         Logger.getLogger( HubRunner.class.getName() );
+    private final static Random random_ = createRandom();
 
+    /**
+     * Constructor.
+     * If the supplied <code>lockfile</code> is null, no lockfile will
+     * be written at hub startup.
+     *
+     * @param   hub   object providing hub services
+     * @param   lockfile  location to use for hub lockfile, or null
+     */
     public HubRunner( HubService hub, File lockfile ) {
         hub_ = hub;
         lockfile_ = lockfile;
     }
 
+    /**
+     * Starts the hub and writes the lockfile.
+     *
+     * @throws  IOException  if a hub is already running or an error occurs
+     */
     public void start() throws IOException {
+
+        // Check for running or moribund hub.
         if ( lockfile_ != null && lockfile_.exists() ) {
             if ( isHubAlive( lockfile_ ) ) {
                 throw new SampException( "A hub is already running" );
@@ -52,6 +80,8 @@ public class HubRunner {
                 lockfile_.delete();
             }
         }
+
+        // Start up server.
         int port = SampUtils.getUnusedPort( 2112 );
         try {
             server_ = new WebServer( port );
@@ -60,21 +90,28 @@ public class HubRunner {
         catch ( Exception e ) {
             throw new SampException( "Can't start XML-RPC server", e );
         }
+
+        // Start the hub service.
         hub_.start();
+        String secret = createSecret();
+        server_.addHandler( "samp.hub", new HubXmlRpcHandler( hub_, secret ) );
+
+        // Ensure tidy up in case of JVM shutdown.
         Runtime.getRuntime().addShutdownHook(
                 new Thread( "HubRunner shutdown" ) {
             public void run() {
                 shutdown();
             }
         } );
-        String secret = hub_.getPassword();
+
+        // Prepare lockfile information.
         URL url =
             new URL( "http://" + SampUtils.getLocalhost() + ":" + port + "/" );
-        server_.addHandler( "samp.hub", new HubXmlRpcHandler( hub_ ) );
         lockInfo_ = new LockInfo( secret, url.toString() );
         lockInfo_.put( "hub.impl", hub_.getClass().getName() );
-        lockInfo_.put( "hub.start.millis",
-                       Long.toString( System.currentTimeMillis() ) );
+        lockInfo_.put( "hub.start.date", new Date().toString() );
+
+        // Write lockfile information to file if required.
         if ( lockfile_ != null ) {
             logger_.info( "Writing new lockfile " + lockfile_ );
             FileOutputStream out = new FileOutputStream( lockfile_ );
@@ -111,11 +148,20 @@ public class HubRunner {
         }
     }
 
+    /**
+     * Shuts down the hub and tidies up.
+     * May harmlessly be called multiple times.
+     */
     public synchronized void shutdown() {
+
+        // Return if we have already done this.
         if ( shutdown_ ) {
             return;
         }
         shutdown_ = true;
+
+        // Delete the lockfile if it exists and if it is the one originally 
+        // written by this runner.
         if ( lockfile_ != null ) {
             if ( lockfile_.exists() ) {
                 try {
@@ -143,6 +189,9 @@ public class HubRunner {
                 logger_.warning( "Lockfile " + lockfile_ + " has disappeared" );
             }
         }
+
+        // Shut down the hub service if exists.  This sends out shutdown
+        // messages to registered clients.
         if ( hub_ != null ) {
             try {
                 hub_.shutdown();
@@ -151,9 +200,12 @@ public class HubRunner {
                 logger_.log( Level.WARNING, "Hub service shutdown failed", e );
             }
         }
+
+        // Shut down the XML-RPC server process if it exists.
         if ( server_ != null ) {
             try {
                 server_.shutdown();
+                server_ = null;
             }
             catch ( Throwable e ) {
                 logger_.log( Level.WARNING, "XMLRPC server shutdown failed",
@@ -162,14 +214,42 @@ public class HubRunner {
         }
     }
 
+    /**
+     * Returns the HubService object used by this runner.
+     *
+     * @return  hub service
+     */
     public HubService getHub() {
         return hub_;
     }
 
+    /**
+     * Returns the lockfile information associated with this object.
+     * Only present after {@link #start} has been called.
+     *
+     * @return  lock info
+     */
     public LockInfo getLockInfo() {
         return lockInfo_;
     }
 
+    /**
+     * Used to generate the registration password.  May be overridden.
+     *
+     * @return  pasword
+     */
+    public String createSecret() {
+        return Long.toHexString( random_.nextLong() );
+    }
+
+    /**
+     * Attempts to determine whether a given lockfile corresponds to a hub
+     * which is still alive.
+     *
+     * @param  lockfile  lockfile location
+     * @return  true if the hub described at <code>lockfile</code> appears 
+     *          to be alive and well
+     */
     private static boolean isHubAlive( File lockfile ) {
         LockInfo info;
         try { 
@@ -202,6 +282,26 @@ public class HubRunner {
         }
     }
 
+    /**
+     * Returns a new, randomly seeded, Random object.
+     *
+     * @return  random
+     */
+    static Random createRandom() {
+        byte[] seedBytes = new SecureRandom().generateSeed( 8 );
+        long seed = 0L;
+        for ( int i = 0; i < 8; i++ ) {
+            seed = ( seed << 8 ) | ( seedBytes[ i ] & 0xff );
+        }
+        return new Random( seed );
+    }
+
+    /**
+     * Main method.  Starts a hub.
+     * Use "-help" flag for more information.
+     *
+     * @param  args  command-line arguments
+     */
     public static void main( String[] args ) throws IOException {
         int status = runMain( args );
         if ( status != 0 ) {
@@ -209,6 +309,14 @@ public class HubRunner {
         }
     }
 
+    /**
+     * Does the work for running the {@link #main} method.
+     * System.exit() is not called from this method.
+     * Use "-help" flag for more information.
+     *
+     * @param  args  command-line arguments
+     * @return  0 means success, non-zero means error status
+     */
     public static int runMain( String[] args ) throws IOException {
         String usage = new StringBuffer()
             .append( "   " )
@@ -241,9 +349,15 @@ public class HubRunner {
         return 0;
     }
 
+    /**
+     * Static method which may be used to start a SAMP hub programmatically.
+     * If the <code>gui</code> flag is set, a window will be posted
+     * which displays the current status of the hub.
+     * When this window is disposed, the hub will stop.
+     *
+     * @param   gui   if true, display a window showing hub status
+     */
     public static void runHub( boolean gui ) throws IOException {
-        File lockfile = SampUtils.getLockFile();
-        
         final BasicHubService hubService;
         final HubRunner[] hubRunners = new HubRunner[ 1 ];
         if ( gui ) {
@@ -255,7 +369,7 @@ public class HubRunner {
                     }
                 }
             };
-            hubService = new GuiHubService() {
+            hubService = new GuiHubService( random_ ) {
                 public void start() {
                     super.start();
                     JFrame frame = createHubWindow();
@@ -266,7 +380,7 @@ public class HubRunner {
             };
         }
         else {
-            hubService = new BasicHubService();
+            hubService = new BasicHubService( random_ );
         }
         HubRunner runner = new HubRunner( hubService, SampUtils.getLockFile() );
         hubRunners[ 0 ] = runner;

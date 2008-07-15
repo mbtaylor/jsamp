@@ -8,18 +8,40 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
+/**
+ * Receiver implementation used by the hub client.
+ * This isn't exactly essential, but it enables the hub client 
+ * (the client which represents the hub itself) to subscribe to some MTypes.
+ * Possibly useful for testing purposes etc.
+ *
+ * @author   Mark Taylor
+ * @since    15 Jul 2008
+ */
 class HubReceiver implements Receiver {
 
     private final HubService hub_;
     private final Object clientId_;
     private final MessageHandler[] handlers_;
 
+    /**
+     * Constructs a HubReceiver with a default set of handlers.
+     *
+     * @param  hub  hub service object
+     * @param  clientId  public id for hub client
+     */
     public HubReceiver( HubService hub, Object clientId ) {
         this( hub, clientId, createDefaultHandlers() );
     }
 
+    /**
+     * Constructs a HubReciever with a given set of handlers.
+     *
+     * @param  hub  hub service object
+     * @param  clientId  public id for hub client
+     * @param  handlers  array of message handlers
+     */
     private HubReceiver( HubService hub, Object clientId,
-                         MessageHandler[] handlers ) {
+                        MessageHandler[] handlers ) {
         hub_ = hub;
         clientId_ = clientId;
         handlers_ = handlers;
@@ -69,6 +91,12 @@ class HubReceiver implements Receiver {
         throw new SampException( "Not expecting any responses" );
     }
 
+    /**
+     * Returns the subscriptions corresponding to the messages that this
+     * receiver can deal with.
+     *
+     * @return  subscriptions list
+     */
     public Subscriptions getSubscriptions() {
         Subscriptions subs = new Subscriptions();
         for ( int i = 0; i < handlers_.length; i++ ) {
@@ -77,6 +105,11 @@ class HubReceiver implements Receiver {
         return subs;
     }
 
+    /**
+     * Constructs a default list of MessageHandlers to use for a HubReceiver.
+     *
+     * @return   default handler list
+     */
     private static MessageHandler[] createDefaultHandlers() {
         return new MessageHandler[] {
             new MessageHandler( "samp.app.ping" ) {
@@ -92,17 +125,38 @@ class HubReceiver implements Receiver {
         };
     }
 
+    /**
+     * Abstract class which encapsulates processing of a given MType.
+     */
     private static abstract class MessageHandler {
         private final String mtype_;
 
+        /**
+         * Constructor.
+         *
+         * @param  mtype  MType
+         */
         MessageHandler( String mtype ) {
             mtype_ = mtype;
         }
 
+        /**
+         * Returns the MType processed by this handler.
+         *
+         * @return  mtype
+         */
         public String getMType() {
             return mtype_;
         }
 
+        /**
+         * Does the work for processing a message with the MType of this
+         * handler.
+         *
+         * @param   senderId  sender public id
+         * @param   msg   message map with the correct MType
+         * @return  <code>samp.result</code> part of a SAMP-encoded response map
+         */
         abstract Map processCall( String senderId, Message msg );
     }
 }

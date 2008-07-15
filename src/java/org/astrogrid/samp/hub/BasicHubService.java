@@ -20,28 +20,44 @@ import org.astrogrid.samp.SampMap;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 
+/**
+ * Fairly minimal HubService implementation.
+ *
+ * @author   Mark Taylor
+ * @since    15 Jul 2008
+ */
 public class BasicHubService implements HubService {
 
-    private final String password_;
-    private final Random random_;
     private final KeyGenerator keyGen_;
+    private final ClientIdGenerator idGen_;
     private final Map waiterMap_;
     private final ClientSet clientSet_;
     private final HubClient hubClient_;
-    private int clientCount_;
     private boolean started_;
     private boolean shutdown_;
     private static final char ID_DELIMITER = '_';
     private final Logger logger_ =
         Logger.getLogger( BasicHubService.class.getName() );
 
-    public static final int MAX_TIMEOUT = 12 * 60 * 60;
-    public static final int MAX_WAITERS = 100;
+    /** The maximum timeout for a synchronous call prermitted in seconds.
+     *  Default is 43200 = 12 hours. */
+    public static int MAX_TIMEOUT = 12 * 60 * 60;
 
-    public BasicHubService() {
-        random_ = new Random( System.currentTimeMillis() );
-        password_ = Long.toHexString( random_.nextLong() );
-        keyGen_ = new KeyGenerator( "k:", 16, random_ );
+    /** The maximum number of concurrently pending synchronous calls.
+     *  Default is 100. */
+    public static int MAX_WAITERS = 100;
+
+    /**
+     * Constructor.
+     *
+     * @param  random   random number generator used for private keys etc
+     */
+    public BasicHubService( Random random ) {
+        keyGen_ = new KeyGenerator( "k:", 16, random );
+        idGen_ = new ClientIdGenerator( "c" );
+
+        // Prepare the client object which represents the hub itself
+        // (the one that apparently sends samp.hub.event.shutdown messages etc).
         hubClient_ = new HubClient( keyGen_.next(), "hub" );
         Metadata meta = new Metadata();
         meta.setName( "Hub" );
@@ -55,8 +71,16 @@ public class BasicHubService implements HubService {
             new HubReceiver( this, hubClient_.getPrivateKey() );
         hubClient_.setReceiver( hubRec );
         hubClient_.setSubscriptions( hubRec.getSubscriptions() );
-        clientSet_ = new BasicClientSet();
+
+        // Prepare the data structure which keeps track of registered clients.
+        clientSet_ = new BasicClientSet( idGen_.getComparator() );
+
+        // Prepare the data structure which keeps track of pending synchronous
+        // calls.
         waiterMap_ = Collections.synchronizedMap( new HashMap() );
+
+        // Ensure that things are tidied up (importantly, shutdown messages
+        // get sent) in the case of a JVM termination.
         Runtime.getRuntime().addShutdownHook(
                 new Thread( "HubService shutdown" ) {
             public void run() {
@@ -74,47 +98,46 @@ public class BasicHubService implements HubService {
         return hubClient_;
     }
 
+    /**
+     * Returns the structure which keeps track of registered clients.
+     * May be overridden by subclasses which wish to intercept calls to
+     * this object.
+     *
+     * @return   client set
+     */
     protected ClientSet getClientSet() {
         return clientSet_;
     }
 
-    public String getPassword() {
-        return password_;
-    }
-
-    public Map register( Object auth ) throws SampException {
+    public Map register() throws SampException {
         if ( ! started_ ) {
             throw new SampException( "Not started" );
         }
-        if ( password_.equals( auth ) ) {
-            HubClient client =
-                new HubClient( keyGen_.next(), "c" + ++clientCount_ );
-            getClientSet().add( client );
-            hubEvent( new Message( "samp.hub.event.register" )
-                         .addParam( "id", client.getId() ) );
-            return new RegInfo( getHubClient().getId(), client.getId(),
-                                client.getPrivateKey() );
-        }
-        else {
-            throw new SampException( "Bad password" );
-        }
+        HubClient client =
+            new HubClient( keyGen_.next(), idGen_.next() );
+        getClientSet().add( client );
+        hubEvent( new Message( "samp.hub.event.register" )
+                     .addParam( "id", client.getId() ) );
+        return new RegInfo( getHubClient().getId(), client.getId(),
+                            client.getPrivateKey() );
     }
 
-    public void unregister( Object id ) throws SampException {
-        HubClient caller = getCaller( id );
+    public void unregister( Object callerKey ) throws SampException {
+        HubClient caller = getCaller( callerKey );
         getClientSet().remove( caller );
         hubEvent( new Message( "samp.hub.event.unregister" )
                      .addParam( "id", caller.getId() ) );
     }
 
-    public void setReceiver( Object id, Receiver receiver )
+    public void setReceiver( Object callerKey, Receiver receiver )
             throws SampException {
-        HubClient caller = getCaller( id );
+        HubClient caller = getCaller( callerKey );
         caller.setReceiver( receiver );
     }
 
-    public void declareMetadata( Object id, Map meta ) throws SampException {
-        HubClient caller = getCaller( id );
+    public void declareMetadata( Object callerKey, Map meta )
+            throws SampException {
+        HubClient caller = getCaller( callerKey );
         checkMap( Metadata.asMetadata( meta ) );
         caller.setMetadata( meta );
         hubEvent( new Message( "samp.hub.event.metadata" )
@@ -122,15 +145,15 @@ public class BasicHubService implements HubService {
                      .addParam( "metadata", meta ) );
     }
 
-    public Map getMetadata( Object id, String clientId )
+    public Map getMetadata( Object callerKey, String clientId )
             throws SampException {
-        checkCaller( id );
+        checkCaller( callerKey );
         return getClient( clientId ).getMetadata();
     }
 
-    public void declareSubscriptions( Object id, Map subscriptions )
+    public void declareSubscriptions( Object callerKey, Map subscriptions )
             throws SampException {
-        HubClient caller = getCaller( id );
+        HubClient caller = getCaller( callerKey );
         if ( caller.isCallable() ) {
             checkMap( Subscriptions.asSubscriptions( subscriptions ) );
             caller.setSubscriptions( subscriptions );
@@ -143,14 +166,14 @@ public class BasicHubService implements HubService {
         }
     }
 
-    public Map getSubscriptions( Object id, String clientId ) 
+    public Map getSubscriptions( Object callerKey, String clientId ) 
             throws SampException {
-        checkCaller( id );
+        checkCaller( callerKey );
         return getClient( clientId ).getSubscriptions();
     }
 
-    public List getRegisteredClients( Object id ) throws SampException {
-        HubClient caller = getCaller( id );
+    public List getRegisteredClients( Object callerKey ) throws SampException {
+        HubClient caller = getCaller( callerKey );
         HubClient[] clients = getClientSet().getClients();
         List idList = new ArrayList( clients.length );
         for ( int ic = 0; ic < clients.length; ic++ ) {
@@ -161,9 +184,9 @@ public class BasicHubService implements HubService {
         return idList;
     }
 
-    public Map getSubscribedClients( Object id, String mtype )
+    public Map getSubscribedClients( Object callerKey, String mtype )
             throws SampException {
-        HubClient caller = getCaller( id );
+        HubClient caller = getCaller( callerKey );
         HubClient[] clients = getClientSet().getClients();
         Map subMap = new TreeMap(); 
         for ( int ic = 0; ic < clients.length; ic++ ) {
@@ -178,9 +201,9 @@ public class BasicHubService implements HubService {
         return subMap;
     }
 
-    public void notify( Object id, String recipientId, Map message )
+    public void notify( Object callerKey, String recipientId, Map message )
             throws SampException {
-        HubClient caller = getCaller( id );
+        HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
         checkMap( msg );
         String mtype = msg.getMType();
@@ -195,10 +218,10 @@ public class BasicHubService implements HubService {
         }
     }
 
-    public String call( Object id, String recipientId, String msgTag,
+    public String call( Object callerKey, String recipientId, String msgTag,
                         Map message )
             throws SampException {
-        HubClient caller = getCaller( id );
+        HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
         checkMap( msg );
         String mtype = msg.getMType();
@@ -215,8 +238,9 @@ public class BasicHubService implements HubService {
         return msgId;
     }
 
-    public void notifyAll( Object id, Map message ) throws SampException {
-        HubClient caller = getCaller( id );
+    public void notifyAll( Object callerKey, Map message )
+            throws SampException {
+        HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
         checkMap( msg );
         String mtype = msg.getMType();
@@ -237,9 +261,9 @@ public class BasicHubService implements HubService {
         }
     }
 
-    public String callAll( Object id, String msgTag, Map message )
+    public String callAll( Object callerKey, String msgTag, Map message )
             throws SampException {
-        HubClient caller = getCaller( id );
+        HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
         checkMap( msg );
         String mtype = msg.getMType();
@@ -255,14 +279,19 @@ public class BasicHubService implements HubService {
         return msgId;
     }
 
-    public void reply( Object id, String msgIdStr, Map response )
+    public void reply( Object callerKey, String msgIdStr, Map response )
             throws SampException {
-        HubClient caller = getCaller( id );
+        HubClient caller = getCaller( callerKey );
         Response resp = Response.asResponse( response );
         checkMap( resp );
         MessageId msgId = MessageId.decode( msgIdStr );
         HubClient sender = getClient( msgId.getSenderId() );
         String senderTag = msgId.getSenderTag();
+
+        // If we can see from the message ID that it was originally sent
+        // synchronously, take steps to place the response in the map of
+        // waiting messages where it will get picked up and returned to
+        // the sender as a callAndWait return value.
         if ( msgId.isSynch() ) {
             synchronized ( waiterMap_ ) {
                 if ( waiterMap_.containsKey( msgId ) ) {
@@ -281,16 +310,18 @@ public class BasicHubService implements HubService {
                 }
             }
         }
+
+        // Otherwise, just pass it to the sender using a callback.
         else {
             sender.getReceiver()
                   .receiveResponse( caller.getId(), senderTag, resp );
         }
     }
 
-    public Map callAndWait( Object id, String recipientId, Map message,
+    public Map callAndWait( Object callerKey, String recipientId, Map message,
                             String timeoutStr )
             throws SampException {
-        HubClient caller = getCaller( id );
+        HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
         checkMap( msg );
         String mtype = msg.getMType();
@@ -307,6 +338,10 @@ public class BasicHubService implements HubService {
         }
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
             synchronized ( waiterMap_ ) {
+
+                // If the number of pending synchronous calls exceeds the 
+                // permitted maximum, remove the oldest calls until there is
+                // space for the new one.
                 if ( MAX_WAITERS > 0 && waiterMap_.size() >= MAX_WAITERS ) {
                     int excess = waiterMap_.size() - MAX_WAITERS + 1;
                     List keyList = new ArrayList( waiterMap_.keySet() );
@@ -320,11 +355,19 @@ public class BasicHubService implements HubService {
                     }
                     waiterMap_.notifyAll();
                 }
+
+                // Place an entry for this synchronous call in the waiterMap.
                 waiterMap_.put( hubMsgId, null );
             }
+
+            // Make the call asynchronously to the receiver.
             recipient.getReceiver()
                      .receiveCall( caller.getId(), hubMsgId.toString(),
                                    msg );
+
+            // Wait until either the timeout expires, or the response to the
+            // message turns up in the waiter map (placed there on another
+            // thread by this the reply() method).
             timeout = Math.min( Math.max( 0, timeout ),
                                 Math.max( 0, MAX_TIMEOUT ) );
             long finish = timeout > 0
@@ -344,6 +387,9 @@ public class BasicHubService implements HubService {
                         }
                     }
                 }
+
+                // If the response is there, return it to the caller of this
+                // method (the sender of the message).
                 if ( waiterMap_.containsKey( hubMsgId ) ) {
                     Response response =
                         (Response) waiterMap_.remove( hubMsgId );
@@ -355,6 +401,8 @@ public class BasicHubService implements HubService {
                         throw new SampException( "Synchronous call timeout" );
                     }
                 }
+
+                // Otherwise, it must have timed out.  Exit with an error.
                 else {
                     throw new SampException( "Synchronous call aborted - "
                                            + "server load exceeded maximum?" );
@@ -374,6 +422,12 @@ public class BasicHubService implements HubService {
         }
     }
 
+    /**
+     * Broadcast an event message to all subscribed clients.
+     * The sender of this message is the hub application itself.
+     *
+     * @param  msg  message to broadcast
+     */
     private void hubEvent( Message msg ) {
         try {
             notifyAll( getHubClient().getPrivateKey(), msg );
@@ -383,10 +437,22 @@ public class BasicHubService implements HubService {
         }
     }
 
-    private void checkCaller( Object id ) throws SampException {
-        getCaller( id );
+    /**
+     * Check that a given callerKey represents a registered client.
+     * If it does not, throw an exception.
+     *
+     * @param callerKey  calling client key
+     */
+    private void checkCaller( Object callerKey ) throws SampException {
+        getCaller( callerKey );
     }
 
+    /**
+     * Check that a given map is legal for transmission over SAMP.
+     * If it is not, throw a checked exception.
+     *
+     * @param  map  map to check
+     */
     protected void checkMap( SampMap map ) throws SampException {
         try {
             map.check();
@@ -396,34 +462,65 @@ public class BasicHubService implements HubService {
         }
     }
 
-    private HubClient getCaller( Object id ) throws SampException {
-        HubClient caller = getClientSet().getFromPrivateKey( (String) id );
+    /**
+     * Returns the client object corresponding to a caller private key.
+     * If no such client is registered, throw an exception.
+     *
+     * @param  callerKey  calling client key
+     * @return   hub client object representing caller
+     */
+    private HubClient getCaller( Object callerKey ) throws SampException {
+        HubClient caller =
+            getClientSet().getFromPrivateKey( (String) callerKey );
         if ( caller != null ) {
             return caller;
         }
         else {
-            throw new SampException( "Invalid key " + id + " for caller" );
+            throw new SampException( "Invalid key " + callerKey
+                                   + " for caller" );
         }
     }
 
+    /**
+     * Returns the client object corresponding to a public client ID.
+     * If no such client is registered, throw an exception.
+     *
+     * @param   id  client public id
+     * @return  HubClient object
+     */
     private HubClient getClient( String id ) throws SampException {
         HubClient client = getClientSet().getFromPublicId( id );
         if ( client != null ) {
             return client;
         }
+        else if ( idGen_.hasUsed( id ) ) {
+            throw new SampException( "Client " + id
+                                   + " is no longer registered" );
+        }
         else {
-  // check here if this used to be registered, and alter message accordingly
             throw new SampException( "No registered client with ID \""
                                    + id + "\"" );
         }
     }
 
+    /**
+     * ClientSet implementation used by this class.
+     */
     private static class BasicClientSet implements ClientSet {
 
-        private final Map publicIdMap_ =
-            Collections.synchronizedMap( new TreeMap() );
-        private final Map privateKeyMap_ =
-            Collections.synchronizedMap( new HashMap() );
+        private final Map publicIdMap_;
+        private final Map privateKeyMap_;
+
+        /**
+         * Constructor.
+         *
+         * @param  clientIdComparator  comparator for client IDs
+         */
+        public BasicClientSet( Comparator clientIdComparator ) {
+            publicIdMap_ = Collections
+                          .synchronizedMap( new TreeMap( clientIdComparator ) );
+            privateKeyMap_ = Collections.synchronizedMap( new HashMap() );
+        }
 
         public synchronized void add( HubClient client ) {
             assert client.getId().indexOf( ID_DELIMITER ) < 0;
@@ -450,6 +547,11 @@ public class BasicHubService implements HubService {
         }
     }
 
+    /**
+     * Encapsulates information about a MessageId.
+     * A message ID can be represented as a string, but encodes information
+     * which can be retrieved later.
+     */
     private static class MessageId {
 
         private final String senderId_;
@@ -468,6 +570,13 @@ public class BasicHubService implements HubService {
             }
         };
 
+        /**
+         * Constructor.
+         *
+         * @param  senderId  client id of the message sender
+         * @param  senderTag  msgTag provided by the sender
+         * @param  isSynch   whether the message was sent synchronously or not
+         */
         public MessageId( String senderId, String senderTag, boolean isSynch ) {
             senderId_ = senderId;
             senderTag_ = senderTag;
@@ -475,14 +584,29 @@ public class BasicHubService implements HubService {
             birthday_ = System.currentTimeMillis();
         }
 
+        /**
+         * Returns the sender's public client id.
+         *
+         * @return  sender's id
+         */
         public String getSenderId() {
             return senderId_;
         }
 
+        /**
+         * Returns the msgTag attached to the message by the sender.
+         *
+         * @return   msgTag
+         */
         public String getSenderTag() {
             return senderTag_;
         }
 
+        /**
+         * Returns whether the message was sent synchronously.
+         *
+         * @return  true iff message was sent using callAndWait
+         */
         public boolean isSynch() {
             return isSynch_;
         }
@@ -503,6 +627,11 @@ public class BasicHubService implements HubService {
             }
         }
 
+        /**
+         * Returns the string representation of this MessageId.
+         *
+         * @return  message ID string
+         */
         public String toString() {
             Object checksum = checksum( senderId_, senderTag_, isSynch_ );
             return new StringBuffer()
@@ -516,6 +645,13 @@ public class BasicHubService implements HubService {
                   .toString();
         }
 
+        /**
+         * Decodes a msgId string to return the corresponding MessageId object.
+         * This is the opposite of the {@link #toString} method.
+         *
+         * @param  msgId  string representation of message ID
+         * @return   new MessageId object
+         */
         public static MessageId decode( String msgId )
                 throws SampException {
             int delim1 = msgId.indexOf( ID_DELIMITER );
@@ -548,12 +684,28 @@ public class BasicHubService implements HubService {
             return idObj;
         }
 
+        /**
+         * Returns a message ID string corresponding to the arguments.
+         *
+         * @param   sender   sender client
+         * @param   senderTag  msgTag attached by sender
+         * @param   isSynch  whether message was sent synchronously
+         * @return  string representation of message ID
+         */
         public static String encode( HubClient sender, String senderTag,
                                      boolean isSynch ) {
             return new MessageId( sender.getId(), senderTag, isSynch )
                   .toString();
         }
 
+        /**
+         * Returns a checksum string which is a hash of the given arguments.
+         *
+         * @param  senderId  public client id of sender
+         * @param   senderTag  msgTag attached by sender
+         * @param   isSynch  whether message was sent synchronously
+         * @return  checksum string
+         */
         private static String checksum( String senderId, String senderTag,
                                         boolean isSynch ) {
             int sum = CHECK_SEED;
@@ -571,6 +723,11 @@ public class BasicHubService implements HubService {
         }
     }
 
+    /**
+     * Object which can generate a sequence of private keys.
+     * The values returned by the next() method should in general not be
+     * easy to guess.
+     */
     private static class KeyGenerator {
 
         private final String prefix_;
@@ -579,6 +736,13 @@ public class BasicHubService implements HubService {
         private int iseq_;
         private final char unused_;
 
+        /**
+         * Constructor.
+         *
+         * @param  prefix  prefix prepended to all generated keys
+         * @param  nchar   number of characters in generated keys
+         * @param  random  random number generator
+         */
         public KeyGenerator( String prefix, int nchar, Random random ) {
             prefix_ = prefix;
             nchar_ = nchar;
@@ -586,6 +750,12 @@ public class BasicHubService implements HubService {
             unused_ = '_';
         }
 
+        /**
+         * Returns the next key in the sequence.
+         * Guaranteed different from any previous return value from this method.
+         *
+         * @return  key string
+         */
         public synchronized String next() {
             StringBuffer sbuf = new StringBuffer();
             sbuf.append( prefix_ );
@@ -599,8 +769,113 @@ public class BasicHubService implements HubService {
             return sbuf.toString();
         }
 
+        /**
+         * Returns a character guaranteed to be absent from any key generated
+         * by this object.
+         *
+         * @return  unused character
+         */
         public char getUnusedChar() {
             return unused_;
+        }
+    }
+
+    /**
+     * Generates client public IDs.
+     * These must be unique, but don't need to be hard to guess.
+     */
+    private static class ClientIdGenerator {
+        private int iseq_;
+        private final String prefix_;
+        private final Comparator comparator_;
+
+        /**
+         * Constructor.
+         *
+         * @param  prefix  prefix for all generated ids
+         */
+        public ClientIdGenerator( String prefix ) {
+            prefix_ = prefix;
+
+            // Prepare a comparator which will order the keys generated here
+            // in sequence of generation.
+            comparator_ = new Comparator() {
+                public int compare( Object o1, Object o2 ) {
+                    String s1 = o1.toString();
+                    String s2 = o2.toString();
+                    Integer i1 = getIndex( s1 );
+                    Integer i2 = getIndex( s2 );
+                    if ( i1 == null && i2 == null ) {
+                        return s1.compareTo( s2 );
+                    }
+                    else if ( i1 == null ) {
+                        return +1;
+                    }
+                    else if ( i2 == null ) {
+                        return -1;
+                    }
+                    else {
+                        return i1.intValue() - i2.intValue();
+                    }
+                } 
+            };
+        }
+
+        /**
+         * Returns the next unused id.
+         *
+         * @return  next id
+         */
+        public synchronized String next() {
+            return prefix_ + Integer.toString( ++iseq_ );
+        }
+
+        /**
+         * Indicates whether a given client ID has previously been dispensed
+         * by this object.
+         *
+         * @param  id  id to test
+         * @return  true iff id has been returned by a previous call of
+         *          <code>next</code>
+         */
+        public boolean hasUsed( String id ) {
+            Integer ix = getIndex( id );
+            return ix != null && ix.intValue() <= iseq_;
+        }
+
+        /**
+         * Returns an Integer giving the sequence index of the given id string.
+         * If <code>id</code> does not look like a string generated by this
+         * object, null is returned.
+         *
+         * @param   id  identifier to test
+         * @return   object containing sequence index of <code>id</code>,
+         *           or null
+         */
+        private Integer getIndex( String id ) {
+            if ( id.startsWith( prefix_ ) ) {
+                try {
+                    int iseq =
+                        Integer.parseInt( id.substring( prefix_.length() ) );
+                    return new Integer( iseq );
+                }
+                catch ( NumberFormatException e ) {
+                    return null;
+                }
+            }
+            else {
+                return null;
+            }
+        }
+
+        /**
+         * Returns a comparator which will order the IDs generated by this
+         * object in generation sequence.
+         *
+         * @return  id comparator
+         */
+        public Comparator getComparator() {
+            return comparator_;
         }
     }
 }
