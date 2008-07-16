@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import javax.swing.AbstractListModel;
 import javax.swing.JFrame;
 import javax.swing.ListModel;
@@ -16,7 +17,8 @@ public class GuiHubService extends BasicHubService {
 
     private final GuiClientSet clientSet_;
 
-    public GuiHubService() {
+    public GuiHubService( Random random ) {
+        super( random );
         clientSet_ = new GuiClientSet( super.getClientSet() );
     }
 
