@@ -74,8 +74,8 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
      */
     private Font getLabelFont( boolean special ) {
         if ( labelFonts_ == null ) {
-            Font normalFont = getFont();
-            Font aliasFont = getFont().deriveFont( Font.BOLD );
+            Font normalFont = getFont().deriveFont( Font.BOLD );
+            Font aliasFont = getFont().deriveFont( Font.PLAIN );
             labelFonts_ = new Font[] { normalFont, aliasFont };
         }
         return labelFonts_[ special ? 1 : 0 ];
