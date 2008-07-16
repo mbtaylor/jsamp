@@ -54,7 +54,10 @@
       </packageset>
       <link href="http://java.sun.com/j2se/1.4.2/docs/api/"
             offline="yes"
-            packagelistLoc="${srcdir}/docs"/>
+            packagelistloc="${srcdir}/docs/packagelists/j2se"/>
+      <link href="http://ws.apache.org/xmlrpc/xmlrpc2/apidocs/"
+            offline="yes"
+            packagelistloc="${srcdir}/docs/packagelists/xmlrpc"/>
     </javadoc>
   </target>
 
