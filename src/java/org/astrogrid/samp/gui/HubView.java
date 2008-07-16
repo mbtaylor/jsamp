@@ -68,12 +68,6 @@ public class HubView extends JPanel {
             public void intervalAdded( ListDataEvent evt ) {
                 preferSelection();
             }
-            private void preferSelection() {
-                if ( jlist_.getSelectedIndex() < 0 &&
-                     jlist_.getModel().getSize() > 0 ) {
-                    jlist_.setSelectedIndex( 0 );
-                }
-            }
         };
 
         // Construct and place subcomponents.
@@ -81,7 +75,7 @@ public class HubView extends JPanel {
         JSplitPane splitter = new JSplitPane();
         splitter.setOneTouchExpandable( true );
         JScrollPane listScroller = new JScrollPane( jlist_ );
-        listScroller.setPreferredSize( new Dimension( 120, 500 ) );
+        listScroller.setPreferredSize( new Dimension( 200, 400 ) );
         listScroller.setBorder( ClientPanel.createTitledBorder( "Clients" ) );
         splitter.setLeftComponent( listScroller );
         splitter.setRightComponent( clientPanel_ );
@@ -105,6 +99,7 @@ public class HubView extends JPanel {
             clientModel.addListDataListener( listListener_ );
             jlist_.setCellRenderer( new ClientListCellRenderer( clientModel,
                                                                 null ) );
+            preferSelection();
         }
     }
 
@@ -117,5 +112,16 @@ public class HubView extends JPanel {
         clientPanel_.setClient( isel >= 0
                               ? (Client) jlist_.getModel().getElementAt( isel )
                               : null );
+    }
+
+    /**
+     * Invoked when the list may have just acquired more than zero elements
+     * to select one rather than none of them.
+     */
+    private void preferSelection() {
+        if ( jlist_.getSelectedIndex() < 0 &&
+             jlist_.getModel().getSize() > 0 ) {
+            jlist_.setSelectedIndex( 0 );
+        }
     }
 }
