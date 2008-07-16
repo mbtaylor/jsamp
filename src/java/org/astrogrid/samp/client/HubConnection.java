@@ -23,7 +23,7 @@ public interface HubConnection {
     RegInfo getRegInfo();
 
     /**
-     * Tells the hub how it can perform callbacks on the clien by providing
+     * Tells the hub how it can perform callbacks on the client by providing
      * a CallableClient object.  This is required before the client 
      * can declare subscriptions or make asynchronous calls.
      * 
