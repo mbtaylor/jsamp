@@ -21,7 +21,7 @@ import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 
 /**
- * Fairly minimal HubService implementation.
+ * HubService implementation.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
