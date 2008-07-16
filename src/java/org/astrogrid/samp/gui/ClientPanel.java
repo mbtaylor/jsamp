@@ -23,6 +23,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.ListModel;
 import javax.swing.border.Border;
@@ -51,8 +52,11 @@ public class ClientPanel extends JPanel {
      */
     public ClientPanel() {
         super( new BorderLayout() );
-        Box main = Box.createVerticalBox();
-        add( main );
+        JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
+        splitter.setBorder( BorderFactory.createEmptyBorder() );
+        splitter.setOneTouchExpandable( true );
+        splitter.setResizeWeight( 0.5 );
+        add( splitter, BorderLayout.CENTER );
 
         // Construct and place identity subpanel.
         Box identBox = Box.createVerticalBox();
@@ -72,7 +76,7 @@ public class ClientPanel extends JPanel {
         JScrollPane metaScroller = new JScrollPane( metaPanel );
         metaScroller.setBorder( createTitledBorder( "Metadata" ) );
         metaScroller.setPreferredSize( new Dimension( INFO_WIDTH, 120 ) );
-        main.add( metaScroller );
+        splitter.setTopComponent( metaScroller );
 
         // Construct and place subscriptions subpanel.
         Box subsBox = Box.createVerticalBox();
@@ -81,7 +85,7 @@ public class ClientPanel extends JPanel {
         subsScroller.setBorder( createTitledBorder( "Subscriptions" ) );
         subsScroller.setPreferredSize( new Dimension( INFO_WIDTH, 120 ) );
         subsBox.add( subsScroller );
-        main.add( subsBox );
+        splitter.setBottomComponent( subsBox );
     }
 
     /**
