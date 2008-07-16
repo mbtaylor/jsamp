@@ -4,11 +4,22 @@ import java.io.IOException;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.SampException;
 
+/**
+ * Standard Profile implementation of ClientProfile.
+ * This class is a singleton.
+ *
+ * @author   Mark Taylor
+ * @since    15 Jul 2008
+ */
 public class StandardClientProfile implements ClientProfile {
 
+    /** Sole instance. */
     private static final StandardClientProfile instance_ =
         new StandardClientProfile();
 
+    /**
+     * Private constructor.
+     */
     private StandardClientProfile() {
     }
 
@@ -29,6 +40,9 @@ public class StandardClientProfile implements ClientProfile {
         }
     }
 
+    /**
+     * Returns the sole instance of this class.
+     */
     public static StandardClientProfile getInstance() {
         return instance_;
     }

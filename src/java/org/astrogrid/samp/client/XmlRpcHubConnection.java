@@ -17,6 +17,13 @@ import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.SampXmlRpcHandler;
 import org.astrogrid.samp.Subscriptions;
 
+/**
+ * HubConnection implementation based on XML-RPC as per the SAMP 
+ * Standard Profile.
+ *
+ * @author   Mark Taylor
+ * @since    16 Jul 2008
+ */
 public class XmlRpcHubConnection implements HubConnection {
 
     private final XmlRpcClient xClient_;
@@ -24,6 +31,12 @@ public class XmlRpcHubConnection implements HubConnection {
     private CallableClientServer callableServer_;
     private boolean unregistered_;
 
+    /**
+     * Constructor.
+     *
+     * @param   hubUrl  hub XML-RPC endpoint
+     * @param   secret  samp.secret registration password
+     */
     public XmlRpcHubConnection( URL hubUrl, String secret )
             throws SampException {
         xClient_ = new XmlRpcClientLite( hubUrl );
@@ -136,6 +149,13 @@ public class XmlRpcHubConnection implements HubConnection {
         exec( "reply", new Object[] { msgId, response } );
     }
 
+    /**
+     * Makes an XML-RPC call to the SAMP hub represented by this connection.
+     *
+     * @param  methodName  unqualified SAMP hub API method name
+     * @param  params   array of method parameters
+     * @return  XML-RPC call return value
+     */
     private Object exec( String methodName, Object[] params )
             throws SampException {
         Vector paramVec = new Vector();
@@ -146,6 +166,14 @@ public class XmlRpcHubConnection implements HubConnection {
         return rawExec( "samp.hub." + methodName, paramVec );
     }
 
+    /**
+     * Actually makes an XML-RPC call to the SAMP hub represented by this
+     * connection.
+     *
+     * @param  fqName  fully qualified SAMP hub API method name
+     * @param  params  vector of method parameters
+     * @return  XML-RPC call return value
+     */
     private Object rawExec( String fqName, Vector paramVec )
             throws SampException {
         try {
@@ -159,6 +187,10 @@ public class XmlRpcHubConnection implements HubConnection {
         }
     }
 
+    /**
+     * Unregisters if not already unregistered.
+     * May harmlessly be called multiple times.
+     */
     private void finish() {
         if ( ! unregistered_ ) {
             try {
@@ -169,6 +201,9 @@ public class XmlRpcHubConnection implements HubConnection {
         }
     }
 
+    /**
+     * Unregisters if not already unregistered.
+     */
     public void finalize() throws Exception {
         try {
             super.finalize();
@@ -178,6 +213,15 @@ public class XmlRpcHubConnection implements HubConnection {
         finish();
     }
 
+    /**
+     * Utility method to cast an object to a given SAMP-like type.
+     *
+     * @param  obj  object to cast
+     * @param  clazz  class to cast to
+     * @param   name  SAMP name of type
+     * @return  obj
+     * @throws  SampException  if cast attempt failed
+     */
     private static Object asType( Object obj, Class clazz, String name )
             throws SampException {
         if ( clazz.isAssignableFrom( obj.getClass() ) ) {
@@ -190,14 +234,35 @@ public class XmlRpcHubConnection implements HubConnection {
         }
     }
 
+    /**
+     * Utility method to cast an object to a string.
+     *
+     * @param  obj  object
+     * @return  object as string
+     * @throws  SampException  if cast attempt failed
+     */
     private String asString( Object obj ) throws SampException {
         return (String) asType( obj, String.class, "string" );
     }
 
+    /**
+     * Utility method to cast an object to a list.
+     *
+     * @param  obj  object
+     * @return  object as list
+     * @throws  SampException  if cast attempt failed
+     */
     private List asList( Object obj ) throws SampException {
         return (List) asType( obj, List.class, "list" );
     }
 
+    /**
+     * Utility method to cast an object to a map.
+     *
+     * @param  obj  object
+     * @return  object as map
+     * @throws  SampException  if cast attempt failed
+     */
     private Map asMap( Object obj ) throws SampException {
         return (Map) asType( obj, Map.class, "map" );
     }

@@ -18,6 +18,14 @@ import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
+/**
+ * Message handler which watches hub event messages to keep track of
+ * what clients are currently registered and what their attributes are
+ * on behalf of the hub.
+ *
+ * @author   Mark Taylor
+ * @since    16 Jul 2008
+ */
 class ClientTracker extends AbstractMessageHandler {
 
     private final ClientListModel clientModel_;
@@ -36,20 +44,38 @@ class ClientTracker extends AbstractMessageHandler {
         SUBSCRIPTIONS_MTYPE = "samp.hub.event.subscriptions",
     };
 
+    /**
+     * Constructor.
+     */
     public ClientTracker() {
         super( TRACKED_MTYPES );
         clientModel_ = new ClientListModel();
         clientMap_ = clientModel_.getClientMap();
     }
 
+    /**
+     * Returns a ListModel representing the state of registered clients.
+     * Elements are {@link org.astrogrid.samp.Client} instances.
+     *
+     * @return  list model
+     */
     public ListModel getClientListModel() {
         return clientModel_;
     }
 
+    /**
+     * Returns a map representing the state of registered clients.
+     * The map keys are client public IDs and the values are 
+     * {@link org.astrogrid.samp.Client} objects.
+     * @return  id-&gt;Client map
+     */
     public Map getClientMap() {
         return clientMap_;
     }
 
+    /**
+     * Removes all clients from the list.
+     */
     public void clear() {
         try {
             initialise( null );
@@ -59,23 +85,41 @@ class ClientTracker extends AbstractMessageHandler {
         }
     }
 
+    /**
+     * Initialises this tracker from a hub connection.
+     * It is interrogated to find the current list of registered clients
+     * and their attributes.
+     *
+     * @param  connection  hub connection; may be null for no connection
+     */
     public void initialise( HubConnection connection ) throws SampException {
         String[] clientIds;
+
+        // If connection is null, there are no registered clients.
         if ( connection == null ) {
             clientIds = new String[ 0 ];
         }
+
+        // If connection is live, get the list of other registered clients,
+        // and don't forget to add an entry for self, which 
+        // getRegisteredClients() excludes.
         else {
             String[] otherIds = connection.getRegisteredClients();
             clientIds = new String[ otherIds.length + 1 ];
             System.arraycopy( otherIds, 0, clientIds, 0, otherIds.length );
             clientIds[ otherIds.length ] = connection.getRegInfo().getSelfId();
         }
+
+        // Set up the client model to contain an entry for each registered
+        // client.
         int nc = clientIds.length;
         TrackedClient[] clients = new TrackedClient[ nc ];
         for ( int ic = 0; ic < nc; ic++ ) {
             clients[ ic ] = new TrackedClient( clientIds[ ic ] );
         }
         clientModel_.setClients( clients );
+
+        // Then get the metadata and subscriptions for each.
         for ( int ic = 0; ic < nc; ic++ ) {
             TrackedClient client = clients[ ic ];
             String id = client.getId();
@@ -134,17 +178,29 @@ class ClientTracker extends AbstractMessageHandler {
             }
         }
         else {
-            throw new IllegalArgumentException( mtype );
+            throw new IllegalArgumentException( "Shouldn't have received MType"
+                                              + mtype );
         }
         return null;
     }
 
+    /**
+     * Client implementation used to populate internal data structures.
+     * It just implements the Client interface as well as adding mutators
+     * for metadata and subscriptions, and providing an equals method based
+     * on public id.
+     */
     private static class TrackedClient implements Client {
 
         private final String id_;
         private Metadata metadata_;
         private Subscriptions subscriptions_;
 
+        /**
+         * Constructor.
+         *
+         * @param  id  client public id
+         */
         public TrackedClient( String id ) {
             id_ = id;
         }
@@ -153,20 +209,30 @@ class ClientTracker extends AbstractMessageHandler {
             return id_;
         }
 
-        void setMetadata( Map metadata ) {
-            metadata_ = Metadata.asMetadata( metadata );
-        }
-
         public Metadata getMetadata() {
             return metadata_;
         }
 
-        void setSubscriptions( Map subscriptions ) {
-            subscriptions_ = Subscriptions.asSubscriptions( subscriptions );
-        }
-
         public Subscriptions getSubscriptions() {
             return subscriptions_;
+        }
+
+        /**
+         * Sets this client's metadata.
+         *
+         * @param  metadata  new metadata
+         */
+        void setMetadata( Map metadata ) {
+            metadata_ = Metadata.asMetadata( metadata );
+        }
+
+        /**
+         * Sets this client's subscriptions.
+         *
+         * @param  subscriptions  new subscriptions
+         */
+        void setSubscriptions( Map subscriptions ) {
+            subscriptions_ = Subscriptions.asSubscriptions( subscriptions );
         }
 
         public boolean equals( Object o ) {
@@ -182,8 +248,24 @@ class ClientTracker extends AbstractMessageHandler {
         public int hashCode() {
             return id_.hashCode();
         }
+
+        public String toString() {
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append( id_ );
+            String name = metadata_ == null ? null
+                                            : metadata_.getName();
+            if ( name != null ) {
+                sbuf.append( '(' )
+                    .append( name )
+                    .append( ')' );
+            }
+            return sbuf.toString();
+        }
     }
 
+    /**
+     * ListModel implementation for holding Client objects.
+     */
     private static class ClientListModel implements ListModel {
 
         private final List clientList_;
@@ -191,6 +273,9 @@ class ClientTracker extends AbstractMessageHandler {
         private final Map clientMap_;
         private final Map clientMapView_;
 
+        /**
+         * Constructor.
+         */
         ClientListModel() {
             listenerList_ = new ArrayList();
             clientList_ = Collections.synchronizedList( new ArrayList() );
@@ -214,27 +299,47 @@ class ClientTracker extends AbstractMessageHandler {
             listenerList_.remove( l );
         }
 
+        /**
+         * Adds a client to this model.
+         * Listeners are informed.  May be called from any thread.
+         *
+         * @param  client  client to add
+         */
         public synchronized void addClient( Client client ) {
             int index = clientList_.size();
             clientList_.add( client );
             clientMap_.put( client.getId(), client );
-            fireListDataEvent( ListDataEvent.INTERVAL_ADDED, index, index );
+            scheduleListDataEvent( ListDataEvent.INTERVAL_ADDED, index, index );
         }
 
+        /**
+         * Removes a client from this model.
+         * Listeners are informed.  May be called from any thread.
+         *
+         * @param   client  client to remove
+         */
         public synchronized void removeClient( Client client ) {
             int index = clientList_.indexOf( client );
             boolean removed = clientList_.remove( client );
             Client c = (Client) clientMap_.remove( client.getId() );
             assert removed;
             assert client.equals( c );
-            fireListDataEvent( ListDataEvent.INTERVAL_REMOVED, index, index );
+            scheduleListDataEvent( ListDataEvent.INTERVAL_REMOVED,
+                                   index, index );
         }
 
+        /**
+         * Sets the contents of this model to a given list.
+         * Listeners are informed.  May be called from any thread.
+         *
+         * @param  clients  current client list
+         */
         public synchronized void setClients( Client[] clients ) {
             int nc = clientList_.size();
             clientList_.clear();
             if ( nc > 0 ) {
-                fireListDataEvent( ListDataEvent.INTERVAL_REMOVED, 0, nc - 1 );
+                scheduleListDataEvent( ListDataEvent.INTERVAL_REMOVED,
+                                       0, nc - 1 );
             }
             clientList_.addAll( Arrays.asList( clients ) );
             for ( int ic = 0; ic < clients.length; ic++ ) {
@@ -242,24 +347,39 @@ class ClientTracker extends AbstractMessageHandler {
                 clientMap_.put( client.getId(), client );
             }
             if ( clients.length > 0 ) {
-                fireListDataEvent( ListDataEvent.INTERVAL_ADDED,
-                                   0, clients.length - 1 );
+                scheduleListDataEvent( ListDataEvent.INTERVAL_ADDED,
+                                       0, clients.length - 1 );
             }
         }
 
+        /**
+         * Notifies listeners that a given client's attributes (may) have
+         * changed.  May be called from any thread.
+         *
+         * @param  client  modified client
+         */
         public void updatedClient( Client client ) {
             int index = clientList_.indexOf( client );
             if ( index >= 0 ) {
-                fireListDataEvent( ListDataEvent.CONTENTS_CHANGED,
-                                   index, index );
+                scheduleListDataEvent( ListDataEvent.CONTENTS_CHANGED,
+                                       index, index );
             }
         }
 
+        /**
+         * Returns a Map representing the client list.
+         *
+         * @return   id -&gt; Client map
+         */
         public Map getClientMap() {
             return clientMapView_;
         }
 
-        private void fireListDataEvent( int type, int index0, int index1 ) {
+        /**
+         * Schedules notification of list data listeners about an event.
+         * May be called from any thread.
+         */
+        private void scheduleListDataEvent( int type, int index0, int index1 ) {
             if ( ! listenerList_.isEmpty() ) {
                 final ListDataEvent evt =
                     new ListDataEvent( this, type, index0, index1 );
@@ -276,7 +396,14 @@ class ClientTracker extends AbstractMessageHandler {
             }
         }
 
+        /**
+         * Passes a ListDataEvent to all listeners.
+         * Must be called from AWT event dispatch thread.
+         *
+         * @param  evt  event to forward
+         */
         private void doFireEvent( ListDataEvent evt ) {
+            assert SwingUtilities.isEventDispatchThread();
             int type = evt.getType();
             for ( Iterator it = listenerList_.iterator(); it.hasNext(); ) {
                 ListDataListener listener = (ListDataListener) it.next();

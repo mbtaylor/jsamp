@@ -4,7 +4,9 @@ import java.util.Map;
 import org.astrogrid.samp.SampException;
 
 /** 
- * This interface is an implementation detail, but it has to be visible
+ * Defines the methods which an XML-RPC callable client must implement.
+ *
+ * <p>This interface is an implementation detail, but it has to be public
  * because it's used in another package.  Rats.
  */ 
 public interface ClientActor {
