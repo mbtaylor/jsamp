@@ -9,47 +9,78 @@ import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.client.HubConnector;
 
+/**
+ * Client application which uses a 
+ * {@link org.astrogrid.samp.client.HubConnector}
+ * to connect to any running hub and display information about all currently
+ * registered clients.
+ * 
+ * @author   Mark Taylor
+ * @since    16 Jul 2008
+ */
 public class HubMonitor extends JPanel {
 
-    private final HubConnector connector_;
-
+    /**
+     * Constructor.
+     *
+     * @param  autoSec  number of seconds between automatic hub connection
+     *         attempts; &lt;=0 means no automatic connections
+     */
     public HubMonitor( int autoSec ) throws SampException {
         super( new BorderLayout() );
-        connector_ = new HubConnector();
-        connector_.setAutoconnect( autoSec );
-        connector_.declareSubscriptions( connector_.computeSubscriptions() );
+
+        // Set up a new HubConnector.
+        HubConnector connector = new HubConnector();
+
+        // Declare the default subscriptions.  This is required so that
+        // the hub knows the client is subscribed to those hub.event
+        // MTypes which inform about client registration, hub shutdown etc.
+        connector.declareSubscriptions( connector.computeSubscriptions() );
+
+        // Declare metadata about this application.
         Metadata meta = new Metadata();
         meta.setName( "HubMonitor" );
         meta.setDescriptionText( "GUI hub monitor utility" );
         meta.setIconUrl( "http://www.star.bristol.ac.uk/~mbt/"
                        + "plastic/images/eye.gif" );
         meta.put( "author", "Mark Taylor" );
-        connector_.declareMetadata( meta );
+        connector.declareMetadata( meta );
+
+        // Create and place a component which maintains a display of 
+        // currently registered clients.  A more modest GUI could just
+        // use the client list model as a model for a JList component.
         HubView hubView = new HubView();
-        hubView.setClientListModel( connector_.getClientListModel() );
+        hubView.setClientListModel( connector.getClientListModel() );
         add( hubView, BorderLayout.CENTER );
+
+        // Prepare a container for other widgets at the bottom of the window.
         JPanel connectBox = new JPanel( new BorderLayout() );
-        connectBox.add( new JButton( connector_.getRegisterAction() ),
-                        BorderLayout.CENTER );
-        connectBox.add( connector_.createConnectionIndicator(),
-                        BorderLayout.EAST );
         add( connectBox, BorderLayout.SOUTH );
-        connector_.setActive( true );
+
+        // Create and place a component which allows the user to control
+        // registration/unregistration explicitly.
+        connectBox.add( new JButton( connector.getRegisterAction() ),
+                        BorderLayout.CENTER );
+
+        // Create and place a component which indicates current registration
+        // status of this client.
+        connectBox.add( connector.createConnectionIndicator(),
+                        BorderLayout.EAST );
+
+        // Attempt registration, and arrange that if/when unregistered we look
+        // for a hub to register with on a regular basis.
+        connector.setActive( true );
+        connector.setAutoconnect( autoSec );
     }
 
-    public static int runMain( String[] args ) throws SampException {
+    /**
+     * Displays a HubMonitor in a window.
+     */
+    public static void main( String[] args ) throws SampException {
         JFrame frame = new JFrame();
         frame.getContentPane().add( new HubMonitor( 2 ) );
         frame.pack();
         frame.setVisible( true );
         frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
-        return 0;
-    }
-
-    public static void main( String[] args ) throws SampException {
-        int status = runMain( args );
-        if ( status != 0 ) {
-            System.exit( 1 );
-        }
     }
 }

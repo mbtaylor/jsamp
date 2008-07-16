@@ -30,6 +30,12 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Subscriptions;
 
+/**
+ * Component which displays details about a {@link org.astrogrid.samp.Client}.
+ *
+ * @author   Mark Taylor
+ * @since    16 Jul 2008
+ */
 public class ClientPanel extends JPanel {
 
     private final JTextField idField_;
@@ -40,11 +46,15 @@ public class ClientPanel extends JPanel {
     private final Logger logger_ =
         Logger.getLogger( ClientPanel.class.getName() );
 
+    /**
+     * Constructor.
+     */
     public ClientPanel() {
         super( new BorderLayout() );
         Box main = Box.createVerticalBox();
         add( main );
 
+        // Construct and place identity subpanel.
         Box identBox = Box.createVerticalBox();
         identBox.setBorder( createTitledBorder( "Identity" ) );
         Box idBox = Box.createHorizontalBox();
@@ -55,6 +65,7 @@ public class ClientPanel extends JPanel {
         identBox.add( idBox );
         add( identBox, BorderLayout.NORTH );
 
+        // Construct and place metadata subpanel.
         metaBox_ = Box.createVerticalBox();
         JPanel metaPanel = new JPanel( new BorderLayout() );
         metaPanel.add( metaBox_, BorderLayout.NORTH );
@@ -63,6 +74,7 @@ public class ClientPanel extends JPanel {
         metaScroller.setPreferredSize( new Dimension( INFO_WIDTH, 120 ) );
         main.add( metaScroller );
 
+        // Construct and place subscriptions subpanel.
         Box subsBox = Box.createVerticalBox();
         subsList_ = new JList();
         JScrollPane subsScroller = new JScrollPane( subsList_ );
@@ -72,6 +84,11 @@ public class ClientPanel extends JPanel {
         main.add( subsBox );
     }
 
+    /**
+     * Updates this component to display the current state of a given client.
+     *
+     * @param  client  client, or null to clear display
+     */
     public void setClient( Client client ) {
         idField_.setText( client == null ? null : client.getId() );
         setMetadata( client == null ? null : client.getMetadata() );
@@ -79,10 +96,21 @@ public class ClientPanel extends JPanel {
         client_ = client;
     }
 
+    /**
+     * Returns the most recently displayed client.
+     *
+     * @return  client
+     */
     public Client getClient() {
         return client_;
     }
 
+    /**
+     * Updates this component's metadata panel to display the current state
+     * of a given metadata object.
+     *
+     * @param  meta  metadata map, or null to clear metadata display
+     */
     public void setMetadata( Metadata meta ) {
         metaBox_.removeAll();
         if ( meta != null ) {
@@ -105,6 +133,12 @@ public class ClientPanel extends JPanel {
         metaBox_.revalidate();
     }
 
+    /**
+     * Updates this component's subscriptions panel to display the current
+     * state of a given subscriptions object.
+     *
+     * @param  subs  subscriptions map, or null to clear subscriptions display
+     */
     public void setSubscriptions( Subscriptions subs ) {
         final Object[] subscriptions = subs == null
                                      ? new Object[ 0 ]
@@ -119,10 +153,22 @@ public class ClientPanel extends JPanel {
         } );
     }
 
+    /**
+     * Attempts to open a URL in some kind of external browser.
+     *
+     * @param  url   URL to view
+     */
     public void openURL( URL url ) throws IOException {
         BrowserLauncher.openURL( url.toString() );
     }
 
+    /**
+     * Returns a graphical component which displays a legal SAMP object
+     * (SAMP map, list or string).
+     *
+     * @param   value  SAMP object
+     * @return   new component displaying <code>value</code>
+     */
     private JComponent createViewer( Object value ) {
         if ( value instanceof String ) {
             JTextField field = new JTextField();
@@ -162,6 +208,13 @@ public class ClientPanel extends JPanel {
         }
     }
 
+    /**
+     * Returns an HTML representation of a legal SAMP object
+     * (SAMP map, list or string).
+     *
+     * @param  data  SAMP object
+     * @return  HTML representation of <code>data</code>
+     */
     private static String toHtml( Object data ) {
         StringBuffer sbuf = new StringBuffer();
         if ( data instanceof Map ) {
@@ -196,6 +249,12 @@ public class ClientPanel extends JPanel {
         return sbuf.toString();
     }
 
+    /**
+     * Escapes a literal string for use within HTML text.
+     *
+     * @param   text  literal string
+     * @return   escaped version of <code>text</code> safe for use within HTML
+     */
     private static String htmlEscape( String text ) {
         int leng = text.length();
         StringBuffer sbuf = new StringBuffer( leng );
@@ -218,6 +277,12 @@ public class ClientPanel extends JPanel {
         return sbuf.toString();
     }
 
+    /**
+     * Creates a titled border with a uniform style.
+     *
+     * @param  title  title text
+     * @return  border
+     */
     static Border createTitledBorder( String title ) {
         return BorderFactory.createCompoundBorder(
                    BorderFactory.createEmptyBorder( 5, 5, 5, 5 ),

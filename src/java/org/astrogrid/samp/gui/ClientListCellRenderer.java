@@ -13,16 +13,26 @@ import javax.swing.ListModel;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.RegInfo;
 
+/**
+ * List Cell Renderer for use with {@link org.astrogrid.samp.Client} objects.
+ *
+ * @author   Mark Taylor
+ * @since    16 Jul 2008
+ */
 public class ClientListCellRenderer extends DefaultListCellRenderer {
 
     private final ClientLabeller labeller_;
-    private final RegInfo regInfo_;
     private Font[] labelFonts_;
 
+    /**
+     * Constructor.
+     *
+     * @param  listModel  list model whose elements we will be rendering
+     * @param  regInfo    registration information for hub connection to
+     *                    which clients apply (may be null)
+     */
     public ClientListCellRenderer( ListModel listModel, RegInfo regInfo ) {
-        labeller_ = new ClientLabeller();
-        labeller_.setClientListModel( listModel );
-        regInfo_ = regInfo;
+        labeller_ = new ClientLabeller( listModel, regInfo );
     }
 
     public Component getListCellRendererComponent( JList list, Object value,
@@ -37,14 +47,6 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
             String label = labeller_.getLabel( client );
             String text = label == null ? id
                                         : label;
-            if ( regInfo_ != null ) {
-                if ( id.equals( regInfo_.getHubId() ) ) {
-                    text += " (hub)";
-                }
-                else if ( id.equals( regInfo_.getSelfId() ) ) {
-                    text += " (self)";
-                }
-            }
             Font font = getLabelFont( label == null );
             int size;
             try {
@@ -64,15 +66,28 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
         return c;
     }
 
-    private Font getLabelFont( boolean isAlias ) {
+    /**
+     * Returns the font used by this label, or a variant.
+     *
+     * @param   special   true if the font is to look a bit different
+     * @return  font
+     */
+    private Font getLabelFont( boolean special ) {
         if ( labelFonts_ == null ) {
             Font normalFont = getFont();
-            Font aliasFont = getFont().deriveFont( Font.ITALIC );
+            Font aliasFont = getFont().deriveFont( Font.BOLD );
             labelFonts_ = new Font[] { normalFont, aliasFont };
         }
-        return labelFonts_[ isAlias ? 1 : 0 ];
+        return labelFonts_[ special ? 1 : 0 ];
     }
 
+    /**
+     * Return an icon based on an existing one, but drawn to an exact size.
+     *
+     * @param  icon  original icon, or null for blank
+     * @param  size  number of horizontal and vertical pixels in output
+     * @return  resized version of <code>icon</code>
+     */
     private static Icon sizeIcon( Icon icon, final int size ) {
         if ( icon == null ) {
             return new Icon() {
@@ -95,11 +110,21 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
         }
     }
 
+    /**
+     * Icon implementation which looks like an existing one, but is resized
+     * down if necessary.
+     */
     private static class SizedIcon implements Icon {
         private final Icon icon_;
         private final int size_;
         private final double factor_;
 
+        /**
+         * Constructor.
+         *
+         * @param   icon  original icon
+         * @param   size  number of horizontal and vertical pixels in this icon
+         */
         public SizedIcon( Icon icon, int size ) {
             icon_ = icon;
             size_ = size;

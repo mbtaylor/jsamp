@@ -14,15 +14,27 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.astrogrid.samp.Client;
 
+/**
+ * Component displaying a list of SAMP {@link org.astrogrid.samp.Client}s,
+ * usually those registered with a hub.
+ *
+ * @author   Mark Taylor
+ * @since    16 Jul 2008
+ */
 public class HubView extends JPanel {
 
     private final JList jlist_;
     private final ClientPanel clientPanel_;
     private final ListDataListener listListener_;
 
+    /**
+     * Constructor.
+     */
     public HubView() {
         super( new BorderLayout() );
 
+        // Set up a JList to display the list of clients.
+        // If a selection is made, update the client detail panel.
         jlist_ = new JList();
         ListSelectionModel selModel = jlist_.getSelectionModel();
         selModel.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
@@ -34,6 +46,8 @@ public class HubView extends JPanel {
             }
         } );
 
+        // Watch the list; if any change occurs which may affect the currently-
+        // selected client, update the client detail panel.
         listListener_ = new ListDataListener() {
             public void contentsChanged( ListDataEvent evt ) {
                 preferSelection();
@@ -62,8 +76,8 @@ public class HubView extends JPanel {
             }
         };
 
+        // Construct and place subcomponents.
         clientPanel_ = new ClientPanel();
-
         JSplitPane splitter = new JSplitPane();
         splitter.setOneTouchExpandable( true );
         JScrollPane listScroller = new JScrollPane( jlist_ );
@@ -74,6 +88,12 @@ public class HubView extends JPanel {
         add( splitter );
     }
 
+    /**
+     * Sets the client list model which is displayed in this component.
+     *
+     * @param  clientModel   list model whose elements are 
+     *                       {@link org.astrogrid.samp.Client}s
+     */
     public void setClientListModel( ListModel clientModel ) {
         ListModel oldModel = jlist_.getModel();
         jlist_.getSelectionModel().clearSelection();
@@ -88,6 +108,10 @@ public class HubView extends JPanel {
         }
     }
 
+    /**
+     * Ensure that the client panel is up to date with respect to the currently
+     * selected client.
+     */
     private void updateClientView() {
         int isel = jlist_.getSelectedIndex();
         clientPanel_.setClient( isel >= 0
