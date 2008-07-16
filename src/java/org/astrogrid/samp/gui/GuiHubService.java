@@ -50,7 +50,7 @@ public class GuiHubService extends BasicHubService {
     public JFrame createHubWindow() {
         HubView hubView = new HubView();
         hubView.setClientListModel( getClientListModel() );
-        JFrame frame = new JFrame( "Hub" );
+        JFrame frame = new JFrame( "SAMP Hub" );
         frame.getContentPane().add( hubView );
         frame.pack();
         return frame;

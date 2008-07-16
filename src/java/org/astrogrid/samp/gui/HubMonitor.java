@@ -77,7 +77,7 @@ public class HubMonitor extends JPanel {
      * Displays a HubMonitor in a window.
      */
     public static void main( String[] args ) throws SampException {
-        JFrame frame = new JFrame();
+        JFrame frame = new JFrame( "SAMP HubMonitor" );
         frame.getContentPane().add( new HubMonitor( 2 ) );
         frame.pack();
         frame.setVisible( true );
