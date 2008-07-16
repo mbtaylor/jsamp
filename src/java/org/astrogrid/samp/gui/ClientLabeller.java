@@ -2,10 +2,9 @@ package org.astrogrid.samp.gui;
 
 import java.net.URL;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.ListModel;
@@ -17,7 +16,7 @@ import org.astrogrid.samp.RegInfo;
 
 /**
  * Provides text and icon labels for a {@link org.astrogrid.samp.Client}.
- * This object maintains internal state so that it can render clients 
+ * This object maintains internal state so that it can render clients
  * in an appropriately consistent way.
  *
  * @author   Mark Taylor
@@ -25,12 +24,11 @@ import org.astrogrid.samp.RegInfo;
  */
 public class ClientLabeller implements ListDataListener {
 
-    private final Map clientLabelMap_;
-    private final Map clientIconMap_;
-    private final Map nameCountMap_;
-    private final Map urlIconMap_;
     private final ListModel clientList_;
     private final RegInfo regInfo_;
+    private final Map clientMap_;
+    private final Map nameCountMap_;
+    private final Map urlIconMap_;
 
     /**
      * Constructor.
@@ -47,8 +45,7 @@ public class ClientLabeller implements ListDataListener {
     public ClientLabeller( ListModel clientList, RegInfo regInfo ) {
         clientList_ = clientList;
         regInfo_ = regInfo;
-        clientLabelMap_ = new HashMap();
-        clientIconMap_ = new HashMap();
+        clientMap_ = new HashMap();
         nameCountMap_ = new HashMap();
         urlIconMap_ = new HashMap();
         if ( clientList_ != null ) {
@@ -65,7 +62,7 @@ public class ClientLabeller implements ListDataListener {
      *          better than the public ID can be found, null is returned
      */
     public String getLabel( Client client ) {
-        return (String) clientLabelMap_.get( client );
+        return getClientInfo( client ).getLabel();
     }
 
     /**
@@ -75,7 +72,23 @@ public class ClientLabeller implements ListDataListener {
      * @return  icon if known
      */
     public Icon getIcon( Client client ) {
-        return (Icon) clientIconMap_.get( client );
+        return getClientInfo( client ).getIcon();
+    }
+
+    /**
+     * Returns the ClientInfo object corresponding to a given client.
+     * Creates a new one if none is known.
+     *
+     * @param  client  client
+     * @return  new or existig ClientInfo
+     */
+    private ClientInfo getClientInfo( Client client ) {
+        ClientInfo info = (ClientInfo) clientMap_.get( client );
+        if ( info == null ) {
+            info = new ClientInfo( client );
+            clientMap_.put( client, info );
+        }
+        return info;
     }
 
     public void contentsChanged( ListDataEvent evt ) {
@@ -88,6 +101,7 @@ public class ClientLabeller implements ListDataListener {
         }
         else {
             refreshClients();
+            tidyClients();
         }
     }
 
@@ -104,111 +118,128 @@ public class ClientLabeller implements ListDataListener {
     }
 
     private void updateClient( Client client ) {
-        clientLabelMap_.put( client, generateLabel( client ) );
-        clientIconMap_.put( client, generateIcon( client ) );
+        getClientInfo( client ).updateMetadata();
     }
 
+    /**
+     * Clear out state relating to clients which are no longer in the 
+     * list.
+     */
     private void tidyClients() {
         Collection activeSet = new HashSet();
         for ( int i = 0; i < clientList_.getSize(); i++ ) {
             activeSet.add( clientList_.getElementAt( i ) );
         }
-        clientLabelMap_.keySet().retainAll( activeSet );
+        clientMap_.keySet().retainAll( activeSet );
+        if ( clientMap_.isEmpty() ) {
+            nameCountMap_.clear();
+        }
     }
 
+    /**
+     * Make sure that all labelling information is up to date.
+     */
     private void refreshClients() {
         for ( int i = 0; i < clientList_.getSize(); i++ ) {
             updateClient( (Client) clientList_.getElementAt( i ) );
         }
-        tidyClients();
     }
 
     /**
-     * Attempts to work out an icon associated with the given client.
-     *
-     * @param  client to find icon for
-     * @return  icon if known
+     * Utility class which stores information about clients we have come
+     * across before.
      */
-    private Icon generateIcon( Client client ) {
-        Metadata meta = client.getMetadata();
-        if ( meta != null ) {
-            URL url = meta.getIconUrl();
-            if ( url != null ) {
-                if ( ! urlIconMap_.containsKey( url ) ) {
-                    urlIconMap_.put( url, new ImageIcon( url ) );
+    private class ClientInfo {
+        private final Client client_;
+        private final String role_;
+        private String name_;
+        private int nameSeq_;
+        private String label_;
+        private Icon icon_;
+
+        /**
+         * Constructor.
+         *
+         * @param  client
+         */
+        ClientInfo( Client client ) {
+            client_ = client;
+            if ( regInfo_ != null ) {
+                String id = client.getId();
+                if ( id.equals( regInfo_.getSelfId() ) ) {
+                    role_ = "self";
                 }
-                return (Icon) urlIconMap_.get( url );
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Attempts to work out a human-readable text label for the given client.
-     *
-     * @param   client  to find label for
-     * @return  human-readable label for client if available; if nothing
-     *          better than the public ID can be found, null is returned
-     */
-    private String generateLabel( Client client ) {
-        String name = generateName( client );
-        String role = generateRole( client );
-        if ( name != null ) {
-            return role == null
-                 ? name
-                 : name + " (" + role + ")";
-        }
-        else if ( role != null ) {
-            return "(" + role + ")";
-        }
-        else {
-            return null;
-        }
-    }
-
-    /**
-     * Returns a name based on the client metadata if possible.
-     * This is disambiguated with a number if the client list contains
-     * (or has contained) multiple clients with the same name.
-     *
-     * @param  client  client
-     * @return   qualified client name
-     */
-    private String generateName( Client client ) {
-        Metadata meta = client.getMetadata();
-        if ( meta != null ) {
-            String name = meta.getName();
-            if ( name != null ) {
-                int nameCount = nameCountMap_.containsKey( name )
-                              ? ((Number) nameCountMap_.get( name )).intValue()
-                              : 0;
-                nameCountMap_.put( name, new Integer( nameCount + 1 ) );
-                if ( nameCount > 0 ) {
-                    name += "-" + nameCount;
+                else if ( id.equals( regInfo_.getHubId() ) ) {
+                    role_ = "hub";
+                }
+                else {
+                    role_ = null;
                 }
             }
-            return name;
+            else {
+                role_ = null;
+            }
+            updateMetadata();
         }
-        else {
-            return null;
-        }
-    }
 
-    /**
-     * Returns a special client role if appropriate.
-     *
-     * @return "self", "hub" or null
-     */
-    private String generateRole( Client client ) {
-        String id = client.getId();
-        if ( id.equals( regInfo_.getSelfId() ) ) {
-            return "self";
+        /**
+         * Label associated with this client.
+         *
+         * @return label
+         */
+        public String getLabel() {
+            return label_;
         }
-        else if ( id.equals( regInfo_.getHubId() ) ) {
-            return "hub";
+
+        /**
+         * Icon associated with this client.
+         *
+         * @return  icon
+         */
+        public Icon getIcon() {
+            return icon_;
         }
-        else {
-            return null;
+
+        /**
+         * Call when the metadata of this client might have changed.
+         */
+        public void updateMetadata() {
+            Metadata meta = client_.getMetadata();
+            if ( meta != null ) {
+                String name = meta.getName();
+                if ( name != null && ! name.equals( name_ ) ) {
+                    name_ = name;
+                    int nameCount = nameCountMap_.containsKey( name )
+                           ? ((Number) nameCountMap_.get( name )).intValue()
+                           : 0;
+                    nameSeq_ = nameCount;
+                    nameCountMap_.put( name, new Integer( nameCount + 1 ) );
+                }
+                URL url = meta.getIconUrl();
+                if ( url != null ) {
+                    if ( ! urlIconMap_.containsKey( url ) ) {
+                        urlIconMap_.put( url, new ImageIcon( url ) );
+                    }
+                }
+                icon_ = (Icon) urlIconMap_.get( url );
+            }
+            StringBuffer lbuf = new StringBuffer();
+            if ( name_ != null ) {
+                lbuf.append( name_ );
+                if ( nameSeq_ > 0 ) {
+                    lbuf.append( '-' )
+                        .append( nameSeq_ );
+                }
+                if ( role_ != null ) {
+                    lbuf.append( ' ' );
+                }
+            }
+            if ( role_ != null ) {
+                lbuf.append( '(' )
+                    .append( role_ )
+                    .append( ')' );
+            }
+            label_ = lbuf.length() > 0 ? lbuf.toString() : null;
         }
     }
 }
