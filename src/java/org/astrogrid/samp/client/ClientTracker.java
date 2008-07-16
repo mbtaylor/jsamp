@@ -236,7 +236,7 @@ class ClientTracker extends AbstractMessageHandler {
         }
 
         public boolean equals( Object o ) {
-            if ( o instanceof Client ) {
+            if ( o instanceof TrackedClient ) {
                 TrackedClient other = (TrackedClient) o;
                 return other.id_.equals( this.id_ );
             }
