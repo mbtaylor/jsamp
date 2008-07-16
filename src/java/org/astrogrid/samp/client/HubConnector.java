@@ -525,7 +525,7 @@ public class HubConnector {
     public HubConnection getConnection() throws SampException {
         HubConnection connection = connection_;
         if ( connection == null && isActive_ ) {
-            connection = profile_.createHubConnection();
+            connection = profile_.register();
             if ( connection != null ) {
                 configureConnection( connection );
                 connection_ = connection;

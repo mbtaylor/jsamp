@@ -23,7 +23,7 @@ public class StandardClientProfile implements ClientProfile {
     private StandardClientProfile() {
     }
 
-    public HubConnection createHubConnection() throws SampException {
+    public HubConnection register() throws SampException {
         LockInfo lockInfo;
         try {
             lockInfo = LockInfo.readLockFile();
