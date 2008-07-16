@@ -378,21 +378,20 @@ class ClientTracker extends AbstractMessageHandler {
         /**
          * Schedules notification of list data listeners about an event.
          * May be called from any thread.
+         *
+         * @param  type  ListDataEvent event type
+         * @param  int  index0  ListDataEvent start index
+         * @param  int  index1  ListDataEvent end index
          */
         private void scheduleListDataEvent( int type, int index0, int index1 ) {
             if ( ! listenerList_.isEmpty() ) {
                 final ListDataEvent evt =
                     new ListDataEvent( this, type, index0, index1 );
-                if ( SwingUtilities.isEventDispatchThread() ) {
-                    doFireEvent( evt );
-                }
-                else {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            doFireEvent( evt );
-                        }
-                    } );
-                }
+                SwingUtilities.invokeLater( new Runnable() {
+                    public void run() {
+                        fireEvent( evt );
+                    }
+                } );
             }
         }
 
@@ -402,7 +401,7 @@ class ClientTracker extends AbstractMessageHandler {
          *
          * @param  evt  event to forward
          */
-        private void doFireEvent( ListDataEvent evt ) {
+        private void fireEvent( ListDataEvent evt ) {
             assert SwingUtilities.isEventDispatchThread();
             int type = evt.getType();
             for ( Iterator it = listenerList_.iterator(); it.hasNext(); ) {
