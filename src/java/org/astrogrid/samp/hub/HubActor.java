@@ -135,6 +135,7 @@ public interface HubActor {
      * @param  msgTag  arbitrary string tagging this message for caller's
      *         benefit
      * @param  msg {@link org.astrogrid.samp.Message}-like map
+     * @return  message ID
      */
     String call( String privateKey, String recipientId, String msgTag, Map msg )
             throws SampException;
@@ -146,6 +147,7 @@ public interface HubActor {
      * @param  msgTag  arbitrary string tagging this message for caller's
      *         benefit
      * @param  msg {@link org.astrogrid.samp.Message}-like map
+     * @return  message ID
      */
     String callAll( String privateKey, String msgTag, Map msg )
             throws SampException;

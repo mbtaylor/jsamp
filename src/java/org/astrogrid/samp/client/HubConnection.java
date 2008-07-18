@@ -120,6 +120,7 @@ public interface HubConnection {
      * @param  msgTag  arbitrary string tagging this message for caller's
      *         benefit
      * @param  msg {@link org.astrogrid.samp.Message}-like map
+     * @return  message ID
      */
     String call( String recipientId, String msgTag, Map msg )
         throws SampException;
@@ -135,6 +136,7 @@ public interface HubConnection {
      * @param  msgTag  arbitrary string tagging this message for caller's
      *         benefit
      * @param  msg {@link org.astrogrid.samp.Message}-like map
+     * @return  message ID
      */
     String callAll( String msgTag, Map msg ) throws SampException;
 
