@@ -59,14 +59,14 @@ class XmlRpcReceiver implements Receiver {
      * @param   params   array of method parameters
      * @return  XML-RPC call return value
      */
-    private Object exec( String methodName, Object[] params )
+    private void exec( String methodName, Object[] params )
             throws SampException {
         Vector paramVec = new Vector();
         paramVec.add( privateKey_ );
         for ( int ip = 0; ip < params.length; ip++ ) {
             paramVec.add( SampXmlRpcHandler.toApache( params[ ip ] ) );
         }
-        return rawExec( "samp.client." + methodName, paramVec );
+        rawExec( "samp.client." + methodName, paramVec );
     }
 
     /**
@@ -77,16 +77,13 @@ class XmlRpcReceiver implements Receiver {
      * @param   params  vector of method parameters
      * @return  XML-RPC call return value
      */
-    private Object rawExec( String fqName, Vector paramVec )
+    private void rawExec( String fqName, Vector paramVec )
             throws SampException {
-        try {
-            return xClient_.execute( fqName, paramVec );
-        }
-        catch ( XmlRpcException e ) {
-            throw new SampException( e.getMessage(), e );
-        }
-        catch ( IOException e ) {
-            throw new SampException( e.getMessage(), e );
-        }
+
+        // I'm not sure that the Apache implementation is *sufficiently*
+        // asynchronous.  It does leave a thread hanging around waiting
+        // for a response, though the result of this response is 
+        // discarded.  May cause problems under heavy load.
+        xClient_.executeAsync( fqName, paramVec, null );
     }
 }
