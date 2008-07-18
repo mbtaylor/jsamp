@@ -30,7 +30,19 @@ class CallableClientServer {
     public CallableClientServer() throws SampException, IOException {
         int port = SampUtils.getUnusedPort( 2300 );
         try {
-            server_ = new WebServer( port );
+            server_ = new WebServer( port ) {
+
+                // Same as superclass implementation except that the listener
+                // thread is marked as a daemon.
+                public void start() {
+                    if ( this.listener == null ) {
+                        this.listener =
+                            new Thread( this, "XML-RPC Weblistener" );
+                        this.listener.setDaemon( true );
+                        this.listener.start();
+                    }
+                }
+            };
             server_.start();
         }
         catch ( Exception e ) {
