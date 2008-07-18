@@ -43,6 +43,8 @@ class ClientTracker extends AbstractMessageHandler {
         METADATA_MTYPE = "samp.hub.event.metadata",
         SUBSCRIPTIONS_MTYPE = "samp.hub.event.subscriptions",
     };
+    private static final Client MORIBUND_CLIENT = 
+        new TrackedClient( "<moribund>" );
 
     /**
      * Constructor.
@@ -288,7 +290,14 @@ class ClientTracker extends AbstractMessageHandler {
         }
 
         public Object getElementAt( int index ) {
-            return clientList_.get( index );
+            try {
+                return clientList_.get( index );
+            }
+
+            // May be called from out of event dispatch thread.
+            catch ( IndexOutOfBoundsException e ) {
+                return MORIBUND_CLIENT;
+            }
         }
 
         public void addListDataListener( ListDataListener l ) {

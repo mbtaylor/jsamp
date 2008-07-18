@@ -26,6 +26,8 @@ import org.astrogrid.samp.hub.BasicHubService;
 public class GuiHubService extends BasicHubService {
 
     private final GuiClientSet clientSet_;
+    private final static HubClient MORIBUND_CLIENT =
+         new HubClient( "<no-id>", "<moribund>" );
 
     /**
      * Constructor.
@@ -133,7 +135,14 @@ public class GuiHubService extends BasicHubService {
         }
 
         public Object getElementAt( int index ) {
-            return clientList_.get( index );
+            try {
+                return clientList_.get( index );
+            }
+
+            // May be called from other than the event dispatch thread.
+            catch ( IndexOutOfBoundsException e ) {
+                return MORIBUND_CLIENT;
+            }
         }
 
         public int getSize() {
