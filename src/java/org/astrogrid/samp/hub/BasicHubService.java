@@ -336,6 +336,7 @@ public class BasicHubService implements HubService {
             throw new SampException( "Bad timeout format (should be SAMP int)",
                                      e );
         }
+        long start = System.currentTimeMillis();
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
             synchronized ( waiterMap_ ) {
 
@@ -362,8 +363,7 @@ public class BasicHubService implements HubService {
 
             // Make the call asynchronously to the receiver.
             recipient.getReceiver()
-                     .receiveCall( caller.getId(), hubMsgId.toString(),
-                                   msg );
+                     .receiveCall( caller.getId(), hubMsgId.toString(), msg );
 
             // Wait until either the timeout expires, or the response to the
             // message turns up in the waiter map (placed there on another
@@ -398,7 +398,19 @@ public class BasicHubService implements HubService {
                     }
                     else {
                         assert System.currentTimeMillis() >= finish;
-                        throw new SampException( "Synchronous call timeout" );
+                        String millis =
+                            Long.toString( System.currentTimeMillis() - start );
+                        String emsg = new StringBuffer()
+                            .append( "Synchronous call timeout after " )
+                            .append( millis.substring( 0,
+                                                       millis.length() - 3 ) )
+                            .append( '.' )
+                            .append( millis.substring( millis.length() - 3 ) )
+                            .append( '/' )
+                            .append( timeoutStr )
+                            .append( " sec" )
+                            .toString();
+                        throw new SampException( emsg );
                     }
                 }
 
