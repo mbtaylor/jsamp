@@ -103,6 +103,20 @@ public class Message extends SampMap {
         return this;
     }
 
+    /**
+     * Returns the value of a single entry in this messge's
+     * <code>samp.params</code> map.  Null is returned if the parameter
+     * does not appear.
+     *
+     * @param  name  param name
+     * @return  param value
+     */
+    public Object getParam( String name ) {
+        Map params = getParams();
+        return params == null ? null
+                              : params.get( name );
+    }
+
     public void check() throws DataException {
         super.check();
         checkHasKeys( new String[] { MTYPE_KEY } );
