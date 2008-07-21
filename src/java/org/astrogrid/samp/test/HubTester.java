@@ -227,8 +227,8 @@ public class HubTester extends Tester {
 
         // Declare subscriptions and check that retrieved subscriptions match
         // declared ones.
-        Calculator calc1 = new Calculator( c1 );
-        c1.setCallable( calc1 );
+        TestCallableClient callable1 = new TestCallableClient( c1 );
+        c1.setCallable( callable1 );
         Subscriptions subs1 = new Subscriptions();
         subs1.put( "test.dummy.1", new HashMap() );
         subs1.put( "test.dummy.2", new HashMap() );
@@ -246,11 +246,11 @@ public class HubTester extends Tester {
         assertEquals( "big", 
                       ((Map) c2.getSubscriptions( id1 ).get( "test.dummy.3" ))
                      .get( "size" ) );
-        c1.declareSubscriptions( Calculator.SUBS );
+        c1.declareSubscriptions( TestCallableClient.SUBS );
 
-        Calculator calc2 = new Calculator( c2 );
-        c2.setCallable( calc2 );
-        c2.declareSubscriptions( Calculator.SUBS );
+        TestCallableClient callable2 = new TestCallableClient( c2 );
+        c2.setCallable( callable2 );
+        c2.declareSubscriptions( TestCallableClient.SUBS );
 
         // Send some concurrent ECHO messages via both notify and call.
   System.err.println( "Avoiding ugly strings - needs attention in the doc" );
@@ -265,7 +265,7 @@ public class HubTester extends Tester {
             msg.addParam( "val2", val2 );
             echoParams[ i ] = msg.getParams();
             c2.notify( id1, msg );
-            calc2.call( id1, "tag" + i, msg );
+            callable2.call( id1, "tag" + i, msg );
         }
 
         // The call messages should complete quickly, so all the sends
@@ -273,28 +273,29 @@ public class HubTester extends Tester {
         // (there is a deliberate delay at the receiver end in all cases).  
         // This isn't required, but hubs SHOULD work this way.
         // Warn if it looks like not.
-        if ( calc2.getReplyCount() > necho / 2 ) {
+        if ( callable2.getReplyCount() > necho / 2 ) {
             logger_.warning( "Looks like hub call()/notify() methods "
                            + "not completing quickly"
-                           + " (" + calc2.getReplyCount() + "/" + necho + ")" );
+                           + " (" + callable2.getReplyCount()
+                           + "/" + necho + ")" );
         }
 
         // Spin-wait until all the replies are in.
-        while ( calc2.getReplyCount() < necho );
-        assertEquals( necho, calc2.getReplyCount() );
+        while ( callable2.getReplyCount() < necho );
+        assertEquals( necho, callable2.getReplyCount() );
 
         // Check that the replies are as expected (returned samp.result has
         // same content as sent samp.params).
         for ( int i = 0; i < necho; i++ ) {
-            assertEquals( necho - i, calc2.getReplyCount() );
-            Response r = calc2.getReply( id1, "tag" + i );
+            assertEquals( necho - i, callable2.getReplyCount() );
+            Response r = callable2.getReply( id1, "tag" + i );
             assertEquals( Response.OK_STATUS, r.getStatus() );
             assertEquals( echoParams[ i ], r.getResult() );
         }
 
         // Check that no more replies have arrived apart from the ones we
         // were expecting.
-        assertEquals( 0, calc2.getReplyCount() );
+        assertEquals( 0, callable2.getReplyCount() );
 
         // Send echo messages synchronously (using callAndWait).
         // These have deliberate delays at the receiver end, but there is
@@ -335,8 +336,8 @@ public class HubTester extends Tester {
 
         // Register a new client.
         HubConnection c3 = register();
-        Calculator calc3 = new Calculator( c3 );
-        c3.setCallable( calc3 );
+        TestCallableClient callable3 = new TestCallableClient( c3 );
+        c3.setCallable( callable3 );
 
         // Test callAll and notifyAll.
         {
@@ -356,8 +357,8 @@ public class HubTester extends Tester {
             msg.put( WAITMILLIS_KEY, SampUtils.encodeInt( 400 ) );
             c3.notifyAll( msg );
             String tag = "tag99";
-            calc3.callAll( tag, msg );
-            if ( calc3.getReplyCount() != 0 ) {
+            callable3.callAll( tag, msg );
+            if ( callable3.getReplyCount() != 0 ) {
                 logger_.warning( "Looks like hub call()/notify() methods "
                                + "not completing quickly" );
             }
@@ -366,17 +367,17 @@ public class HubTester extends Tester {
             // recipient client.
             for ( Iterator it = recipientSet.iterator(); it.hasNext(); ) {
                 String rid = (String) it.next();
-                Response response = calc3.waitForReply( rid, tag );
+                Response response = callable3.waitForReply( rid, tag );
                 assertEquals( Response.OK_STATUS, response.getStatus() );
                 assertEquals( val4, response.getResult().get( "val4" ) );
             }
 
             // Check there are no replies beyond the ones we expect.
-            assertEquals( 0, calc3.getReplyCount() );
+            assertEquals( 0, callable3.getReplyCount() );
             delay( 500 );
 
             // .. even after a while.
-            assertEquals( 0, calc3.getReplyCount() );
+            assertEquals( 0, callable3.getReplyCount() );
         }
 
         // Test that notify- and call-type messages are being received by
@@ -388,7 +389,7 @@ public class HubTester extends Tester {
             Set recipients = c3.getSubscribedClients( PING_MTYPE ).keySet();
             assertTrue( recipients.contains( id1 ) );
             assertTrue( recipients.contains( id2 ) );
-            c3.declareSubscriptions( Calculator.SUBS );
+            c3.declareSubscriptions( TestCallableClient.SUBS );
             assertEquals( recipients,
                           c3.getSubscribedClients( PING_MTYPE ).keySet() );
 
@@ -396,9 +397,9 @@ public class HubTester extends Tester {
             // asynchronous methods.
             for ( int i = 0; i < pingsCount; i++ ) {
                 c3.notify( id1, pingMsg );
-                calc3.call( id1, "abc1-" + i, pingMsg );
+                callable3.call( id1, "abc1-" + i, pingMsg );
                 c3.notifyAll( pingMsg );
-                calc3.callAll( "abc2-" + i, pingMsg );
+                callable3.callAll( "abc2-" + i, pingMsg );
             }
 
             // Spin-wait until all the clients have received all the messages
@@ -407,20 +408,20 @@ public class HubTester extends Tester {
             int np2 = pingsCount * 2;
             int np3 = 0;
             int nr3 = pingsCount * ( 1 + recipients.size() );
-            while ( calc1.pingCount_ < np1 ||
-                    calc2.pingCount_ < np2 ||
-                    calc3.pingCount_ < np3 ||
-                    calc3.getReplyCount() < nr3 );
+            while ( callable1.pingCount_ < np1 ||
+                    callable2.pingCount_ < np2 ||
+                    callable3.pingCount_ < np3 ||
+                    callable3.getReplyCount() < nr3 );
 
             // And then wait a bit to see if any more come in (hopefully not).
             delay( 400 );
 
             // Check that the number of messages received is exactly as
             // expected.
-            assertEquals( np1, calc1.pingCount_ );
-            assertEquals( np2, calc2.pingCount_ );
-            assertEquals( np3, calc3.pingCount_ );
-            assertEquals( nr3, calc3.getReplyCount() );
+            assertEquals( np1, callable1.pingCount_ );
+            assertEquals( np2, callable2.pingCount_ );
+            assertEquals( np3, callable3.pingCount_ );
+            assertEquals( nr3, callable3.getReplyCount() );
 
             // Redeclare client 3's subscriptions to the effect that it
             // will not receive any messages.
@@ -616,8 +617,8 @@ public class HubTester extends Tester {
     /**
      * CallablClient implementation for testing.
      */
-    private static class Calculator extends ReplyCollector
-                                    implements CallableClient {
+    private static class TestCallableClient extends ReplyCollector
+                                            implements CallableClient {
         private final HubConnection connection_;
         private int pingCount_;
         public static final Subscriptions SUBS = getSubscriptions();
@@ -627,7 +628,7 @@ public class HubTester extends Tester {
          *
          * @param  connection   hub connection
          */
-        Calculator( HubConnection connection ) {
+        TestCallableClient( HubConnection connection ) {
             super( connection );
             connection_ = connection;
         }
