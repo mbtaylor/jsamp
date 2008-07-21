@@ -1,5 +1,6 @@
 package org.astrogrid.samp.test;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
+import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 
 /**
@@ -261,6 +263,91 @@ public class Calculator extends Tester implements CallableClient {
         return new CalcRequest( mtype,
                                 random_.nextInt( 1000 ),
                                 500 + random_.nextInt( 500 ) );
+    }
+
+    /**
+     * Runs a lot of calculators at once all talking to each other.
+     *
+     * @param  profile  hub connection factory
+     * @param  random   random number generator
+     * @param  nClient  number of clients to run
+     * @param  nQuery   number of messages each client will send
+     * @throws  TestException  if any tests fail
+     */
+    public static void calcStorm( ClientProfile profile, Random random,
+                                  final int nClient, final int nQuery )
+            throws IOException {
+
+        // Set up clients.
+        final Calculator[] calcs = new Calculator[ nClient ];
+        final String[] ids = new String[ nClient ];
+        final Random[] randoms = new Random[ nClient ];
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            HubConnection conn = profile.register();
+            randoms[ ic ] = new Random( random.nextLong() );
+            ids[ ic ] = conn.getRegInfo().getSelfId();
+            calcs[ ic ] = new Calculator( conn, randoms[ ic ] );
+        }
+
+        // Set up one thread per client to do the message sending.
+        Thread[] calcThreads = new Thread[ nClient ];
+        final Throwable[] errors = new Throwable[ 1 ];
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            final Calculator calc = calcs[ ic ];
+            final Random rnd = randoms[ ic ];
+            calcThreads[ ic ] = new Thread( "Calc" + ic ) {
+                public void run() {
+                    try {
+                        for ( int iq = 0; iq < nQuery && errors[ 0 ] == null;
+                              iq++ ) {
+                            calc.sendMessage( ids[ rnd.nextInt( nClient ) ] );
+                        }
+                        calc.flush();
+                    }
+                    catch ( Throwable e ) {
+                        errors[ 0 ] = e;
+                    }
+                }
+            };
+        }
+
+        // Start the threads running.
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            calcThreads[ ic ].start();
+        }
+
+        // Wait for all the threads to finish.
+        try {
+            for ( int ic = 0; ic < nClient; ic++ ) {
+                calcThreads[ ic ].join();
+            }
+        }
+        catch ( InterruptedException e ) {
+            throw new TestException( "Interrupted", e );
+        }
+
+        // Unregister the clients.
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            calcs[ ic ].getConnection().unregister();
+        }
+
+        // If any errors occurred on the sending thread, rethrow one of them
+        // here.
+        if ( errors[ 0 ] != null ) {
+            throw new TestException( "Error in calculator thread: "
+                                   + errors[ 0 ].getMessage(),
+                                     errors[ 0 ] );
+        }
+
+        // Check that the number of messages sent and the number received
+        // was what it should have been.
+        int totCalc = 0;
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            Calculator calc = calcs[ ic ];
+            Tester.assertEquals( nQuery, calc.getSendCount() );
+            totCalc += calc.getReceiveCount();
+        }
+        Tester.assertEquals( totCalc, nClient * nQuery );
     }
 
     /**
