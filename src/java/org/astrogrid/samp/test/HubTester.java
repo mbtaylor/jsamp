@@ -167,6 +167,7 @@ public class HubTester extends Tester {
     public void run() throws IOException {
         testLockfile();
         testClients();
+        calcStorm( 20, 100 );
     }
 
     /**
@@ -513,6 +514,85 @@ public class HubTester extends Tester {
         c2.unregister();
     }
 
+    /**
+     * Stress-tests the hub by having a lot of clients all sending messages
+     * to each other at once.
+     *
+     * @param   nClient  number of clients
+     * @param   nQuery   number of queries per client
+     */
+    private void calcStorm( final int nClient, final int nQuery )
+            throws IOException {
+
+        // Set up clients.
+        final Calculator[] calcs = new Calculator[ nClient ];
+        final String[] ids = new String[ nClient ];
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            HubConnection conn = register();
+            ids[ ic ] = conn.getRegInfo().getSelfId();
+            calcs[ ic ] = new Calculator( conn, random_ );
+        }
+
+        // Set up one thread per client to do the message sending.
+        Thread[] calcThreads = new Thread[ nClient ];
+        final Throwable[] errors = new Throwable[ 1 ];
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            final Calculator calc = calcs[ ic ];
+            calcThreads[ ic ] = new Thread( "Calc" + ic ) {
+                public void run() {
+                    try {
+                        for ( int iq = 0; iq < nQuery && errors[ 0 ] == null;
+                              iq++ ) {
+                            calc.doSomething( ids[ random_
+                                                  .nextInt( nClient ) ] );
+                        }
+                        calc.flush();
+                    }
+                    catch ( Throwable e ) {
+                        errors[ 0 ] = e;
+                    }
+                }
+            };
+        }
+
+        // Start the threads running.
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            calcThreads[ ic ].start();
+        }
+
+        // Wait for all the threads to finish.
+        try {
+            for ( int ic = 0; ic < nClient; ic++ ) {
+                calcThreads[ ic ].join();
+            }
+        }
+        catch ( InterruptedException e ) {
+            throw new TestException( "Interrupted", e );
+        }
+
+        // Unregister the clients.
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            calcs[ ic ].getConnection().unregister();
+        }
+
+        // If any errors occurred on the sending thread, rethrow one of them 
+        // here.
+        if ( errors[ 0 ] != null ) {
+            throw new TestException( "Error in calculator thread",
+                                     errors[ 0 ] );
+        }
+
+        // Check that the number of messages sent and the number received
+        // was what it should have been.
+        int totCalc = 0;
+        for ( int ic = 0; ic < nClient; ic++ ) {
+            Calculator calc = calcs[ ic ];
+            assertEquals( nQuery, calc.getSendCount() );
+            totCalc += calc.getReceiveCount();
+        }
+        assertEquals( totCalc, nClient * nQuery );
+    }
+ 
     /**
      * Assert that the given list of registered clients has a certain content.
      *
