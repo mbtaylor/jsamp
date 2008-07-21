@@ -543,7 +543,7 @@ public class HubTester extends Tester {
                     try {
                         for ( int iq = 0; iq < nQuery && errors[ 0 ] == null;
                               iq++ ) {
-                            calc.doSomething( ids[ random_
+                            calc.sendMessage( ids[ random_
                                                   .nextInt( nClient ) ] );
                         }
                         calc.flush();
