@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.ErrInfo;
+import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
@@ -52,7 +53,10 @@ public class HubTester extends Tester {
 
     static {
         org.apache.xmlrpc.XmlRpc.debug = false;
-        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
+        Logger.getLogger( "org.astrogrid.samp" )
+              .setLevel( Level.WARNING );
+        Logger.getLogger( "org.astrogrid.samp.SampXmlRpcHandler" )
+              .setLevel( Level.SEVERE );
     }
 
     /**
@@ -161,6 +165,28 @@ public class HubTester extends Tester {
      * Perform a wide variety of tests on a running hub.
      */
     public void run() throws IOException {
+        testLockfile();
+        testClients();
+    }
+
+    /**
+     * Tests the content of the SAMP Standard Profile lockfile.
+     * Does not currently test the permissions on it - that would be nice
+     * but is hard to do from java since it's rather platform-specific.
+     */
+    private void testLockfile() throws IOException {
+        LockInfo lockInfo = LockInfo.readLockFile();
+        if ( lockInfo == null ) {
+            throw new TestException( "No lockfile (no hub)" );
+        }
+        lockInfo.check();
+    }
+
+    /**
+     * Performs a wide variety of tests on a running hub from a limited
+     * number of clients.
+     */
+    private void testClients() throws IOException {
 
         // Register client 1 with the hub and declare some metadata.
         HubConnection c1 = register();
@@ -465,8 +491,8 @@ public class HubTester extends Tester {
 
         // Tidy up.
         c3.unregister();
-        assertTestClients( c1, new String[ c2 ] );
-        assertTestClients( c2, new String[ c1 ] );
+        assertTestClients( c1, new String[] { id2, } );
+        assertTestClients( c2, new String[] { id1, } );
 
         c1.unregister();
         c2.unregister();
@@ -618,7 +644,10 @@ public class HubTester extends Tester {
             // sent back to the hub.
             String swaitMillis = (String) msg.get( WAITMILLIS_KEY );
             if ( swaitMillis != null ) {
-                delay ( SampUtils.decodeInt( swaitMillis ) );
+                int waitMillis = SampUtils.decodeInt( swaitMillis );
+                if ( waitMillis > 0 ) {
+                    delay( waitMillis );
+                }
             }
             Response response;
 
