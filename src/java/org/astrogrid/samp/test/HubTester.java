@@ -252,6 +252,20 @@ public class HubTester extends Tester {
         c2.setCallable( callable2 );
         c2.declareSubscriptions( TestCallableClient.SUBS );
 
+        // Try to acquire information about non-existent clients.
+        try {
+            c1.getMetadata( "Sir Not-Appearing-in-this-Hub" );
+            fail();
+        }
+        catch ( SampException e ) {
+        }
+        try {
+            c1.getSubscriptions( "Sir Not-Appearing-in-this-Hub" );
+            fail();
+        }
+        catch ( SampException e ) {
+        }
+
         // Send some concurrent ECHO messages via both notify and call.
   System.err.println( "Avoiding ugly strings - needs attention in the doc" );
         int necho = 5;
