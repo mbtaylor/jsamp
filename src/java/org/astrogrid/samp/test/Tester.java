@@ -13,7 +13,7 @@ public class Tester {
      *
      * @throws TextException  always
      */
-    public void fail() throws TestException {
+    public static void fail() throws TestException {
         throw new TestException( "Test failed" );
     }
 
@@ -23,7 +23,7 @@ public class Tester {
      * @param   test   asserted condition
      * @throws  TestException  if <code>test</code>  is false
      */
-    public void assertTrue( boolean test ) throws TestException {
+    public static void assertTrue( boolean test ) throws TestException {
         if ( ! test ) {
             throw new TestException( "Test failed" );
         }
@@ -38,7 +38,7 @@ public class Tester {
      *          are both <code>null</code> or are equal in the sense of
      *          {@link java.lang.Object#equals}
      */
-    public void assertEquals( Object o1, Object o2 )
+    public static void assertEquals( Object o1, Object o2 )
             throws TestException {
         if ( o1 == null && o2 == null ) {
         }
@@ -55,7 +55,7 @@ public class Tester {
      * @param  i2  integer 2
      * @throws  TestException  iff <code>i1</code> != <code>i2</code>
      */
-    public void assertEquals( int i1, int i2 ) throws TestException {
+    public static void assertEquals( int i1, int i2 ) throws TestException {
         if ( i1 != i2 ) {
             throw new TestException(
                 "Test failed: " + i1 + " != " + i2 );
