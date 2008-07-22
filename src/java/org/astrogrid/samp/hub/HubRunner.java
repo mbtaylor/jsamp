@@ -324,15 +324,25 @@ public class HubRunner {
             .append( HubRunner.class.getName() )
             .append( " [-help]" )
             .append( " [-gui]" )
+            .append( " [-/+verbose ...]" );
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean gui = false;
+        int verbAdjust = 0;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-gui" ) ) {
                 it.remove();
                 gui = true;
+            }
+            else if ( arg.startsWith( "-v" ) ) {
+                it.remove();
+                verbAdjust--;
+            }
+            else if ( arg.startsWith( "+v" ) ) {
+                it.remove();
+                verbAdjust++;
             }
             else if ( arg.startsWith( "-h" ) ) {
                 it.remove();
@@ -345,6 +355,12 @@ public class HubRunner {
             }
         }
         assert argList.isEmpty();
+
+        // Adjust logging in accordance with verboseness flags.
+        int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
+        Logger.getLogger( "org.astrogrid.samp" )
+              .setLevel( Level.parse( Integer.toString( logLevel ) ) );
+
         runHub( gui );
         return 0;
     }
