@@ -535,7 +535,8 @@ public class HubTester extends Tester {
                 }
             }
         };
-        new CalcStorm( profile, random_, 20, 100 ).run();
+        new CalcStorm( profile, random_, 20, 100, Calculator.RANDOM_MODE )
+           .run();
     }
 
     /**
