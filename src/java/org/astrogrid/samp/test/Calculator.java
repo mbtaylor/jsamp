@@ -33,6 +33,53 @@ public class Calculator extends Tester implements CallableClient {
     private static final String MUL_MTYPE = "calc.int.mul";
     private static final String DIV_MTYPE = "calc.int.div";
 
+    /** Sends messages using the Notify delivery pattern. */
+    public static final SendMode NOTIFY_MODE = new SendMode( "notify" ) {
+        void send( Calculator calc, String receiverId, CalcRequest request,
+                   int iseq )
+                throws SampException {
+            calc.connection_.notify( receiverId, request.getMessage() );
+        }
+    };
+
+    /** Sends messages using the Synchronous Call/Response delivery pattern. */
+    public static final SendMode ASYNCH_MODE = new SendMode( "sync" ) {
+        void send( Calculator calc, String receiverId, CalcRequest request,
+                   int iseq )
+                throws SampException {
+            String msgTag = "tag-" + iseq;
+            synchronized ( calc.callMap_ ) {
+                calc.callMap_.put( msgTag, request );
+            }
+            calc.connection_.call( receiverId, msgTag, request.getMessage() );
+        }
+    };
+
+    /** Sends messages using the Asynchronous Call/Response delivery pattern. */
+    public static final SendMode SYNCH_MODE = new SendMode( "async" ) {
+        void send( Calculator calc, String receiverId, CalcRequest request,
+                   int iseq )
+                throws SampException {
+            Response response =
+                calc.connection_.callAndWait( receiverId, request.getMessage(),
+                                              0 );
+            request.checkResponse( response );
+        }
+    };
+
+    /** Sends messages using a random choice of one of the other modes. */
+    public static final SendMode RANDOM_MODE = new SendMode( "mixture" ) {
+        private final SendMode[] otherModes = new SendMode[] {
+            NOTIFY_MODE, ASYNCH_MODE, SYNCH_MODE,
+        };
+        void send( Calculator calc, String receiverId, CalcRequest request,
+                   int iseq )
+                throws SampException {
+            otherModes[ calc.random_.nextInt( otherModes.length ) ]
+                .send( calc, receiverId, request, iseq );
+        }
+    };
+
     /**
      * Constructor.
      *
@@ -68,62 +115,9 @@ public class Calculator extends Tester implements CallableClient {
      *
      * @param  receiverId  client ID of another Calculator client.
      */
-    public void sendMessage( String receiverId ) throws SampException {
-        CalcRequest request = createRandomRequest();
-        switch ( random_.nextInt( 3 ) ) {
-            case 0:
-                sendNotify( receiverId, request );
-                break;
-            case 1:
-                sendCall( receiverId, request );
-                break;
-            case 2:
-                sendCallAndWait( receiverId, request );
-                break;
-            default:
-                throw new AssertionError();
-        }
-    }
-
-    /**
-     * Sends a message using the notification pattern.
-     *
-     * @param  receiverId  client ID of another Calculator client.
-     * @param  request   calculation request to send
-     */
-    public void sendNotify( String receiverId, CalcRequest request )
+    public void sendMessage( String receiverId, SendMode mode )
             throws SampException {
-        nextCall();
-        connection_.notify( receiverId, request.getMessage() );
-    }
-
-    /**
-     * Sends a message using the asynchronous call/response pattern.
-     *
-     * @param  receiverId  client ID of another Calculator client.
-     * @param  request   calculation request to send
-     */
-    public void sendCall( String receiverId, CalcRequest request )
-            throws SampException {
-        String msgTag = "tag-" + nextCall();
-        synchronized ( callMap_ ) {
-            callMap_.put( msgTag, request );
-        }
-        connection_.call( receiverId, msgTag, request.getMessage() );
-    }
-
-    /**
-     * Sends a message using the synchronous call/response pattern.
-     *
-     * @param  receiverId  client ID of another Calculator client.
-     * @param  request   calculation request to send
-     */
-    public void sendCallAndWait( String receiverId, CalcRequest request )
-            throws SampException {
-        nextCall();
-        Response response =
-            connection_.callAndWait( receiverId, request.getMessage(), 0 );
-        request.checkResponse( response );
+        mode.send( this, receiverId, createRandomRequest(), nextCall() );
     }
 
     /**
@@ -262,6 +256,43 @@ public class Calculator extends Tester implements CallableClient {
         return new CalcRequest( mtype,
                                 random_.nextInt( 1000 ),
                                 500 + random_.nextInt( 500 ) );
+    }
+
+    /**
+     * Represents a delivery pattern.
+     * Instances are provided as static members of class {@link Calculator}.
+     */
+    public static abstract class SendMode {
+        private final String name_;
+
+        /**
+         * Constructor.
+         *
+         * @param  name  mode name
+         */
+        private SendMode( String name ) {
+            name_ = name;
+        }
+
+        /**
+         * Sends a message from one calculator client to another using this
+         * send mode.
+         *
+         * @param  calc  sending client
+         * @param  receiverId  public ID of receiving client
+         * @param  request  calculation request object
+         * @param  iseq  unique identifier for this request by this calculator
+         */
+        abstract void send( Calculator calc, String receiverId,
+                            CalcRequest request, int iseq )
+                throws SampException;
+
+        /**
+         * Returns the name of this mode.
+         */
+        public String toString() {
+            return name_;
+        }
     }
 
     /**
