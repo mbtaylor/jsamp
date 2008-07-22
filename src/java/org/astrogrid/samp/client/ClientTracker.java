@@ -2,11 +2,14 @@ package org.astrogrid.samp.client;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Logger;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
@@ -30,9 +33,11 @@ class ClientTracker extends AbstractMessageHandler {
 
     private final ClientListModel clientModel_;
     private final Map clientMap_;
-    private final Logger logger_ =
+    private final OperationQueue opQueue_;
+    private final static Logger logger_ =
         Logger.getLogger( ClientTracker.class.getName() );
 
+    private static final int QUEUE_TIME = 10000;
     private static final String REGISTER_MTYPE;
     private static final String UNREGISTER_MTYPE;
     private static final String METADATA_MTYPE;
@@ -52,6 +57,7 @@ class ClientTracker extends AbstractMessageHandler {
     public ClientTracker() {
         super( TRACKED_MTYPES );
         clientModel_ = new ClientListModel();
+        opQueue_ = new OperationQueue();
         clientMap_ = clientModel_.getClientMap();
     }
 
@@ -145,45 +151,79 @@ class ClientTracker extends AbstractMessageHandler {
         }
         String selfId = connection.getRegInfo().getSelfId();
         if ( REGISTER_MTYPE.equals( mtype ) ) {
-            clientModel_.addClient( new TrackedClient( id ) );
+            TrackedClient client = new TrackedClient( id );
+            opQueue_.apply( client );
+            clientModel_.addClient( client );
         }
         else if ( UNREGISTER_MTYPE.equals( mtype ) ) {
-            TrackedClient client = (TrackedClient) clientMap_.get( id );
-            clientModel_.removeClient( client );
+            performClientOperation( new ClientOperation( id, mtype ) {
+                public void perform( TrackedClient client ) {
+                    opQueue_.discard( client );
+                    clientModel_.removeClient( client );
+                }
+            }, connection );
         }
         else if ( METADATA_MTYPE.equals( mtype ) ) {
-            TrackedClient client = (TrackedClient) clientMap_.get( id );
-            if ( client != null ) {
-                client.setMetadata( (Map) message.getParams()
-                                                 .get( "metadata" ) );
-                clientModel_.updatedClient( client );
-            }
-            else if ( id.equals( connection.getRegInfo().getSelfId() ) ) {
-                // ignore - just haven't added self to client list yet
-            }
-            else {
-                logger_.info( "No known client " + id );
-            }
+            final Map meta = (Map) message.getParams().get( "metadata" );
+            performClientOperation( new ClientOperation( id, mtype ) {
+                public void perform( TrackedClient client ) {
+                    client.setMetadata( meta );
+                    clientModel_.updatedClient( client );
+                }
+            }, connection );
         }
         else if ( SUBSCRIPTIONS_MTYPE.equals( mtype ) ) {
-            TrackedClient client = (TrackedClient) clientMap_.get( id );
-            if ( client != null ) {
-                client.setSubscriptions( (Map) message.getParams()
-                                                      .get( "subscriptions" ) );
-                clientModel_.updatedClient( client );
-            }
-            else if ( id.equals( connection.getRegInfo().getSelfId() ) ) {
-                // ignore - just haven't added self to client list yet
-            }
-            else {
-                logger_.info( "No known client " + id );
-            }
+            final Map subs = (Map) message.getParams().get( "subscriptions" );
+            performClientOperation( new ClientOperation( id, mtype ) {
+                public void perform( TrackedClient client ) {
+                    client.setSubscriptions( subs );
+                    clientModel_.updatedClient( client );
+                }
+            }, connection );
         }
         else {
             throw new IllegalArgumentException( "Shouldn't have received MType"
                                               + mtype );
         }
         return null;
+    }
+
+    /**
+     * Performs an operation on a ClientOperation object.
+     *
+     * @param  op  client operation
+     * @param  connection  hub connection
+     */
+    private void performClientOperation( ClientOperation op,
+                                         HubConnection connection ) {
+        String id = op.getId();
+
+        // If the client is currently part of this tracker's data model,
+        // we can peform the operation directly.
+        TrackedClient client = (TrackedClient) clientMap_.get( id );
+        if ( client != null ) {
+            op.perform( client );
+        }
+
+        // If it's not, but it applies to this client itself, it's just 
+        // because we haven't added ourself to the client list yet.
+        // This is harmless and we can ignore it.
+        else if ( id.equals( connection.getRegInfo().getSelfId() ) ) {
+        }
+
+        // Otherwise, the client is not yet known.  This is most likely 
+        // because, in absence of any guarantee about message delivery order
+        // within SAMP, a message which was sent between its registration
+        // and its unregistration might still arrive either before its
+        // registration event has arrived or after its unregistration event
+        // has arrived.  In the hope that it is the former, we hang on to
+        // this operation so that it can be peformed at some future date
+        // when we actually have a client object we can apply it to.
+        else {
+            logger_.info( "No known client " + id + " for message "
+                        + op.getMType() + " - holding till later" );
+            opQueue_.add( op );
+        }
     }
 
     /**
@@ -262,6 +302,174 @@ class ClientTracker extends AbstractMessageHandler {
                     .append( ')' );
             }
             return sbuf.toString();
+        }
+    }
+
+    /**
+     * Describes an operation to be performed on a TrackedClient object
+     * which is already part of this tracker's model.
+     */
+    private static abstract class ClientOperation {
+        private final String id_;
+        private final String mtype_;
+        private final long birthday_;
+
+        /**
+         * Constructor.
+         *
+         * @param  id  client public ID
+         * @param  mtype  MType of the message which triggered this operation
+         */
+        ClientOperation( String id, String mtype ) {
+            id_ = id;
+            mtype_ = mtype;
+            birthday_ = System.currentTimeMillis();
+        }
+
+        /**
+         * Performs the instance-specific operation on a given client.
+         *
+         * @param  client  client
+         */
+        public abstract void perform( TrackedClient client );
+
+        /**
+         * Returns the client ID for the client this operation applies to.
+         *
+         * @return  client public ID
+         */
+        public String getId() {
+            return id_;
+        }
+
+        /**
+         * Returns the MType of the message which triggered this operation.
+         *
+         * @return  message MType
+         */
+        public String getMType() {
+            return mtype_;
+        }
+
+        /**
+         * Returns the creation time of this object.
+         *
+         * @return  <code>System.currentTimeMillis()</code> at construction
+         */
+        public long getBirthday() {
+            return birthday_;
+        }
+
+        public String toString() {
+            return "message " + mtype_ + " for client " + id_;
+        }
+    }
+
+    /**
+     * Data structure for holding ClientOperation objects which (may) need
+     * to be applied in the future.
+     * Operations are dumped here if they cannot be performed immediately
+     * because the client in question is not (yet) known by this tracker.
+     * The hope is that the client will register at some point in the future
+     * and the pending operations can be applied then.  However, this may
+     * never happen, so the queue maintains its own expiry system to throw
+     * out old events.
+     */
+    private static class OperationQueue {
+        private final Collection opList_;
+        private Timer tidyTimer_;
+
+        /**
+         * Constructor.
+         */
+        OperationQueue() {
+            opList_ = new ArrayList();
+        }
+
+        /**
+         * Add a new client operation which may get the opportunity to be
+         * performed some time in the future.
+         *
+         * @param  op   oeration to add
+         */
+        public synchronized void add( ClientOperation op ) {
+            if ( tidyTimer_ == null ) {
+                TimerTask tidy = new TimerTask() {
+                    public void run() {
+                        discardOld( QUEUE_TIME );
+                    }
+                };
+                tidyTimer_ = new Timer( true );
+                tidyTimer_.schedule( tidy, QUEUE_TIME, QUEUE_TIME );
+            }
+            opList_.add( op );
+        }
+
+        /**
+         * Apply any pending operations to given client.
+         * This client was presumably unavailable at the time such operations
+         * were queued.
+         *
+         * @param  client    client to apply pending operations to
+         */
+        public synchronized void apply( TrackedClient client ) {
+            String id = client.getId();
+            for ( Iterator it = opList_.iterator(); it.hasNext(); ) {
+                ClientOperation op = (ClientOperation) it.next();
+                if ( op.getId().equals( id ) ) {
+                    logger_.info( "Performing queued " + op );
+                    op.perform( client );
+                    it.remove();
+                }
+            }
+        }
+
+        /**
+         * Discards any operations corresponding to a given client,
+         * presumably because the client is about to disappear.
+         *
+         * @param  client  client to forget about
+         */
+        public synchronized void discard( TrackedClient client ) {
+            String id = client.getId();
+            for ( Iterator it = opList_.iterator(); it.hasNext(); ) {
+                ClientOperation op = (ClientOperation) it.next();
+                if ( op.getId().equals( id ) ) {
+                    logger_.warning( "Discarding queued " + op );
+                    it.remove();
+                }
+            }
+        }
+
+        /**
+         * Throws away any pending operations which are older than a certain
+         * age, presumably in the expectation that their client will never
+         * register.
+         *
+         * @param   maxAge   oldest operations (in milliseconds) permitted to
+         *          remain in the queue
+         */
+        public synchronized void discardOld( long maxAge ) {
+            long now = System.currentTimeMillis();
+            for ( Iterator it = opList_.iterator(); it.hasNext(); ) {
+                ClientOperation op = (ClientOperation) it.next();
+                if ( now - op.getBirthday() > maxAge ) {
+                    logger_.warning( "Discarding queued " + op
+                                   + " - client never showed up" );
+                    it.remove();
+                }
+            }
+        }
+
+        /**
+         * Removes all entries from this queue.
+         */
+        public synchronized void clear() {
+            for ( Iterator it = opList_.iterator(); it.hasNext(); ) {
+                ClientOperation op = (ClientOperation) it.next();
+                logger_.warning( "Discarding queued " + op );
+            }
+            opList_.clear();
         }
     }
 
