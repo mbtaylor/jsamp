@@ -74,6 +74,9 @@ public class HubTester extends Tester {
         // First register a probe client to make some basic queries about the
         // current hub state.
         HubConnection conn = profile_.register();
+        if ( conn == null ) {
+            throw new IOException( "No hub is running" );
+        }
         conn.ping();
 
         // Acquire, check and store information about the hub.
@@ -532,7 +535,7 @@ public class HubTester extends Tester {
                 }
             }
         };
-        Calculator.calcStorm( profile, random_, 20, 100 );
+        new CalcStorm( profile, random_, 20, 100 ).run();
     }
 
     /**
