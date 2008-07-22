@@ -319,8 +319,8 @@ public class HubRunner {
      */
     public static int runMain( String[] args ) throws IOException {
         String usage = new StringBuffer()
-            .append( "   " )
-            .append( "Usage: " )
+            .append( "\n   Usage:" )
+            .append( "\n      " )
             .append( HubRunner.class.getName() )
             .append( " [-help]" )
             .append( " [-gui]" )

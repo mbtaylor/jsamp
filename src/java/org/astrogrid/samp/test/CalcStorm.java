@@ -157,12 +157,17 @@ public class CalcStorm {
 
         // Set up usage message.
         String usage = new StringBuffer()
+            .append( "\n   Usage:" )
+            .append( "\n      " )
             .append( CalcStorm.class.getName() )
+            .append( "\n          " )
             .append( " [-help]" )
+            .append( " [-/+verbose ...]" )
+            .append( "\n          " )
             .append( " [-nclient <n>]" )
             .append( " [-nquery <n>]" )
             .append( " [-mode sync|async|notify]" )
-            .append( " [-/+verbose ...]" )
+            .append( "\n" )
             .toString();
 
         // Prepare default values for test.

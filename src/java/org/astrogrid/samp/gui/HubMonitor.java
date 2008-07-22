@@ -84,8 +84,8 @@ public class HubMonitor extends JPanel {
      */
     public static int runMain( String[] args ) throws SampException {
         String usage = new StringBuffer()
-            .append( "   " )
-            .append( "Usage: " )
+            .append( "\n   Usage:" )
+            .append( "\n      " )
             .append( HubMonitor.class.getName() )
             .append( " [-help]" )
             .append( " [+/-verbose]" )
