@@ -324,7 +324,7 @@ public class HubRunner {
             .append( HubRunner.class.getName() )
             .append( " [-help]" )
             .append( " [-gui]" )
-            .append( " [-/+verbose ...]" );
+            .append( " [-/+verbose ...]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
