@@ -39,6 +39,7 @@ public class CalcStorm {
      * Runs a lot of calculators at once all talking to each other.
      *
      * @throws  TestException  if any tests fail
+     * @throws  IOException  in case of IO trouble
      */
     public void run() throws IOException {
 
