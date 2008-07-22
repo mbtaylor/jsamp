@@ -651,7 +651,41 @@ public class HubTester extends Tester {
      * Main method.  Tests a hub which is currently running.
      */
     public static void main( String[] args ) throws IOException {
+        int status = runMain( args );
+        if ( status != 0 ) {
+            System.exit( status );
+        }
+    }
+   
+    /**
+     * Does the work for the main method.
+     * Use -help flag.
+     */
+    public static int runMain( String[] args ) throws IOException {
+        String usage = new StringBuffer()
+            .append( "\n   Usage:" )
+            .append( "\n      " )
+            .append( HubTester.class.getName() )
+            .append( " [-help]" )
+            .append( "\n" )
+            .toString();
+        List argList = new ArrayList( Arrays.asList( args ) );
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            String arg = (String) it.next();
+            if ( arg.startsWith( "-h" ) ) {
+                it.remove();
+                System.out.println( usage );
+                return 0;
+            }
+            else {
+                it.remove();
+                System.err.println( usage );
+                return 1;
+            }
+        }
+        assert argList.isEmpty();
         new HubTester( StandardClientProfile.getInstance() ).run();
+        return 0;
     }
 
     /**
