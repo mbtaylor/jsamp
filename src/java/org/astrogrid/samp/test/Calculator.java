@@ -203,7 +203,9 @@ public class Calculator extends Tester implements CallableClient {
              SUB_MTYPE.equals( mtype ) ||
              MUL_MTYPE.equals( mtype ) ||
              DIV_MTYPE.equals( mtype ) ) {
-            nCalc_++;
+            synchronized ( this ) {
+                nCalc_++;
+            }
             int a = SampUtils.decodeInt( (String) msg.getParam( "a" ) );
             int b = SampUtils.decodeInt( (String) msg.getParam( "b" ) );
             final int x;
