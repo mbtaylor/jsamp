@@ -1,6 +1,12 @@
 package org.astrogrid.samp.gui;
 
 import java.awt.BorderLayout;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -74,13 +80,65 @@ public class HubMonitor extends JPanel {
     }
 
     /**
-     * Displays a HubMonitor in a window.
+     * Does the work for the main method.
      */
-    public static void main( String[] args ) throws SampException {
+    public static int runMain( String[] args ) throws SampException {
+        String usage = new StringBuffer()
+            .append( "   " )
+            .append( "Usage: " )
+            .append( HubMonitor.class.getName() )
+            .append( " [-help]" )
+            .append( " [+/-verbose]" )
+            .append( "\n" )
+            .toString();
+        List argList = new ArrayList( Arrays.asList( args ) );
+        int verbAdjust = 0;
+        boolean gui = true;
+        for ( Iterator it = argList.iterator(); it.hasNext(); ) {
+            String arg = (String) it.next();
+            if ( arg.startsWith( "-v" ) ) {
+                it.remove();
+                verbAdjust--;
+            }
+            else if ( arg.startsWith( "+v" ) ) {
+                it.remove();
+                verbAdjust++;
+            }
+            else if ( arg.startsWith( "-h" ) ) {
+                it.remove();
+                System.out.println( usage );
+                return 0;
+            }
+            else {
+                it.remove();
+                System.err.println( usage );
+                return 1;
+            }
+        }
+        assert argList.isEmpty();
+
+        // Adjust logging in accordance with verboseness flags.
+        int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
+        Logger.getLogger( "org.astrogrid.samp" )
+              .setLevel( Level.parse( Integer.toString( logLevel ) ) );
+
+        // Start the gui in a new window.
         JFrame frame = new JFrame( "SAMP HubMonitor" );
         frame.getContentPane().add( new HubMonitor( 2 ) );
         frame.pack();
-        frame.setVisible( true );
+        frame.setVisible( gui );
         frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+        return 0;
+    }
+
+    /**
+     * Displays a HubMonitor in a window.
+     * Use -help flag.
+     */
+    public static void main( String[] args ) throws SampException {
+        int status = runMain( args );
+        if ( status != 0 ) {
+            System.exit( status );
+        }
     }
 }
