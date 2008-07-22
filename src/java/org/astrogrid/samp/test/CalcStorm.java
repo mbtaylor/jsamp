@@ -101,6 +101,27 @@ public class CalcStorm {
             throw new TestException( "Interrupted", e );
         }
 
+        // If we are using the notification delivery pattern, wait until 
+        // all the clients have received all the messages they are expecting. 
+        // In the case of call/response this is not necessary, since the
+        // message sender threads will only complete their run() methods 
+        // when the responses have come back, which must mean that the
+        // messages arrived at their recipients.
+        if ( sendMode_ == Calculator.NOTIFY_MODE ||
+             sendMode_ == Calculator.RANDOM_MODE ) {
+            for ( boolean done = false; ! done; ) {
+                int totCalc = 0;
+                for ( int ic = 0; ic < nClient_; ic++ ) {
+                    totCalc += calcs[ ic ].getReceiveCount();
+                }
+                done = totCalc >= nClient_ * nQuery_;
+                if ( ! done ) {
+                    Thread.yield();
+                }
+            }
+        }
+
+ 
         // Unregister the clients.
         for ( int ic = 0; ic < nClient_; ic++ ) {
             calcs[ ic ].getConnection().unregister();
