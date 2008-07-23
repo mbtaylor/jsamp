@@ -37,7 +37,7 @@
       <manifest>
         <attribute name="Built-By" value="${user.name}"/>
         <attribute name="Class-Path" value="src/lib/xmlrpc-1.2-b1.jar"/>
-        <attribute name="Main-Class" value="??"/>
+        <attribute name="Main-Class" value="org.astrogrid.samp.SampKit"/>
       </manifest>
     </jar>
   </target>
