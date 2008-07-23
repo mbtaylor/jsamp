@@ -323,8 +323,8 @@ public class HubRunner {
             .append( "\n      " )
             .append( HubRunner.class.getName() )
             .append( " [-help]" )
-            .append( " [-gui]" )
             .append( " [-/+verbose ...]" )
+            .append( " [-gui]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
