@@ -33,55 +33,40 @@ import org.astrogrid.samp.client.StandardClientProfile;
  * @author   Mark Taylor
  * @since    23 Jul 2008
  */
-public class MessageSender {
-
-    private final HubConnection connection_;
-    private final Sender sender_;
-
-    /**
-     * Constructor.
-     *
-     * @param  profile  hub connection factory
-     * @param  meta  metadata for registration of the sending client;
-     *         may be null
-     * @param  sender  sender object
-     */
-    MessageSender( ClientProfile profile, Map meta, Sender sender )
-            throws SampException {
-        connection_ = profile.register();
-        connection_.declareMetadata( meta );
-        sender_ = sender;
-    }
+public abstract class MessageSender {
 
     /**
      * Sends a message to a given list of recipients.
      * If <code>recipientIds</code> is null, then will be sent to all
      * subscribed clients.
      *
+     * @param  connection  hub connection
      * @param  msg  message to send
      * @param  recipientIds  array of recipients to target, or null
      * @return  responder Client -> Response map
      */
-    Map sendMessages( Message msg, String[] recipientIds )
-            throws IOException {
-        return sender_.getResponses( connection_, msg, recipientIds );
-    }
+    abstract Map getResponses( HubConnection connection, Message msg,
+                               String[] recipientIds )
+            throws IOException;
 
     /**
      * Sends a message to a list of recipients and displays the results
      * on an output stream.
      *
+     * @param  connection  hub connection
      * @param  msg  message to send
      * @param  recipientIds  array of recipients to target, or null
      * @param  destination print stream
      */
-    void showResults( Message msg, String[] recipientIds, PrintStream out )
+    void showResults( HubConnection connection, Message msg,
+                      String[] recipientIds, PrintStream out )
             throws IOException {
-        Map responses = sendMessages( msg, recipientIds );
+        Map responses = getResponses( connection, msg, recipientIds );
         for ( Iterator it = responses.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
-            Client responder = (Client) entry.getKey();
-            Response response = (Response) entry.getValue();
+            String responderId = (String) entry.getKey();
+            Client responder = new MetaClient( responderId, connection );
+            Object response = entry.getValue();
             out.println();
             out.println( responder );
             out.println( response );
@@ -126,6 +111,7 @@ public class MessageSender {
         Map paramMap = new HashMap();
         String mode = "sync";
         Metadata meta = new Metadata();
+        ClientProfile profile = StandardClientProfile.getInstance();
         int timeout = 0;
         int verbAdjust = 0;
 
@@ -233,12 +219,8 @@ public class MessageSender {
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
-        // Prepare to send the message.
-        Message msg = new Message( mtype, paramMap );
-        String[] targets = targetList.isEmpty()
-                         ? null
-                         : (String[]) targetList.toArray( new String[ 0 ] );
-        final Sender sender;
+        // Create a message sender object.
+        final MessageSender sender;
         if ( mode.toLowerCase().startsWith( "async" ) ) {
             sender = new AsynchSender();
         }
@@ -252,12 +234,22 @@ public class MessageSender {
             System.err.println( usage );
 	    return 1;
         }
-        MessageSender mSender =
-            new MessageSender( StandardClientProfile.getInstance(),
-                               meta, sender );
+
+        // Prepare to send the message.
+        Message msg = new Message( mtype, paramMap );
+        String[] targets = targetList.isEmpty()
+                         ? null
+                         : (String[]) targetList.toArray( new String[ 0 ] );
+
+        // Register.
+        HubConnection connection = profile.register();
+        connection.declareMetadata( meta );
 
         // Send the message, displaying the results on System.out.
-        mSender.showResults( msg, targets, System.out );
+        sender.showResults( connection, msg, targets, System.out );
+
+        // Tidy up and exit.
+        connection.unregister();
         return 0;
     }
 
@@ -275,13 +267,11 @@ public class MessageSender {
         return sampObj;
     }
 
-    private static abstract class Sender {
-        abstract Map getResponses( HubConnection connection, Message msg,
-                                   String[] recipientIds )
-            throws IOException;
-    }
+    /**
+     * MessageSender implementation which uses the Notify pattern.
+     */
+    private static class NotifySender extends MessageSender {
 
-    private static class NotifySender extends Sender {
         public Map getResponses( HubConnection connection, Message msg,
                                  String[] recipientIds )
                 throws IOException {
@@ -297,9 +287,18 @@ public class MessageSender {
         }
     }
 
-    private static class SynchSender extends Sender {
+    /**
+     * MessageSender implementation which uses the Synchronous Call/Response
+     * pattern.
+     */
+    private static class SynchSender extends MessageSender {
         private final int timeout_;
 
+        /**
+         * Constructor.
+         *
+         * @param  timeout in seconds
+         */
         SynchSender( int timeout ) {
             timeout_ = timeout;
         }
@@ -315,7 +314,6 @@ public class MessageSender {
             final BlockingMap map = new BlockingMap();
             for ( int ir = 0; ir < recipientIds.length; ir++ ) {
                 final String id = recipientIds[ ir ];
-                final Client client = new MetaClient( id, connection );
                 new Thread() {
                     public void run() {
                         Object result;
@@ -326,7 +324,7 @@ public class MessageSender {
                         catch ( Throwable e ) {
                             result = e;
                         }
-                        map.putResult( client, result );
+                        map.put( id, result );
                         if ( map.size() >= recipientIds.length ) {
                             map.done();
                         }
@@ -337,24 +335,28 @@ public class MessageSender {
         }
     }
 
-    private static class AsynchSender extends Sender
-                                      implements CallableClient {
+    /**
+     * MessageSender implementation which uses the Asynchronous Call/Response
+     * pattern.
+     */
+    private static class AsynchSender extends MessageSender {
 
         private int iseq_;
-        private BlockingMap map_;
-        private int nExpected_;
-        private HubConnection conn_;
 
         public Map getResponses( HubConnection connection, Message msg,
                                  String[] recipientIds ) 
                 throws IOException {
-            conn_ = connection;
-            connection.setCallable( this );
             String msgTag = "tag-" + ++iseq_;
-            map_ = new BlockingMap();
-            nExpected_ = recipientIds == null
+            int nExpected = recipientIds == null
                 ? connection.getSubscribedClients( msg.getMType() ).size()
                 : recipientIds.length;
+            Collector collector = new Collector( nExpected );
+
+            // Sets the connection's callable client to a new object.
+            // Since the Standard Profile doesn't say it's OK to do this 
+            // more than once, this means that this it is not really safe
+            // to call getResponses more than once for this object.
+            connection.setCallable( collector );
             if ( recipientIds == null ) {
                 connection.callAll( msgTag, msg );
             }
@@ -363,23 +365,43 @@ public class MessageSender {
                     connection.call( recipientIds[ i ], msgTag, msg );
                 }
             }
-            return map_;
+            return collector.map_;
         }
 
-        public void receiveCall( String senderId, String msgId, Message msg ) {
-            throw new UnsupportedOperationException();
-        }
+        /**
+         * CallableClient implementation which collects asynchronous message
+         * responses.
+         */
+        private static class Collector implements CallableClient {
+            private final int nExpected_;
+            final BlockingMap map_;
 
-        public void receiveNotification( String senderId, Message msg ) {
-            throw new UnsupportedOperationException();
-        }
+            /**
+             * Constructor.
+             *
+             * @param  nExpected  number of responses expected by this collector
+             */
+            Collector( int nExpected ) {
+                map_ = new BlockingMap();
+                nExpected_ = nExpected;
+            }
 
-        public void receiveResponse( String responderId, String msgTag,
-                                     Response response ) throws SampException {
-            Client client = new MetaClient( responderId, conn_ );
-            map_.putResult( client, response );
-            if ( map_.size() >= nExpected_ ) {
-                map_.done();
+            public void receiveCall( String senderId, String msgId,
+                                     Message msg ) {
+                throw new UnsupportedOperationException();
+            }
+
+            public void receiveNotification( String senderId, Message msg ) {
+                throw new UnsupportedOperationException();
+            }
+
+            public void receiveResponse( String responderId, String msgTag,
+                                         Response response )
+                    throws SampException {
+                map_.put( responderId, response );
+                if ( map_.size() >= nExpected_ ) {
+                    map_.done();
+                }
             }
         }
     }
@@ -459,25 +481,19 @@ public class MessageSender {
             return entrySet_;
         }
 
-        /**
-         * Adds an entry to this map.
-         *
-         * @param  client  key
-         * @param  result  value
-         */
-        synchronized void putResult( final Client client,
-                                     final Object result ) {
+        public synchronized Object put( final Object key, final Object value ) {
             entrySet_.add( new Map.Entry() {
                 public Object getKey() {
-                    return client;
+                    return key;
                 }
                 public Object getValue() {
-                    return result;
+                    return value;
                 }
                 public Object setValue( Object value ) {
                     throw new UnsupportedOperationException();
                 }
             } );
+            return null;
         }
 
         /**
