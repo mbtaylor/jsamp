@@ -3,6 +3,7 @@ package org.astrogrid.samp.test;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,11 +43,18 @@ public class HubTester extends Tester {
     private final Client[] ignoreClients_;
     private final Set selfIds_;
     private final Set privateKeys_;
+    private final ClientWatcher clientWatcher_;
     private final Random random_ = new Random( 233333L );
     private static final String WAITMILLIS_KEY = "test.wait";
     private static final String ECHO_MTYPE = "test.echo";
     private static final String PING_MTYPE = "samp.app.ping";
     private static final String FAIL_MTYPE = "test.fail";
+    private static final String REGISTER_MTYPE = "samp.hub.event.register";
+    private static final String UNREGISTER_MTYPE = "samp.hub.event.unregister";
+    private static final String METADATA_MTYPE = "samp.hub.event.metadata";
+    private static final String SUBSCRIPTIONS_MTYPE =
+        "samp.hub.event.subscriptions";
+
     private static final String ERROR_KEY = "test.error";
     private static Logger logger_ =
         Logger.getLogger( HubTester.class.getName() );
@@ -79,6 +87,12 @@ public class HubTester extends Tester {
         }
         conn.ping();
 
+        // Set up monitor to receive hub event messages.
+        clientWatcher_ = new ClientWatcher( conn );
+        conn.setCallable( clientWatcher_ );
+        conn.declareSubscriptions( clientWatcher_.getSubscriptions() );
+        conn.declareMetadata( clientWatcher_.getMetadata() );
+
         // Acquire, check and store information about the hub.
         RegInfo regInfo = conn.getRegInfo();
         regInfo.check();
@@ -92,12 +106,18 @@ public class HubTester extends Tester {
         // Get list of registered clients.
         String[] clientIds = conn.getRegisteredClients();
 
+        // Check that the hub's ID does appear in the list.
+        assertTrue( Arrays.asList( clientIds ).contains( regInfo.getHubId() ) );
+
         // Check that a client's own ID does not appear in the list.
         assertTrue( ! Arrays.asList( clientIds )
                             .contains( regInfo.getSelfId() ) );
 
-        // Check that the hub's ID does appear in the list.
-        assertTrue( Arrays.asList( clientIds ).contains( regInfo.getHubId() ) );
+        // But prepare a list which contains the client's ID as well.
+        String[] clientIds1 = new String[ clientIds.length + 1 ];
+        System.arraycopy( clientIds, 0, clientIds1, 0, clientIds.length );
+        clientIds1[ clientIds.length ] = regInfo.getSelfId();
+        clientIds = clientIds1;
 
         // Check that the metadata and subscriptions of all the existing 
         // clients is legal.
@@ -121,13 +141,7 @@ public class HubTester extends Tester {
                 }
             };
         }
-
-        // Store a list of clients which were already registered when this
-        // object was created.  May come in useful later.
         ignoreClients_ = clients;
-
-        // Unregister probe client.
-        conn.unregister();
     }
 
     /**
@@ -191,6 +205,21 @@ public class HubTester extends Tester {
      * number of clients.
      */
     private void testClients() throws IOException {
+
+        // Register client0, set metadata and subscriptions, and unregister.
+        HubConnection c0 = register();
+        String id0 = c0.getRegInfo().getSelfId();
+        Metadata meta0 = new Metadata();
+        meta0.setName( "Shorty" );
+        meta0.setDescriptionText( "Short-lived test client" );
+        c0.declareMetadata( meta0 );
+        TestCallableClient callable0 = new TestCallableClient( c0 );
+        c0.setCallable( callable0 );
+        Subscriptions subs0 = new Subscriptions();
+        subs0.put( ECHO_MTYPE, new HashMap() );
+        subs0.check();
+        c0.declareSubscriptions( subs0 );
+        c0.unregister();
 
         // Register client 1 with the hub and declare some metadata.
         HubConnection c1 = register();
@@ -508,6 +537,32 @@ public class HubTester extends Tester {
             c3.callAll( "yyy", dummyMsg );
         }
 
+        // Check that hub event messages arrived concerning client 0 which
+        // we registered and unregistered earlier.  Do it here to give 
+        // messages enough time to have arrived; SAMP offers no guarantees
+        // of delivery sequence, but if they haven't showed up yet it's 
+        // very likely that they ever will.
+        Throwable cwError = clientWatcher_.getError();
+        if ( cwError != null ) {
+            throw new TestException( "Error encountered during hub event " 
+                                   + "processing", cwError );
+        }
+        WatchedClient client0 = clientWatcher_.getClient( id0 );
+        assertTrue( client0 != null );
+        assertTrue( client0.reg_ );
+        assertTrue( client0.unreg_ );
+        assertEquals( meta0, client0.meta_ );
+        assertEquals( subs0, client0.subs_ );
+
+        // Check that the client watcher has received hub event messages 
+        // concerning itself as well.
+        String cwId = clientWatcher_.getConnection().getRegInfo().getSelfId();
+        WatchedClient cwClient = clientWatcher_.getClient( cwId ); 
+        assertTrue( cwClient != null );
+        assertTrue( ! cwClient.unreg_ );
+        assertEquals( clientWatcher_.getMetadata(), cwClient.meta_ );
+        assertEquals( clientWatcher_.getSubscriptions(), cwClient.subs_ );
+
         // Tidy up.
         c3.unregister();
         assertTestClients( c1, new String[] { id2, } );
@@ -535,7 +590,7 @@ public class HubTester extends Tester {
                 }
             }
         };
-        new CalcStorm( profile, random_, 20, 100, Calculator.RANDOM_MODE )
+        new CalcStorm( profile, random_, 10, 20, Calculator.RANDOM_MODE )
            .run();
     }
 
@@ -689,7 +744,7 @@ public class HubTester extends Tester {
     }
 
     /**
-     * CallablClient implementation for testing.
+     * CallableClient implementation for testing.
      */
     private static class TestCallableClient extends ReplyCollector
                                             implements CallableClient {
@@ -788,7 +843,184 @@ public class HubTester extends Tester {
             subs.addMType( ECHO_MTYPE );
             subs.addMType( PING_MTYPE );
             subs.addMType( FAIL_MTYPE );
+            subs.check();
             return subs;
         }
+    }
+
+    /**
+     * CallableClient implementation which watches hub.event messages
+     * concerning the registration and attributes of other clients.
+     */
+    private static class ClientWatcher implements CallableClient {
+
+        private final HubConnection connection_;
+        private final Map clientMap_;
+        private Throwable error_;
+
+        /**
+         * Constructor.
+         *
+         * @param  connection  hub connection
+         */
+        ClientWatcher( HubConnection connection ) {
+            connection_ = connection;
+            clientMap_ = Collections.synchronizedMap( new HashMap() );
+        }
+
+        /**
+         * Returns a WatchedClient object corresponding to a given client
+         * public ID.  This will contain information about the hub event
+         * messages this watcher has received concerning that client up till
+         * now.
+         *
+         * @param  id  public id of a client which has been registered
+         * @return  watchedClient object if any messages have been received
+         *          about <code>id</code>, otherwise null
+         */
+        public WatchedClient getClient( String id ) {
+            return (WatchedClient) clientMap_.get( id ); 
+        }
+
+        /**
+         * Returns an error if any error has been thrown during processing 
+         * of hub event messages.
+         *
+         * @return   deferred throwable, or null in case of no problems
+         */
+        public Throwable getError() {
+            return error_;
+        }
+
+        /**
+         * Returns the hub connection used by this client.
+         *
+         * @return  hub connection
+         */
+        public HubConnection getConnection() {
+            return connection_;
+        }
+
+        public void receiveCall( String senderId, String msgId, Message msg ) 
+                throws SampException {
+            receiveNotification( senderId, msg );
+            Response response =
+                error_ == null
+                    ? Response.createSuccessResponse( new HashMap() )
+                    : Response.createErrorResponse( new ErrInfo( "broken" ) );
+            connection_.reply( msgId, response );
+        }
+
+        public void receiveNotification( String senderId, Message msg ) {
+            if ( error_ == null ) {
+                try {
+                    processMessage( senderId, msg );
+                }
+                catch ( Throwable e ) {
+                    error_ = e;
+                }
+            }
+        }
+
+        private void processMessage( String senderId, Message msg )
+                throws IOException {
+
+            // Check the message actually comes from the hub.
+            assertEquals( senderId, connection_.getRegInfo().getHubId() );
+            String mtype = msg.getMType();
+            Map params = msg.getParams();
+
+            // Get (if necessary lazily creating) a WatchedClient object
+            // which this message concerns.
+            String id = (String) msg.getParam( "id" );
+            assertTrue( id != null );
+            synchronized ( clientMap_ ) {
+                if ( ! clientMap_.containsKey( id ) ) {
+                    clientMap_.put( id, new WatchedClient() );
+                }
+                WatchedClient client = (WatchedClient) clientMap_.get( id );
+
+                // Handle the various hub event messages by updating fields of
+                // the right WatchedClient object.
+                if ( REGISTER_MTYPE.equals( mtype ) ) {
+                    assertTrue( ! client.reg_ );
+                    client.reg_ = true;
+                }
+                else if ( UNREGISTER_MTYPE.equals( mtype ) ) {
+                    assertTrue( ! client.unreg_ );
+                    client.unreg_ = true;
+                }
+                else if ( METADATA_MTYPE.equals( mtype ) ) {
+                    assertTrue( params.containsKey( "metadata" ) );
+                    Metadata meta =
+                        Metadata
+                       .asMetadata( (Map) params.get( "metadata" ) );
+                    meta.check();
+                    client.meta_ = meta;
+                }
+                else if ( SUBSCRIPTIONS_MTYPE.equals( mtype ) ) {
+                    assertTrue( params.containsKey( "subscriptions" ) );
+                    Subscriptions subs =
+                        Subscriptions
+                       .asSubscriptions( (Map) params.get( "subscriptions" ) );
+                    subs.check();
+                    client.subs_ = subs;
+                }
+                else {
+                    fail();
+                }
+                clientMap_.notifyAll();
+            }
+        }
+
+        public void receiveResponse( String responderId, String msgTag,
+                                      Response response ) {
+            throw new UnsupportedOperationException();
+        }
+
+        /**
+         * Returns a suitable subscriptions object for this client.
+         *
+         * @return  subscriptions
+         */
+        public static Subscriptions getSubscriptions() {
+            Subscriptions subs = new Subscriptions();
+            subs.addMType( REGISTER_MTYPE );
+            subs.addMType( UNREGISTER_MTYPE );
+            subs.addMType( METADATA_MTYPE );
+            subs.addMType( SUBSCRIPTIONS_MTYPE );
+            subs.check();
+            return subs;
+        }
+
+        /**
+         * Returns a suitable metadata object for this client.
+         */
+        public static Metadata getMetadata() {
+            Metadata meta = new Metadata();
+            meta.setName( "ClientWatcher" );
+            meta.setDescriptionText( "Tracks other clients for HubTester" );
+            meta.check();
+            return meta;
+        }
+    }
+
+    /**
+     * Struct-type utility class which aggregates mutable information about
+     * a client, to be updated in response to hub event messages.
+     */
+    private static class WatchedClient {
+
+        /** Whether this client has ever been registered. */
+        boolean reg_;
+
+        /** Whether this clent has ever been unregistered. */
+        boolean unreg_;
+
+        /** Current metadata object for this client. */
+        Metadata meta_;
+
+        /** Current subscriptions object for this client. */
+        Subscriptions subs_;
     }
 }
