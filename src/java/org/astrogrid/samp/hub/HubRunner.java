@@ -23,7 +23,6 @@ import javax.swing.JFrame;
 import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcClientLite;
 import org.astrogrid.samp.LockInfo;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.gui.GuiHubService;
 
@@ -72,7 +71,7 @@ public class HubRunner {
         // Check for running or moribund hub.
         if ( lockfile_ != null && lockfile_.exists() ) {
             if ( isHubAlive( lockfile_ ) ) {
-                throw new SampException( "A hub is already running" );
+                throw new IOException( "A hub is already running" );
             }
             else {
                 logger_.warning( "Overwriting " + lockfile_ + " lockfile "
@@ -88,7 +87,8 @@ public class HubRunner {
             server_.start();
         }
         catch ( Exception e ) {
-            throw new SampException( "Can't start XML-RPC server", e );
+            throw (IOException) new IOException( "Can't start XML-RPC server" )
+                               .initCause( e );
         }
 
         // Start the hub service.
