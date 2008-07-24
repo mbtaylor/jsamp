@@ -11,10 +11,10 @@ import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import org.astrogrid.samp.SampException;
+import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.ClientSet;
 import org.astrogrid.samp.hub.HubClient;
-import org.astrogrid.samp.hub.BasicHubService;
+import org.astrogrid.samp.hub.HubServiceException;
 
 /**
  * BasicHubService subclass which provides a GUI window displaying hub
@@ -62,13 +62,14 @@ public class GuiHubService extends BasicHubService {
         return clientSet_;
     }
 
-    public void declareMetadata( Object id, Map meta ) throws SampException {
+    public void declareMetadata( Object id, Map meta )
+            throws HubServiceException {
         super.declareMetadata( id, meta );
         clientSet_.scheduleClientChanged( (String) id );
     }
 
     public void declareSubscriptions( Object id, Map subscriptions )
-            throws SampException {
+            throws HubServiceException {
         super.declareSubscriptions( id, subscriptions );
         clientSet_.scheduleClientChanged( (String) id );
     }

@@ -15,7 +15,6 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampMap;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
@@ -109,9 +108,9 @@ public class BasicHubService implements HubService {
         return clientSet_;
     }
 
-    public Map register() throws SampException {
+    public Map register() throws HubServiceException {
         if ( ! started_ ) {
-            throw new SampException( "Not started" );
+            throw new HubServiceException( "Not started" );
         }
         HubClient client =
             new HubClient( keyGen_.next(), idGen_.next() );
@@ -122,7 +121,7 @@ public class BasicHubService implements HubService {
                             client.getPrivateKey() );
     }
 
-    public void unregister( Object callerKey ) throws SampException {
+    public void unregister( Object callerKey ) throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         getClientSet().remove( caller );
         hubEvent( new Message( "samp.hub.event.unregister" )
@@ -130,15 +129,15 @@ public class BasicHubService implements HubService {
     }
 
     public void setReceiver( Object callerKey, Receiver receiver )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         caller.setReceiver( receiver );
     }
 
     public void declareMetadata( Object callerKey, Map meta )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
-        checkMap( Metadata.asMetadata( meta ) );
+        Metadata.asMetadata( meta ).check();
         caller.setMetadata( meta );
         hubEvent( new Message( "samp.hub.event.metadata" )
                      .addParam( "id", caller.getId() )
@@ -146,33 +145,34 @@ public class BasicHubService implements HubService {
     }
 
     public Map getMetadata( Object callerKey, String clientId )
-            throws SampException {
+            throws HubServiceException {
         checkCaller( callerKey );
         return getClient( clientId ).getMetadata();
     }
 
     public void declareSubscriptions( Object callerKey, Map subscriptions )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         if ( caller.isCallable() ) {
-            checkMap( Subscriptions.asSubscriptions( subscriptions ) );
+            Subscriptions.asSubscriptions( subscriptions ).check();
             caller.setSubscriptions( subscriptions );
             hubEvent( new Message( "samp.hub.event.subscriptions" )
                          .addParam( "id", caller.getId() )
                          .addParam( "subscriptions", subscriptions ) );
         }
         else {
-            throw new SampException( "Client is not callable" );
+            throw new HubServiceException( "Client is not callable" );
         }
     }
 
     public Map getSubscriptions( Object callerKey, String clientId ) 
-            throws SampException {
+            throws HubServiceException {
         checkCaller( callerKey );
         return getClient( clientId ).getSubscriptions();
     }
 
-    public List getRegisteredClients( Object callerKey ) throws SampException {
+    public List getRegisteredClients( Object callerKey )
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         HubClient[] clients = getClientSet().getClients();
         List idList = new ArrayList( clients.length );
@@ -185,7 +185,7 @@ public class BasicHubService implements HubService {
     }
 
     public Map getSubscribedClients( Object callerKey, String mtype )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         HubClient[] clients = getClientSet().getClients();
         Map subMap = new TreeMap(); 
@@ -202,10 +202,10 @@ public class BasicHubService implements HubService {
     }
 
     public void notify( Object callerKey, String recipientId, Map message )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
-        checkMap( msg );
+        msg.check();
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
@@ -213,17 +213,17 @@ public class BasicHubService implements HubService {
                      .receiveNotification( caller.getId(), msg );
         }
         else {
-            throw new SampException( "Client " + recipient
-                                   + " not subscribed to " + mtype );
+            throw new HubServiceException( "Client " + recipient
+                                         + " not subscribed to " + mtype );
         }
     }
 
     public String call( Object callerKey, String recipientId, String msgTag,
                         Map message )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
-        checkMap( msg );
+        msg.check();
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         String msgId = MessageId.encode( caller, msgTag, false );
@@ -232,17 +232,17 @@ public class BasicHubService implements HubService {
                      .receiveCall( caller.getId(), msgId, msg );
         }
         else {
-            throw new SampException( "Client " + recipient
-                                   + " not subscribed to " + mtype );
+            throw new HubServiceException( "Client " + recipient
+                                         + " not subscribed to " + mtype );
         }
         return msgId;
     }
 
     public void notifyAll( Object callerKey, Map message )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
-        checkMap( msg );
+        msg.check();
         String mtype = msg.getMType();
         HubClient[] recipients = getClientSet().getClients();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
@@ -252,7 +252,7 @@ public class BasicHubService implements HubService {
                     recipient.getReceiver()
                              .receiveNotification( caller.getId(), msg );
                 }
-                catch ( SampException e ) {
+                catch ( HubServiceException e ) {
                     logger_.log( Level.WARNING, 
                                  "Notification " + caller + " -> " + recipient
                                + " failed: " + e, e );
@@ -262,10 +262,10 @@ public class BasicHubService implements HubService {
     }
 
     public String callAll( Object callerKey, String msgTag, Map message )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
-        checkMap( msg );
+        msg.check();
         String mtype = msg.getMType();
         String msgId = MessageId.encode( caller, msgTag, false );
         HubClient[] recipients = getClientSet().getClients();
@@ -280,10 +280,10 @@ public class BasicHubService implements HubService {
     }
 
     public void reply( Object callerKey, String msgIdStr, Map response )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         Response resp = Response.asResponse( response );
-        checkMap( resp );
+        resp.check();
         MessageId msgId = MessageId.decode( msgIdStr );
         HubClient sender = getClient( msgId.getSenderId() );
         String senderTag = msgId.getSenderTag();
@@ -300,13 +300,13 @@ public class BasicHubService implements HubService {
                          waiterMap_.notifyAll();
                     }
                     else {
-                        throw new SampException( "Response ignored"
-                                               + " - you've already sent one" );
+                        throw new HubServiceException(
+                            "Response ignored - you've already sent one" );
                     }
                 }
                 else {
-                    throw new SampException( "Response ignored"
-                                           + " - synchronous call timed out" );
+                    throw new HubServiceException(
+                        "Response ignored - synchronous call timed out" );
                 }
             }
         }
@@ -320,10 +320,10 @@ public class BasicHubService implements HubService {
 
     public Map callAndWait( Object callerKey, String recipientId, Map message,
                             String timeoutStr )
-            throws SampException {
+            throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
-        checkMap( msg );
+        msg.check();
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         MessageId hubMsgId =
@@ -333,8 +333,8 @@ public class BasicHubService implements HubService {
             timeout = SampUtils.decodeInt( timeoutStr );
         }
         catch ( Exception e ) {
-            throw new SampException( "Bad timeout format (should be SAMP int)",
-                                     e );
+            throw new HubServiceException( "Bad timeout format"
+                                         + " (should be SAMP int)", e );
         }
         long start = System.currentTimeMillis();
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
@@ -383,7 +383,8 @@ public class BasicHubService implements HubService {
                             waiterMap_.wait( millis );
                         }
                         catch ( InterruptedException e ) {
-                            throw new SampException( "Wait interrupted", e );
+                            throw new HubServiceException( "Wait interrupted",
+                                                           e );
                         }
                     }
                 }
@@ -410,20 +411,22 @@ public class BasicHubService implements HubService {
                             .append( timeoutStr )
                             .append( " sec" )
                             .toString();
-                        throw new SampException( emsg );
+                        throw new HubServiceException( emsg );
                     }
                 }
 
                 // Otherwise, it must have timed out.  Exit with an error.
                 else {
-                    throw new SampException( "Synchronous call aborted - "
-                                           + "server load exceeded maximum?" );
+                    throw new HubServiceException(
+                        "Synchronous call aborted"
+                      + " - server load exceeded maximum of " + MAX_WAITERS
+                      + "?" );
                 }
             }
         }
         else {
-            throw new SampException( "Client " + recipient
-                                   + " not subscribed to " + mtype );
+            throw new HubServiceException( "Client " + recipient
+                                         + " not subscribed to " + mtype );
         }
     }
 
@@ -444,7 +447,7 @@ public class BasicHubService implements HubService {
         try {
             notifyAll( getHubClient().getPrivateKey(), msg );
         }
-        catch ( SampException e ) {
+        catch ( HubServiceException e ) {
             assert false;
         }
     }
@@ -455,23 +458,8 @@ public class BasicHubService implements HubService {
      *
      * @param callerKey  calling client key
      */
-    private void checkCaller( Object callerKey ) throws SampException {
+    private void checkCaller( Object callerKey ) throws HubServiceException {
         getCaller( callerKey );
-    }
-
-    /**
-     * Check that a given map is legal for transmission over SAMP.
-     * If it is not, throw a checked exception.
-     *
-     * @param  map  map to check
-     */
-    protected void checkMap( SampMap map ) throws SampException {
-        try {
-            map.check();
-        }
-        catch ( DataException e ) {
-            throw new SampException( e.getMessage(), e );
-        }
     }
 
     /**
@@ -481,15 +469,15 @@ public class BasicHubService implements HubService {
      * @param  callerKey  calling client key
      * @return   hub client object representing caller
      */
-    private HubClient getCaller( Object callerKey ) throws SampException {
+    private HubClient getCaller( Object callerKey ) throws HubServiceException {
         HubClient caller =
             getClientSet().getFromPrivateKey( (String) callerKey );
         if ( caller != null ) {
             return caller;
         }
         else {
-            throw new SampException( "Invalid key " + callerKey
-                                   + " for caller" );
+            throw new HubServiceException( "Invalid key " + callerKey
+                                         + " for caller" );
         }
     }
 
@@ -500,18 +488,18 @@ public class BasicHubService implements HubService {
      * @param   id  client public id
      * @return  HubClient object
      */
-    private HubClient getClient( String id ) throws SampException {
+    private HubClient getClient( String id ) throws HubServiceException {
         HubClient client = getClientSet().getFromPublicId( id );
         if ( client != null ) {
             return client;
         }
         else if ( idGen_.hasUsed( id ) ) {
-            throw new SampException( "Client " + id
-                                   + " is no longer registered" );
+            throw new HubServiceException( "Client " + id
+                                         + " is no longer registered" );
         }
         else {
-            throw new SampException( "No registered client with ID \""
-                                   + id + "\"" );
+            throw new HubServiceException( "No registered client with ID \""
+                                         + id + "\"" );
         }
     }
 
@@ -665,12 +653,13 @@ public class BasicHubService implements HubService {
          * @return   new MessageId object
          */
         public static MessageId decode( String msgId )
-                throws SampException {
+                throws HubServiceException {
             int delim1 = msgId.indexOf( ID_DELIMITER );
             int delim2 = msgId.indexOf( ID_DELIMITER, delim1 + 1 );
             int delim3 = msgId.indexOf( ID_DELIMITER, delim2 + 1 );
             if ( delim1 < 0 || delim2 < 0 || delim3 < 0 ) {
-                throw new SampException( "Badly formed message ID" );
+                throw new HubServiceException( "Badly formed message ID "
+                                             + msgId );
             }
             String senderId = msgId.substring( 0, delim1 );
             String synchFlag = msgId.substring( delim1 + 1, delim2 );
@@ -684,12 +673,12 @@ public class BasicHubService implements HubService {
                 isSynch = false;
             }
             else {
-                throw new SampException( "Badly formed message ID"
-                                       + " (synch flag)" );
+                throw new HubServiceException( "Badly formed message ID "
+                                             + msgId + " (synch flag)" );
             }
             if ( ! checksum( senderId, senderTag, isSynch )
                   .equals( checksum ) ) {
-                throw new SampException( "Bad message ID checksum" );
+                throw new HubServiceException( "Bad message ID checksum" );
             }
             MessageId idObj = new MessageId( senderId, senderTag, isSynch );
             assert idObj.toString().equals( msgId );

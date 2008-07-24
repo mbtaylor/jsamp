@@ -8,7 +8,6 @@ import org.apache.xmlrpc.XmlRpcClient;
 import org.apache.xmlrpc.XmlRpcClientLite;
 import org.apache.xmlrpc.XmlRpcException;
 import org.astrogrid.samp.Message;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampXmlRpcHandler;
 
 /**
@@ -34,19 +33,16 @@ class XmlRpcReceiver implements Receiver {
         xClient_ = new XmlRpcClientLite( url );
     }
 
-    public void receiveCall( String senderId, String msgId, Map message )
-            throws SampException {
+    public void receiveCall( String senderId, String msgId, Map message ) {
         exec( "receiveCall", new Object[] { senderId, msgId, message, } );
     }
 
-    public void receiveNotification( String senderId, Map message )
-            throws SampException {
+    public void receiveNotification( String senderId, Map message ) {
         exec( "receiveNotification", new Object[] { senderId, message, } );
     }
 
     public void receiveResponse( String responderId, String msgTag,
-                                 Map response )
-            throws SampException {
+                                 Map response ) {
         exec( "receiveResponse",
               new Object[] { responderId, msgTag, response, } );
     }
@@ -59,8 +55,7 @@ class XmlRpcReceiver implements Receiver {
      * @param   params   array of method parameters
      * @return  XML-RPC call return value
      */
-    private void exec( String methodName, Object[] params )
-            throws SampException {
+    private void exec( String methodName, Object[] params ) {
         Vector paramVec = new Vector();
         paramVec.add( privateKey_ );
         for ( int ip = 0; ip < params.length; ip++ ) {
@@ -77,8 +72,7 @@ class XmlRpcReceiver implements Receiver {
      * @param   params  vector of method parameters
      * @return  XML-RPC call return value
      */
-    private void rawExec( String fqName, Vector paramVec )
-            throws SampException {
+    private void rawExec( String fqName, Vector paramVec ) {
 
         // I'm not sure that the Apache implementation is *sufficiently*
         // asynchronous.  It does leave a thread hanging around waiting

@@ -6,7 +6,6 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
 /**
@@ -137,21 +136,21 @@ public class HubClient implements Client {
      */
     private class NoReceiver implements Receiver {
         public void receiveNotification( String senderId, Map message )
-                throws SampException {
+                throws HubServiceException {
             refuse();
         }
         public void receiveCall( String senderId, String msgId, Map message )
-                throws SampException {
+                throws HubServiceException {
             refuse();
         }
         public void receiveResponse( String responderId, String msgId,
                                      Map response )
-                throws SampException {
+                throws HubServiceException {
             refuse();
         }
-        private void refuse() throws SampException {
-            throw new SampException( "Client " + HubClient.this.toString()
-                                   + " is not callable" );
+        private void refuse() throws HubServiceException {
+            throw new HubServiceException( "Client " + HubClient.this.toString()
+                                         + " is not callable" );
         }
     }
 }

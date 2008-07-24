@@ -2,7 +2,6 @@ package org.astrogrid.samp.hub;
 
 import java.util.List;
 import java.util.Map;
-import org.astrogrid.samp.SampException;
 
 /**
  * Interface defining the work that the hub has to do.
@@ -15,6 +14,12 @@ import org.astrogrid.samp.SampException;
  * but basically it serves to identify the client making the call.
  * Other than that, the methods here pretty much 
  * reflect those defined by the SAMP standard.
+ *
+ * <p>Most methods are declared to throw {@link HubServiceException} which
+ * is a catch-all exception to indicate that the request could not be 
+ * fulfilled.  However, it's OK for any of these methods to throw 
+ * unchecked exceptions if that is more convenient for the implementation -
+ * the service user should catch these if they occur.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
@@ -32,14 +37,14 @@ public interface HubService {
      *
      * @return  {@link org.astrogrid.samp.RegInfo}-like map.
      */
-    Map register() throws SampException;
+    Map register() throws HubServiceException;
 
     /**
      * Unregisters a registered client.
      *
      * @param caller  calling client identifier
      */
-    void unregister( Object caller ) throws SampException;
+    void unregister( Object caller ) throws HubServiceException;
 
     /**
      * Sets a receiver object to handle callbacks on behalf of the calling
@@ -48,7 +53,8 @@ public interface HubService {
      * @param caller  calling client identifier
      * @param  receiver  callback handler
      */
-    void setReceiver( Object caller, Receiver receiver ) throws SampException;
+    void setReceiver( Object caller, Receiver receiver )
+            throws HubServiceException;
 
     /**
      * Declares metadata for the calling client.
@@ -56,7 +62,8 @@ public interface HubService {
      * @param caller  calling client identifier
      * @param  meta  {@link org.astrogrid.samp.Metadata}-like map
      */
-    void declareMetadata( Object caller, Map meta ) throws SampException;
+    void declareMetadata( Object caller, Map meta )
+            throws HubServiceException;
 
     /**
      * Returns metadata for a given client.
@@ -65,7 +72,8 @@ public interface HubService {
      * @param clientId  public ID for client whose metadata is required
      * @return  {@link org.astrogrid.samp.Metadata}-like map
      */
-    Map getMetadata( Object caller, String clientId ) throws SampException;
+    Map getMetadata( Object caller, String clientId )
+            throws HubServiceException;
 
     /**
      * Declares subscription information for the calling client.
@@ -73,7 +81,8 @@ public interface HubService {
      * @param caller  calling client identifier
      * @param  subs  {@link org.astrogrid.samp.Subscriptions}-like map
      */
-    void declareSubscriptions( Object caller, Map subs ) throws SampException;
+    void declareSubscriptions( Object caller, Map subs )
+            throws HubServiceException;
 
     /**
      * Returns subscriptions for a given client.
@@ -81,7 +90,8 @@ public interface HubService {
      * @param caller  calling client identifier
      * @return {@link org.astrogrid.samp.Subscriptions}-like map
      */
-    Map getSubscriptions( Object caller, String clientId ) throws SampException;
+    Map getSubscriptions( Object caller, String clientId )
+            throws HubServiceException;
 
     /**
      * Returns a list of the public-ids of all currently registered clients.
@@ -89,7 +99,7 @@ public interface HubService {
      * @param caller  calling client identifier
      * @return  list of Strings
      */
-    List getRegisteredClients( Object caller ) throws SampException;
+    List getRegisteredClients( Object caller ) throws HubServiceException;
 
     /**
      * Returns a map of the clients subscribed to a given MType.
@@ -100,7 +110,7 @@ public interface HubService {
      *          to <code>mtype</code>
      */
     Map getSubscribedClients( Object caller, String mtype )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Sends a message to a given client without wanting a response.
@@ -110,7 +120,7 @@ public interface HubService {
      * @param  msg  {@link org.astrogrid.samp.Message}-like map
      */
     void notify( Object caller, String recipientId, Map msg )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Sends a message to all subscribed clients without wanting a response.
@@ -118,7 +128,7 @@ public interface HubService {
      * @param caller  calling client identifier
      * @param  msg {@link org.astrogrid.samp.Message}-like map
      */
-    void notifyAll( Object caller, Map msg ) throws SampException;
+    void notifyAll( Object caller, Map msg ) throws HubServiceException;
 
     /**
      * Sends a message to a given client expecting a response.
@@ -131,7 +141,7 @@ public interface HubService {
      * @return  message ID
      */
     String call( Object caller, String recipientId, String msgTag, Map msg )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Sends a message to all subscribed clients expecting responses.
@@ -143,7 +153,7 @@ public interface HubService {
      * @return  message ID
      */
     String callAll( Object caller, String msgTag, Map msg )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Sends a message synchronously to a client.
@@ -156,7 +166,7 @@ public interface HubService {
      */
     Map callAndWait( Object caller, String recipientId, Map msg,
                      String timeout )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Responds to a previously sent message.
@@ -166,7 +176,7 @@ public interface HubService {
      * @param  response  {@link org.astrogrid.samp.Response}-like map
      */
     void reply( Object caller, String msgId, Map response )
-             throws SampException;
+             throws HubServiceException;
 
     /**
      * Tidies up any resources owned by this object.

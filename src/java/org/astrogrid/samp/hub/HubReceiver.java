@@ -5,7 +5,6 @@ import java.util.Map;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
 /**
@@ -48,7 +47,7 @@ class HubReceiver implements Receiver {
     } 
 
     public void receiveCall( String senderId, String msgId, Map message ) 
-            throws SampException {
+            throws HubServiceException {
         Message msg = Message.asMessage( message );
         msg.check();
         String mtype = msg.getMType();
@@ -68,11 +67,11 @@ class HubReceiver implements Receiver {
                 return;
             }
         }
-        throw new SampException( "Unsubscribed MType " + mtype );
+        throw new HubServiceException( "Unsubscribed MType " + mtype );
     }
 
     public void receiveNotification( String senderId, Map message )
-            throws SampException {
+            throws HubServiceException {
         Message msg = Message.asMessage( message );
         msg.check();
         String mtype = msg.getMType();
@@ -83,12 +82,12 @@ class HubReceiver implements Receiver {
                 return;
             }
         }
-        throw new SampException( "Unsubscribed MType " + mtype );
+        throw new HubServiceException( "Unsubscribed MType " + mtype );
     }
 
     public void receiveResponse( String responderId, String msgTag,
-                                 Map response ) throws SampException {
-        throw new SampException( "Not expecting any responses" );
+                                 Map response ) throws HubServiceException {
+        throw new HubServiceException( "Not expecting any responses" );
     }
 
     /**

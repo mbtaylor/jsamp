@@ -1,7 +1,6 @@
 package org.astrogrid.samp.hub;
 
 import java.util.Map;
-import org.astrogrid.samp.SampException;
 
 /**
  * Interface describing how a hub can invoke callbacks on a client.
@@ -19,7 +18,7 @@ public interface Receiver {
      * @param  message   {@link org.astrogrid.samp.Message}-like map
      */
     void receiveNotification( String senderId, Map message )
-            throws SampException;
+            throws HubServiceException;
 
     /** 
      * Receives a message requiring a response from the hub.
@@ -29,7 +28,7 @@ public interface Receiver {
      * @param  message   {@link org.astrogrid.samp.Message}-like map
      */
     void receiveCall( String senderId, String msgId, Map message )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Receives a response from the hub corresponding to a previously 
@@ -40,5 +39,5 @@ public interface Receiver {
      * @param   response     {@link org.astrogrid.samp.Response}-like map
      */
     void receiveResponse( String responderId, String msgTag, Map response )
-            throws SampException;
+            throws HubServiceException;
 }

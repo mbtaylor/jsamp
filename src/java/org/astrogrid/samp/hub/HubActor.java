@@ -2,7 +2,6 @@ package org.astrogrid.samp.hub;
 
 import java.util.List;
 import java.util.Map;
-import org.astrogrid.samp.SampException;
 
 /**
  * Defines the methods which an XML-RPC hub must implement.
@@ -33,14 +32,14 @@ public interface HubActor {
      * @param  secret  registration password
      * @return  {@link org.astrogrid.samp.RegInfo}-like map.
      */
-    Map register( String secret ) throws SampException;
+    Map register( String secret ) throws HubServiceException;
 
     /**
      * Unregisters a registered client.
      *
      * @param privateKey  calling client private key
      */
-    void unregister( String privateKey ) throws SampException;
+    void unregister( String privateKey ) throws HubServiceException;
 
     /**
      * Sets the XML-RPC URL to use for callbacks for a callable client.
@@ -49,7 +48,7 @@ public interface HubActor {
      * @param  url    XML-RPC endpoint for client API callbacks
      */
     void setXmlrpcCallback( String privateKey, String url )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Declares metadata for the calling client.
@@ -58,7 +57,7 @@ public interface HubActor {
      * @param  meta  {@link org.astrogrid.samp.Metadata}-like map
      */
     void declareMetadata( String privateKey, Map meta )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Returns metadata for a given client.
@@ -68,7 +67,7 @@ public interface HubActor {
      * @return  {@link org.astrogrid.samp.Metadata}-like map
      */
     Map getMetadata( String privateKey, String clientId )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Declares subscription information for the calling client.
@@ -77,7 +76,7 @@ public interface HubActor {
      * @param  subs  {@link org.astrogrid.samp.Subscriptions}-like map
      */
     void declareSubscriptions( String privateKey, Map subs )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Returns subscriptions for a given client.
@@ -86,7 +85,7 @@ public interface HubActor {
      * @return {@link org.astrogrid.samp.Subscriptions}-like map
      */
     Map getSubscriptions( String privateKey, String clientId )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Returns a list of the public-ids of all currently registered clients.
@@ -94,8 +93,7 @@ public interface HubActor {
      * @param  privateKey  calling client private key
      * @return  list of Strings
      */
-    List getRegisteredClients( String privateKey )
-            throws SampException;
+    List getRegisteredClients( String privateKey ) throws HubServiceException;
 
     /**
      * Returns a map of the clients subscribed to a given MType.
@@ -106,7 +104,7 @@ public interface HubActor {
      *          to <code>mtype</code>
      */
     Map getSubscribedClients( String privateKey, String mtype )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Sends a message to a given client without wanting a response.
@@ -116,7 +114,7 @@ public interface HubActor {
      * @param  msg  {@link org.astrogrid.samp.Message}-like map
      */
     void notify( String privateKey, String recipientId, Map msg )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Sends a message to all subscribed clients without wanting a response.
@@ -124,8 +122,7 @@ public interface HubActor {
      * @param  privateKey  calling client private key
      * @param  msg {@link org.astrogrid.samp.Message}-like map
      */
-    void notifyAll( String privateKey, Map msg )
-            throws SampException;
+    void notifyAll( String privateKey, Map msg ) throws HubServiceException;
 
     /**
      * Sends a message to a given client expecting a response.
@@ -137,8 +134,8 @@ public interface HubActor {
      * @param  msg {@link org.astrogrid.samp.Message}-like map
      * @return  message ID
      */
-    String call( String privateKey, String recipientId, String msgTag, Map msg )
-            throws SampException;
+    String call( String privateKey, String recipientId, String msgTag,
+                 Map msg ) throws HubServiceException;
 
     /**
      * Sends a message to all subscribed clients expecting responses.
@@ -150,7 +147,7 @@ public interface HubActor {
      * @return  message ID
      */
     String callAll( String privateKey, String msgTag, Map msg )
-            throws SampException;
+            throws HubServiceException;
 
     /**
      * Sends a message synchronously to a client.
@@ -162,8 +159,8 @@ public interface HubActor {
      * @return  {@link org.astrogrid.samp.Response}-like map
      */
     Map callAndWait( String privateKey, String recipientId, Map msg,
-                     String timeout )
-            throws SampException;
+                     String timeout ) throws HubServiceException;
+
     /**
      * Responds to a previously sent message.
      *
@@ -172,5 +169,5 @@ public interface HubActor {
      * @param  response  {@link org.astrogrid.samp.Response}-like map
      */
     void reply( String privateKey, String msgId, Map response )
-            throws SampException;
+            throws HubServiceException;
 }
