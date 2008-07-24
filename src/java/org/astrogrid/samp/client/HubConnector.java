@@ -2,7 +2,6 @@ package org.astrogrid.samp.client;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,7 +27,6 @@ import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
 /**
@@ -227,15 +225,21 @@ public class HubConnector {
 
     /**
      * Declares the metadata for this client.
+     * This declaration affects the current connection and any future ones.
      *
      * @param   meta  {@link org.astrogrid.samp.Metadata}-like map
      */
-    public void declareMetadata( Map meta ) throws SampException {
+    public void declareMetadata( Map meta ) {
         Metadata md = Metadata.asMetadata( meta );
         md.check();
         metadata_ = md;
         if ( isConnected() ) {
-            connection_.declareMetadata( md );
+            try {
+                connection_.declareMetadata( md );
+            }
+            catch ( SampException e ) {
+                logger_.log( Level.WARNING, "Metadata declaration failed", e );
+            }
         }
     }
 
@@ -250,16 +254,22 @@ public class HubConnector {
 
     /**
      * Declares the MType subscriptions for this client.
+     * This declaration affects the current connection and any future ones.
      *
      * @param  subscriptions  {@link org.astrogrid.samp.Subscriptions}-like map
      */
-    public void declareSubscriptions( Map subscriptions )
-            throws SampException {
+    public void declareSubscriptions( Map subscriptions ) {
         Subscriptions subs = Subscriptions.asSubscriptions( subscriptions );
         subs.check();
         subscriptions_ = subs;
         if ( isConnected() ) {
-            connection_.declareSubscriptions( subs );
+            try {
+                connection_.declareSubscriptions( subs );
+            }
+            catch ( SampException e ) {
+                logger_.log( Level.WARNING, "Subscriptions declaration failed",
+                             e );
+            }
         }
     }
 
@@ -381,6 +391,7 @@ public class HubConnector {
                     connection.unregister();
                 }
                 catch ( SampException e ) {
+                    logger_.log( Level.INFO, "Unregister attempt failed", e );
                 }
             }
         }
@@ -688,8 +699,7 @@ public class HubConnector {
             conn_ = connection;
         }
 
-        public void receiveNotification( String senderId, Message message )
-                throws SampException {
+        public void receiveNotification( String senderId, Message message ) {
 
             // Offer the notification to each registered MessageHandler in turn.
             // It may in principle get processed by more than one.
@@ -700,14 +710,19 @@ public class HubConnector {
                 Subscriptions subs =
                     Subscriptions.asSubscriptions( handler.getSubscriptions() );
                 if ( subs.isSubscribed( message.getMType() ) ) {
-                    handler.receiveNotification( conn_, senderId, message );
+                    try {
+                        handler.receiveNotification( conn_, senderId, message );
+                    }
+                    catch ( Exception e ) {
+                        logger_.log( Level.WARNING, "Notify handler failed",
+                                     e );
+                    }
                 }
             }
         }
 
         public void receiveCall( String senderId, String msgId,
-                                 Message message )
-                throws SampException {
+                                 Message message ) {
 
             // Offer the call to each registered MessageHandler in turn.
             // Since only one should be allowed to respond to it, only 
@@ -718,15 +733,19 @@ public class HubConnector {
                 Subscriptions subs =
                     Subscriptions.asSubscriptions( handler.getSubscriptions() );
                 if ( subs.isSubscribed( message.getMType() ) ) {
-                    handler.receiveCall( conn_, senderId, msgId, message );
-                    return;
+                    try {
+                        handler.receiveCall( conn_, senderId, msgId, message );
+                        return;
+                    }
+                    catch ( Exception e ) {
+                        logger_.log( Level.WARNING, "Call handler failed", e );
+                    }
                 }
             }
         }
 
         public void receiveResponse( String responderId, String msgTag,
-                                     Response response )
-                throws SampException {
+                                     Response response ) {
 
             // Offer the response to each registered ResponseHandler in turn.
             // It shouldn't be processed by more than one, but if it is,
@@ -737,8 +756,14 @@ public class HubConnector {
                 ResponseHandler handler = (ResponseHandler) it.next();
                 if ( handler.ownsTag( msgTag ) ) {
                     handleCount++;
-                    handler.receiveResponse( conn_, responderId, msgTag,
-                                             response );
+                    try {
+                        handler.receiveResponse( conn_, responderId, msgTag,
+                                                 response );
+                    }
+                    catch ( Exception e ) {
+                        logger_.log( Level.WARNING, "Response handler failed",
+                                     e );
+                    }
                 }
             }
             if ( handleCount == 0 ) {
