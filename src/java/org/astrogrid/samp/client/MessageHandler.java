@@ -2,7 +2,6 @@ package org.astrogrid.samp.client;
 
 import java.util.Map;
 import org.astrogrid.samp.Message;
-import org.astrogrid.samp.SampException;
 
 /**
  * Interface for a client which wishes to receive messages.
@@ -32,8 +31,7 @@ public interface MessageHandler {
      * @param  message     message
      */
     void receiveNotification( HubConnection connection,
-                              String senderId, Message message )
-            throws SampException;
+                              String senderId, Message message );
 
     /**
      * Processes a message which does require a response.
@@ -47,6 +45,5 @@ public interface MessageHandler {
      * @param  message     message
      */
     void receiveCall( HubConnection connection,
-                      String senderId, String msgId, Message message )
-            throws SampException;
+                      String senderId, String msgId, Message message );
 }

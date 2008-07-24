@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
 /**
@@ -111,8 +110,7 @@ public abstract class AbstractMessageHandler implements MessageHandler {
      * a reply back to the hub.
      */
     public void receiveCall( HubConnection connection, String senderId,
-                             String msgId, Message message )
-            throws SampException {
+                             String msgId, Message message ) {
         Response response;
         try {
             Map result = processCall( connection, senderId, message ); 
@@ -122,6 +120,11 @@ public abstract class AbstractMessageHandler implements MessageHandler {
         catch ( Exception e ) {
             response = Response.createErrorResponse( new ErrInfo( e ) );
         }
-        connection.reply( msgId, response );
+        try {
+            connection.reply( msgId, response );
+        }
+        catch ( SampException e ) {
+            logger_.log( Level.WARNING, "Message reply failed", e );
+        }
     }
 }
