@@ -1,4 +1,4 @@
-package org.astrogrid.samp;
+package org.astrogrid.samp.client;
 
 import java.io.IOException;
 
