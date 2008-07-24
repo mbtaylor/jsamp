@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampXmlRpcHandler;
 
 /**
@@ -58,22 +57,19 @@ class ClientXmlRpcHandler extends SampXmlRpcHandler {
         private final Map map_ = new HashMap();
 
         public void receiveNotification( String privateKey, String senderId,
-                                         Map msg )
-                throws SampException {
+                                         Map msg ) {
             getCallable( privateKey )
                 .receiveNotification( senderId, Message.asMessage( msg ) );
         }
 
         public void receiveCall( String privateKey, String senderId,
-                                 String msgId, Map msg )
-                throws SampException {
+                                 String msgId, Map msg ) {
             getCallable( privateKey )
                 .receiveCall( senderId, msgId, Message.asMessage( msg ) );
         }
 
         public void receiveResponse( String privateKey, String responderId,
-                                     String msgTag, Map response )
-                throws SampException {
+                                     String msgTag, Map response ) {
             getCallable( privateKey )
                 .receiveResponse( responderId, msgTag,
                                   Response.asResponse( response ) );
@@ -84,16 +80,15 @@ class ClientXmlRpcHandler extends SampXmlRpcHandler {
          *
          * @param   privateKey  private key for client
          * @return  callable client identified by privateKey
-         * @throws  SampException  if <code>privateKey</code> is unknown
+         * @throws  IllegalStateException  if <code>privateKey</code> is unknown
          */
-        private CallableClient getCallable( String privateKey ) 
-                throws SampException {
+        private CallableClient getCallable( String privateKey ) {
             Object cc = map_.get( privateKey );
             if ( cc instanceof CallableClient ) {
                 return (CallableClient) cc;
             }
             else {
-                throw new SampException( "Client is not listening" );
+                throw new IllegalStateException( "Client is not listening" );
             }
         }
     }

@@ -3,7 +3,6 @@ package org.astrogrid.samp.client;
 import java.util.Map;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 
 /**
  * Defines callbacks which the hub can make on a callable client.
@@ -19,8 +18,7 @@ public interface CallableClient {
      * @param  senderId  public ID of sending client
      * @param  message   message
      */
-    void receiveNotification( String senderId, Message message )
-            throws SampException;
+    void receiveNotification( String senderId, Message message );
 
     /**
      * Receives a message for which a response is required.
@@ -31,8 +29,7 @@ public interface CallableClient {
      * @param  msgId     message identifier for later use with reply
      * @param  message   message
      */
-    void receiveCall( String senderId, String msgId, Message message )
-            throws SampException;
+    void receiveCall( String senderId, String msgId, Message message );
 
     /**
      * Receives a response to a message previously sent by this client.
@@ -41,6 +38,6 @@ public interface CallableClient {
      * @param  msgTag     client-defined tag labelling previously-sent message
      * @param  response   returned response object
      */
-    void receiveResponse( String responderId, String msgTag, Response response )
-            throws SampException;
+    void receiveResponse( String responderId, String msgTag,
+                          Response response );
 }
