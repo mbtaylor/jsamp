@@ -18,12 +18,12 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.client.StandardClientProfile;
 
 /**
@@ -399,8 +399,7 @@ public abstract class MessageSender {
             }
 
             public void receiveResponse( String responderId, String msgTag,
-                                         Response response )
-                    throws SampException {
+                                         Response response ) {
                 map_.put( responderId, response );
                 if ( map_.size() >= nExpected_ ) {
                     map_.done();

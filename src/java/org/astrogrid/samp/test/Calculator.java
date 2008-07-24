@@ -9,11 +9,11 @@ import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 
 /**
  * Test client.  Performs simple integer arithmetic.
@@ -168,8 +168,7 @@ public class Calculator extends Tester implements CallableClient {
         processCall( senderId, msg );
     }
 
-    public void receiveCall( String senderId, String msgId, Message msg )
-            throws SampException {
+    public void receiveCall( String senderId, String msgId, Message msg ) {
         Response response;
         try {
             response = Response
@@ -178,7 +177,12 @@ public class Calculator extends Tester implements CallableClient {
         catch ( Throwable e ) {
             response = Response.createErrorResponse( new ErrInfo( e ) );
         }
-        connection_.reply( msgId, response );
+        try {
+            connection_.reply( msgId, response );
+        }
+        catch ( SampException e ) {
+            throw new TestException( "Reply failed", e );
+        }
     }
 
     public void receiveResponse( String senderId, String msgTag,

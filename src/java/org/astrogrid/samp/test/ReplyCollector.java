@@ -7,9 +7,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 
 /**
  * Partial implementation of {@link CallableClient} which handles the
@@ -75,8 +75,7 @@ abstract class ReplyCollector implements CallableClient {
      * @param  msg {@link org.astrogrid.samp.Message}-like map
      * @return  message ID
      */
-    public String callAll( String msgTag, Map msg )
-            throws SampException {
+    public String callAll( String msgTag, Map msg ) throws SampException {
         Object key = createKey( null, msgTag );
         if ( sentSet_.contains( key ) ) {
             throw new IllegalArgumentException( "Key " + key + " reused" );
@@ -86,7 +85,7 @@ abstract class ReplyCollector implements CallableClient {
     }
 
     public void receiveResponse( String responderId, String msgTag,
-                                 Response response ) throws SampException {
+                                 Response response ) {
         Object key = createKey( responderId, msgTag );
         Object result;
         try {

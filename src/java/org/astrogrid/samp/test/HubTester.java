@@ -20,12 +20,12 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.client.StandardClientProfile;
 
 /**
@@ -150,7 +150,7 @@ public class HubTester extends Tester {
      *
      * @return   new hub connection representing a newly-registered client
      */
-    private HubConnection register() throws IOException {
+    private HubConnection register() throws SampException {
         HubConnection conn = profile_.register();
         RegInfo regInfo = conn.getRegInfo();
         regInfo.check();
@@ -585,15 +585,7 @@ public class HubTester extends Tester {
     private void testStress() throws IOException {
         ClientProfile profile = new ClientProfile() {
             public HubConnection register() throws SampException {
-                try {
-                    return HubTester.this.register();
-                }
-                catch ( SampException e ) {
-                    throw e;
-                }
-                catch ( IOException e ) {
-                    throw new SampException( e.getMessage(), e );
-                }
+                return HubTester.this.register();
             }
         };
         new CalcStorm( profile, random_, 10, 20, Calculator.RANDOM_MODE )
@@ -772,8 +764,7 @@ public class HubTester extends Tester {
             processCall( senderId, msg );
         }
 
-        public void receiveCall( String senderId, String msgId, Message msg ) 
-                throws SampException {
+        public void receiveCall( String senderId, String msgId, Message msg ) {
 
             // If the message contains a WAITMILLIS_KEY entry, interpret this
             // as a number of milliseconds to wait before the response is
@@ -816,7 +807,12 @@ public class HubTester extends Tester {
             response.check();
 
             // Return the reply, whatever it is, to the hub.
-            connection_.reply( msgId, response );
+            try {
+                connection_.reply( msgId, response );
+            }
+            catch ( SampException e ) {
+                throw new TestException( "Reply failed" );
+            }
         }
 
         /**
@@ -914,14 +910,18 @@ public class HubTester extends Tester {
             return connection_;
         }
 
-        public void receiveCall( String senderId, String msgId, Message msg ) 
-                throws SampException {
+        public void receiveCall( String senderId, String msgId, Message msg ) {
             receiveNotification( senderId, msg );
             Response response =
                 error_ == null
                     ? Response.createSuccessResponse( new HashMap() )
                     : Response.createErrorResponse( new ErrInfo( "broken" ) );
-            connection_.reply( msgId, response );
+            try {
+                connection_.reply( msgId, response );
+            }
+            catch ( SampException e ) {
+                error_ = e;
+            }
         }
 
         public void receiveNotification( String senderId, Message msg ) {
