@@ -1,7 +1,6 @@
 package org.astrogrid.samp.client;
 
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 
 /**
  * Interface for a client which wishes to receive responses to message it
@@ -33,6 +32,5 @@ public interface ResponseHandler {
      * @param  response  response object
      */
     void receiveResponse( HubConnection connection, String responderId,
-                          String msgTag, Response response )
-            throws SampException;
+                          String msgTag, Response response );
 }
