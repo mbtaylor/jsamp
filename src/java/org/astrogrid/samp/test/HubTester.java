@@ -46,6 +46,7 @@ public class HubTester extends Tester {
     private final ClientWatcher clientWatcher_;
     private final Random random_ = new Random( 233333L );
     private static final String WAITMILLIS_KEY = "test.wait";
+    private static final String MSGIDQUERY_KEY = "test.msgid";
     private static final String ECHO_MTYPE = "test.echo";
     private static final String PING_MTYPE = "samp.app.ping";
     private static final String FAIL_MTYPE = "test.fail";
@@ -303,16 +304,18 @@ public class HubTester extends Tester {
   System.err.println( "Avoiding ugly strings - needs attention in the doc" );
         int necho = 5;
         Object[] echoParams = new Object[ necho ];
+        String[] msgIds = new String[ necho ];
         for ( int i = 0; i < necho; i++ ) {
             Message msg = new Message( ECHO_MTYPE );
             Object val1 = createRandomObject( 2, false );
             Object val2 = createRandomObject( 4, false );
             msg.put( WAITMILLIS_KEY, SampUtils.encodeInt( 200 + 100 * i ) );
+            msg.put( MSGIDQUERY_KEY, SampUtils.encodeBoolean( true ) );
             msg.addParam( "val1", val1 );
             msg.addParam( "val2", val2 );
             echoParams[ i ] = msg.getParams();
             c2.notify( id1, msg );
-            callable2.call( id1, "tag" + i, msg );
+            msgIds[ i ] = callable2.call( id1, "tag" + i, msg );
         }
 
         // The call messages should complete quickly, so all the sends
@@ -328,7 +331,7 @@ public class HubTester extends Tester {
         }
 
         // Spin-wait until all the replies are in.
-        while ( callable2.getReplyCount() < necho );
+        while ( callable2.getReplyCount() < necho ) Thread.yield();
         assertEquals( necho, callable2.getReplyCount() );
 
         // Check that the replies are as expected (returned samp.result has
@@ -338,6 +341,7 @@ public class HubTester extends Tester {
             Response r = callable2.getReply( id1, "tag" + i );
             assertEquals( Response.OK_STATUS, r.getStatus() );
             assertEquals( echoParams[ i ], r.getResult() );
+            assertEquals( msgIds[ i ], r.get( MSGIDQUERY_KEY ) );
         }
 
         // Check that no more replies have arrived apart from the ones we
@@ -404,7 +408,8 @@ public class HubTester extends Tester {
             msg.put( WAITMILLIS_KEY, SampUtils.encodeInt( 400 ) );
             c3.notifyAll( msg );
             String tag = "tag99";
-            callable3.callAll( tag, msg );
+            msg.put( MSGIDQUERY_KEY, "1" );
+            String msgId = callable3.callAll( tag, msg );
             if ( callable3.getReplyCount() != 0 ) {
                 logger_.warning( "Looks like hub call()/notify() methods "
                                + "not completing quickly" );
@@ -417,6 +422,7 @@ public class HubTester extends Tester {
                 Response response = callable3.waitForReply( rid, tag );
                 assertEquals( Response.OK_STATUS, response.getStatus() );
                 assertEquals( val4, response.getResult().get( "val4" ) );
+                assertEquals( msgId, response.get( MSGIDQUERY_KEY ) );
             }
 
             // Check there are no replies beyond the ones we expect.
@@ -458,7 +464,7 @@ public class HubTester extends Tester {
             while ( callable1.pingCount_ < np1 ||
                     callable2.pingCount_ < np2 ||
                     callable3.pingCount_ < np3 ||
-                    callable3.getReplyCount() < nr3 );
+                    callable3.getReplyCount() < nr3 ) Thread.yield();
 
             // And then wait a bit to see if any more come in (hopefully not).
             delay( 400 );
@@ -801,6 +807,13 @@ public class HubTester extends Tester {
                     response = Response.createErrorResponse( new ErrInfo( e ) );
                 }
             }
+
+            // Insert the message ID into the response if requested to do so.
+            String msgIdQuery = (String) msg.get( MSGIDQUERY_KEY );
+            if ( msgIdQuery != null && SampUtils.decodeBoolean( msgIdQuery ) ) {
+                response.put( MSGIDQUERY_KEY, msgId );
+            }
+            response.check();
 
             // Return the reply, whatever it is, to the hub.
             connection_.reply( msgId, response );
