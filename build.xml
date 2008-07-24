@@ -48,6 +48,7 @@
     <javadoc useexternalfile="yes"
              destdir="${build.docs}"
              source="1.4"
+             windowtitle="SAMP"
              classpathref="libpath">
       <packageset dir="${javadir}" defaultexcludes="yes">
         <include name="**"/>
