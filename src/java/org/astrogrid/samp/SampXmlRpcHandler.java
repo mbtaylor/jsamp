@@ -78,23 +78,19 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
      * @param  fqName  fully qualified XML-RPC methodName element
      * @param  params  method parameters
      */
-    public Object execute( String fqName, Vector params )
-            throws SampException {
+    public Object execute( String fqName, Vector params ) throws Exception {
         logger_.info( fqName + params );
         try {
             return doExecute( fqName, params );
         }
-        catch ( SampException e ) {
+        catch ( Throwable e ) {
             logger_.log( Level.WARNING, e.getMessage(), e );
-            throw e;
-        }
-        catch ( RuntimeException e ) {
-            logger_.log( Level.WARNING, e.getMessage(), e );
-            throw e;
-        }
-        catch ( Error e ) {
-            logger_.log( Level.WARNING, e.getMessage(), e );
-            throw e;
+            if ( e instanceof Error ) {
+                throw (Error) e;
+            }
+            else {
+                throw (Exception) e;
+            }
         }
     }
 
@@ -105,8 +101,7 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
      * @param  fqName  fully qualified XML-RPC methodName element
      * @param  params  method parameters
      */
-    private Object doExecute( String fqName, Vector params )
-            throws SampException {
+    private Object doExecute( String fqName, Vector params ) throws Exception {
 
         // May be for us.
         if ( fqName.startsWith( prefix_ ) ) {
@@ -133,12 +128,18 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
                 }
                 catch ( InvocationTargetException e ) {
                     Throwable e2 = e.getCause();
-                    throw e2 instanceof SampException
-                        ? (SampException) e2
-                        : new SampException( "Error processing " + name, e2 );
+                    if ( e2 instanceof Error ) {
+                        throw (Error) e2;
+                    }
+                    else {
+                        throw (Exception) e2;
+                    }
                 }
-                catch ( Throwable e ) {
-                    throw new SampException( e );
+                catch ( Exception e ) {
+                    throw e;
+                }
+                catch ( Error e ) {
+                    throw e;
                 }
                 return result == null ? ""
                                       : toApache( result );
@@ -294,8 +295,7 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
          * @param  param   object
          * return  SAMP type
          */
-        public static SampType getParamType( Object param )
-                throws SampException {
+        public static SampType getParamType( Object param ) {
             if ( param instanceof String ) {
                 return STRING;
             }
@@ -306,7 +306,7 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
                 return MAP;
             }
             else {
-                throw new SampException( "Param is not a SAMP type" );
+                throw new DataException( "Param is not a SAMP type" );
             }
         }
     }
