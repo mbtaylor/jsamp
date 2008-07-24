@@ -103,8 +103,11 @@ public abstract class SampMap extends AbstractMap {
      * are Strings, and all values Strings, Lists or Maps), subclass-specific
      * invariants may be checked.  In the case that there's something wrong,
      * an informative <code>DataException</code> will be thrown.
+     *
+     * @throws   DataException  if this object's current state 
+     *           is not suitable for SAMP use
      */
-    public void check() throws DataException {
+    public void check() {
         SampUtils.checkMap( this );
     }
 
@@ -114,8 +117,10 @@ public abstract class SampMap extends AbstractMap {
      * thrown.  Normally called by {@link #check}.
      *
      * @param  keys   array of required keys for this map
+     * @param  throws DataException  if this object does not contain entries
+     *         for all elements of the array <code>keys</code>
      */
-    public void checkHasKeys( String[] keys ) throws DataException {
+    public void checkHasKeys( String[] keys ) {
         for ( int i = 0; i < keys.length; i++ ) {
             String key = keys[ i ];
             if ( ! containsKey( key ) ) {

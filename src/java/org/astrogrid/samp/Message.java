@@ -117,7 +117,7 @@ public class Message extends SampMap {
                               : params.get( name );
     }
 
-    public void check() throws DataException {
+    public void check() {
         super.check();
         checkHasKeys( new String[] { MTYPE_KEY } );
     }

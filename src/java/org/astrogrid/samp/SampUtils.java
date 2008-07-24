@@ -115,7 +115,7 @@ public class SampUtils {
      * @param  obj  object to check
      * @throws  DataException  in case of an error
      */
-    public static void checkObject( Object obj ) throws DataException {
+    public static void checkObject( Object obj ) {
         if ( obj instanceof Map ) {
             checkMap( (Map) obj );
         }
@@ -143,7 +143,7 @@ public class SampUtils {
      * @throws  DataException in case of an error
      * @see     #checkObject
      */
-    public static void checkMap( Map map ) throws DataException {
+    public static void checkMap( Map map ) {
         for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
             checkString( (String) entry.getKey() );
@@ -159,7 +159,7 @@ public class SampUtils {
      * @throws  DataException in case of error
      * @see     #checkObject
      */
-    public static void checkList( List list ) throws DataException {
+    public static void checkList( List list ) {
         for ( Iterator it = list.iterator(); it.hasNext(); ) {
             checkObject( it.next() );
         }
@@ -172,7 +172,7 @@ public class SampUtils {
      * @param  string  string to check
      * @throws  DataException  in case of error
      */
-    public static void checkString( String string ) throws DataException {
+    public static void checkString( String string ) {
         int leng = string.length();
         for ( int i = 0; i < leng; i++ ) {
             int c = string.charAt( i );
@@ -189,7 +189,7 @@ public class SampUtils {
      * @param  url  string to check
      * @throws  DataException  if <code>url</code> is not a legal URL
      */
-    public static void checkUrl( String url ) throws DataException {
+    public static void checkUrl( String url ) {
         if ( url != null ) {
             try {
                 new URL( (String) url );

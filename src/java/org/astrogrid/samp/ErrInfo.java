@@ -150,7 +150,7 @@ public class ErrInfo extends SampMap {
         return getString( CODE_KEY );
     }
 
-    public void check() throws DataException {
+    public void check() {
         super.check();
         checkHasKeys( new String[] { ERRORTXT_KEY, } );
     }
