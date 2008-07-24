@@ -12,7 +12,6 @@ import org.apache.xmlrpc.XmlRpcException;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.SampXmlRpcHandler;
 import org.astrogrid.samp.Subscriptions;
@@ -71,7 +70,7 @@ public class XmlRpcHubConnection implements HubConnection {
                 callableServer_ = CallableClientServer.getInstance();
             }
             catch ( IOException e ) {
-                throw new SampException( e );
+                throw new SampException( "Can't start client server", e );
             }
         }
         callableServer_.addClient( regInfo_.getPrivateKey(), callable );
