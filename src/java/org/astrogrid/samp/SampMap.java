@@ -117,7 +117,7 @@ public abstract class SampMap extends AbstractMap {
      * thrown.  Normally called by {@link #check}.
      *
      * @param  keys   array of required keys for this map
-     * @param  throws DataException  if this object does not contain entries
+     * @throws DataException  if this object does not contain entries
      *         for all elements of the array <code>keys</code>
      */
     public void checkHasKeys( String[] keys ) {
