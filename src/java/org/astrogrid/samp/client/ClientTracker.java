@@ -18,7 +18,6 @@ import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.Subscriptions;
 
 /**

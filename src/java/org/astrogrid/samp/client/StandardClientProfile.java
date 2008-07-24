@@ -2,7 +2,6 @@ package org.astrogrid.samp.client;
 
 import java.io.IOException;
 import org.astrogrid.samp.LockInfo;
-import org.astrogrid.samp.SampException;
 
 /**
  * Standard Profile implementation of ClientProfile.
@@ -27,6 +26,9 @@ public class StandardClientProfile implements ClientProfile {
         LockInfo lockInfo;
         try {
             lockInfo = LockInfo.readLockFile();
+        }
+        catch ( SampException e ) {
+            throw (SampException) e;
         }
         catch ( IOException e ) {
             throw new SampException( "Error reading lockfile", e );

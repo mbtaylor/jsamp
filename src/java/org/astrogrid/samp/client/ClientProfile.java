@@ -1,7 +1,5 @@
 package org.astrogrid.samp.client;
 
-import org.astrogrid.samp.SampException;
-
 /**
  * Defines Profile-specific aspects of the SAMP client implementation.
  *
