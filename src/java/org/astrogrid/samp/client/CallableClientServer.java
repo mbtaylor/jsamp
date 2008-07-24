@@ -3,7 +3,6 @@ package org.astrogrid.samp.client;
 import java.io.IOException;
 import java.net.URL;
 import org.apache.xmlrpc.WebServer;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.SampUtils;
 
 /**
@@ -27,27 +26,22 @@ class CallableClientServer {
      * Constructor.  Note that a singleton-like {@link #getInstance} method
      * exists as well.
      */
-    public CallableClientServer() throws SampException, IOException {
+    public CallableClientServer() throws IOException {
         int port = SampUtils.getUnusedPort( 2300 );
-        try {
-            server_ = new WebServer( port ) {
+        server_ = new WebServer( port ) {
 
-                // Same as superclass implementation except that the listener
-                // thread is marked as a daemon.
-                public void start() {
-                    if ( this.listener == null ) {
-                        this.listener =
-                            new Thread( this, "XML-RPC Weblistener" );
-                        this.listener.setDaemon( true );
-                        this.listener.start();
-                    }
+            // Same as superclass implementation except that the listener
+            // thread is marked as a daemon.
+            public void start() {
+                if ( this.listener == null ) {
+                    this.listener =
+                        new Thread( this, "XML-RPC Weblistener" );
+                    this.listener.setDaemon( true );
+                    this.listener.start();
                 }
-            };
-            server_.start();
-        }
-        catch ( Exception e ) {
-            throw new SampException( "Can't start XML-RPC server", e );
-        }
+            }
+        };
+        server_.start();
         clientHandler_ = new ClientXmlRpcHandler();
         server_.addHandler( "samp.client", clientHandler_ );
         url_ =
@@ -95,8 +89,7 @@ class CallableClientServer {
      *
      * @return  instance
      */
-    public static CallableClientServer getInstance()
-            throws SampException, IOException  {
+    public static CallableClientServer getInstance() throws IOException {
         if ( instance_ == null ) {
             instance_ = new CallableClientServer();
         }
