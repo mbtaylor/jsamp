@@ -12,7 +12,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import org.astrogrid.samp.Metadata;
-import org.astrogrid.samp.SampException;
 import org.astrogrid.samp.client.HubConnector;
 
 /**
@@ -32,7 +31,7 @@ public class HubMonitor extends JPanel {
      * @param  autoSec  number of seconds between automatic hub connection
      *         attempts; &lt;=0 means no automatic connections
      */
-    public HubMonitor( int autoSec ) throws SampException {
+    public HubMonitor( int autoSec ) {
         super( new BorderLayout() );
 
         // Set up a new HubConnector.
@@ -82,7 +81,7 @@ public class HubMonitor extends JPanel {
     /**
      * Does the work for the main method.
      */
-    public static int runMain( String[] args ) throws SampException {
+    public static int runMain( String[] args ) {
         String usage = new StringBuffer()
             .append( "\n   Usage:" )
             .append( "\n      " )
@@ -135,7 +134,7 @@ public class HubMonitor extends JPanel {
      * Displays a HubMonitor in a window.
      * Use -help flag.
      */
-    public static void main( String[] args ) throws SampException {
+    public static void main( String[] args ) {
         int status = runMain( args );
         if ( status != 0 ) {
             System.exit( status );
