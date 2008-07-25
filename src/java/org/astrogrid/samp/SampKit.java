@@ -26,6 +26,12 @@ public class SampKit {
     };
 
     /**
+     * Private sole constructor prevents instantiation.
+     */
+    private SampKit() {
+    }
+
+    /**
      * Does the work for the main method.
      */
     public static int runMain( String[] args ) {
