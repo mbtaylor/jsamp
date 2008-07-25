@@ -8,6 +8,8 @@ import org.astrogrid.samp.Subscriptions;
 
 /**
  * Represents a registered client's connection to a running hub.
+ * An application typically obtains an instance of this class
+ * from a {@link ClientProfile} object.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
