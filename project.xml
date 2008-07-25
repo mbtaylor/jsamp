@@ -1,0 +1,39 @@
+<?xml version='1.0'?>
+<project xmlns="http://maven.apache.org/POM/3.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/3.0.0
+                             http://maven.apache.org/maven-v3_0_0.xsd">
+
+  <extend>../maven-base/project.xml</extend>
+  <artifactId>samp</artifactId>
+  <currentVersion>${astrogrid.samp.version}</currentVersion>
+  <inceptionYear>2008</inceptionYear>
+  <name>SAMP</name>
+  <shortDescription>
+    Simple Applications Messaging Protocol Toolkit
+  </shortDescription>
+  <description>
+    Various components used for developing and deploying
+    Simple Applications Messaging Protocol-compliant 
+    applications and middleware.
+  </description>
+
+  <dependencies>
+    <dependency>
+      <groupId>xmlrpc</groupId>
+      <artifactId>xmlrpc</artifactId>
+      <type>jar</type>
+      <version>1.2-b1</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <sourceDirectory>src/java</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>src/resources</directory>
+      </resource>
+    </resources>
+  </build>
+
+</project>

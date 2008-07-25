@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<project xmlns:j="jelly:core" xmlns:ant="jelly:ant" xmlns:u="jelly:util">
+
+  <!-- Tweak the target which generates an Ant build.xml file.  This is 
+   !   probably fragile - it would be more correct to use an xslt 
+   !   transformer here, but not really worth the additional effort. -->
+  <postGoal name="ant:generate-build">
+    <ant:replace file="build.xml">
+      <replaceFilter token="&lt;javac "
+                     value="&lt;javac source='1.4' target='1.4' "/>
+    </ant:replace>
+    <ant:mkdir dir="target"/>
+    <ant:move file="build.xml" toFile="target/build.xml"/>
+  </postGoal>
+
+  <!-- For convenience, move the single dependency jar into the target
+   !   directory.  This just means that it can be invoked in place. -->
+  <postGoal name="jar:jar">
+    <ant:copy file="${maven.repo.local}/xmlrpc/jars/xmlrpc-1.2-b1.jar"
+              todir="target"/>
+  </postGoal>
+
+  <!-- New goal to generate a sources export file. -->
+  <goal name="source-zip"
+        description="Build zip file containing buildable(?) sources for export"
+        prereqs="ant:generate-build">
+    <ant:mkdir dir="target"/>
+    <ant:zip destfile="target/samp_src-${pom.currentVersion}.zip">
+      <ant:fileset dir="target">
+        <include name="build.xml"/>
+      </ant:fileset>
+      <ant:fileset dir=".">
+        <include name="src/java/**"/>
+        <include name="src/resources/**"/>
+      </ant:fileset>
+    </ant:zip>
+  </goal>
+</project>
