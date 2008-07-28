@@ -11,6 +11,11 @@ import org.astrogrid.samp.Subscriptions;
  * An application typically obtains an instance of this class
  * from a {@link ClientProfile} object.
  *
+ * <p>It is good practice to call {@link #unregister} when the connection 
+ * is finished with; however if it is not called explicitly, the 
+ * connection will unregister itself on object finalisation or JVM termination,
+ * as long as the JVM shuts down cleanly.
+ *
  * @author   Mark Taylor
  * @since    15 Jul 2008
  */

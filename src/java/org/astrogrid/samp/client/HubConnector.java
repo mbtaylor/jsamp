@@ -69,6 +69,12 @@ import org.astrogrid.samp.Subscriptions;
  *     </dd>
  * </dl>
  *
+ * <p>It is good practice to call {@link #setActive setActive(false)} 
+ * when this object is finished with; however if it is not called 
+ * explicitly, any open connection will unregister itself on 
+ * object finalisation or JVM termination, as long as the JVM shuts 
+ * down cleanly.
+ *
  * <h3>Examples</h3>
  * Here is an example of what use of this class might look like:
  * <pre>
