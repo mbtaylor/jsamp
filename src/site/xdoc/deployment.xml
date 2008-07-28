@@ -5,50 +5,16 @@
   <title>SAMP Kit</title>
   <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
 </properties>
-  
+
 <body>
+<section name="External Dependencies">
 
-<section name="Introduction">
-
-<p>SAMP Kit is a Java toolkit for use with the 
-<a href="http://www.ivoa.net/Documents/latest/SAMP.html"
-   >Simple Applications Messaging Protocol</a>.
-It provides the following components:
-</p>
-<ul>
-<li>A SAMP hub implementation, suitable for standalone or embedded use</li>
-<li>A set of classes which can be used to implement SAMP capabilities in 
-    client applications</li>
-<li>A hub test suite, which can test correctness of third-party hub
-    implementations</li>
-<li>Utilities which can be used by client and hub developers, or SAMP users, 
-    to analyse or debug SAMP sessions</li>
-<li>Graphical components built on top of the basic functionality suitable 
-    for use with the above</li>
-</ul>
-<p>For a given purpose, some or all of these components may be used at one time.
+<p>SAMPKit is a pure Java library.  
+It should run on any Java Runtime Environment of version J2SE1.4 or above.
 </p>
 
-<p>The toolkit's design aims are, in rough order of priority:
-</p>
-<ul>
-<li>Correctness according to the SAMP standard</li>
-<li>Robustness</li>
-<li>Ease of use for client application authors</li>
-<li>Ease of deployment within third-party applications (few dependencies)</li>
-<li>Flexibility, including the possibility to use with non-<em>Standard</em>
-    SAMP <em>Profiles</em></li>
-<li>Good documentation</li>
-<li>Small size (in particular, few dependencies)</li>
-</ul>
-
-</section>
-
-<section name="Dependencies">
-
-<subsection name="External Dependencies">
-
-<p>SAMPKit currently has a single dependency, the Apache XML-RPC library.
+<p>It currently has a single 
+<a href="dependencies.html">dependency</a>, the Apache XML-RPC library.
 In fact, not very much of this is used, and I am considering incorporating
 the necessary functionality into SAMPKit itself.  This would reduce the
 amount of code required at runtime, and possibly ameliorate class resolution
@@ -56,9 +22,10 @@ issues (e.g. for applications which need to use a different version of the
 Apache XML-RPC library than the one required by SAMPKit).
 Let me know if you're keen to see this option.
 </p>
-</subsection>
 
-<subsection name="Internal Dependencies">
+</section>
+
+<section name="Internal Dependencies">
 
 <p>If you are embedding SAMPKit into your own application code but want to
 keep the size of the additional class files to a minimum, you can avoid
@@ -101,10 +68,7 @@ They are organised as follows:
     </dd>
 </dl>
 
-</subsection>
-
 </section>
-    
 </body>
 
 </document>

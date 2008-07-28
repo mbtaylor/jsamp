@@ -9,10 +9,14 @@
     </links>
 
     <menu name="Documentation">
-      <item name="Introduction" href="intro.html"/>
+      <item name="Introduction" href="index.html"/>
       <item name="Command-line tools" href="commands.html"/>
       <item name="API Overview" href="api.html"/>
+      <item name="Deployment" href="deployment.html"/>
       <item name="Javadocs" href="apidocs/index.html"/>
+      <item name="Downloads" href="downloads.html"/>
+      <item name="Dependencies" href="dependencies.html"/>
+      <item name="Project Info" href="project-info.html"/>
     </menu>
   </body>
 </project>
