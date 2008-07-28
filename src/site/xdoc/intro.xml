@@ -2,8 +2,8 @@
 <document>
 
 <properties>
-  <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
   <title>SAMP Kit</title>
+  <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
 </properties>
   
 <body>
@@ -67,31 +67,31 @@ The subordinate packages are arranged in a modular way.
 They are organised as follows:
 </p>
 <dl>
-<dt><a target="classFrame"
+<dt><a target="javadoc"
        href="apidocs/org/astrogrid/samp/package-summary.html"
                     >org.astrogrid.samp</a></dt>
 <dd>Basic classes required throughout the library.  You need these
     whatever you're doing.
     </dd>
-<dt><a target="classFrame"
+<dt><a target="javadoc"
        href="apidocs/org/astrogrid/samp/client/package-summary"
                     >org.astrogrid.samp.client</a></dt>
 <dd>Classes intended for use by application authors writing SAMP clients.
     If you only need to run a SAMP hub, you do not need these classes.
     </dd>
-<dt><a target="classFrame"
+<dt><a target="javadoc"
        href="apidocs/org/astrogrid/samp/hub/package-summary"
                     >org.astrogrid.samp.hub</a></dt>
 <dd>Classes providing the hub implementation.
     If you are only writing a client which will not contain an embedded hub,
     you do not need these classes.</dd>
-<dt><a target="classFrame"
+<dt><a target="javadoc"
        href="apidocs/org/astrogrid/samp/gui/package-summary"
                     >org.astrogrid.samp.gui</a></dt>
 <dd>Utility classes providing GUI components for visual display of SAMP
     activity.  These classes are not required for basic client or hub
     operations.</dd>
-<dt><a target="classFrame"
+<dt><a target="javadoc"
        href="apidocs/org/astrogrid/samp/test/package-summary"
                     >org.astrogrid.samp.test</a></dt>
 <dd>Classes providing the hub test suite and some diagnostic tools intended

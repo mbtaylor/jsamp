@@ -2,8 +2,8 @@
 <document>
 
 <properties>
-  <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
   <title>SAMP Kit</title>
+  <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
 </properties>
   
 <body>
@@ -20,7 +20,7 @@ in order to use the toolkit for a particular purpose.
 
 <p>If you have an application which you would like to provide SAMP
 functionality, you should in most cases use the
-<a target="classFrame"
+<a target="javadoc"
    href="apidocs/org/astrogrid/samp/client/HubConnector.html"
                                           >HubConnector</a> class.
 It is suitable for long-running applications which wish to
@@ -33,26 +33,26 @@ for instance a <code>ListModel</code> which keeps tracks of other clients
 and their attributes as the hub notifies of changes in them.
 Some ready-to-use GUI components suitable for use with these hooks
 are provided in the
-<a target="classFrame"
+<a target="javadoc"
    href="apidocs/org/astrogrid/samp/gui/package-summary.html"
                 >org.astrogrid.samp.gui</a> package,
 or you can roll your own.
 </p>
 <p>Short-lived applications, for instance ones which simply wish to register,
 send a message and unregister again, may prefer to use the lower-level
-<a target="classFrame"
+<a target="javadoc"
    href="org.astrogrid.samp.client.HubConnection.html"
                                   >HubConnection</a>
 interface directly.
 </p>
 
 <p>In either case, an instance of the
-<a target="classFrame"
+<a target="javadoc"
    href="apidocs/org/astrogrid/samp/client/ClientProfile.html"
                                           >ClientProfile</a> class
 is used to initiate communication with the hub.
 Currently, a single implementation of this,
-<a target="classFrame"
+<a target="javadoc"
    href="apidocs/org/astrogrid/samp/client/StandardClientProfile.html"
                                           >StandardClientProfile</a>,
 is provided, corresponding to the SAMP Standard Profile.
@@ -65,12 +65,12 @@ the API.
 <subsection name="Running a SAMP Hub">
 
 <p>The classes which provide the SAMP hub functionality are in the package
-<a target="classFrame"
+<a target="javadoc"
    href="apidocs/org/astrogrid/samp/hub/package-summary.html"
                 >org.astrogrid.samp.hub</a>.
 If you want to run a hub, either with or without a graphical display,
 in most cases you can do it simply by using static methods of the
-<a target="classFrame"
+<a target="javadoc"
    href="apidocs/org/astrogrid/samp/hub/HubRunner.html"
                                        >HubRunner</a> class.
 This hub can be embedded within a third party application if required.
