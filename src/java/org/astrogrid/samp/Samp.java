@@ -9,12 +9,12 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Convenience class for invoking SampKit command-line applications.
+ * Convenience class for invoking JSAMP command-line applications.
  *
  * @author   Mark Taylor
  * @since    23 Jul 2008
  */
-public class SampKit {
+public class Samp {
 
     /** Known command class names. */
     static final String[] COMMAND_CLASSES = new String[] {
@@ -28,7 +28,7 @@ public class SampKit {
     /**
      * Private sole constructor prevents instantiation.
      */
-    private SampKit() {
+    private Samp() {
     }
 
     /**
@@ -40,7 +40,7 @@ public class SampKit {
         StringBuffer ubuf = new StringBuffer()
             .append( "\n   Usage:" )
             .append( "\n      " )
-            .append( SampKit.class.getName() )
+            .append( Samp.class.getName() )
             .append( " [-help]" )
             .append( " <command>" )
             .append( " [-help]" )
