@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<project name="SAMP">
+  <title>SAMP Toolkit</title>
+
+  <body>
+    <links>
+      <item name="SAMP Standard"
+            href="http://www.ivoa.net/Documents/latest/SAMP.html"/>
+    </links>
+
+    <menu name="Documentation">
+      <item name="Introduction" href="intro.html"/>
+      <item name="Command-line tools" href="commands.html"/>
+      <item name="API Overview" href="api.html"/>
+      <item name="Javadocs" href="apidocs/index.html"/>
+    </menu>
+  </body>
+</project>

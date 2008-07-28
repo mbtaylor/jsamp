@@ -1,0 +1,240 @@
+<?xml version="1.0"?>
+<!DOCTYPE document PUBLIC
+          "-//Apache Software Foundation//DTD XDOC 1.0//EN"
+          "http://maven.apache.org/dtd/xdoc_1_0.dtd" [
+  <!ENTITY sampkit-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.SampKit.usage">
+  <!ENTITY hubrunner-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.hub.HubRunner.usage">
+  <!ENTITY hubmonitor-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.gui.HubMonitor.usage">
+  <!ENTITY messagesender-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.test.MessageSender.usage">
+  <!ENTITY hubtester-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.test.HubTester.usage">
+  <!ENTITY calcstorm-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.test.CalcStorm.usage">
+]>
+<document>
+
+<properties>
+  <title>SAMP Kit</title>
+  <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
+</properties>
+
+<body>
+<section name="Command-line Applications">
+
+<p>SAMPKit provides a number of command-line applications for standalone use
+in various contexts.
+These come with their own <code>main()</code> methods so can be invoked
+directly.  A convenience class <code>org.astrogrid.samp.SampKit</code> is
+also provided (with its own <code>main()</code> method) which might save
+you a bit of typing when running these.  In all cases, supplying
+the "<code>-h</code>" or "<code>-help</code>" flag on the command line
+will print a usage message.
+</p>
+
+<p>The SampKit usage message says:
+</p>
+<source>&sampkit-usage;</source>
+
+<p>The individual command-line applications are described below.
+They have their own specific command-line flags to control use,
+but all share the following common flags:
+</p>
+<dl>
+<dt><code>-help</code></dt>
+<dd>Outputs the usage message.
+    May be abbreviated to <code>-h</code>.
+    </dd>
+<dt><code>-/+verbose</code></dt>
+<dd>Increases/decreases verbosity.
+    This controls what level of logging is performed by the application.
+    By default, WARNING (and higher) messages are output, while
+    INFO (and lower) messages are suppressed.  <code>-verbose</code>
+    increases the verbosity by one level and <code>+verbose</code> decreases
+    it by one level.  These flags may be supplied more than once.
+    May be abbreviated to <code>-v</code> or <code>+v</code>.
+    </dd>
+</dl>
+
+
+<subsection name="HubRunner">
+
+<p>The <code>org.astrogrid.samp.hub.HubRunner</code> class runs a SAMP hub
+using the SAMP Standard Profile.  A graphical window showing 
+currently registered clients and their attributes (metadata and subscribed
+MTypes) may optionally be displayed.
+</p>
+
+<p>HubRunner usage is:
+</p>
+<source>&hubrunner-usage;</source>
+<dl>
+<dt><code>-gui</code></dt>
+<dd>If supplied, a window is shown which shows currently registered clients.
+    This window remains visible for as long as the hub is running.
+    If the window is closed, the hub will terminate.
+    </dd>
+</dl>
+
+</subsection>
+
+<subsection name="HubMonitor">
+
+<p>The <code>org.astrogrid.samp.gui.HubMonitor</code> class 
+runs a SAMP client which connects to any available hub and displays
+a window showing currently registered clients along with their 
+attributes (metadata and subscribed MTypes).
+If no hub is available at startup, or the hub shuts down while the monitor
+is running, the monitor will poll for a hub at regular intervals and 
+reconnect if a new one starts up.
+</p>
+
+<p>A button at the bottom of the window allows you to disconnect from
+a running hub or to reconnect.  While disconnected, no automatic connection
+attempts are made.
+</p>
+
+<p>The <code>HubMonitor</code> class itself is a very simple application
+which uses the facilities provided by the other classes in the toolkit.
+See the source code for details.
+</p>
+
+<p>HubMonitor usage is:
+</p>
+<source>&hubmonitor-usage;</source>
+<dl>
+<dt><code>-/+verbose</code></dt>
+<dd>See above for the description of verbosity setting.
+    If <code>-verbose</code> is used, each message sent and received will
+    be logged to standard error through the logging system.
+    </dd>
+<dt><code>-auto &lt;secs&gt;</code></dt>
+<dd>Sets the number of seconds between reconnection attempts when the
+    monitor is inactive but unregistered.  
+    If &lt;=0, autoconnection is not attempted.
+    </dd>
+</dl>
+
+</subsection>
+
+<subsection name="MessageSender">
+
+<p>The <code>org.astrogrid.samp.test.MessageSender</code> class
+can send a simple SAMP message from the command line and display 
+any responses received in response.
+</p>
+
+<p>MessageSender usage is:
+</p>
+<source>&messagesender-usage;</source>
+<dl>
+<dt><code>-mtype &lt;mtype&gt;</code></dt>
+<dd>Gives the MType for the message to send.
+    </dd>
+<dt><code>[-param &lt;value&gt; &lt;value&gt;]</code></dt>
+<dd>Gives a named parameter for the message.
+    This flag may be repeated to pass more than one parameter.
+    Currently <code>&lt;value&gt;</code> is simply interpreted as a string
+    value, so it is impossible to send SAMP <code>list</code>- or 
+    <code>map</code>-valued parameters.
+    This may be rectified in future releases.
+    </dd>
+<dt><code>[-target &lt;receiverId&gt;]</code></dt>
+<dd>Specifies the SAMP public ID for a client to which this message will be
+    sent.  This flag may be repeated to send the same messsage to more than
+    one recipient.  If omitted, the message is <em>broadcast</em> to all
+    clients which are subscribed to the MType.
+    </dd>
+<dt><code>[-mode sync|async|notify]</code></dt>
+<dd>Specifies the delivery pattern to be used to send the message.
+    In the case of <code>notify</code>, no responses will be received.
+    The sender only declares itself <em>callable</em> if <code>async</code>
+    mode is used.
+    The default is <code>sync</code>.
+    </dd>
+<dt><code>[-sendername &lt;appname&gt;]</code></dt>
+<dd>Specifies the <code>samp.name</code> metadata item which the sending
+    aplication should give for its application name following registration.
+    </dd>
+<dt><code>[-sendermeta &lt;metaname&gt; &lt;metavalue&gt;]</code></dt>
+<dd>Specifies additional items of metadata for the sending application to
+    give following registration.
+    </dd>
+</dl>
+
+</subsection>
+
+<subsection name="HubTester">
+
+<p>The <code>org.astrogrid.samp.test.HubTester</code> class
+runs a series of tests on an existing SAMP hub.
+Most aspects of hub operation are tested, along with some moderate
+load testing.
+In case of a test failure, an exception will be thrown, and under normal
+circumstances the stackdump will be shown on standard error.
+These exceptions may not be particularly informative;
+hub authors debugging hubs will have to examine the HubTester source
+code to see what was was being attempted when the failure occurred.
+</p>
+
+<p>Normally, if a hub passes all the tests there will be no output to
+standard output or standard error.
+Under some circumstances however a WARNING log message will be output.
+This corresponds to behaviour that a hub implementation SHOULD,
+but not MUST, display according to the SAMP standard.
+</p>
+
+<p>It's OK for other clients to be registered while the test runs,
+but such clients should not either register or unregister while the
+test is under way - this will confuse the test and probably result in
+spurious test failures.
+</p>
+
+<p>HubTester usage is:
+</p>
+<source>&hubtester-usage;</source>
+
+</subsection>
+
+<subsection name="CalcStorm">
+
+<p>The <code>org.astrogrid.samp.test.CalcStorm</code> class
+runs a number of clients simultaneously, which all connect to the
+hub and then send each other messages.  A private set of MTypes
+which provide simple integer arithmetic are used.
+Checks are made that all the expected responses are obtained and have
+the correct content.
+On termination, a short message indicating the number of messages sent
+and how long they took is output.
+This application can therefore be used as a load test and/or benchmark
+for a given hub implementation.
+</p>
+
+<p>CalcStorm usage is:
+</p>
+<source>&calcstorm-usage;</source>
+<dl>
+<dt><code>-nclient &lt;n&gt;</code></dt>
+<dd>Gives the number of clients which will run at once.
+    </dd>
+<dt><code>-nquery &lt;n&gt;</code></dt>
+<dd>Gives the number of queries which each client will send to other clients
+    during the run.
+    </dd>
+<dt><code>[-mode sync|async|notify]</code></dt>
+<dd>Specifies the delivery pattern by which messages are sent.
+    If this flag is not given, a random mixture (approximately a third of each)
+    will be used.
+    </dd>
+</dl>
+
+</subsection>
+
+</section>
+
+</body>
+
+</document>

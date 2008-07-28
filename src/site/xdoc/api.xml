@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<document>
+
+<properties>
+  <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
+  <title>SAMP Kit</title>
+</properties>
+  
+<body>
+
+<section name="API Overview">
+
+<p>The client toolkit API is fully described by the
+<a href="apidocs/index.html" target="javadoc">javadocs</a>.
+This section provides some pointers for deciding where to start looking
+in order to use the toolkit for a particular purpose.
+</p>
+
+<subsection name="Implementing SAMP Client Functionality">
+
+<p>If you have an application which you would like to provide SAMP
+functionality, you should in most cases use the
+<a target="classFrame"
+   href="apidocs/org/astrogrid/samp/client/HubConnector.html"
+                                          >HubConnector</a> class.
+It is suitable for long-running applications which wish to
+send and receive SAMP messages, and seamlessly handles registering
+and unregistering with hubs, including taking care of the case in which
+a running hub shuts down and another one starts up later
+during the application's lifetime.
+<code>HubConnector</code> provides some hooks for graphical capabilities,
+for instance a <code>ListModel</code> which keeps tracks of other clients
+and their attributes as the hub notifies of changes in them.
+Some ready-to-use GUI components suitable for use with these hooks
+are provided in the
+<a target="classFrame"
+   href="apidocs/org/astrogrid/samp/gui/package-summary.html"
+                >org.astrogrid.samp.gui</a> package,
+or you can roll your own.
+</p>
+<p>Short-lived applications, for instance ones which simply wish to register,
+send a message and unregister again, may prefer to use the lower-level
+<a target="classFrame"
+   href="org.astrogrid.samp.client.HubConnection.html"
+                                  >HubConnection</a>
+interface directly.
+</p>
+
+<p>In either case, an instance of the
+<a target="classFrame"
+   href="apidocs/org/astrogrid/samp/client/ClientProfile.html"
+                                          >ClientProfile</a> class
+is used to initiate communication with the hub.
+Currently, a single implementation of this,
+<a target="classFrame"
+   href="apidocs/org/astrogrid/samp/client/StandardClientProfile.html"
+                                          >StandardClientProfile</a>,
+is provided, corresponding to the SAMP Standard Profile.
+However, other profiles could be implemented and used with the rest of
+the API.
+</p>
+
+</subsection>
+
+<subsection name="Running a SAMP Hub">
+
+<p>The classes which provide the SAMP hub functionality are in the package
+<a target="classFrame"
+   href="apidocs/org/astrogrid/samp/hub/package-summary.html"
+                >org.astrogrid.samp.hub</a>.
+If you want to run a hub, either with or without a graphical display,
+in most cases you can do it simply by using static methods of the
+<a target="classFrame"
+   href="apidocs/org/astrogrid/samp/hub/HubRunner.html"
+                                       >HubRunner</a> class.
+This hub can be embedded within a third party application if required.
+For more configurability, for instance customising the graphical display or
+hub discovery process, you may want to look at the other classes in this
+package, perhaps with reference to the source code.
+</p>
+
+</subsection>
+
+<subsection name="Control of Logging">
+
+<p>The SAMPKit classes log activity using the J2SE 
+<code>java.util.logging</code> classes.
+Most messages are either at the 
+INFO level (normal activity, e.g. details of each message sent/received) or the
+WARNING level (errors, things which might be cause for concern).
+If run under default settings, all of these messages will be written to
+standard error for the application.  
+It's easy to configure this behaviour otherwise however.
+For details see the J2SE <code>java.util.logging</code> javadocs,
+but the short story is: to restrict logging to WARNINGs only, do
+</p>
+<source>
+    Logger.getLogger("org.astrogrid.samp").setLevel(Level.WARN);
+</source>
+<p>or to turn logging off altogether, do
+</p>
+<source>
+    Logger.getLogger("org.astrogrid.samp").setLevel(Level.OFF);
+</source>
+
+</subsection>
+
+</section>
+
+</body>
+
+</document>
