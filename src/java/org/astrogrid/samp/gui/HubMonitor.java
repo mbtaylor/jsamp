@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -88,14 +89,22 @@ public class HubMonitor extends JPanel {
             .append( HubMonitor.class.getName() )
             .append( " [-help]" )
             .append( " [+/-verbose]" )
+            .append( " [-auto <secs>]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
         int verbAdjust = 0;
         boolean gui = true;
+        int autoSec = 3;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
-            if ( arg.startsWith( "-v" ) ) {
+            if ( arg.startsWith( "-auto" ) && it.hasNext() ) {
+                it.remove();
+                String sauto = (String) it.next();
+                it.remove();
+                autoSec = Integer.parseInt( sauto );
+            }
+            else if ( arg.startsWith( "-v" ) ) {
                 it.remove();
                 verbAdjust--;
             }
@@ -123,7 +132,10 @@ public class HubMonitor extends JPanel {
 
         // Start the gui in a new window.
         JFrame frame = new JFrame( "SAMP HubMonitor" );
-        frame.getContentPane().add( new HubMonitor( 2 ) );
+        frame.getContentPane().add( new HubMonitor( autoSec ) );
+        frame.setIconImage( new ImageIcon( Metadata.class
+                                          .getResource( "images/eye.gif" ) )
+                           .getImage() );
         frame.pack();
         frame.setVisible( gui );
         frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
