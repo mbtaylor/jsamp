@@ -2,24 +2,24 @@
 <document>
 
 <properties>
-  <title>SAMP Kit</title>
+  <title>JSAMP</title>
   <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
 </properties>
 
 <body>
 <section name="External Dependencies">
 
-<p>SAMPKit is a pure Java library.  
+<p>JSAMP is a pure Java library.  
 It should run on any Java Runtime Environment of version J2SE1.4 or above.
 </p>
 
 <p>It currently has a single 
 <a href="dependencies.html">dependency</a>, the Apache XML-RPC library.
 In fact, not very much of this is used, and I am considering incorporating
-the necessary functionality into SAMPKit itself.  This would reduce the
+the necessary functionality into JSAMP itself.  This would reduce the
 amount of code required at runtime, and possibly ameliorate class resolution
 issues (e.g. for applications which need to use a different version of the
-Apache XML-RPC library than the one required by SAMPKit).
+Apache XML-RPC library than the one required by JSAMP).
 Let me know if you're keen to see this option.
 </p>
 
@@ -27,7 +27,7 @@ Let me know if you're keen to see this option.
 
 <section name="Internal Dependencies">
 
-<p>If you are embedding SAMPKit into your own application code but want to
+<p>If you are embedding JSAMP into your own application code but want to
 keep the size of the additional class files to a minimum, you can avoid
 incorporating all of the classes in the built jar file.
 The subordinate packages are arranged in a modular way.
@@ -63,7 +63,7 @@ They are organised as follows:
                     >org.astrogrid.samp.test</a></dt>
 <dd>Classes providing the hub test suite and some diagnostic tools intended
     for debugging SAMP systems.  These are not intended for use in third party
-    applications.  This does not however contain unit tests for SAMPKit
+    applications.  This does not however contain unit tests for JSAMP
     itself, which are not present in the distributed jar file.
     </dd>
 </dl>

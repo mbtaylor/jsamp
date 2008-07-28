@@ -2,7 +2,7 @@
 <document>
 
 <properties>
-  <title>SAMP Kit</title>
+  <title>JSAMP</title>
   <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
 </properties>
   
@@ -83,7 +83,7 @@ package, perhaps with reference to the source code.
 
 <subsection name="Control of Logging">
 
-<p>The SAMPKit classes log activity using the J2SE 
+<p>The JSAMP classes log activity using the J2SE 
 <code>java.util.logging</code> classes.
 Most messages are either at the 
 INFO level (normal activity, e.g. details of each message sent/received) or the

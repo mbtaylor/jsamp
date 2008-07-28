@@ -2,8 +2,8 @@
 <!DOCTYPE document PUBLIC
           "-//Apache Software Foundation//DTD XDOC 1.0//EN"
           "http://maven.apache.org/dtd/xdoc_1_0.dtd" [
-  <!ENTITY sampkit-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.SampKit.usage">
+  <!ENTITY samp-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.Samp.usage">
   <!ENTITY hubrunner-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.hub.HubRunner.usage">
   <!ENTITY hubmonitor-usage SYSTEM
@@ -18,26 +18,26 @@
 <document>
 
 <properties>
-  <title>SAMP Kit</title>
+  <title>JSAMP</title>
   <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
 </properties>
 
 <body>
 <section name="Command-line Applications">
 
-<p>SAMPKit provides a number of command-line applications for standalone use
+<p>JSAMP provides a number of command-line applications for standalone use
 in various contexts.
 These come with their own <code>main()</code> methods so can be invoked
-directly.  A convenience class <code>org.astrogrid.samp.SampKit</code> is
+directly.  A convenience class <code>org.astrogrid.samp.Samp</code> is
 also provided (with its own <code>main()</code> method) which might save
 you a bit of typing when running these.  In all cases, supplying
 the "<code>-h</code>" or "<code>-help</code>" flag on the command line
 will print a usage message.
 </p>
 
-<p>The SampKit usage message says:
+<p>The Samp usage message says:
 </p>
-<source>&sampkit-usage;</source>
+<source>&samp-usage;</source>
 
 <p>The individual command-line applications are described below.
 They have their own specific command-line flags to control use,

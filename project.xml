@@ -18,12 +18,21 @@
     applications and middleware.
   </description>
 
+  <licenses>
+    <license>
+      <name>The AstroGrid Software License, Vresion 1.2</name>
+      <url>http://www.astrogrid.org/</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
   <dependencies>
     <dependency>
       <groupId>xmlrpc</groupId>
       <artifactId>xmlrpc</artifactId>
       <type>jar</type>
       <version>1.2-b1</version>
+      <url>${maven.repo.remote}xmlrpc/jars/xmlrpc-1.2-b1.jar</url>
     </dependency>
   </dependencies>
 
@@ -35,5 +44,22 @@
       </resource>
     </resources>
   </build>
+
+  <reports>
+    <report>maven-javadoc-plugin</report>
+  </reports>
+
+  <siteAddress>terror.star.le.ac.uk</siteAddress>
+  <siteDirectory>/software_docs/samp-${pom.currentVersion}</siteDirectory>
+
+  <developers>
+    <developer>
+      <name>Mark Taylor</name>
+      <id>mbt</id>
+      <email>m.b.taylor@bristol.ac.uk</email>
+      <url>http://www.star.bristol.ac.uk/~mbt/</url>
+      <organization>Bristol University</organization>
+    </developer>
+  </developers>
 
 </project>

@@ -57,7 +57,7 @@
         prereqs="java:compile">
     <ant:mkdir dir="target/docs"/>
     <j:set var="commands"
-           value="org.astrogrid.samp.SampKit
+           value="org.astrogrid.samp.Samp
                   org.astrogrid.samp.hub.HubRunner
                   org.astrogrid.samp.gui.HubMonitor
                   org.astrogrid.samp.test.MessageSender
