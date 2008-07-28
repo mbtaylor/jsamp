@@ -6,11 +6,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
+import org.astrogrid.samp.Client;
 import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.ClientSet;
 import org.astrogrid.samp.hub.HubClient;
@@ -54,6 +56,9 @@ public class GuiHubService extends BasicHubService {
         hubView.setClientListModel( getClientListModel() );
         JFrame frame = new JFrame( "SAMP Hub" );
         frame.getContentPane().add( hubView );
+        frame.setIconImage( new ImageIcon( Client.class
+                                          .getResource( "images/hub.png" ) )
+                           .getImage() );
         frame.pack();
         return frame;
     }
