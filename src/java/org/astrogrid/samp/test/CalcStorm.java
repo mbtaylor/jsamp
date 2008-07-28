@@ -58,6 +58,9 @@ public class CalcStorm {
         final Random[] randoms = new Random[ nClient_ ];
         for ( int ic = 0; ic < nClient_; ic++ ) {
             HubConnection conn = profile_.register();
+            if ( conn == null ) {
+                throw new IOException( "No hub is running" );
+            }
             randoms[ ic ] = new Random( random_.nextLong() );
             ids[ ic ] = conn.getRegInfo().getSelfId();
             calcs[ ic ] = new Calculator( conn, randoms[ ic ] );
