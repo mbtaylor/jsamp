@@ -35,4 +35,51 @@
       </ant:fileset>
     </ant:zip>
   </goal>
+
+  <preGoal name="xdoc:transform">
+    <attainGoal name="command-usage"/>
+  </preGoal>
+
+  <postGoal name="xdoc:transform">
+    <!-- Hack maven theme file.  It gratuitously sets font size of paragraph
+     !   text to small.  Not only is this just wrong (presumably motivated
+     !   by whatever happened to look good on Mr Maven's screen/browser
+     !   combination) it looks stupid when P and UL/OL/DL elements appear
+     !   adjacently. -->
+    <ant:replace file="target/docs/style/maven-theme.css">
+      <replaceFilter token="  font-size: small;"
+                   replace="  font-size: normal;"/>
+    </ant:replace>
+  </postGoal>
+
+  <goal name="command-usage"
+        description="Write usage messages for command-line tools to files"
+        prereqs="java:compile">
+    <ant:mkdir dir="target/docs"/>
+    <j:set var="commands"
+           value="org.astrogrid.samp.SampKit
+                  org.astrogrid.samp.hub.HubRunner
+                  org.astrogrid.samp.gui.HubMonitor
+                  org.astrogrid.samp.test.MessageSender
+                  org.astrogrid.samp.test.CalcStorm
+                  org.astrogrid.samp.test.HubTester"/>
+    <u:tokenize var="commands" delim=" ">${commands}</u:tokenize>
+    <j:forEach items="${commands}" var="cmd">
+      <ant:echo message="Usage for ${cmd}"/>
+      <ant:java classname="${cmd}"
+                output="target/docs/${cmd}.usage"
+                fork="true">
+        <classpath>
+          <path refid="maven.dependency.classpath"/>
+          <pathelement location="target/classes"/>
+        </classpath>
+        <arg value="-help"/>
+      </ant:java>
+      <ant:replace file="target/docs/${cmd}.usage">
+        <replaceFilter token="&amp;" value="&amp;amp;"/>
+        <replaceFilter token="&lt;" value="&amp;lt;"/>
+        <replaceFilter token="&gt;" value="&amp;gt;"/>
+      </ant:replace>
+    </j:forEach>
+  </goal>
 </project>
