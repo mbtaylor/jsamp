@@ -103,8 +103,8 @@ public abstract class MessageSender {
             .append( " [-target <receiverId> ...]" )
             .append( " [-mode sync|async|notify]" )
             .append( "\n           " )
-            .append( " [-appname <appname>]" )
-            .append( " [-appmeta <metaname> <metavalue>]" )
+            .append( " [-sendername <appname>]" )
+            .append( " [-sendermeta <metaname> <metavalue>]" )
             .append( "\n" )
             .toString();
 
@@ -156,12 +156,12 @@ public abstract class MessageSender {
                 mode = (String) it.next();
                 it.remove();
             }
-            else if ( arg.equals( "-appname" ) && it.hasNext() ) {
+            else if ( arg.equals( "-sendername" ) && it.hasNext() ) {
                 it.remove();
                 meta.setName( (String) it.next() );
                 it.remove();
             }
-            else if ( arg.equals( "-appmeta" ) && it.hasNext() ) {
+            else if ( arg.equals( "-sendermeta" ) && it.hasNext() ) {
                 it.remove();
                 String mName = (String) it.next();
                 it.remove();
@@ -246,6 +246,10 @@ public abstract class MessageSender {
 
         // Register.
         HubConnection connection = profile.register();
+        if ( connection == null ) {
+            System.err.println( "No hub is running" );
+            return 1;
+        }
         connection.declareMetadata( meta );
 
         // Send the message, displaying the results on System.out.
