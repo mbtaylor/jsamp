@@ -23,7 +23,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.astrogrid.samp.Client;
-import org.astrogrid.samp.LockInfo;
+import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
@@ -147,6 +147,7 @@ public class HubConnector {
      */
     public HubConnector( ClientProfile profile ) {
         profile_ = profile;
+        isActive_ = true;
 
         // Set up data structures.
         messageHandlerList_ = new ArrayList();
@@ -188,10 +189,12 @@ public class HubConnector {
             public void receiveResponse( HubConnection connection,
                                          String responderId, String msgTag,
                                          Response response ) {
-                if ( responseMap_.containsKey( msgTag ) &&
-                     responseMap_.get( msgTag ) == null ) {
-                    responseMap_.put( msgTag, response );
-                    responseMap_.notifyAll();
+                synchronized ( responseMap_ ) {
+                    if ( responseMap_.containsKey( msgTag ) &&
+                         responseMap_.get( msgTag ) == null ) {
+                        responseMap_.put( msgTag, response );
+                        responseMap_.notifyAll();
+                    }
                 }
             }
         } );
@@ -200,6 +203,9 @@ public class HubConnector {
     /**
      * Sets the interval at which this connector attempts to connect to a 
      * hub if no connection currently exists.
+     * Otherwise, a connection will be attempted whenever 
+     * {@link #getConnection} is called.
+     * 
      *
      * @param  autoSec  number of seconds between attempts;
      *                  &lt;=0 means no automatic connections are attempted
@@ -218,7 +224,10 @@ public class HubConnector {
             TimerTask regTask = new TimerTask() {
                 public void run() {
                     try {
-                        getConnection();
+                        HubConnection conn = getConnection();
+                        logger_.info( "Autoconnection attempt: "
+                                    + ( conn == null ? "failed"
+                                                     : "succeeded" ) );
                     }
                     catch ( SampException e ) {
                     }
@@ -261,6 +270,13 @@ public class HubConnector {
     /**
      * Declares the MType subscriptions for this client.
      * This declaration affects the current connection and any future ones.
+     *
+     * <p>Note that this call must be made, with a subscription list
+     * which includes the various hub administrative messages, in order
+     * for this connector to act on those messages (for instance to 
+     * update its client map and so on).  For this reason, it is usual
+     * to call it with the <code>subs</code> argument given by 
+     * the result of calling {@link #computeSubscriptions}.
      *
      * @param  subscriptions  {@link org.astrogrid.samp.Subscriptions}-like map
      */
@@ -428,8 +444,8 @@ public class HubConnector {
         HubConnection connection = getConnection();
         String msgTag = generateTag();
         connection.call( recipientId, msgTag, msg );
-        responseMap_.put( msgTag, null );
         synchronized ( responseMap_ ) {
+            responseMap_.put( msgTag, null );
             while ( responseMap_.containsKey( msgTag ) &&
                     responseMap_.get( msgTag ) == null &&
                     System.currentTimeMillis() < finish ) {
@@ -532,8 +548,12 @@ public class HubConnector {
      * If necessary attempts to acquire, and returns, a connection to a
      * running hub.
      * If there is an existing connection representing a registration 
-     * with a hub, it is returned.  If not, an attempt to connect and
-     * register, followed by a call to {@link #configureConnection}, is made.
+     * with a hub, it is returned.  If not, and this connector is active, 
+     * an attempt is made to connect and register, followed by a call to 
+     * {@link #configureConnection}, is made.
+     *
+     * <p>Note that if {@link #setActive setActive(false)} has been called,
+     * null will be returned.
      *
      * @return  hub connection representing configured registration with a hub
      *          if a hub is running; if not, null
@@ -645,7 +665,7 @@ public class HubConnector {
      * Map keys are public IDs and values are 
      * {@link org.astrogrid.samp.Client}s.
      *
-     * @return   id-&gt;Client map
+     * @return   id->Client map
      */
     public Map getClientMap() {
         return clientTracker_.getClientMap();
@@ -733,20 +753,39 @@ public class HubConnector {
             // Offer the call to each registered MessageHandler in turn.
             // Since only one should be allowed to respond to it, only 
             // the first one which bites is allowed to process it.
+            String mtype = message.getMType();
+            ErrInfo errInfo = null;
             for ( Iterator it = messageHandlerList_.iterator();
                   it.hasNext(); ) {
                 MessageHandler handler = (MessageHandler) it.next();
                 Subscriptions subs =
                     Subscriptions.asSubscriptions( handler.getSubscriptions() );
-                if ( subs.isSubscribed( message.getMType() ) ) {
+                if ( subs.isSubscribed( mtype ) ) {
                     try {
                         handler.receiveCall( conn_, senderId, msgId, message );
                         return;
                     }
                     catch ( Exception e ) {
+                        errInfo = new ErrInfo( e );
                         logger_.log( Level.WARNING, "Call handler failed", e );
                     }
                 }
+            }
+            if ( errInfo == null ) {
+                logger_.warning( "No handler for subscribed MType " + mtype );
+                errInfo = new ErrInfo( "No handler found" );
+                errInfo.setUsertxt( "No handler was found for the supplied"
+                                  + " MType. "
+                                  + "Looks like a programming error "
+                                  + "at the  recipient end.  Sorry." );
+            }
+            Response response = Response.createErrorResponse( errInfo );
+            response.check();
+            try {
+                conn_.reply( msgId, response );
+            }
+            catch ( SampException e ) {
+                logger_.warning( "Failed to reply" );
             }
         }
 
