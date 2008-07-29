@@ -128,7 +128,7 @@ public class Samp {
     /**
      * Returns the <code>main(String[])</code> method for a given class.
      */
-    private static Method getMainMethod( Class clazz ) {
+    static Method getMainMethod( Class clazz ) {
         Method method;
         try {
             method = clazz.getMethod( "main",
