@@ -165,7 +165,10 @@ public class HubRunner {
         if ( lockfile_ != null ) {
             if ( lockfile_.exists() ) {
                 try {
-                    LockInfo lockInfo = LockInfo.readLockFile();
+                    LockInfo lockInfo =
+                        LockInfo.readLockFile(
+                            new BufferedInputStream(
+                                new FileInputStream( lockfile_ ) ) );
                     if ( lockInfo.getSecret()
                         .equals( lockInfo_.getSecret() ) ) {
                         assert lockInfo.equals( lockInfo_ );
