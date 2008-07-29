@@ -34,15 +34,29 @@
       <version>1.2-b1</version>
       <url>${maven.repo.remote}xmlrpc/jars/xmlrpc-1.2-b1.jar</url>
     </dependency>
+
+    <!-- Testing -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <type>jar</type>
+      <version>3.8</version>
+    </dependency>
   </dependencies>
 
   <build>
     <sourceDirectory>src/java</sourceDirectory>
+    <unitTestSourceDirectory>src/test/java</unitTestSourceDirectory>
     <resources>
       <resource>
         <directory>src/resources</directory>
       </resource>
     </resources>
+    <unitTest>
+      <includes>
+        <include>org/astrogrid/samp/**/*Test.java</include>
+      </includes>
+    </unitTest>
   </build>
 
   <reports>
