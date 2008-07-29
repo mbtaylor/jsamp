@@ -303,7 +303,6 @@ public class HubTester extends Tester {
         }
 
         // Send some concurrent ECHO messages via both notify and call.
-  System.err.println( "Avoiding ugly strings - needs attention in the doc" );
         int necho = 5;
         Object[] echoParams = new Object[ necho ];
         String[] msgIds = new String[ necho ];
