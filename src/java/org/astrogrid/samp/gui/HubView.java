@@ -97,8 +97,10 @@ public class HubView extends JPanel {
         jlist_.setModel( clientModel );
         if ( clientModel != null ) {
             clientModel.addListDataListener( listListener_ );
-            jlist_.setCellRenderer( new ClientListCellRenderer( clientModel,
-                                                                null ) );
+            ClientListCellRenderer renderer = 
+                new ClientListCellRenderer( clientModel, null );
+            renderer.setUseNicknames( true );
+            jlist_.setCellRenderer( renderer );
             preferSelection();
         }
     }

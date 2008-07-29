@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListModel;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 
 /**
@@ -22,6 +23,7 @@ import org.astrogrid.samp.RegInfo;
 public class ClientListCellRenderer extends DefaultListCellRenderer {
 
     private final ClientLabeller labeller_;
+    private boolean useNicknames_;
     private Font[] labelFonts_;
 
     /**
@@ -35,6 +37,19 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
         labeller_ = new ClientLabeller( listModel, regInfo );
     }
 
+    /**
+     * Determine whether the textual representation of clients uses a
+     * nickname-type format or not.
+     * If nicknames are used, an attempt is made to give clients short names
+     * based on their metadata and some sort of disambiguation index.
+     * If not, the client public ID will always be shown.
+     *
+     * @param  useNicknames  whether to use nicknames
+     */
+    public void setUseNicknames( boolean useNicknames ) {
+        useNicknames_ = useNicknames;
+    }
+
     public Component getListCellRendererComponent( JList list, Object value,
                                                    int index, boolean isSel,
                                                    boolean hasFocus ) {
@@ -44,10 +59,29 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
             JLabel jl = (JLabel) c;
             Client client = (Client) value;
             String id = client.getId();
-            String label = labeller_.getLabel( client );
-            String text = label == null ? id
-                                        : label;
-            Font font = getLabelFont( label == null );
+            final String text;
+            final Font font;
+            if ( useNicknames_ ) {
+                String label = labeller_.getLabel( client );
+                text = label == null ? id : label;
+                font = getLabelFont( label == null );
+            }
+            else {
+                StringBuffer sbuf = new StringBuffer();
+                Metadata meta = client.getMetadata();
+                if ( meta != null ) {
+                    String name = meta.getName();
+                    if ( name != null && name.trim().length() > 0 ) {
+                        sbuf.append( name )
+                            .append( ' ' );
+                    }
+                }
+                sbuf.append( '(' )
+                    .append( id )
+                    .append( ')' );
+                text = sbuf.toString();
+                font = getLabelFont( false );
+            }
             int size;
             try {
                 size = (int)
