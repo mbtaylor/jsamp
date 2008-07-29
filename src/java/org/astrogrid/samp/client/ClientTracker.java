@@ -74,6 +74,7 @@ class ClientTracker extends AbstractMessageHandler {
      * Returns a map representing the state of registered clients.
      * The map keys are client public IDs and the values are 
      * {@link org.astrogrid.samp.Client} objects.
+     *
      * @return  id-&gt;Client map
      */
     public Map getClientMap() {
@@ -553,6 +554,7 @@ class ClientTracker extends AbstractMessageHandler {
         public synchronized void setClients( Client[] clients ) {
             int nc = clientList_.size();
             clientList_.clear();
+            clientMap_.clear();
             if ( nc > 0 ) {
                 scheduleListDataEvent( ListDataEvent.INTERVAL_REMOVED,
                                        0, nc - 1 );
