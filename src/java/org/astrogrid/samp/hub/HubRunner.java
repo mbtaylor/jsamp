@@ -3,9 +3,7 @@ package org.astrogrid.samp.hub;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -165,10 +163,7 @@ public class HubRunner {
         if ( lockfile_ != null ) {
             if ( lockfile_.exists() ) {
                 try {
-                    LockInfo lockInfo =
-                        LockInfo.readLockFile(
-                            new BufferedInputStream(
-                                new FileInputStream( lockfile_ ) ) );
+                    LockInfo lockInfo = LockInfo.readLockFile( lockfile_ );
                     if ( lockInfo.getSecret()
                         .equals( lockInfo_.getSecret() ) ) {
                         assert lockInfo.equals( lockInfo_ );
@@ -256,9 +251,7 @@ public class HubRunner {
     private static boolean isHubAlive( File lockfile ) {
         LockInfo info;
         try { 
-            info = LockInfo
-                  .readLockFile( new BufferedInputStream(
-                                     new FileInputStream( lockfile ) ) );
+            info = LockInfo.readLockFile( lockfile );
         }
         catch ( Exception e ) {
             logger_.log( Level.WARNING, "Failed to read lockfile", e );
