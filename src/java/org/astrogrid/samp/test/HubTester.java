@@ -183,7 +183,9 @@ public class HubTester extends Tester {
      * Perform a wide variety of tests on a running hub.
      */
     public void run() throws IOException {
-        testLockfile();
+        if ( profile_ == StandardClientProfile.getInstance() ) {
+            testLockfile();
+        }
         testClients();
         testStress();
     }
