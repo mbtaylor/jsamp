@@ -11,7 +11,7 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.SampXmlRpcHandler;
 
 /**
- * Reciever implementation used to communicate with XML-RPC-based callable
+ * Receiver implementation used to communicate with XML-RPC-based callable
  * clients.
  *
  * @author   Mark Taylor

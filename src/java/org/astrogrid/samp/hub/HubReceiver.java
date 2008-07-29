@@ -33,7 +33,7 @@ class HubReceiver implements Receiver {
     }
 
     /**
-     * Constructs a HubReciever with a given set of handlers.
+     * Constructs a HubReceiver with a given set of handlers.
      *
      * @param  hub  hub service object
      * @param  clientId  public id for hub client
