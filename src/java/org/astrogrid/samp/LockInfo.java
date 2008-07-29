@@ -145,7 +145,7 @@ public class LockInfo extends SampMap {
     }
 
     /**
-     * Returns the LockInfo as read from the LockFile found in the usual place
+     * Returns the LockInfo as read from the lockfile found in the usual place
      * {@link SampUtils#getLockFile}.
      * If the lockfile does not exist, null is returned.
      * An exception may be thrown if it exists but is cannot be read.
@@ -153,11 +153,36 @@ public class LockInfo extends SampMap {
      * @return  lockfile contents, or null if it is absent
      */
     public static LockInfo readLockFile() throws IOException {
-        File file = SampUtils.getLockFile();
-        return file.exists()
-             ? readLockFile( new BufferedInputStream( 
-                                 new FileInputStream( file ) ) )
-             : null;
+        return readLockFile( SampUtils.getLockFile() );
+    }
+
+    /**
+     * Returns a LockInfo as read from a lockfile at a given location.
+     * If the lockfile does not exist, null is returned.
+     * An exception may be thrown if it exists but is cannot be read.
+     *
+     * @param   file  lockfile location
+     * @return  lockfile contents, or null if it is absent
+     */
+    public static LockInfo readLockFile( File file ) throws IOException {
+        if ( file.exists() ) {
+            InputStream in =
+                new BufferedInputStream( new FileInputStream( file ) );
+            try {
+                return readLockFile( in );
+            }
+            catch ( IOException e ) {
+                try {
+                    in.close();
+                }
+                catch ( IOException e2 ) {
+                }
+                throw e;
+            }
+        }
+        else {
+            return null;
+        }
     }
 
     /**
