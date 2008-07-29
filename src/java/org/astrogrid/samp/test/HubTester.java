@@ -13,6 +13,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.LockInfo;
@@ -27,6 +28,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.client.StandardClientProfile;
+import org.astrogrid.samp.gui.HubMonitor;
 
 /**
  * Tester for a running hub.
@@ -721,12 +723,22 @@ public class HubTester extends Tester {
             .append( "\n      " )
             .append( HubTester.class.getName() )
             .append( " [-help]" )
+            .append( " [-gui]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
+        boolean gui = false;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
-            if ( arg.startsWith( "-h" ) ) {
+            if ( arg.equals( "-gui" ) ) {
+                it.remove();
+                gui = true;
+            }
+            else if ( arg.equals( "-nogui" ) ) {
+                it.remove();
+                gui = false;
+            }
+            else if ( arg.startsWith( "-h" ) ) {
                 it.remove();
                 System.out.println( usage );
                 return 0;
@@ -738,7 +750,22 @@ public class HubTester extends Tester {
             }
         }
         assert argList.isEmpty();
+
+        // Set up GUI monitor if required.
+        JFrame frame;
+        if ( gui ) {
+            frame = new JFrame( "HubTester Monitor" );
+            frame.getContentPane().add( new HubMonitor( 1 ) );
+            frame.pack();
+            frame.setVisible( true );
+        }
+        else {
+            frame = null;
+        }
         new HubTester( StandardClientProfile.getInstance() ).run();
+        if ( frame != null ) {
+            frame.dispose();
+        }
         return 0;
     }
 

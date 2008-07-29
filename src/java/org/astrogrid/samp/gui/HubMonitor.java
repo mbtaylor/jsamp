@@ -90,6 +90,7 @@ public class HubMonitor extends JPanel {
             .append( " [-help]" )
             .append( " [+/-verbose]" )
             .append( " [-auto <secs>]" )
+            .append( " [-nogui]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -103,6 +104,14 @@ public class HubMonitor extends JPanel {
                 String sauto = (String) it.next();
                 it.remove();
                 autoSec = Integer.parseInt( sauto );
+            }
+            else if ( arg.equals( "-gui" ) ) {
+                it.remove();
+                gui = true;
+            }
+            else if ( arg.equals( "-nogui" ) ) {
+                it.remove();
+                gui = false;
             }
             else if ( arg.startsWith( "-v" ) ) {
                 it.remove();

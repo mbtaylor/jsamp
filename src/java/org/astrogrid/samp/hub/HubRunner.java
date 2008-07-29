@@ -320,17 +320,21 @@ public class HubRunner {
             .append( HubRunner.class.getName() )
             .append( " [-help]" )
             .append( " [-/+verbose ...]" )
-            .append( " [-gui]" )
+            .append( " [-nogui]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
-        boolean gui = false;
+        boolean gui = true;
         int verbAdjust = 0;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-gui" ) ) {
                 it.remove();
                 gui = true;
+            }
+            else if ( arg.equals( "-nogui" ) ) {
+                it.remove();
+                gui = false;
             }
             else if ( arg.startsWith( "-v" ) ) {
                 it.remove();

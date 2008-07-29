@@ -41,7 +41,7 @@ will print a usage message.
 
 <p>The individual command-line applications are described below.
 They have their own specific command-line flags to control use,
-but all share the following common flags:
+but most share the following common flags:
 </p>
 <dl>
 <dt><code>-help</code></dt>
@@ -72,10 +72,11 @@ MTypes) may optionally be displayed.
 </p>
 <source>&hubrunner-usage;</source>
 <dl>
-<dt><code>-gui</code></dt>
-<dd>If supplied, a window is shown which shows currently registered clients.
+<dt><code>-nogui</code></dt>
+<dd>Normally, a window is shown which shows currently registered clients.
     This window remains visible for as long as the hub is running.
     If the window is closed, the hub will terminate.
+    If the <code>-nogui</code> flag is supplied, this window is not shown.
     </dd>
 </dl>
 
@@ -115,6 +116,9 @@ See the source code for details.
 <dd>Sets the number of seconds between reconnection attempts when the
     monitor is inactive but unregistered.  
     If &lt;=0, autoconnection is not attempted.
+    </dd>
+<dt><code>-nogui</code></dt>
+<dd>The monitor registers as a client, but no window is displayed.
     </dd>
 </dl>
 
@@ -196,6 +200,11 @@ spurious test failures.
 <p>HubTester usage is:
 </p>
 <source>&hubtester-usage;</source>
+<dl>
+<dt>-gui</dt>
+<dd>If supplied, a HubMonitor window will be shown for the duration of the test.
+    </dd>
+</dl>
 
 </subsection>
 
@@ -228,6 +237,9 @@ for a given hub implementation.
 <dd>Specifies the delivery pattern by which messages are sent.
     If this flag is not given, a random mixture (approximately a third of each)
     will be used.
+    </dd>
+<dt>-gui</dt>
+<dd>If supplied, a HubMonitor window will be shown for the duration of the test.
     </dd>
 </dl>
 

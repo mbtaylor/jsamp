@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.StandardClientProfile;
+import org.astrogrid.samp.gui.HubMonitor;
 
 /**
  * Runs a load of Calculator clients at once all sending messages to each other.
@@ -166,6 +168,7 @@ public class CalcStorm {
             .append( "\n           " )
             .append( " [-help]" )
             .append( " [-/+verbose ...]" )
+            .append( " [-gui]" )
             .append( "\n           " )
             .append( " [-nclient <n>]" )
             .append( " [-nquery <n>]" )
@@ -180,6 +183,7 @@ public class CalcStorm {
         int nQuery = 100;
         Calculator.SendMode sendMode = Calculator.RANDOM_MODE;
         int verbAdjust = 0;
+        boolean gui = false;
 
         // Parse arguments, modifying test parameters as appropriate.
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -221,6 +225,14 @@ public class CalcStorm {
                     }
                     sendMode = sm;
                 }
+                else if ( arg.equals( "-gui" ) ) {
+                    it.remove();
+                    gui = true;
+                }
+                else if ( arg.equals( "-nogui" ) ) {
+                    it.remove();
+                    gui = false;
+                }
                 else if ( arg.startsWith( "-v" ) ) {
                     it.remove();
                     verbAdjust--;
@@ -253,6 +265,18 @@ public class CalcStorm {
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
+        // Set up GUI monitor if required.
+        JFrame frame;
+        if ( gui ) {
+            frame = new JFrame( "CalcStorm Monitor" );
+            frame.getContentPane().add( new HubMonitor( 1 ) );
+            frame.pack();
+            frame.setVisible( true );
+        }
+        else {
+            frame = null;
+        }
+
         // Run the test.
         long start = System.currentTimeMillis();
         new CalcStorm( profile, random, nClient, nQuery, sendMode ).run();
@@ -260,6 +284,11 @@ public class CalcStorm {
         System.out.println( "Elapsed time: " + time + " ms" 
                           + " (" + (int) ( time * 1000. / ( nClient * nQuery ) )
                           + " us per message)" );
+
+        // Tidy up and return.
+        if ( frame != null ) {
+            frame.dispose();
+        }
         return 0;
     }
 
