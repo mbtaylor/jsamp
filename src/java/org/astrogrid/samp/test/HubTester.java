@@ -766,7 +766,8 @@ public class HubTester extends Tester {
             processCall( senderId, msg );
         }
 
-        public void receiveCall( String senderId, String msgId, Message msg ) {
+        public void receiveCall( String senderId, String msgId, Message msg )
+                throws SampException {
 
             // If the message contains a WAITMILLIS_KEY entry, interpret this
             // as a number of milliseconds to wait before the response is
@@ -809,12 +810,7 @@ public class HubTester extends Tester {
             response.check();
 
             // Return the reply, whatever it is, to the hub.
-            try {
-                connection_.reply( msgId, response );
-            }
-            catch ( SampException e ) {
-                throw new TestException( "Reply failed" );
-            }
+            connection_.reply( msgId, response );
         }
 
         /**

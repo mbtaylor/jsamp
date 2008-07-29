@@ -20,7 +20,8 @@ public interface ClientActor {
      * @param  senderId  public ID of sending client
      * @param  msg       message
      */
-    void receiveNotification( String privateKey, String senderId, Map msg );
+    void receiveNotification( String privateKey, String senderId, Map msg )
+            throws Exception;
 
     /**
      * Receives a message for which a response is required.
@@ -33,7 +34,7 @@ public interface ClientActor {
      * @param  msg       message
      */
     void receiveCall( String privateKey, String senderId, String msgId,
-                      Map msg );
+                      Map msg ) throws Exception;
     /**
      * Receives a response to a message previously sent by this client.
      *
@@ -43,5 +44,5 @@ public interface ClientActor {
      * @param  response   returned response object
      */
     void receiveResponse( String privateKey, String responderId, String msgTag,
-                          Map response );
+                          Map response ) throws Exception;
 }

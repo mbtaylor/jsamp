@@ -31,7 +31,8 @@ public interface MessageHandler {
      * @param  message     message
      */
     void receiveNotification( HubConnection connection,
-                              String senderId, Message message );
+                              String senderId, Message message )
+            throws Exception;
 
     /**
      * Processes a message which does require a response.
@@ -45,5 +46,6 @@ public interface MessageHandler {
      * @param  message     message
      */
     void receiveCall( HubConnection connection,
-                      String senderId, String msgId, Message message );
+                      String senderId, String msgId, Message message )
+            throws Exception;
 }

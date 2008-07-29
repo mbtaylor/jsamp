@@ -785,7 +785,7 @@ public class HubConnector {
                 conn_.reply( msgId, response );
             }
             catch ( SampException e ) {
-                logger_.warning( "Failed to reply" );
+                logger_.warning( "Failed to reply to " + msgId );
             }
         }
 

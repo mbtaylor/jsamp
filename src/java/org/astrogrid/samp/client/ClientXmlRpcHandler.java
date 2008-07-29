@@ -57,19 +57,20 @@ class ClientXmlRpcHandler extends SampXmlRpcHandler {
         private final Map map_ = new HashMap();
 
         public void receiveNotification( String privateKey, String senderId,
-                                         Map msg ) {
+                                         Map msg ) throws Exception {
             getCallable( privateKey )
                 .receiveNotification( senderId, Message.asMessage( msg ) );
         }
 
         public void receiveCall( String privateKey, String senderId,
-                                 String msgId, Map msg ) {
+                                 String msgId, Map msg ) throws Exception {
             getCallable( privateKey )
                 .receiveCall( senderId, msgId, Message.asMessage( msg ) );
         }
 
         public void receiveResponse( String privateKey, String responderId,
-                                     String msgTag, Map response ) {
+                                     String msgTag, Map response )
+                 throws Exception {
             getCallable( privateKey )
                 .receiveResponse( responderId, msgTag,
                                   Response.asResponse( response ) );

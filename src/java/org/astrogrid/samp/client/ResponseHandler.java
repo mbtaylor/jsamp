@@ -32,5 +32,6 @@ public interface ResponseHandler {
      * @param  response  response object
      */
     void receiveResponse( HubConnection connection, String responderId,
-                          String msgTag, Response response );
+                          String msgTag, Response response )
+            throws Exception;
 }

@@ -168,7 +168,8 @@ public class Calculator extends Tester implements CallableClient {
         processCall( senderId, msg );
     }
 
-    public void receiveCall( String senderId, String msgId, Message msg ) {
+    public void receiveCall( String senderId, String msgId, Message msg )
+            throws SampException {
         Response response;
         try {
             response = Response
@@ -177,12 +178,7 @@ public class Calculator extends Tester implements CallableClient {
         catch ( Throwable e ) {
             response = Response.createErrorResponse( new ErrInfo( e ) );
         }
-        try {
-            connection_.reply( msgId, response );
-        }
-        catch ( SampException e ) {
-            throw new TestException( "Reply failed", e );
-        }
+        connection_.reply( msgId, response );
     }
 
     public void receiveResponse( String senderId, String msgTag,

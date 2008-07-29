@@ -110,7 +110,8 @@ public abstract class AbstractMessageHandler implements MessageHandler {
      * a reply back to the hub.
      */
     public void receiveCall( HubConnection connection, String senderId,
-                             String msgId, Message message ) {
+                             String msgId, Message message )
+            throws SampException {
         Response response;
         try {
             Map result = processCall( connection, senderId, message ); 
@@ -120,11 +121,6 @@ public abstract class AbstractMessageHandler implements MessageHandler {
         catch ( Exception e ) {
             response = Response.createErrorResponse( new ErrInfo( e ) );
         }
-        try {
-            connection.reply( msgId, response );
-        }
-        catch ( SampException e ) {
-            logger_.log( Level.WARNING, "Message reply failed", e );
-        }
+        connection.reply( msgId, response );
     }
 }

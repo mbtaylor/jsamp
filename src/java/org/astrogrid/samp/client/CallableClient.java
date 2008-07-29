@@ -18,7 +18,8 @@ public interface CallableClient {
      * @param  senderId  public ID of sending client
      * @param  message   message
      */
-    void receiveNotification( String senderId, Message message );
+    void receiveNotification( String senderId, Message message )
+            throws Exception;
 
     /**
      * Receives a message for which a response is required.
@@ -29,7 +30,8 @@ public interface CallableClient {
      * @param  msgId     message identifier for later use with reply
      * @param  message   message
      */
-    void receiveCall( String senderId, String msgId, Message message );
+    void receiveCall( String senderId, String msgId, Message message )
+            throws Exception;
 
     /**
      * Receives a response to a message previously sent by this client.
@@ -39,5 +41,5 @@ public interface CallableClient {
      * @param  response   returned response object
      */
     void receiveResponse( String responderId, String msgTag,
-                          Response response );
+                          Response response ) throws Exception;
 }
