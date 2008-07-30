@@ -18,12 +18,12 @@
 <document>
 
 <properties>
-  <title>JSAMP</title>
+  <title>Command-line Tools</title>
   <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
 </properties>
 
 <body>
-<section name="Command-line Applications">
+<section name="Command-line Tools">
 
 <p>JSAMP provides a number of command-line applications for standalone use
 in various contexts.
