@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<document>
+
+<properties>
+<title>Downloads</title>
+<author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
+</properties>
+
+<body>
+<section name="Downloads">
+<dl>
+<dt>Jar file:</dt>
+<dd><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/samp-0.1.jar"
+       >samp-0.1.jar</a>
+    </dd>
+<dt>Sources:</dt>
+<dd><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/samp_src-0.1.zip"
+       >samp_src-0.1.zip</a>
+    </dd>
+<dt>Required dependencies:</dt>
+<dd><a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
+       >xmlrpc-1.2-b1.jar</a>
+    </dd>
+</dl>
+</section>
+
+</body>
+</document>
