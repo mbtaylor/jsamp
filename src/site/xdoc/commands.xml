@@ -138,7 +138,7 @@ any responses received in response.
 <dt><code>-mtype &lt;mtype&gt;</code></dt>
 <dd>Gives the MType for the message to send.
     </dd>
-<dt><code>[-param &lt;value&gt; &lt;value&gt;]</code></dt>
+<dt><code>-param &lt;value&gt; &lt;value&gt;</code></dt>
 <dd>Gives a named parameter for the message.
     This flag may be repeated to pass more than one parameter.
     Currently <code>&lt;value&gt;</code> is simply interpreted as a string
@@ -146,24 +146,24 @@ any responses received in response.
     <code>map</code>-valued parameters.
     This may be rectified in future releases.
     </dd>
-<dt><code>[-target &lt;receiverId&gt;]</code></dt>
+<dt><code>-target &lt;receiverId&gt;</code></dt>
 <dd>Specifies the SAMP public ID for a client to which this message will be
     sent.  This flag may be repeated to send the same messsage to more than
     one recipient.  If omitted, the message is <em>broadcast</em> to all
     clients which are subscribed to the MType.
     </dd>
-<dt><code>[-mode sync|async|notify]</code></dt>
+<dt><code>-mode sync|async|notify</code></dt>
 <dd>Specifies the delivery pattern to be used to send the message.
     In the case of <code>notify</code>, no responses will be received.
     The sender only declares itself <em>callable</em> if <code>async</code>
     mode is used.
     The default is <code>sync</code>.
     </dd>
-<dt><code>[-sendername &lt;appname&gt;]</code></dt>
+<dt><code>-sendername &lt;appname&gt;</code></dt>
 <dd>Specifies the <code>samp.name</code> metadata item which the sending
     aplication should give for its application name following registration.
     </dd>
-<dt><code>[-sendermeta &lt;metaname&gt; &lt;metavalue&gt;]</code></dt>
+<dt><code>-sendermeta &lt;metaname&gt; &lt;metavalue&gt;</code></dt>
 <dd>Specifies additional items of metadata for the sending application to
     give following registration.
     </dd>
@@ -201,7 +201,7 @@ spurious test failures.
 </p>
 <source>&hubtester-usage;</source>
 <dl>
-<dt>-gui</dt>
+<dt><code>-gui</code></dt>
 <dd>If supplied, a HubMonitor window will be shown for the duration of the test.
     </dd>
 </dl>
@@ -233,12 +233,12 @@ for a given hub implementation.
 <dd>Gives the number of queries which each client will send to other clients
     during the run.
     </dd>
-<dt><code>[-mode sync|async|notify]</code></dt>
+<dt><code>-mode sync|async|notify</code></dt>
 <dd>Specifies the delivery pattern by which messages are sent.
     If this flag is not given, a random mixture (approximately a third of each)
     will be used.
     </dd>
-<dt>-gui</dt>
+<dt><code>-gui</code></dt>
 <dd>If supplied, a HubMonitor window will be shown for the duration of the test.
     </dd>
 </dl>
