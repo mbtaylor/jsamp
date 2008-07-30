@@ -167,7 +167,7 @@ public class CalcStorm {
             .append( CalcStorm.class.getName() )
             .append( "\n           " )
             .append( " [-help]" )
-            .append( " [-/+verbose ...]" )
+            .append( " [-/+verbose]" )
             .append( " [-gui]" )
             .append( "\n           " )
             .append( " [-nclient <n>]" )

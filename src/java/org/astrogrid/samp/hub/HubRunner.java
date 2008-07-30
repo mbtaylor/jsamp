@@ -319,7 +319,7 @@ public class HubRunner {
             .append( "\n      " )
             .append( HubRunner.class.getName() )
             .append( " [-help]" )
-            .append( " [-/+verbose ...]" )
+            .append( " [-/+verbose]" )
             .append( " [-nogui]" )
             .append( "\n" )
             .toString();
