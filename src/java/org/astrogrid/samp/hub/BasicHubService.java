@@ -21,6 +21,8 @@ import org.astrogrid.samp.Subscriptions;
 
 /**
  * HubService implementation.
+ * This is suitable for use with the SAMP Standard Profile, since it
+ * 
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
@@ -108,6 +110,10 @@ public class BasicHubService implements HubService {
         return clientSet_;
     }
 
+    /**
+     * Returns a RegInfo suitable for use with the SAMP Standard Profile,
+     * in that it contains a privateKey string.
+     */
     public Map register() throws HubServiceException {
         if ( ! started_ ) {
             throw new HubServiceException( "Not started" );
@@ -117,8 +123,14 @@ public class BasicHubService implements HubService {
         getClientSet().add( client );
         hubEvent( new Message( "samp.hub.event.register" )
                      .addParam( "id", client.getId() ) );
-        return new RegInfo( getHubClient().getId(), client.getId(),
-                            client.getPrivateKey() );
+        RegInfo regInfo = new RegInfo();
+        regInfo.put( RegInfo.HUBID_KEY, getHubClient().getId() );
+        regInfo.put( RegInfo.SELFID_KEY, client.getId() );
+
+        // Specific to standard profile.
+        regInfo.put( RegInfo.PRIVATEKEY_KEY, 
+                     String.valueOf( client.getPrivateKey() ) );
+        return regInfo;
     }
 
     public void unregister( Object callerKey ) throws HubServiceException {

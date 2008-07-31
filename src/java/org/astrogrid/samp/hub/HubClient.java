@@ -17,7 +17,7 @@ import org.astrogrid.samp.Subscriptions;
 public class HubClient implements Client {
 
     private final String publicId_;
-    private final String privateKey_;
+    private final Object privateKey_;
     private Subscriptions subscriptions_;
     private Metadata metadata_;
     private Receiver receiver_;
@@ -28,7 +28,7 @@ public class HubClient implements Client {
      * @param  privateKey  client private key
      * @param  publicId    client public ID
      */
-    public HubClient( String privateKey, String publicId ) {
+    public HubClient( Object privateKey, String publicId ) {
         privateKey_ = privateKey;
         publicId_ = publicId;
         subscriptions_ = new Subscriptions();
@@ -53,7 +53,7 @@ public class HubClient implements Client {
      *
      * @return private key
      */
-    public String getPrivateKey() {
+    public Object getPrivateKey() {
         return privateKey_;
     }
 
