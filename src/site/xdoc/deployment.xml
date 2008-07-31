@@ -13,14 +13,21 @@
 It should run on any Java Runtime Environment of version J2SE1.4 or above.
 </p>
 
-<p>It currently has a single 
-<a href="dependencies.html">dependency</a>, the Apache XML-RPC library.
-In fact, not very much of this is used, and I am considering incorporating
+<p>It currently has a single dependency,
+the Apache XML-RPC library
+<a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
+                                                   >xmlrpc-1.2-b1.jar</a>.
+The samp jar file's Class-Path attribute is written to look for this
+file in the same directory as the jar file itself.
+</p>
+
+<p>In fact, not very much of the apache library is used, 
+and I am considering incorporating
 the necessary functionality into JSAMP itself.  This would reduce the
 amount of code required at runtime, and possibly ameliorate class resolution
 issues (e.g. for applications which need to use a different version of the
 Apache XML-RPC library than the one required by JSAMP).
-Let me know if you're keen to see this option.
+Let me know if you are keen to see this option.
 </p>
 
 </section>
@@ -34,31 +41,31 @@ The subordinate packages are arranged in a modular way.
 They are organised as follows:
 </p>
 <dl>
-<dt><a target="javadoc"
+<dt><a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/package-summary.html"
                     >org.astrogrid.samp</a></dt>
 <dd>Basic classes required throughout the library.  You need these
     whatever you're doing.
     </dd>
-<dt><a target="javadoc"
+<dt><a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/client/package-summary"
                     >org.astrogrid.samp.client</a></dt>
 <dd>Classes intended for use by application authors writing SAMP clients.
     If you only need to run a SAMP hub, you do not need these classes.
     </dd>
-<dt><a target="javadoc"
+<dt><a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/hub/package-summary"
                     >org.astrogrid.samp.hub</a></dt>
 <dd>Classes providing the hub implementation.
     If you are only writing a client which will not contain an embedded hub,
     you do not need these classes.</dd>
-<dt><a target="javadoc"
+<dt><a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/gui/package-summary"
                     >org.astrogrid.samp.gui</a></dt>
 <dd>Utility classes providing GUI components for visual display of SAMP
     activity.  These classes are not required for basic client or hub
     operations.</dd>
-<dt><a target="javadoc"
+<dt><a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/test/package-summary"
                     >org.astrogrid.samp.test</a></dt>
 <dd>Classes providing the hub test suite and some diagnostic tools intended
