@@ -8,6 +8,8 @@
     <ant:replace file="build.xml">
       <replaceFilter token="&lt;javac "
                      value="&lt;javac source='1.4' target='1.4' "/>
+      <replaceFilter token='if="Junit.present"'
+                     value='if="Junit.present.false"'/>
     </ant:replace>
     <ant:mkdir dir="target"/>
     <ant:move file="build.xml" toFile="target/build.xml"/>
@@ -25,7 +27,7 @@
         description="Build zip file containing buildable(?) sources for export"
         prereqs="ant:generate-build">
     <ant:mkdir dir="target"/>
-    <ant:zip destfile="target/samp_src-${pom.currentVersion}.zip">
+    <ant:zip destfile="target/jsamp_src-${pom.currentVersion}.zip">
       <ant:fileset dir="target">
         <include name="build.xml"/>
       </ant:fileset>
@@ -52,12 +54,26 @@
     </ant:replace>
   </postGoal>
 
+  <postGoal name="java:jar-resources">
+    <ant:echo message="${pom.currentVersion}"
+              file="target/classes/org/astrogrid/samp/jsamp.version"/>
+  </postGoal>
+
+  <goal name="samp-deploy"
+        description="Deploy built archives to repository"
+        prereqs="jar:jar,source-zip">
+    <echo message="Do this:"/>
+    <echo message="    scp target/jsamp-${pom.currentVersion}.jar target/jsamp_src-${pom.currentVersion}.zip astrogrid@katatjuta.star.le.ac.uk:/maven/org.astrogrid/jars/"/>
+    <echo message="and make sure you do a matching maven site:deploy too"/>
+    <echo message="and ln -s jsamp-${pom.currentVersion}/ jsamp/ in terror:software_docs/"/>
+  </goal>
+
   <goal name="command-usage"
         description="Write usage messages for command-line tools to files"
         prereqs="java:compile">
     <ant:mkdir dir="target/docs"/>
     <j:set var="commands"
-           value="org.astrogrid.samp.Samp
+           value="org.astrogrid.samp.JSamp
                   org.astrogrid.samp.hub.HubRunner
                   org.astrogrid.samp.gui.HubMonitor
                   org.astrogrid.samp.test.MessageSender
