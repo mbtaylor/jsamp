@@ -5,10 +5,10 @@
                              http://maven.apache.org/maven-v3_0_0.xsd">
 
   <extend>../maven-base/project.xml</extend>
-  <artifactId>samp</artifactId>
-  <currentVersion>${astrogrid.samp.version}</currentVersion>
+  <artifactId>jsamp</artifactId>
+  <currentVersion>${astrogrid.jsamp.version}</currentVersion>
   <inceptionYear>2008</inceptionYear>
-  <name>SAMP</name>
+  <name>JSAMP</name>
   <shortDescription>
     Simple Applications Messaging Protocol Toolkit
   </shortDescription>
@@ -20,7 +20,7 @@
 
   <licenses>
     <license>
-      <name>The AstroGrid Software License, Vresion 1.2</name>
+      <name>The AstroGrid Software License</name>
       <url>http://www.astrogrid.org/</url>
       <distribution>repo</distribution>
     </license>
@@ -64,7 +64,7 @@
   </reports>
 
   <siteAddress>terror.star.le.ac.uk</siteAddress>
-  <siteDirectory>/software_docs/samp-${pom.currentVersion}</siteDirectory>
+  <siteDirectory>/software_docs/jsamp-${pom.currentVersion}</siteDirectory>
 
   <developers>
     <developer>
