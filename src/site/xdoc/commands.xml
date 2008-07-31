@@ -2,8 +2,8 @@
 <!DOCTYPE document PUBLIC
           "-//Apache Software Foundation//DTD XDOC 1.0//EN"
           "http://maven.apache.org/dtd/xdoc_1_0.dtd" [
-  <!ENTITY samp-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.Samp.usage">
+  <!ENTITY jsamp-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.JSamp.usage">
   <!ENTITY hubrunner-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.hub.HubRunner.usage">
   <!ENTITY hubmonitor-usage SYSTEM
@@ -28,16 +28,19 @@
 <p>JSAMP provides a number of command-line applications for standalone use
 in various contexts.
 These come with their own <code>main()</code> methods so can be invoked
-directly.  A convenience class <code>org.astrogrid.samp.Samp</code> is
+directly.  A convenience class <code>org.astrogrid.samp.JSamp</code> is
 also provided (with its own <code>main()</code> method) which might save
-you a bit of typing when running these.  In all cases, supplying
-the "<code>-h</code>" or "<code>-help</code>" flag on the command line
-will print a usage message.
+you a bit of typing when running these; if the dependencies are in the
+same directory as the jsamp jar file itself, then the JSamp class 
+can be invoked as 
+"<code>java -jar jsamp-</code><em>version</em><code>.jar</code>".  
+In all cases, supplying the "<code>-h</code>" or "<code>-help</code>" 
+flag on the command line will print a usage message.
 </p>
 
-<p>The Samp usage message says:
+<p>The JSamp usage message says:
 </p>
-<source>&samp-usage;</source>
+<source>&jsamp-usage;</source>
 
 <p>The individual command-line applications are described below.
 They have their own specific command-line flags to control use,
@@ -57,7 +60,17 @@ but most share the following common flags:
     it by one level.  These flags may be supplied more than once.
     May be abbreviated to <code>-v</code> or <code>+v</code>.
     </dd>
+<dt><code>-gui/-nogui</code></dt>
+<dd>Shows/hides a window which shows which clients are currently registered
+    with the hub and their metadata and subscriptions.
+    </dd>
 </dl>
+<p>
+The GUI window, which is used by several of these tools to display 
+the clients currently registered with the hub along with their
+metadata and subscriptions, looks something like this:
+</p>
+<img src="HubMonitor.gif" alt="HubMonitor screenshot"/>
 
 
 <subsection name="HubRunner">
@@ -138,13 +151,13 @@ any responses received in response.
 <dt><code>-mtype &lt;mtype&gt;</code></dt>
 <dd>Gives the MType for the message to send.
     </dd>
-<dt><code>-param &lt;value&gt; &lt;value&gt;</code></dt>
+<dt><code>-param &lt;name&gt; &lt;value&gt;</code></dt>
 <dd>Gives a named parameter for the message.
     This flag may be repeated to pass more than one parameter.
     Currently <code>&lt;value&gt;</code> is simply interpreted as a string
     value, so it is impossible to send SAMP <code>list</code>- or 
     <code>map</code>-valued parameters.
-    This may be rectified in future releases.
+    This may be rectified in a future release.
     </dd>
 <dt><code>-target &lt;receiverId&gt;</code></dt>
 <dd>Specifies the SAMP public ID for a client to which this message will be
@@ -233,10 +246,11 @@ for a given hub implementation.
 <dd>Gives the number of queries which each client will send to other clients
     during the run.
     </dd>
-<dt><code>-mode sync|async|notify</code></dt>
+<dt><code>-mode sync|async|notify|random</code></dt>
 <dd>Specifies the delivery pattern by which messages are sent.
-    If this flag is not given, a random mixture (approximately a third of each)
-    will be used.
+    The default is <code>random</code>, which means that a mixture of modes
+    (approximately a third each of synchronous call/response, 
+    asynchronous call/response and notification) will be used.
     </dd>
 <dt><code>-gui</code></dt>
 <dd>If supplied, a HubMonitor window will be shown for the duration of the test.
