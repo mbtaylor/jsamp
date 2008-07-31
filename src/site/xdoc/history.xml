@@ -7,10 +7,14 @@
 </properties>
 
 <body>
+
+<section name="Version History">
 <dl>
-<dt>Version 0.1 (31 July 2008)</dt>
-<dd>Initial release (beta).
+<dt><a href="../samp-0.1/index.html">Version 0.1</a> (31 July 2008)</dt>
+<dd>Initial release (beta).  Targets SAMP WD v1.0 (25 June 2008).
     </dd>
 </dl>
+</section>
+
 </body>
 </document>
