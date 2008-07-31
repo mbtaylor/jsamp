@@ -44,20 +44,6 @@ public class RegInfo extends SampMap {
     }
 
     /**
-     * Constructs a RegInfo with all essential information.
-     *
-     * @param  hubId  {@link #HUBID_KEY} value
-     * @param  selfId {@link #SELFID_KEY} value
-     * @param  privateKey {@link #PRIVATEKEY_KEY} value
-     */
-    public RegInfo( String hubId, String selfId, String privateKey ) {
-        this();
-        put( HUBID_KEY, hubId );
-        put( SELFID_KEY, selfId );
-        put( PRIVATEKEY_KEY, privateKey );
-    }
-
-    /**
      * Returns the hub's own public client id.
      *
      * @return  {@link #HUBID_KEY} value
