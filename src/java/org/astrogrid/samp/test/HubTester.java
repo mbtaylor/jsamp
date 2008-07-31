@@ -62,14 +62,6 @@ public class HubTester extends Tester {
     private static Logger logger_ =
         Logger.getLogger( HubTester.class.getName() );
 
-    static {
-        org.apache.xmlrpc.XmlRpc.debug = false;
-        Logger.getLogger( "org.astrogrid.samp" )
-              .setLevel( Level.WARNING );
-        Logger.getLogger( "org.astrogrid.samp.SampXmlRpcHandler" )
-              .setLevel( Level.SEVERE );
-    }
-
     /**
      * Constructor.
      *
@@ -723,11 +715,13 @@ public class HubTester extends Tester {
             .append( "\n      " )
             .append( HubTester.class.getName() )
             .append( " [-help]" )
+            .append( " [-/+verbose]" )
             .append( " [-gui]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean gui = false;
+        int verbAdjust = 0;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-gui" ) ) {
@@ -737,6 +731,14 @@ public class HubTester extends Tester {
             else if ( arg.equals( "-nogui" ) ) {
                 it.remove();
                 gui = false;
+            }
+            else if ( arg.startsWith( "-v" ) ) {
+                it.remove();
+                verbAdjust--;
+            }
+            else if ( arg.startsWith( "+v" ) ) {
+                it.remove();
+                verbAdjust++;
             }
             else if ( arg.startsWith( "-h" ) ) {
                 it.remove();
@@ -750,6 +752,11 @@ public class HubTester extends Tester {
             }
         }
         assert argList.isEmpty();
+
+        // Adjust logging in accordance with verboseness flags.
+        int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
+        Logger.getLogger( "org.astrogrid.samp" )
+              .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Set up GUI monitor if required.
         JFrame frame;
