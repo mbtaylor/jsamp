@@ -2,6 +2,7 @@ package org.astrogrid.samp;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -12,6 +13,7 @@ import java.net.UnknownHostException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Contains static utility methods for use with the SAMP toolkit.
@@ -23,6 +25,10 @@ public class SampUtils {
 
     public static final String LOCKFILE_NAME = ".samp";
     public static final String LOCALHOST_PROP = "samp.localhost";
+    private static final Logger logger_ =
+        Logger.getLogger( SampUtils.class.getName() );
+    private static String sampVersion_;
+    private static String softwareVersion_;
 
     /**
      * Private constructor prevents instantiation.
@@ -256,6 +262,54 @@ public class SampUtils {
         // findAnyPort.
         return true ? findAnyPort()
                     : scanForPort( startPort, 20 );
+    }
+
+    /**
+     * Returns a string giving the version of the SAMP standard which this
+     * software implements.
+     *
+     * @return  SAMP standard version
+     */
+    public static String getSampVersion() {
+        if ( sampVersion_ == null ) {
+            sampVersion_ = readResource( "samp.version" );
+        }
+        return sampVersion_;
+    }
+
+    /**
+     * Returns a string giving the version of this software package.
+     *
+     * @return  JSAMP version
+     */
+    public static String getSoftwareVersion() {
+        if ( softwareVersion_ == null ) {
+            softwareVersion_ = readResource( "jsamp.version" );
+        }
+        return softwareVersion_;
+    }
+
+    /**
+     * Returns the contents of a resource as a string.
+     *
+     * @param  rname  resource name 
+     *                (in the sense of {@link java.lang.Class#getResource})
+     */
+    private static String readResource( String rname ) {
+        URL url = SampUtils.class.getResource( rname );
+        try {
+            InputStream in = url.openStream();
+            StringBuffer sbuf = new StringBuffer();
+            for ( int c; ( c = in.read() ) >= 0; ) {
+                sbuf.append( (char) c );
+            }
+            in.close();
+            return sbuf.toString().trim();
+        }
+        catch ( IOException e ) {
+            logger_.warning( "Failed to read resource " + url );
+            return "??";
+        }
     }
        
     /**
