@@ -7,7 +7,7 @@
 </properties>
 
 <body>
-<section name="SAMP">
+<section name="JSAMP">
 
 <p>JSAMP is a Java toolkit for use with the
 <a href="http://www.ivoa.net/Documents/latest/SAMP.html"
@@ -38,8 +38,24 @@ It provides the following components:
 <li>Flexibility, including the possibility to use with non-<em>Standard</em>
     SAMP <em>Profiles</em></li>
 <li>Good documentation</li>
-<li>Small size (in particular, few dependencies)</li>
+<li>Small size</li>
 </ul>
+
+<p>The current version targets the SAMP 
+<a href="http://www.ivoa.net/Documents/cover/SAMP-20080625.html"
+   >1.0 Working Draft</a> document
+(25 June 2008).
+</p>
+
+<p>JSAMP is currently developed by 
+<a href="http://www.star.bristol.ac.uk/~mbt">Mark Taylor</a>
+(m.b.taylor@bristol.ac.uk), 
+working for 
+<a href="http://www.astrogrid.org/">AstroGrid</a> in the
+<a href="http://www.star.bristol.ac.uk/">astronomy group</a> at
+<a href="http://www.bristol.ac.uk/">Bristol University</a>.
+Please contact me with queries, bug reports, suggestions etc.
+</p>
 
 </section>
 
