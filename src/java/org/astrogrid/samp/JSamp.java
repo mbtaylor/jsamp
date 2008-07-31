@@ -14,7 +14,7 @@ import java.util.List;
  * @author   Mark Taylor
  * @since    23 Jul 2008
  */
-public class Samp {
+public class JSamp {
 
     /** Known command class names. */
     static final String[] COMMAND_CLASSES = new String[] {
@@ -28,7 +28,7 @@ public class Samp {
     /**
      * Private sole constructor prevents instantiation.
      */
-    private Samp() {
+    private JSamp() {
     }
 
     /**
@@ -40,8 +40,9 @@ public class Samp {
         StringBuffer ubuf = new StringBuffer()
             .append( "\n   Usage:" )
             .append( "\n      " )
-            .append( Samp.class.getName() )
+            .append( JSamp.class.getName() )
             .append( " [-help]" )
+            .append( " [-version]" )
             .append( " <command>" )
             .append( " [-help]" )
             .append( " <cmd-args>" )
@@ -84,12 +85,20 @@ public class Samp {
                 System.out.println( usage );
                 return 0;
             }
+            else if ( arg.startsWith( "-vers" ) ) {
+                System.out.println();
+                System.out.println( getVersionText() );
+                System.out.println();
+                return 0;
+            }
             else {
                 System.err.println( usage );
                 return 1;
             }
         }
         assert argList.isEmpty();
+        System.err.println();
+        System.err.println( getVersionText() );
         System.err.println( usage );
         return 1;
     }
@@ -161,6 +170,33 @@ public class Samp {
     private static String abbrev( String className ) {
         return className.substring( className.lastIndexOf( "." ) + 1 )
                         .toLowerCase();
+    }
+
+    /**
+     * Returns a string giving version details for this package.
+     *
+     * @return  version string
+     */
+    private static String getVersionText() {
+        return new StringBuffer()
+           .append( "   This is JSAMP.\n" )
+           .append( "\n   " )
+           .append( "JSAMP toolkit version:" )
+           .append( "\n      " )
+           .append( SampUtils.getSoftwareVersion() )
+           .append( "\n   " )
+           .append( "SAMP standard version:" )
+           .append( "\n      " )
+           .append( SampUtils.getSampVersion() )
+           .append( "\n   " )
+           .append( "Author:" )
+           .append( "\n      " )
+           .append( "Mark Taylor (m.b.taylor@bristol.ac.uk)" )
+           .append( "\n   " )
+           .append( "WWW:" )
+           .append( "\n      " )
+           .append( "http://deployer.astrogrid.org/software/jsamp/index.html" )
+           .toString();
     }
 
     /**
