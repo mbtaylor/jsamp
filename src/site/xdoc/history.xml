@@ -13,6 +13,14 @@
 <dt><a href="../samp-0.1/index.html">Version 0.1</a> (31 July 2008)</dt>
 <dd>Initial release (beta).  Targets SAMP WD v1.0 (25 June 2008).
     </dd>
+
+<dt>Next version</dt>
+<dd><ul>
+    <li><code>HubClient</code> privateKey member is now an Object not a String,
+        for greater generality.</li>
+    <li><code>RegInfo(String,String,String)</code> constructor withdrawn.</li>
+    </ul>
+    </dd>
 </dl>
 </section>
 
