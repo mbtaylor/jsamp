@@ -19,7 +19,7 @@ import org.astrogrid.samp.hub.Receiver;
 class XmlRpcReceiver implements Receiver {
 
     private final String privateKey_;
-    private final String endpoint_;
+    private final URL endpoint_;
     private final SampXmlRpcClient xClient_;
 
     /**
@@ -33,7 +33,7 @@ class XmlRpcReceiver implements Receiver {
                            URL url ) {
         xClient_ = xClient;
         privateKey_ = privateKey;
-        endpoint_ = url.toString();
+        endpoint_ = url;
     }
 
     public void receiveCall( String senderId, String msgId, Map message )

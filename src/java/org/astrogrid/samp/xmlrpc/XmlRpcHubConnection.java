@@ -27,7 +27,7 @@ public class XmlRpcHubConnection implements HubConnection {
 
     private final SampXmlRpcClient xClient_;
     private final SampXmlRpcServerFactory serverFactory_;
-    private final String endpoint_;
+    private final URL endpoint_;
     private final RegInfo regInfo_;
     private CallableClientServer callableServer_;
     private boolean unregistered_;
@@ -46,7 +46,7 @@ public class XmlRpcHubConnection implements HubConnection {
             throws SampException {
         xClient_ = xClient;
         serverFactory_ = serverFactory;
-        endpoint_ = hubUrl.toString();
+        endpoint_ = hubUrl;
         Object regInfo =
             rawExec( "samp.hub.register", Collections.singletonList( secret ) );
         if ( regInfo instanceof Map ) {

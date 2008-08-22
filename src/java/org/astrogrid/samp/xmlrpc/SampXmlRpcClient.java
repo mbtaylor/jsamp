@@ -1,6 +1,7 @@
 package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -23,7 +24,7 @@ public interface SampXmlRpcClient {
      * @param  params    parameters for XML-RPC call (SAMP-compatible)
      * @return   XML-RPC call return value (SAMP-compatible)
      */
-    Object callAndWait( String endpoint, String method, List params )
+    Object callAndWait( URL endpoint, String method, List params )
             throws IOException;
 
     /**
@@ -34,6 +35,6 @@ public interface SampXmlRpcClient {
      * @param  method    XML-RPC method name
      * @param  params    parameters for XML-RPC call (SAMP-compatible)
      */
-    void callAndForget( String endpoint, String method, List params )
+    void callAndForget( URL endpoint, String method, List params )
             throws IOException;
 }

@@ -1,7 +1,6 @@
 package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -28,7 +27,7 @@ public class ApacheClient implements SampXmlRpcClient {
         clientMap_ = new HashMap();
     }
 
-    public Object callAndWait( String endpoint, String method, List params )
+    public Object callAndWait( URL endpoint, String method, List params )
             throws IOException {
         try {
             return getApacheClient( endpoint )
@@ -40,7 +39,7 @@ public class ApacheClient implements SampXmlRpcClient {
         }
     }
 
-    public void callAndForget( String endpoint, String method, List params )
+    public void callAndForget( URL endpoint, String method, List params )
             throws IOException {
 
         // I'm not sure that the Apache implementation is *sufficiently*
@@ -58,8 +57,7 @@ public class ApacheClient implements SampXmlRpcClient {
      * @param  endpoint  server endpoint
      * @return   new or re-used client
      */
-    private XmlRpcClient getApacheClient( String endpoint )
-            throws MalformedURLException {
+    private XmlRpcClient getApacheClient( URL endpoint ) {
         if ( ! clientMap_.containsKey( endpoint ) ) {
             clientMap_.put( endpoint, createApacheClient( endpoint ) );
         }
@@ -73,8 +71,7 @@ public class ApacheClient implements SampXmlRpcClient {
      * @param  endpoint
      * @return  new client
      */
-    protected XmlRpcClient createApacheClient( String endpoint )
-            throws MalformedURLException {
-        return new XmlRpcClientLite( new URL( endpoint ) );
+    protected XmlRpcClient createApacheClient( URL endpoint ) {
+        return new XmlRpcClientLite( endpoint );
     }
 }

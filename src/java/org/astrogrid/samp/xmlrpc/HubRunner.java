@@ -270,8 +270,7 @@ public class HubRunner {
         URL xurl = info.getXmlrpcUrl();
         if ( xurl != null ) {
             try {
-                xClient.callAndWait( xurl.toString(), "samp.hub.ping",
-                                     new ArrayList() );
+                xClient.callAndWait( xurl, "samp.hub.ping", new ArrayList() );
                 return true;
             }
             catch ( Exception e ) {
