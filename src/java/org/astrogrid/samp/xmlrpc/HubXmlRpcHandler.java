@@ -1,11 +1,11 @@
-package org.astrogrid.samp.hub;
+package org.astrogrid.samp.xmlrpc;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import org.astrogrid.samp.xmlrpc.ActorHandler;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
+import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.hub.HubServiceException;
 
 /**
  * SampXmlRpcHandler implementation which passes Standard Profile-type XML-RPC

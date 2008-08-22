@@ -1,17 +1,14 @@
-package org.astrogrid.samp.client;
+package org.astrogrid.samp.xmlrpc;
 
 import java.util.Map;
 
 /** 
  * Defines the methods which an XML-RPC callable client must implement.
  *
- * <p>This interface is an implementation detail, but it has to be public
- * because it's used in another package.  Rats.
- *
  * @author   Mark Taylor
  * @since    16 Jul 2008
  */ 
-public interface ClientActor {
+interface ClientActor {
 
     /**
      * Receives a message for which no response is required.

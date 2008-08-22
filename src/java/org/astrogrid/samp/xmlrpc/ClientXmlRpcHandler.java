@@ -1,10 +1,10 @@
-package org.astrogrid.samp.client;
+package org.astrogrid.samp.xmlrpc;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.xmlrpc.ActorHandler;
+import org.astrogrid.samp.client.CallableClient;
 
 /**
  * SampXmlRpcHandler implementation which passes Standard Profile-like XML-RPC

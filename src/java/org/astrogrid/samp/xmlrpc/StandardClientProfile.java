@@ -1,11 +1,10 @@
-package org.astrogrid.samp.client;
+package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
 import org.astrogrid.samp.LockInfo;
-import org.astrogrid.samp.xmlrpc.ApacheClient;
-import org.astrogrid.samp.xmlrpc.ApacheServerFactory;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
+import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 
 /**
  * Standard Profile implementation of ClientProfile.

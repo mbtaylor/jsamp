@@ -1,4 +1,4 @@
-package org.astrogrid.samp.hub;
+package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
 import java.net.URL;
@@ -6,7 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.astrogrid.samp.Message;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
+import org.astrogrid.samp.hub.HubServiceException;
+import org.astrogrid.samp.hub.Receiver;
 
 /**
  * Receiver implementation used to communicate with XML-RPC-based callable

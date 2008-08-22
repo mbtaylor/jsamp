@@ -1,18 +1,16 @@
-package org.astrogrid.samp.hub;
+package org.astrogrid.samp.xmlrpc;
 
 import java.util.List;
 import java.util.Map;
+import org.astrogrid.samp.hub.HubServiceException;
 
 /**
  * Defines the methods which an XML-RPC hub must implement.
  *
- * <p>This interface is an implementation detail, but it has to be public
- * because it's used in another package.  Rats.
- *
  * @author   Mark Taylor
  * @since    15 Jul 2008
  */
-public interface HubActor {
+interface HubActor {
 
     /**
      * No-op.

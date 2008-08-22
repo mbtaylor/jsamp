@@ -7,14 +7,14 @@ import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
-import org.astrogrid.samp.client.XmlRpcHubConnection;
 import org.astrogrid.samp.hub.BasicHubService;
-import org.astrogrid.samp.hub.HubRunner;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.xmlrpc.ApacheClient;
 import org.astrogrid.samp.xmlrpc.ApacheServerFactory;
+import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
+import org.astrogrid.samp.xmlrpc.XmlRpcHubConnection;
 
 /**
  * Client profile implementation for use with test cases.

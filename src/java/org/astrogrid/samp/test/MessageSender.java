@@ -24,7 +24,7 @@ import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
-import org.astrogrid.samp.client.StandardClientProfile;
+import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 
 /**
  * Sends a message to one or more other SAMP clients.

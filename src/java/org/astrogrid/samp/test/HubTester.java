@@ -27,8 +27,8 @@ import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
-import org.astrogrid.samp.client.StandardClientProfile;
 import org.astrogrid.samp.gui.HubMonitor;
+import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 
 /**
  * Tester for a running hub.
@@ -758,18 +758,21 @@ public class HubTester extends Tester {
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
+        // Get profile.
+        ClientProfile profile = StandardClientProfile.getInstance();
+
         // Set up GUI monitor if required.
         JFrame frame;
         if ( gui ) {
             frame = new JFrame( "HubTester Monitor" );
-            frame.getContentPane().add( new HubMonitor( 1 ) );
+            frame.getContentPane().add( new HubMonitor( profile, 1 ) );
             frame.pack();
             frame.setVisible( true );
         }
         else {
             frame = null;
         }
-        new HubTester( StandardClientProfile.getInstance() ).run();
+        new HubTester( profile ).run();
         if ( frame != null ) {
             frame.dispose();
         }

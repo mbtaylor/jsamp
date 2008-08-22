@@ -25,7 +25,7 @@ import org.astrogrid.samp.DataException;
  * @author   Mark Taylor
  * @since    15 Jul 2008
  */
-public class ActorHandler implements SampXmlRpcHandler {
+class ActorHandler implements SampXmlRpcHandler {
 
     private final String prefix_;
     private final Object actor_;

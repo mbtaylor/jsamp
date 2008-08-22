@@ -1,4 +1,4 @@
-package org.astrogrid.samp.client;
+package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
 import java.net.URL;
@@ -12,8 +12,9 @@ import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
+import org.astrogrid.samp.client.CallableClient;
+import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 
 /**
  * HubConnection implementation based on XML-RPC as per the SAMP 

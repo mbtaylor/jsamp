@@ -1,10 +1,10 @@
-package org.astrogrid.samp.client;
+package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 import java.util.HashMap;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
+import org.astrogrid.samp.client.CallableClient;
 
 /**
  * XML-RPC server which can host {@link CallableClient} instances.

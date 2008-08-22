@@ -13,7 +13,9 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import org.astrogrid.samp.Metadata;
+import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnector;
+import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 
 /**
  * Client application which uses a 
@@ -29,14 +31,15 @@ public class HubMonitor extends JPanel {
     /**
      * Constructor.
      *
+     * @param  profile  SAMP profile
      * @param  autoSec  number of seconds between automatic hub connection
      *         attempts; &lt;=0 means no automatic connections
      */
-    public HubMonitor( int autoSec ) {
+    public HubMonitor( ClientProfile profile, int autoSec ) {
         super( new BorderLayout() );
 
         // Set up a new HubConnector.
-        HubConnector connector = new HubConnector();
+        HubConnector connector = new HubConnector( profile );
 
         // Declare the default subscriptions.  This is required so that
         // the hub knows the client is subscribed to those hub.event
@@ -143,7 +146,8 @@ public class HubMonitor extends JPanel {
 
         // Start the gui in a new window.
         JFrame frame = new JFrame( "SAMP HubMonitor" );
-        frame.getContentPane().add( new HubMonitor( autoSec ) );
+        ClientProfile profile = StandardClientProfile.getInstance();
+        frame.getContentPane().add( new HubMonitor( profile, autoSec ) );
         frame.setIconImage( new ImageIcon( Metadata.class
                                           .getResource( "images/eye.gif" ) )
                            .getImage() );

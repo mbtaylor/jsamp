@@ -134,13 +134,6 @@ public class HubConnector {
     private static final String PING_MTYPE = "samp.app.ping";
 
     /**
-     * Constructs a HubConnector based on the SAMP Standard Profile.
-     */
-    public HubConnector() {
-        this( StandardClientProfile.getInstance() );
-    }
-
-    /**
      * Constructs a HubConnector based on a given profile instance.
      *
      * @param  profile  profile implementation

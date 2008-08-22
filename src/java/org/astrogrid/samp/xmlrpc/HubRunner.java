@@ -1,4 +1,4 @@
-package org.astrogrid.samp.hub;
+package org.astrogrid.samp.xmlrpc;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -21,12 +21,9 @@ import javax.swing.JFrame;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.gui.GuiHubService;
-import org.astrogrid.samp.xmlrpc.ApacheClient;
-import org.astrogrid.samp.xmlrpc.ApacheServer;
-import org.astrogrid.samp.xmlrpc.ApacheServerFactory;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
+import org.astrogrid.samp.hub.BasicHubService;
+import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.hub.LockWriter;
 
 /**
  * Runs a SAMP hub using the SAMP Standard Profile.

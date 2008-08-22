@@ -11,8 +11,8 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
-import org.astrogrid.samp.client.StandardClientProfile;
 import org.astrogrid.samp.gui.HubMonitor;
+import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 
 /**
  * Runs a load of Calculator clients at once all sending messages to each other.
@@ -269,7 +269,7 @@ public class CalcStorm {
         JFrame frame;
         if ( gui ) {
             frame = new JFrame( "CalcStorm Monitor" );
-            frame.getContentPane().add( new HubMonitor( 1 ) );
+            frame.getContentPane().add( new HubMonitor( profile, 1 ) );
             frame.pack();
             frame.setVisible( true );
         }
