@@ -32,8 +32,6 @@ public class HubTest extends TestCase {
 
     protected void setUp() throws IOException {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
-        Logger.getLogger( SampXmlRpcHandler.class.getName() )
-              .setLevel( Level.SEVERE );
         profile_.startHub();
     }
 

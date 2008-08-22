@@ -1,4 +1,4 @@
-package org.astrogrid.samp;
+package org.astrogrid.samp.xmlrpc;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -6,35 +6,32 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.xmlrpc.XmlRpcHandler;
+import org.astrogrid.samp.DataException;
 
 /**
- * Utility class to facilitate constructing an XmlRpcHandler which handles
+ * Utility class to facilitate constructing a SampXmlRpcHandler which handles
  * particular named methods.
  * You supply at construction time an interface which defines the methods
  * to be handled and an object which implements that interface.
  * This object then uses reflection to invoke the correct methods on the
  * implementation object as they are required from incoming XML-RPC
  * <code>execute</code> requests.  This insulates the implementation object
- * from having to worry about any XML-RPC, or Apache XML-RPC, specifics.
+ * from having to worry about any XML-RPC specifics.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
  */
-public class SampXmlRpcHandler implements XmlRpcHandler {
+public class ActorHandler implements SampXmlRpcHandler {
 
     private final String prefix_;
     private final Object actor_;
     private final Map methodMap_;
     private final Logger logger_ =
-        Logger.getLogger( SampXmlRpcHandler.class.getName() );
+        Logger.getLogger( ActorHandler.class.getName() );
 
     /**
      * Constructor.
@@ -42,14 +39,13 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
      * <code>actorType</code> <em>must</em> be visible from this class,
      * that is it may not be package-private to another package.
      *
-     * @param  namespace  string prepended to every method name in the 
+     * @param  namespace  string prepended to every method name in the
      *         <code>actorType</code> interface to form the XML-RPC
      *         <code>methodName</code> element
      * @param  actorType  interface defining the XML-RPC methods
      * @param  actor     object implementing <code>actorType</code>
      */
-    public SampXmlRpcHandler( String namespace, Class actorType,
-                              Object actor ) {
+    public ActorHandler( String namespace, Class actorType, Object actor ) {
         prefix_ = namespace + ".";
         actor_ = actor;
         methodMap_ = new HashMap();
@@ -71,102 +67,66 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
         }
     }
 
-    /**
-     * This method is called by the XML-RPC server for incoming method
-     * requests.
-     *
-     * @param  fqName  fully qualified XML-RPC methodName element
-     * @param  params  method parameters
-     */
-    public Object execute( String fqName, Vector params ) throws Exception {
-        logger_.info( fqName + params );
-        try {
-            return doExecute( fqName, params );
-        }
-        catch ( Throwable e ) {
-            logger_.log( Level.WARNING, e.getMessage(), e );
-            if ( e instanceof Error ) {
-                throw (Error) e;
-            }
-            else {
-                throw (Exception) e;
-            }
-        }
+    public boolean canHandleCall( String fqName ) {
+        return fqName.startsWith( prefix_ );
     }
 
-    /**
-     * Does the work for invoking the relevant method on the actor 
-     * for a given incoming method call.
-     *
-     * @param  fqName  fully qualified XML-RPC methodName element
-     * @param  params  method parameters
-     */
-    private Object doExecute( String fqName, Vector params ) throws Exception {
-
-        // May be for us.
-        if ( fqName.startsWith( prefix_ ) ) {
-
-            // Work out the signature for this method and see if it is 
-            // recognised.
-            String name = fqName.substring( prefix_.length() );
-            List typeList = new ArrayList();
-            for ( Iterator it = params.iterator(); it.hasNext(); ) {
-                typeList.add( SampType.getParamType( it.next() ) );
-            }
-            SampType[] types =
-                (SampType[]) typeList.toArray( new SampType[ 0 ] );
-            Signature sig = new Signature( fqName, types );
-            Method method = (Method) methodMap_.get( sig );
-
-            // If the signature is recognised, invoke the relevant method
-            // on the implementation object.
-            if ( method != null ) {
-                Object result;
-                Throwable error;
-                try {
-                    result = method.invoke( actor_, params.toArray() );
-                }
-                catch ( InvocationTargetException e ) {
-                    Throwable e2 = e.getCause();
-                    if ( e2 instanceof Error ) {
-                        throw (Error) e2;
-                    }
-                    else {
-                        throw (Exception) e2;
-                    }
-                }
-                catch ( Exception e ) {
-                    throw e;
-                }
-                catch ( Error e ) {
-                    throw e;
-                }
-                return result == null ? ""
-                                      : toApache( result );
-            }
-
-            // If the signature is not recognised, but the method name is,
-            // try to make a helpful comment.
-            else {
-                for ( Iterator it = methodMap_.keySet().iterator();
-                      it.hasNext(); ) {
-                    Signature foundSig = (Signature) it.next();
-                    if ( foundSig.name_.equals( fqName ) ) {
-                        throw new IllegalArgumentException(
-                                "Bad arguments: " + foundSig + " got " 
-                              + sig.typeList_ );
-                    }
-                }
-                throw new UnsupportedOperationException( "Unknown method "
-                                                       + fqName );
-            }
+    public Object handleCall( String fqName, List params )
+            throws Exception {
+        if ( ! canHandleCall( fqName ) ) {
+            throw new IllegalArgumentException( "No I can't" );
         }
 
-        // Not for us.
+        // Work out the signature for this method and see if it is recognised.
+        String name = fqName.substring( prefix_.length() );
+        List typeList = new ArrayList();
+        for ( Iterator it = params.iterator(); it.hasNext(); ) {
+            typeList.add( SampType.getParamType( it.next() ) );
+        }
+        SampType[] types = (SampType[]) typeList.toArray( new SampType[ 0 ] );
+        Signature sig = new Signature( fqName, types );
+        Method method = (Method) methodMap_.get( sig );
+
+        // If the signature is recognised, invoke the relevant method
+        // on the implementation object.
+        if ( method != null ) {
+            Object result;
+            Throwable error;
+            try {
+                result = method.invoke( actor_, params.toArray() );
+            }
+            catch ( InvocationTargetException e ) {
+                Throwable e2 = e.getCause();
+                if ( e2 instanceof Error ) {
+                    throw (Error) e2;
+                }
+                else {
+                    throw (Exception) e2;
+                }
+            }
+            catch ( Exception e ) {
+                throw e;
+            }
+            catch ( Error e ) {
+                throw e;
+            }
+            return result == null ? "" : result;
+        }
+
+        // If the signature is not recognised, but the method name is,
+        // try to make a helpful comment.
         else {
-            throw new UnsupportedOperationException(
-                          "Unrecognized method " + fqName
-                        + " does not have prefix " + prefix_ );
+            for ( Iterator it = methodMap_.keySet().iterator();
+                  it.hasNext(); ) {
+                Signature foundSig = (Signature) it.next();
+                if ( foundSig.name_.equals( fqName ) ) {
+                    throw new IllegalArgumentException(
+                            "Bad arguments: " + foundSig + " got "
+                          + sig.typeList_ );
+                }
+            }
+            throw new UnsupportedOperationException( "Unknown method "
+                                                   + fqName );
         }
     }
 
@@ -177,45 +137,6 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
      */
     public Object getActor() {
         return actor_;
-    }
-
-    /**
-     * Converts an object from 'normal' XML-RPC form to Apache XML-RPC form.
-     * Basically, this means converting
-     * {@link java.util.Map}s to {@link java.util.Hashtable}s and
-     * {@link java.util.List}s to {@link java.util.Vector}s.
-     *
-     * @param  obj  object suitable for generic use within XML-RPC
-     * @return  object suitable for transmission using Apache XML-RPC library
-     */
-    public static Object toApache( Object obj ) {
-        SampUtils.checkObject( obj );
-        if ( obj instanceof List ) {
-            Vector vec = new Vector();
-            for ( Iterator it = ((List) obj).iterator(); it.hasNext(); ) {
-                vec.add( toApache( it.next() ) );
-            }
-            return vec;
-        }
-        else if ( obj instanceof Map ) {
-            Hashtable hash = new Hashtable();
-            for ( Iterator it = ((Map) obj).entrySet().iterator();
-                  it.hasNext(); ) {
-                Map.Entry entry = (Map.Entry) it.next();
-                hash.put( entry.getKey(), toApache( entry.getValue() ) );
-            }
-            return hash;
-        }
-        else if ( obj instanceof String ) {
-            return obj;
-        }
-        else {
-            assert false : "But I checked!";
-            throw new DataException( "Unexpected object type "
-                                   + ( obj == null
-                                           ? null
-                                           : obj.getClass().getName() ) );
-        }
     }
 
     /**
@@ -313,7 +234,7 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
 
     /**
      * Characterises a method signature.
-     * The <code>equals</code> and <code>hashCode</code> methods are 
+     * The <code>equals</code> and <code>hashCode</code> methods are
      * implemented sensibly.
      */
     private static class Signature {
@@ -330,7 +251,7 @@ public class SampXmlRpcHandler implements XmlRpcHandler {
             name_ = name;
             typeList_ = new ArrayList( Arrays.asList( types ) );
         }
- 
+
         public boolean equals( Object o ) {
             if ( o instanceof Signature ) {
                 Signature other = (Signature) o;

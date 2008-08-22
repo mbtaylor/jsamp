@@ -2,6 +2,10 @@ package org.astrogrid.samp.client;
 
 import java.io.IOException;
 import org.astrogrid.samp.LockInfo;
+import org.astrogrid.samp.xmlrpc.ApacheClient;
+import org.astrogrid.samp.xmlrpc.ApacheServerFactory;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 
 /**
  * Standard Profile implementation of ClientProfile.
@@ -12,14 +16,21 @@ import org.astrogrid.samp.LockInfo;
  */
 public class StandardClientProfile implements ClientProfile {
 
+    private final SampXmlRpcClient xClient_;
+    private final SampXmlRpcServerFactory xServerFactory_;
+
     /** Sole instance. */
-    private static final StandardClientProfile instance_ =
-        new StandardClientProfile();
+    private static final StandardClientProfile apacheInstance_ =
+        new StandardClientProfile( new ApacheClient(),
+                                   new ApacheServerFactory() );
 
     /**
      * Private constructor.
      */
-    private StandardClientProfile() {
+    public StandardClientProfile( SampXmlRpcClient xClient,
+                                  SampXmlRpcServerFactory xServerFactory ) {
+        xClient_ = xClient;
+        xServerFactory_ = xServerFactory;
     }
 
     public HubConnection register() throws SampException {
@@ -37,15 +48,16 @@ public class StandardClientProfile implements ClientProfile {
             return null;
         }
         else {
-            return new XmlRpcHubConnection( lockInfo.getXmlrpcUrl(),
+            return new XmlRpcHubConnection( xClient_, xServerFactory_,
+                                            lockInfo.getXmlrpcUrl(),
                                             lockInfo.getSecret() );
         }
     }
 
     /**
-     * Returns the sole instance of this class.
+     * Returns a working instance of this class.
      */
     public static StandardClientProfile getInstance() {
-        return instance_;
+        return apacheInstance_;
     }
 }

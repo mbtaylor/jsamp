@@ -4,26 +4,29 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import org.astrogrid.samp.SampXmlRpcHandler;
+import org.astrogrid.samp.xmlrpc.ActorHandler;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 
 /**
- * XmlRpcHandler implementation which passes Standard Profile-type XML-RPC
+ * SampXmlRpcHandler implementation which passes Standard Profile-type XML-RPC
  * calls to a <code>HubService</code> to provide a SAMP hub service.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
  */
-class HubXmlRpcHandler extends SampXmlRpcHandler {
+class HubXmlRpcHandler extends ActorHandler {
 
     /**
      * Constructor.
      *
+     * @param   xClient  XML-RPC client implementation
      * @param   service  hub service
      * @param   secret  password required for client registration
      */
-    public HubXmlRpcHandler( HubService service, String secret ) {
+    public HubXmlRpcHandler( SampXmlRpcClient xClient, HubService service,
+                             String secret ) {
         super( "samp.hub", HubActor.class,
-               new HubActorImpl( service, secret ) );
+               new HubActorImpl( xClient, service, secret ) );
     }
 
     /**
@@ -33,16 +36,20 @@ class HubXmlRpcHandler extends SampXmlRpcHandler {
      * aspects, the work is simply delegated to the HubService.
      */
     private static class HubActorImpl implements HubActor {
+        private final SampXmlRpcClient xClient_;
         private final HubService service_;
         private final String secret_;
 
         /**
          * Constructor.
          *
+         * @param   xClient  XML-RPC client implementation
          * @param   service  hub service
          * @param   secret  password required for client registration
          */
-        HubActorImpl( HubService service, String secret ) {
+        HubActorImpl( SampXmlRpcClient xClient, HubService service,
+                      String secret ) {
+            xClient_ = xClient;
             service_ = service;
             secret_ = secret;
         }
@@ -76,7 +83,8 @@ class HubXmlRpcHandler extends SampXmlRpcHandler {
                 throw new HubServiceException( "Bad URL: " + surl, e );
             }
             service_.setReceiver( privateKey,
-                                  new XmlRpcReceiver( privateKey, url ) );
+                                  new XmlRpcReceiver( xClient_, privateKey,
+                                                      url ) );
         }
 
         public void declareMetadata( String privateKey, Map metadata )

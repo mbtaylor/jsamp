@@ -11,6 +11,10 @@ import org.astrogrid.samp.client.XmlRpcHubConnection;
 import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.HubRunner;
 import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.xmlrpc.ApacheClient;
+import org.astrogrid.samp.xmlrpc.ApacheServerFactory;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 
 /**
  * Client profile implementation for use with test cases.
@@ -25,6 +29,8 @@ public class TestClientProfile implements ClientProfile {
 
     private final File lockFile_;
     private final Random random_;
+    private final SampXmlRpcServerFactory xServerFactory_;
+    private final SampXmlRpcClient xClient_;
     private HubRunner hubRunner_;
 
     /**
@@ -32,6 +38,8 @@ public class TestClientProfile implements ClientProfile {
      */
     public TestClientProfile( Random random ) {
         random_ = random;
+        xServerFactory_ = new ApacheServerFactory();
+        xClient_ = new ApacheClient();
         File dir = new File( System.getProperty( "user.dir", "." ) );
         try {
             lockFile_ = File.createTempFile( "samp", ".lock", dir );
@@ -51,7 +59,8 @@ public class TestClientProfile implements ClientProfile {
             throw new IllegalStateException();
         }
         HubService service = new BasicHubService( random_ );
-        hubRunner_ = new HubRunner( service, lockFile_ );
+        hubRunner_ =
+            new HubRunner( xClient_, xServerFactory_, service, lockFile_ );
         hubRunner_.start();
     }
 
@@ -75,7 +84,8 @@ public class TestClientProfile implements ClientProfile {
             }
             else {
                 lockInfo.check();
-                return new XmlRpcHubConnection( lockInfo.getXmlrpcUrl(),
+                return new XmlRpcHubConnection( xClient_, xServerFactory_,
+                                                lockInfo.getXmlrpcUrl(),
                                                 lockInfo.getSecret() );
             }
         }

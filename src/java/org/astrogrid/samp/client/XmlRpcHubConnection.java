@@ -2,19 +2,18 @@ package org.astrogrid.samp.client;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import org.apache.xmlrpc.XmlRpcClient;
-import org.apache.xmlrpc.XmlRpcClientLite;
-import org.apache.xmlrpc.XmlRpcException;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
-import org.astrogrid.samp.SampXmlRpcHandler;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 
 /**
  * HubConnection implementation based on XML-RPC as per the SAMP 
@@ -25,7 +24,9 @@ import org.astrogrid.samp.Subscriptions;
  */
 public class XmlRpcHubConnection implements HubConnection {
 
-    private final XmlRpcClient xClient_;
+    private final SampXmlRpcClient xClient_;
+    private final SampXmlRpcServerFactory serverFactory_;
+    private final String endpoint_;
     private final RegInfo regInfo_;
     private CallableClientServer callableServer_;
     private boolean unregistered_;
@@ -33,15 +34,20 @@ public class XmlRpcHubConnection implements HubConnection {
     /**
      * Constructor.
      *
+     * @param   xClient   XML-RPC client
+     * @param   serverFactory  XML-RPC server factory implementation
      * @param   hubUrl  hub XML-RPC endpoint
      * @param   secret  samp.secret registration password
      */
-    public XmlRpcHubConnection( URL hubUrl, String secret )
+    public XmlRpcHubConnection( SampXmlRpcClient xClient,
+                                SampXmlRpcServerFactory serverFactory,
+                                URL hubUrl, String secret )
             throws SampException {
-        xClient_ = new XmlRpcClientLite( hubUrl );
+        xClient_ = xClient;
+        serverFactory_ = serverFactory;
+        endpoint_ = hubUrl.toString();
         Object regInfo =
-            rawExec( "samp.hub.register", 
-                     new Vector( Collections.singleton( secret ) ) );
+            rawExec( "samp.hub.register", Collections.singletonList( secret ) );
         if ( regInfo instanceof Map ) {
             regInfo_ = RegInfo.asRegInfo( Collections
                                          .unmodifiableMap( asMap( regInfo ) ) );
@@ -61,16 +67,18 @@ public class XmlRpcHubConnection implements HubConnection {
     }
 
     public void ping() throws SampException {
-        rawExec( "samp.hub.ping", new Vector() );
+        rawExec( "samp.hub.ping", new ArrayList() );
     }
 
     public void setCallable( CallableClient callable ) throws SampException {
         if ( callableServer_ == null ) {
             try {
-                callableServer_ = CallableClientServer.getInstance();
+                callableServer_ = CallableClientServer
+                                 .getInstance( serverFactory_.getServer() );
             }
             catch ( IOException e ) {
-                throw new SampException( "Can't start client server", e );
+                throw new SampException( "Can't start client XML-RPC server",
+                                         e );
             }
         }
         callableServer_.addClient( regInfo_.getPrivateKey(), callable );
@@ -157,12 +165,12 @@ public class XmlRpcHubConnection implements HubConnection {
      */
     private Object exec( String methodName, Object[] params )
             throws SampException {
-        Vector paramVec = new Vector();
-        paramVec.add( regInfo_.getPrivateKey() );
+        List paramList = new ArrayList();
+        paramList.add( regInfo_.getPrivateKey() );
         for ( int ip = 0; ip < params.length; ip++ ) {
-            paramVec.add( SampXmlRpcHandler.toApache( params[ ip ] ) );
+            paramList.add( params[ ip ] );
         }
-        return rawExec( "samp.hub." + methodName, paramVec );
+        return rawExec( "samp.hub." + methodName, paramList );
     }
 
     /**
@@ -170,16 +178,13 @@ public class XmlRpcHubConnection implements HubConnection {
      * connection.
      *
      * @param  fqName  fully qualified SAMP hub API method name
-     * @param  params  vector of method parameters
+     * @param  paramList   list of method parameters
      * @return  XML-RPC call return value
      */
-    private Object rawExec( String fqName, Vector paramVec )
+    private Object rawExec( String fqName, List paramList )
             throws SampException {
         try {
-            return xClient_.execute( fqName, paramVec );
-        }
-        catch ( XmlRpcException e ) {
-            throw new SampException( e.getMessage(), e );
+            return xClient_.callAndWait( endpoint_, fqName, paramList );
         }
         catch ( IOException e ) {
             throw new SampException( e.getMessage(), e );

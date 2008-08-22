@@ -18,11 +18,15 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
-import org.apache.xmlrpc.WebServer;
-import org.apache.xmlrpc.XmlRpcClientLite;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.gui.GuiHubService;
+import org.astrogrid.samp.xmlrpc.ApacheClient;
+import org.astrogrid.samp.xmlrpc.ApacheServer;
+import org.astrogrid.samp.xmlrpc.ApacheServerFactory;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 
 /**
  * Runs a SAMP hub using the SAMP Standard Profile.
@@ -36,10 +40,13 @@ import org.astrogrid.samp.gui.GuiHubService;
  */
 public class HubRunner {
 
+    private final SampXmlRpcClient xClient_;
+    private final SampXmlRpcServerFactory xServerFactory_;
     private final HubService hub_;
     private final File lockfile_;
     private LockInfo lockInfo_;
-    private WebServer server_;
+    private SampXmlRpcServer server_;
+    private HubXmlRpcHandler hubHandler_;
     private boolean shutdown_;
 
     private final static Logger logger_ =
@@ -51,10 +58,16 @@ public class HubRunner {
      * If the supplied <code>lockfile</code> is null, no lockfile will
      * be written at hub startup.
      *
+     * @param   xClient   XML-RPC client implementation
+     * @param   xServerFactory  XML-RPC server implementation
      * @param   hub   object providing hub services
      * @param   lockfile  location to use for hub lockfile, or null
      */
-    public HubRunner( HubService hub, File lockfile ) {
+    public HubRunner( SampXmlRpcClient xClient, 
+                      SampXmlRpcServerFactory xServerFactory,
+                      HubService hub, File lockfile ) {
+        xClient_ = xClient;
+        xServerFactory_ = xServerFactory;
         hub_ = hub;
         lockfile_ = lockfile;
     }
@@ -68,7 +81,7 @@ public class HubRunner {
 
         // Check for running or moribund hub.
         if ( lockfile_ != null && lockfile_.exists() ) {
-            if ( isHubAlive( lockfile_ ) ) {
+            if ( isHubAlive( xClient_, lockfile_ ) ) {
                 throw new IOException( "A hub is already running" );
             }
             else {
@@ -79,10 +92,11 @@ public class HubRunner {
         }
 
         // Start up server.
-        int port = SampUtils.getUnusedPort( 2112 );
         try {
-            server_ = new WebServer( port );
-            server_.start();
+            server_ = xServerFactory_.getServer();
+        }
+        catch ( IOException e ) {
+            throw e;
         }
         catch ( Exception e ) {
             throw (IOException) new IOException( "Can't start XML-RPC server" )
@@ -92,7 +106,8 @@ public class HubRunner {
         // Start the hub service.
         hub_.start();
         String secret = createSecret();
-        server_.addHandler( "samp.hub", new HubXmlRpcHandler( hub_, secret ) );
+        hubHandler_ = new HubXmlRpcHandler( xClient_, hub_, secret );
+        server_.addHandler( hubHandler_ );
 
         // Ensure tidy up in case of JVM shutdown.
         Runtime.getRuntime().addShutdownHook(
@@ -103,9 +118,7 @@ public class HubRunner {
         } );
 
         // Prepare lockfile information.
-        URL url =
-            new URL( "http://" + SampUtils.getLocalhost() + ":" + port + "/" );
-        lockInfo_ = new LockInfo( secret, url.toString() );
+        lockInfo_ = new LockInfo( secret, server_.getEndpoint().toString() );
         lockInfo_.put( "hub.impl", hub_.getClass().getName() );
         lockInfo_.put( "hub.start.date", new Date().toString() );
 
@@ -199,17 +212,12 @@ public class HubRunner {
             }
         }
 
-        // Shut down the XML-RPC server process if it exists.
-        if ( server_ != null ) {
-            try {
-                server_.shutdown();
-                server_ = null;
-            }
-            catch ( Throwable e ) {
-                logger_.log( Level.WARNING, "XMLRPC server shutdown failed",
-                             e );
-            }
+        // Remove the hub XML-RPC handler from the server.
+        if ( hubHandler_ != null && server_ != null ) {
+            server_.removeHandler( hubHandler_ );
+            server_ = null;
         }
+        lockInfo_ = null;
     }
 
     /**
@@ -244,11 +252,13 @@ public class HubRunner {
      * Attempts to determine whether a given lockfile corresponds to a hub
      * which is still alive.
      *
+     * @param  xClient  XML-RPC client implementation
      * @param  lockfile  lockfile location
      * @return  true if the hub described at <code>lockfile</code> appears 
      *          to be alive and well
      */
-    private static boolean isHubAlive( File lockfile ) {
+    private static boolean isHubAlive( SampXmlRpcClient xClient,
+                                       File lockfile ) {
         LockInfo info;
         try { 
             info = LockInfo.readLockFile( lockfile );
@@ -263,8 +273,8 @@ public class HubRunner {
         URL xurl = info.getXmlrpcUrl();
         if ( xurl != null ) {
             try {
-                XmlRpcClientLite client = new XmlRpcClientLite( xurl );
-                client.execute( "samp.hub.ping", new Vector() );
+                xClient.callAndWait( xurl.toString(), "samp.hub.ping",
+                                     new ArrayList() );
                 return true;
             }
             catch ( Exception e ) {
@@ -398,7 +408,9 @@ public class HubRunner {
         else {
             hubService = new BasicHubService( random_ );
         }
-        HubRunner runner = new HubRunner( hubService, SampUtils.getLockFile() );
+        HubRunner runner =
+            new HubRunner( new ApacheClient(), new ApacheServerFactory(),
+                           hubService, SampUtils.getLockFile() );
         hubRunners[ 0 ] = runner;
         runner.start();
     }

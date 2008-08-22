@@ -4,17 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampXmlRpcHandler;
+import org.astrogrid.samp.xmlrpc.ActorHandler;
 
 /**
- * XmlRpcHandler implementation which passes Standard Profile-like XML-RPC
+ * SampXmlRpcHandler implementation which passes Standard Profile-like XML-RPC
  * calls to one or more {@link CallableClient}s to provide client callbacks
  * from the hub.
  *
  * @author   Mark Taylor
  * @since    16 Jul 2008
  */
-class ClientXmlRpcHandler extends SampXmlRpcHandler {
+class ClientXmlRpcHandler extends ActorHandler {
 
     private final ClientActorImpl clientActor_;
 

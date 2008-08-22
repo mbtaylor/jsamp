@@ -2,13 +2,11 @@ package org.astrogrid.samp.hub;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Vector;
-import org.apache.xmlrpc.XmlRpcClient;
-import org.apache.xmlrpc.XmlRpcClientLite;
-import org.apache.xmlrpc.XmlRpcException;
 import org.astrogrid.samp.Message;
-import org.astrogrid.samp.SampXmlRpcHandler;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 
 /**
  * Receiver implementation used to communicate with XML-RPC-based callable
@@ -20,29 +18,36 @@ import org.astrogrid.samp.SampXmlRpcHandler;
 class XmlRpcReceiver implements Receiver {
 
     private final String privateKey_;
-    private final XmlRpcClient xClient_;
+    private final String endpoint_;
+    private final SampXmlRpcClient xClient_;
 
     /**
      * Constructor.
      *
+     * @param  xClient  XML-RPC client implementation
      * @param  SAMP client's private key
      * @param  url  XML-RPC endpoint for calling the SAMP client
      */
-    public XmlRpcReceiver( String privateKey, URL url ) {
+    public XmlRpcReceiver( SampXmlRpcClient xClient, String privateKey,
+                           URL url ) {
+        xClient_ = xClient;
         privateKey_ = privateKey;
-        xClient_ = new XmlRpcClientLite( url );
+        endpoint_ = url.toString();
     }
 
-    public void receiveCall( String senderId, String msgId, Map message ) {
+    public void receiveCall( String senderId, String msgId, Map message )
+            throws HubServiceException {
         exec( "receiveCall", new Object[] { senderId, msgId, message, } );
     }
 
-    public void receiveNotification( String senderId, Map message ) {
+    public void receiveNotification( String senderId, Map message )
+            throws HubServiceException {
         exec( "receiveNotification", new Object[] { senderId, message, } );
     }
 
     public void receiveResponse( String responderId, String msgTag,
-                                 Map response ) {
+                                 Map response )
+            throws HubServiceException {
         exec( "receiveResponse",
               new Object[] { responderId, msgTag, response, } );
     }
@@ -55,13 +60,19 @@ class XmlRpcReceiver implements Receiver {
      * @param   params   array of method parameters
      * @return  XML-RPC call return value
      */
-    private void exec( String methodName, Object[] params ) {
-        Vector paramVec = new Vector();
-        paramVec.add( privateKey_ );
+    private void exec( String methodName, Object[] params )
+            throws HubServiceException {
+        List paramList = new ArrayList();
+        paramList.add( privateKey_ );
         for ( int ip = 0; ip < params.length; ip++ ) {
-            paramVec.add( SampXmlRpcHandler.toApache( params[ ip ] ) );
+            paramList.add( params[ ip ] );
         }
-        rawExec( "samp.client." + methodName, paramVec );
+        try {
+            rawExec( "samp.client." + methodName, paramList );
+        }
+        catch ( IOException e ) {
+            throw new HubServiceException( e.getMessage(), e );
+        }
     }
 
     /**
@@ -69,15 +80,10 @@ class XmlRpcReceiver implements Receiver {
      * represented by this receiver.
      *
      * @param   fqName  fully qualified SAMP callable client API method name
-     * @param   params  vector of method parameters
+     * @param   paramList   list of method parameters
      * @return  XML-RPC call return value
      */
-    private void rawExec( String fqName, Vector paramVec ) {
-
-        // I'm not sure that the Apache implementation is *sufficiently*
-        // asynchronous.  It does leave a thread hanging around waiting
-        // for a response, though the result of this response is 
-        // discarded.  May cause problems under heavy load.
-        xClient_.executeAsync( fqName, paramVec, null );
+    private void rawExec( String fqName, List paramList ) throws IOException {
+        xClient_.callAndForget( endpoint_, fqName, paramList );
     }
 }

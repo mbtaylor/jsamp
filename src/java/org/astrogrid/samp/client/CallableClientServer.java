@@ -2,8 +2,9 @@ package org.astrogrid.samp.client;
 
 import java.io.IOException;
 import java.net.URL;
-import org.apache.xmlrpc.WebServer;
-import org.astrogrid.samp.SampUtils;
+import java.util.Map;
+import java.util.HashMap;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
 
 /**
  * XML-RPC server which can host {@link CallableClient} instances.
@@ -17,35 +18,20 @@ import org.astrogrid.samp.SampUtils;
 class CallableClientServer {
 
     private final URL url_;
-    private final WebServer server_;
     private final ClientXmlRpcHandler clientHandler_;
 
-    private static CallableClientServer instance_;
+    private static final Map serverMap_ = new HashMap();
 
     /**
      * Constructor.  Note that a singleton-like {@link #getInstance} method
      * exists as well.
+     *
+     * @param  server  XML-RPC server hosting this client server
      */
-    public CallableClientServer() throws IOException {
-        int port = SampUtils.getUnusedPort( 2300 );
-        server_ = new WebServer( port ) {
-
-            // Same as superclass implementation except that the listener
-            // thread is marked as a daemon.
-            public void start() {
-                if ( this.listener == null ) {
-                    this.listener =
-                        new Thread( this, "XML-RPC Weblistener" );
-                    this.listener.setDaemon( true );
-                    this.listener.start();
-                }
-            }
-        };
-        server_.start();
+    public CallableClientServer( SampXmlRpcServer server ) throws IOException {
         clientHandler_ = new ClientXmlRpcHandler();
-        server_.addHandler( "samp.client", clientHandler_ );
-        url_ =
-            new URL( "http://" + SampUtils.getLocalhost() + ":" + port + "/" );
+        server.addHandler( clientHandler_ );
+        url_ = server.getEndpoint();
     }
 
     /**
@@ -55,13 +41,6 @@ class CallableClientServer {
      */
     public URL getUrl() {
         return url_;
-    }
-
-    /**
-     * Returns the XML-RPC WebServer used.
-     */
-    public WebServer getWebServer() {
-        return server_;
     }
 
     /**
@@ -85,14 +64,23 @@ class CallableClientServer {
     }
 
     /**
-     * Returns an instance of this class.
+     * Returns an instance of CallableClientServer for use with a given
+     * XML-RPC server.  Because of the implementation, only one 
+     * CallableClientServer is permitted per XML-RPC server, so if one 
+     * has already been installed for the given <code>server</code>,
+     * that one will be returned.  Otherwise a new one will be constructed,
+     * installed and returned.
      *
-     * @return  instance
+     * @param  server  XML-RPC server
+     * @return   new or re-used CallableClientServer which is installed on
+     *           <code>server</code>
      */
-    public static CallableClientServer getInstance() throws IOException {
-        if ( instance_ == null ) {
-            instance_ = new CallableClientServer();
+    public static synchronized CallableClientServer
+                               getInstance( SampXmlRpcServer server )
+            throws IOException {
+        if ( ! serverMap_.containsKey( server ) ) {
+            serverMap_.put( server, new CallableClientServer( server ) );
         }
-        return instance_;
+        return (CallableClientServer) serverMap_.get( server );
     }
 }
