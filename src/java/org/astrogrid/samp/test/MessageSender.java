@@ -35,6 +35,9 @@ import org.astrogrid.samp.xmlrpc.StandardClientProfile;
  */
 public abstract class MessageSender {
 
+    public static Logger logger_ =
+        Logger.getLogger( MessageSender.class.getName() );
+
     /**
      * Sends a message to a given list of recipients.
      * If <code>recipientIds</code> is null, then will be sent to all
@@ -318,6 +321,14 @@ public abstract class MessageSender {
                 ? (String[]) connection.getSubscribedClients( msg.getMType() )
                                        .keySet().toArray( new String[ 0 ] )
                 : recIds;
+            if ( recipientIds.length == 0 ) {
+                logger_.warning( "No clients subscribed to " + msg.getMType() );
+                return new HashMap();
+            }
+            else {
+                logger_.info( "Waiting for responses from "
+                            + Arrays.asList( recipientIds ) );
+            }
             final BlockingMap map = new BlockingMap();
             for ( int ir = 0; ir < recipientIds.length; ir++ ) {
                 final String id = recipientIds[ ir ];
@@ -357,6 +368,13 @@ public abstract class MessageSender {
             int nExpected = recipientIds == null
                 ? connection.getSubscribedClients( msg.getMType() ).size()
                 : recipientIds.length;
+            if ( nExpected == 0 ) {
+                logger_.warning( "No clients subscribed to " + msg.getMType() );
+                return new HashMap();
+            }
+            else {
+                logger_.info( "Waiting for " + nExpected + " responses" );
+            }
             Collector collector = new Collector( nExpected );
 
             // Sets the connection's callable client to a new object.
