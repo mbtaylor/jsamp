@@ -10,7 +10,7 @@ import java.io.IOException;
  * @since    22 Aug 2008
  */
 public class ApacheServerFactory implements SampXmlRpcServerFactory {
-    SampXmlRpcServer server_;
+    private SampXmlRpcServer server_;
 
     public synchronized SampXmlRpcServer getServer() throws IOException {
         if ( server_ == null ) {
