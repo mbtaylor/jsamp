@@ -436,9 +436,9 @@ public class HubConnector {
                     : Long.MAX_VALUE;  // 3e8 years
         HubConnection connection = getConnection();
         String msgTag = generateTag();
+        responseMap_.put( msgTag, null );
         connection.call( recipientId, msgTag, msg );
         synchronized ( responseMap_ ) {
-            responseMap_.put( msgTag, null );
             while ( responseMap_.containsKey( msgTag ) &&
                     responseMap_.get( msgTag ) == null &&
                     System.currentTimeMillis() < finish ) {
