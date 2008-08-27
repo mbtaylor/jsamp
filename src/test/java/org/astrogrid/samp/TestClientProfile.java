@@ -9,12 +9,11 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.HubService;
-import org.astrogrid.samp.xmlrpc.ApacheClient;
-import org.astrogrid.samp.xmlrpc.ApacheServerFactory;
 import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 import org.astrogrid.samp.xmlrpc.XmlRpcHubConnection;
+import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 /**
  * Client profile implementation for use with test cases.
@@ -29,17 +28,30 @@ public class TestClientProfile implements ClientProfile {
 
     private final File lockFile_;
     private final Random random_;
-    private final SampXmlRpcServerFactory xServerFactory_;
-    private final SampXmlRpcClient xClient_;
+    private final SampXmlRpcClient hubClient_;
+    private final SampXmlRpcServerFactory hubServerFactory_;
+    private final SampXmlRpcClient clientClient_;
+    private final SampXmlRpcServerFactory clientServerFactory_;
     private HubRunner hubRunner_;
+
+    public TestClientProfile( Random random, XmlRpcImplementation xmlrpc ) {
+        this( random, xmlrpc.getClient(), xmlrpc.getServerFactory(),
+                      xmlrpc.getClient(), xmlrpc.getServerFactory() );
+    }
 
     /**
      * Constructor.
      */
-    public TestClientProfile( Random random ) {
+    public TestClientProfile( Random random,
+                              SampXmlRpcClient hubClient,
+                              SampXmlRpcServerFactory hubServerFactory,
+                              SampXmlRpcClient clientClient,
+                              SampXmlRpcServerFactory clientServerFactory ) {
         random_ = random;
-        xServerFactory_ = new ApacheServerFactory();
-        xClient_ = new ApacheClient();
+        hubClient_ = hubClient;
+        hubServerFactory_ = hubServerFactory;
+        clientClient_ = clientClient;
+        clientServerFactory_ = clientServerFactory;
         File dir = new File( System.getProperty( "user.dir", "." ) );
         try {
             lockFile_ = File.createTempFile( "samp", ".lock", dir );
@@ -60,7 +72,7 @@ public class TestClientProfile implements ClientProfile {
         }
         HubService service = new BasicHubService( random_ );
         hubRunner_ =
-            new HubRunner( xClient_, xServerFactory_, service, lockFile_ );
+            new HubRunner( hubClient_, hubServerFactory_, service, lockFile_ );
         hubRunner_.start();
     }
 
@@ -83,8 +95,14 @@ public class TestClientProfile implements ClientProfile {
                 return null;
             }
             else {
-                lockInfo.check();
-                return new XmlRpcHubConnection( xClient_, xServerFactory_,
+                try {
+                    lockInfo.check();
+                }
+                catch ( DataException e ) {
+                    return null;
+                }
+                return new XmlRpcHubConnection( clientClient_,
+                                                clientServerFactory_,
                                                 lockInfo.getXmlrpcUrl(),
                                                 lockInfo.getSecret() );
             }
@@ -92,5 +110,21 @@ public class TestClientProfile implements ClientProfile {
         catch ( IOException e ) {
             throw new SampException( e );
         }
+    }
+
+    public static TestClientProfile[] getTestProfiles( Random random ) {
+        SampXmlRpcClient aClient =
+            XmlRpcImplementation.APACHE.getClient();
+        SampXmlRpcServerFactory aServ =
+            XmlRpcImplementation.APACHE.getServerFactory();
+        SampXmlRpcClient iClient =
+            XmlRpcImplementation.INTERNAL.getClient();
+        SampXmlRpcServerFactory iServ =
+            XmlRpcImplementation.INTERNAL.getServerFactory();
+        return new TestClientProfile[] {
+            new TestClientProfile( random, aClient, aServ, iClient, iServ ),
+            new TestClientProfile( random, iClient, iServ, aClient, aServ ),
+            new TestClientProfile( random, iClient, iServ, iClient, iServ ),
+        };
     }
 }

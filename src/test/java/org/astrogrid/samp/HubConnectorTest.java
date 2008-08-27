@@ -15,11 +15,13 @@ import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 public class HubConnectorTest extends TestCase {
 
     private final Random random_ = new Random( 2323L );
-    private final TestClientProfile profile_ = new TestClientProfile( random_ );
+    private final TestClientProfile[] profiles_ = 
+        TestClientProfile.getTestProfiles( random_ );
     private static final String ECHO_MTYPE = "test.echo";
 
     protected void setUp() {
@@ -27,8 +29,14 @@ public class HubConnectorTest extends TestCase {
     }
 
     public void testConnector() throws IOException {
-        assertNull( profile_.register() );
-        HubConnector connector = new HubConnector( profile_ );
+        for ( int i = 0; i < profiles_.length; i++ ) {
+            testConnector( profiles_[ i ] );
+        }
+    }
+
+    private void testConnector( TestClientProfile profile ) throws IOException {
+        assertNull( profile.register() );
+        HubConnector connector = new HubConnector( profile );
         connector.setAutoconnect( 1 );
         Map clientMap = connector.getClientMap();
         assertTrue( clientMap.isEmpty() );
@@ -40,8 +48,8 @@ public class HubConnectorTest extends TestCase {
         assertEquals( meta, connector.getMetadata() );
 
         assertTrue( ! connector.isConnected() );
-        profile_.startHub();
-        HubConnection c0 = profile_.register();
+        profile.startHub();
+        HubConnection c0 = profile.register();
         assertNotNull( c0 );
         c0.unregister();
         delay( 1500 );
@@ -100,11 +108,11 @@ public class HubConnectorTest extends TestCase {
         RegInfo regInfo1 = connector.getConnection().getRegInfo();
         assertTrue( ! regInfo0.getSelfId().equals( regInfo1.getSelfId() ) );
         assertEquals( regInfo0.getHubId(), regInfo1.getHubId() );
-        profile_.stopHub();
+        profile.stopHub();
         delay( 500 );
         assertNull( connector.getConnection() );
         assertTrue( clientMap.isEmpty() );
-        profile_.startHub();
+        profile.startHub();
         RegInfo regInfo2 = connector.getConnection().getRegInfo();
         assertTrue( ! regInfo0.getPrivateKey()
                      .equals( regInfo2.getPrivateKey() ) );
@@ -119,20 +127,26 @@ public class HubConnectorTest extends TestCase {
         assertTrue( clientMap.containsKey( connector.getConnection()
                                           .getRegInfo().getSelfId() ) );
         connector.getConnection().unregister();
-        profile_.stopHub();
+        profile.stopHub();
     }
 
     public void testSynch() throws IOException {
-        profile_.startHub();
+        for ( int i = 0; i < profiles_.length; i++ ) {
+            testSynch( profiles_[ i ] );
+        }
+    }
+
+    private void testSynch( TestClientProfile profile ) throws IOException {
+        profile.startHub();
         TestMessageHandler echo = new TestMessageHandler();
 
-        HubConnector c1 = new HubConnector( profile_ );
+        HubConnector c1 = new HubConnector( profile );
         c1.addMessageHandler( echo );
         Subscriptions subs1 = new Subscriptions();
         subs1.addMType( ECHO_MTYPE );
         c1.declareSubscriptions( subs1 );
 
-        HubConnector c2 = new HubConnector( profile_ );
+        HubConnector c2 = new HubConnector( profile );
         c2.addMessageHandler( echo );
         c2.declareSubscriptions( c2.computeSubscriptions() );
 
@@ -152,7 +166,7 @@ public class HubConnectorTest extends TestCase {
         assertEquals( params, r1.getResult() );
         assertEquals( params, r2.getResult() );
 
-        profile_.stopHub();
+        profile.stopHub();
     }
 
     private Subscriptions getSubscriptions( HubConnection connection )

@@ -13,7 +13,7 @@ import org.astrogrid.samp.test.CalcStorm;
 import org.astrogrid.samp.test.Calculator;
 import org.astrogrid.samp.test.HubTester;
 import org.astrogrid.samp.xmlrpc.HubRunner;
-import org.astrogrid.samp.xmlrpc.StandardClientProfile;
+import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 /**
  * Hub test case.
@@ -28,23 +28,21 @@ import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 public class HubTest extends TestCase {
 
     private final Random random_ = new Random( 23 );
-    private final TestClientProfile profile_ = new TestClientProfile( random_ );
+    private final TestClientProfile[] profiles_ =
+        TestClientProfile.getTestProfiles( random_ );
 
     protected void setUp() throws IOException {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
-        profile_.startHub();
-    }
-
-    protected void tearDown() {
-        profile_.stopHub();
     }
 
     public void testHubTester() throws Exception {
-        new HubTester( profile_ ).run();
-    }
-  
-    public void testCalcStorm() throws IOException {
-        new CalcStorm( profile_, random_, 10, 20, Calculator.RANDOM_MODE )
-           .run();
+        for ( int i = 0; i < profiles_.length; i++ ) {
+            TestClientProfile profile = profiles_[ i ];
+            profile.startHub();
+            new HubTester( profile ).run();
+            new CalcStorm( profile, random_, 8, 8, Calculator.RANDOM_MODE )
+               .run();
+            profile.stopHub();
+        }
     }
 }
