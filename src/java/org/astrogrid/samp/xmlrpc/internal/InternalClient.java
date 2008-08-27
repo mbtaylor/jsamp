@@ -26,7 +26,7 @@ import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
  * @author   Mark Taylor
  * @since    26 Aug 2008
  */
-public class JSampClient implements SampXmlRpcClient {
+public class InternalClient implements SampXmlRpcClient {
 
     public Object callAndWait( URL endpoint, String method, List params )
             throws IOException {

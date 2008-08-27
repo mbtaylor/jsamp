@@ -27,7 +27,7 @@ import org.w3c.dom.Element;
  * @author   Mark Taylor
  * @since    27 Aug 2008
  */
-public class JSampServer implements SampXmlRpcServer {
+public class InternalServer implements SampXmlRpcServer {
 
     private final HttpServer server_;
     private final URL endpoint_;
@@ -35,14 +35,14 @@ public class JSampServer implements SampXmlRpcServer {
 
     private static final String PATH = "/xmlrpc";
     private static final Logger logger_ =
-        Logger.getLogger( JSampServer.class.getName() );
+        Logger.getLogger( InternalServer.class.getName() );
 
     /**
      * Constructor based on a given server socket.
      *
      * @param  socket  listening socket
      */
-    public JSampServer( ServerSocket socket ) throws IOException {
+    public InternalServer( ServerSocket socket ) throws IOException {
         endpoint_ = new URL( "http://" + SampUtils.getLocalhost()
                            + ":" + socket.getLocalPort() + PATH );
         handlerList_ = new ArrayList();
@@ -66,7 +66,7 @@ public class JSampServer implements SampXmlRpcServer {
      * Constructs a server running with default characteristics 
      * on any free port.
      */
-    public JSampServer() throws IOException {
+    public InternalServer() throws IOException {
         this( new ServerSocket( 0 ) );
     }
 

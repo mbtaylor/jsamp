@@ -11,13 +11,13 @@ import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
  * @author   Mark Taylor
  * @since    26 Aug 2008
  */
-public class JSampServerFactory implements SampXmlRpcServerFactory {
+public class InternalServerFactory implements SampXmlRpcServerFactory {
 
-    private JSampServer server_;
+    private InternalServer server_;
 
     public synchronized SampXmlRpcServer getServer() throws IOException {
         if ( server_ == null ) {
-            server_ = new JSampServer();
+            server_ = new InternalServer();
         }
         return server_;
     }
