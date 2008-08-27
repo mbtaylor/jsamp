@@ -404,8 +404,9 @@ public class HubRunner {
         else {
             hubService = new BasicHubService( random_ );
         }
+        XmlRpcImplementation xmlrpc = XmlRpcImplementation.getInstance();
         HubRunner runner =
-            new HubRunner( new ApacheClient(), new ApacheServerFactory(),
+            new HubRunner( xmlrpc.getClient(), xmlrpc.getServerFactory(),
                            hubService, SampUtils.getLockFile() );
         hubRunners[ 0 ] = runner;
         runner.start();

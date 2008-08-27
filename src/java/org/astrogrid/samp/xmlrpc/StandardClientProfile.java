@@ -8,7 +8,8 @@ import org.astrogrid.samp.client.SampException;
 
 /**
  * Standard Profile implementation of ClientProfile.
- * This class is a singleton.
+ * It is normally appropriate to use one of the static methods
+ * to obtain an instance based on a particular XML-RPC implementation.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
@@ -18,13 +19,13 @@ public class StandardClientProfile implements ClientProfile {
     private final SampXmlRpcClient xClient_;
     private final SampXmlRpcServerFactory xServerFactory_;
 
-    /** Sole instance. */
-    private static final StandardClientProfile apacheInstance_ =
-        new StandardClientProfile( new ApacheClient(),
-                                   new ApacheServerFactory() );
-
+    private static StandardClientProfile defaultInstance_;
+    
     /**
-     * Private constructor.
+     * Constructor.
+     *
+     * @param   xClient   XML-RPC client implementation
+     * @param   xServerFactory   XML-RPC server factory implementation
      */
     public StandardClientProfile( SampXmlRpcClient xClient,
                                   SampXmlRpcServerFactory xServerFactory ) {
@@ -54,9 +55,19 @@ public class StandardClientProfile implements ClientProfile {
     }
 
     /**
-     * Returns a working instance of this class.
+     * Returns an instance based on the default XML-RPC implementation.
+     * This can be configured using system properties.
+     *
+     * @see   XmlRpcImplementation#getInstance
+     * @return  a client profile instance
      */
     public static StandardClientProfile getInstance() {
-        return apacheInstance_;
+        if ( defaultInstance_ == null ) {
+            XmlRpcImplementation xmlrpc = XmlRpcImplementation.getInstance();
+            defaultInstance_ =
+                new StandardClientProfile( xmlrpc.getClient(),
+                                           xmlrpc.getServerFactory() );
+        }
+        return defaultInstance_;
     }
 }
