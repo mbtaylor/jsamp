@@ -1,6 +1,8 @@
-package org.astrogrid.samp.xmlrpc;
+package org.astrogrid.samp.xmlrpc.apache;
 
 import java.io.IOException;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 
 /**
  * SampXmlRpcServerFactory implementation which uses Apache classes.

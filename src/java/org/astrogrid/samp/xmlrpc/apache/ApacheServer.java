@@ -1,4 +1,4 @@
-package org.astrogrid.samp.xmlrpc;
+package org.astrogrid.samp.xmlrpc.apache;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -10,6 +10,8 @@ import java.util.Vector;
 import org.apache.xmlrpc.WebServer;
 import org.apache.xmlrpc.XmlRpcHandler;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcHandler;
 
 /**
  * SampXmlRpcServer implementation based on Apache XML-RPC library.

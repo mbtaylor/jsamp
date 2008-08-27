@@ -1,4 +1,4 @@
-package org.astrogrid.samp.xmlrpc;
+package org.astrogrid.samp.xmlrpc.apache;
 
 import java.util.Hashtable;
 import java.util.Iterator;
