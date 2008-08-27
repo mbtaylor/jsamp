@@ -20,8 +20,6 @@ import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 public class HubConnectorTest extends TestCase {
 
     private final Random random_ = new Random( 2323L );
-    private final TestClientProfile[] profiles_ = 
-        TestClientProfile.getTestProfiles( random_ );
     private static final String ECHO_MTYPE = "test.echo";
 
     protected void setUp() {
@@ -29,8 +27,10 @@ public class HubConnectorTest extends TestCase {
     }
 
     public void testConnector() throws IOException {
-        for ( int i = 0; i < profiles_.length; i++ ) {
-            testConnector( profiles_[ i ] );
+        TestClientProfile[] profiles =
+            TestClientProfile.getTestProfiles( random_ );
+        for ( int i = 0; i < profiles.length; i++ ) {
+            testConnector( profiles[ i ] );
         }
     }
 
@@ -131,8 +131,10 @@ public class HubConnectorTest extends TestCase {
     }
 
     public void testSynch() throws IOException {
-        for ( int i = 0; i < profiles_.length; i++ ) {
-            testSynch( profiles_[ i ] );
+        TestClientProfile[] profiles =
+            TestClientProfile.getTestProfiles( random_ );
+        for ( int i = 0; i < profiles.length; i++ ) {
+            testSynch( profiles[ i ] );
         }
     }
 
