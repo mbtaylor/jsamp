@@ -1,5 +1,7 @@
 package org.astrogrid.samp.xmlrpc;
 
+import java.util.logging.Logger;
+
 /**
  * Encapsulates the provision of XML-RPC client and server capabilities.
  * Two implementations are provided in the JSAMP package;
@@ -52,6 +54,8 @@ public abstract class XmlRpcImplementation {
     public static final String IMPL_PROP = "jsamp.xmlrpc.impl";
 
     private static XmlRpcImplementation defaultInstance_;
+    private static Logger logger_ =
+        Logger.getLogger( XmlRpcImplementation.class.getName() );
 
     /**
      * Returns an XML-RPC server factory.
@@ -104,6 +108,7 @@ public abstract class XmlRpcImplementation {
     public static XmlRpcImplementation getInstance() {
         if ( defaultInstance_ == null ) {
             defaultInstance_ = createDefaultInstance();
+            logger_.info( "Default XmlRpcInstance is " + defaultInstance_ );
         }
         return defaultInstance_;
     }
@@ -118,6 +123,8 @@ public abstract class XmlRpcImplementation {
     private static XmlRpcImplementation createDefaultInstance() {
         XmlRpcImplementation[] impls = KNOWN_IMPLS;
         String implName = System.getProperty( IMPL_PROP );
+        logger_.info( "Creating default XmlRpcInstance: " + IMPL_PROP + "=" +
+                      implName );
 
         // No implementation specified by system property -
         // use the first one in the list that works.
@@ -232,7 +239,8 @@ public abstract class XmlRpcImplementation {
             }
             else {
                 assert clientError_ != null;
-                throw new RuntimeException( "Implementation not available",
+                throw new RuntimeException( name_ +
+                                            " implementation not available",
                                             clientError_ );
             }
         }
@@ -243,7 +251,8 @@ public abstract class XmlRpcImplementation {
             }
             else {
                 assert serverError_ != null;
-                throw new RuntimeException( "Implementation not available",
+                throw new RuntimeException( name_ +
+                                            " implementation not available",
                                             serverError_ );
             }
         }
