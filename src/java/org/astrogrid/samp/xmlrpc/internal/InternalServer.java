@@ -38,15 +38,17 @@ public class InternalServer implements SampXmlRpcServer {
         Logger.getLogger( InternalServer.class.getName() );
 
     /**
-     * Constructor based on a given server socket.
+     * Constructor based on a given HTTP server.
+     * It is the caller's responsibility to configure and start the HttpServer.
      *
-     * @param  socket  listening socket
+     * @param  httpServer  server for processing HTTP requests
      */
-    public InternalServer( ServerSocket socket ) throws IOException {
+    public InternalServer( HttpServer httpServer ) throws IOException {
+        server_ = httpServer;
         endpoint_ = new URL( "http://" + SampUtils.getLocalhost()
-                           + ":" + socket.getLocalPort() + PATH );
+                           + ":" + server_.getSocket().getLocalPort()
+                           + PATH );
         handlerList_ = new ArrayList();
-        server_ = new HttpServer( socket );
         server_.addHandler( new HttpServer.Handler() {
             public HttpServer.Response serveRequest( HttpServer.Request req ) {
                 if ( req.getUrl().equals( PATH ) &&
@@ -58,16 +60,16 @@ public class InternalServer implements SampXmlRpcServer {
                 }
             }
         } );
-        server_.setDaemon( true );
-        server_.start();
     }
 
     /**
      * Constructs a server running with default characteristics 
-     * on any free port.
+     * on any free port.  The server is started as a daemon thread.
      */
     public InternalServer() throws IOException {
-        this( new ServerSocket( 0 ) );
+        this( new HttpServer() );
+        server_.setDaemon( true );
+        server_.start();
     }
 
     public URL getEndpoint() {

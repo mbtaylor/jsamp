@@ -31,7 +31,7 @@ import java.util.logging.Level;
  * @author   Mark Taylor
  * @since    21 Aug 2008
  */
-class HttpServer {
+public class HttpServer {
 
     private final ServerSocket serverSocket_;
     private Thread serverThread_;
@@ -95,6 +95,15 @@ class HttpServer {
      */
     public void removeHandler( Handler handler ) {
         handlerList_.remove( handler );
+    }
+
+    /**
+     * Returns the socket on which this server listens.
+     *
+     * @return   server socket
+     */
+    public ServerSocket getSocket() {
+        return serverSocket_;
     }
 
     /**
@@ -423,7 +432,7 @@ class HttpServer {
     /**
      * Represents a parsed HTTP client request.
      */
-    static class Request {
+    public static class Request {
         private final String method_;
         private final String url_;
         private final Map headerMap_;
@@ -503,7 +512,7 @@ class HttpServer {
     /**
      * Represents a response to an HTTP request.
      */
-    static abstract class Response {
+    public static abstract class Response {
         private final int statusCode_;
         private final String statusPhrase_;
         private final Map headerMap_;
@@ -610,7 +619,7 @@ class HttpServer {
     /**
      * Implemented to serve data for some URLs.
      */
-    interface Handler {
+    public interface Handler {
 
         /**
          * Provides a response to an HTTP request.
