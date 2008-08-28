@@ -6,8 +6,10 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import org.astrogrid.samp.SampUtils;
 
 /**
  * Simple modular HTTP server.
@@ -37,6 +40,7 @@ public class HttpServer {
     private Thread serverThread_;
     private boolean isDaemon_;
     private List handlerList_;
+    private final URL baseUrl_;
 
     /** Header string for MIME content type. */
     public static final String HDR_CONTENT_TYPE = "Content-Type";
@@ -70,6 +74,20 @@ public class HttpServer {
         serverSocket_ = socket;
         isDaemon_ = true;
         handlerList_ = new ArrayList();
+        StringBuffer ubuf = new StringBuffer()
+            .append( "http://" )
+            .append( SampUtils.getLocalhost() );
+        int port = socket.getLocalPort();
+        if ( port != 80 ) {
+            ubuf.append( ':' )
+                .append( port );
+        }
+        try {
+            baseUrl_ = new URL( ubuf.toString() );
+        }
+        catch ( MalformedURLException e ) {
+            throw new AssertionError( "Bad scheme http:??" );
+        }
     }
 
     /**
@@ -104,6 +122,15 @@ public class HttpServer {
      */
     public ServerSocket getSocket() {
         return serverSocket_;
+    }
+
+    /**
+     * Returns the base URL for this server.
+     *
+     * @return   base URL
+     */
+    public URL getBaseUrl() {
+        return baseUrl_;
     }
 
     /**
@@ -171,6 +198,7 @@ public class HttpServer {
                 }
             };
             server.setDaemon( isDaemon_ );
+            logger_.info( "Server " + getBaseUrl() + " starting" );
             server.start();
         }
     }
@@ -184,7 +212,17 @@ public class HttpServer {
         if ( serverThread != null ) {
             serverThread.interrupt();
             serverThread_ = null;
+            logger_.info( "Server " + getBaseUrl() + " starting" );
         }
+    }
+
+    /**
+     * Indicates whether this server is currently running.
+     *
+     * @return   true if running
+     */
+    public boolean isRunning() {
+        return serverThread_ != null;
     }
 
     /**
@@ -527,7 +565,7 @@ public class HttpServer {
          *                      header information; should normally contain
          *                      at least a content-type key
          */
-        Response( int statusCode, String statusPhrase, Map headerMap ) {
+        public Response( int statusCode, String statusPhrase, Map headerMap ) {
             if ( Integer.toString( statusCode ).length() != 3 ) {
                 throw new IllegalArgumentException( "Bad status "
                                                   + statusCode );
