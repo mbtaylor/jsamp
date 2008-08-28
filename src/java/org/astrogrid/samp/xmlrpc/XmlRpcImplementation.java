@@ -113,6 +113,49 @@ public abstract class XmlRpcImplementation {
         return defaultInstance_;
     }
 
+    /** 
+     * Returns an XmlRpcImplementation instance given its name.
+     *
+     * @param   name   name of one of the known implementations, or classname
+     *          of an XmlRpcImplementation implemenatation with a no-arg
+     *          constructor
+     * @return  named implementation object
+     * @throws  IllegalArgumentException  if none by that name can be found
+     */
+    public static XmlRpcImplementation getInstanceByName( String name ) {
+
+        // Implementation specified by system property -
+        // try to find one with a matching name in the known list.
+        XmlRpcImplementation[] impls = KNOWN_IMPLS;
+        for ( int i = 0; i < impls.length; i++ ) {
+            if ( name.equalsIgnoreCase( impls[ i ].getName() ) ) {
+                return impls[ i ];
+            }
+        }
+
+        // Still not got one -
+        // try to interpret system property as class name.
+        Class clazz;
+        try {
+            clazz = Class.forName( name );
+        }
+        catch ( ClassNotFoundException e ) {
+            throw new IllegalArgumentException( "No such XML-RPC "
+                                              + "implementation \""
+                                              + name + "\"" );
+        }
+        try {
+            return (XmlRpcImplementation) clazz.newInstance();
+        }
+        catch ( Throwable e ) {
+            throw (RuntimeException)
+                  new IllegalArgumentException( "Error instantiating custom "
+                                              + "XmlRpcImplementation "
+                                              + clazz.getName() )
+                 .initCause( e );
+        }
+    }
+
     /**
      * Constructs the default instance of this class based on system property
      * and class availability.
@@ -140,30 +183,7 @@ public abstract class XmlRpcImplementation {
         // Implementation specified by system property -
         // try to find one with a matching name in the known list.
         else {
-            for ( int i = 0; i < impls.length; i++ ) {
-                if ( implName.equalsIgnoreCase( impls[ i ].getName() ) ) {
-                    return impls[ i ];
-                }
-            }
-
-            // Still not got one -
-            // try to interpret system property as class name.
-            Class clazz;
-            try {
-                clazz = Class.forName( implName );
-            }
-            catch ( ClassNotFoundException e ) {
-                throw new RuntimeException( "No such XML-RPC implementation \""
-                                          + implName + "\"" );
-            }
-            try {
-                return (XmlRpcImplementation) clazz.newInstance();
-            }
-            catch ( Throwable e ) {
-                throw new RuntimeException( "Error instantiating custom "
-                                          + "XmlRpcImplementation "
-                                          + clazz.getName(), e );
-            }
+            return getInstanceByName( implName );
         }
     }
 
