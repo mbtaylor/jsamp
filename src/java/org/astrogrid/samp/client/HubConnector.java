@@ -79,7 +79,8 @@ import org.astrogrid.samp.Subscriptions;
  * Here is an example of what use of this class might look like:
  * <pre>
  *   // Construct a connector
- *   HubConnector conn = new HubConnector()
+ *   ClientProfile profile = StandardClientProfile.getInstance();
+ *   HubConnector conn = new HubConnector(profile)
  *
  *   // Configure it with metadata about this application
  *   Metadata meta = new Metadata();
@@ -216,13 +217,20 @@ public class HubConnector {
         if ( autoSec > 0 ) {
             TimerTask regTask = new TimerTask() {
                 public void run() {
-                    try {
-                        HubConnection conn = getConnection();
-                        logger_.info( "Autoconnection attempt: "
-                                    + ( conn == null ? "failed"
-                                                     : "succeeded" ) );
-                    }
-                    catch ( SampException e ) {
+                    if ( ! isConnected() ) {
+                        try {
+                            HubConnection conn = getConnection();
+                            if ( conn == null ) {
+                                logger_.config( "Autoconection attempt "
+                                              + "failed" );
+                            }
+                            else {
+                                logger_.info( "Autoconnection attempt "
+                                            + "succeeded" );
+                            }
+                        }
+                        catch ( SampException e ) {
+                        }
                     }
                 }
             };
