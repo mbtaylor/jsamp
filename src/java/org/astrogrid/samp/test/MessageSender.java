@@ -236,17 +236,17 @@ public abstract class MessageSender {
             return 1;
         }
 
+        // Set logging levels in accordance with flags.
+        int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
+        Logger.getLogger( "org.astrogrid.samp" )
+              .setLevel( Level.parse( Integer.toString( logLevel ) ) );
+
         // Get profile.
         ClientProfile profile =
             xmlrpc == null
                 ? StandardClientProfile.getInstance()
                 : new StandardClientProfile( xmlrpc.getClient(),
                                              xmlrpc.getServerFactory() );
-
-        // Set logging levels in accordance with flags.
-        int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
-        Logger.getLogger( "org.astrogrid.samp" )
-              .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Create a message sender object.
         final MessageSender sender;
