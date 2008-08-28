@@ -45,9 +45,7 @@ public class InternalServer implements SampXmlRpcServer {
      */
     public InternalServer( HttpServer httpServer ) throws IOException {
         server_ = httpServer;
-        endpoint_ = new URL( "http://" + SampUtils.getLocalhost()
-                           + ":" + server_.getSocket().getLocalPort()
-                           + PATH );
+        endpoint_ = new URL( server_.getBaseUrl(), PATH );
         handlerList_ = new ArrayList();
         server_.addHandler( new HttpServer.Handler() {
             public HttpServer.Response serveRequest( HttpServer.Request req ) {
