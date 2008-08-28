@@ -16,6 +16,7 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 
 /**
@@ -28,6 +29,12 @@ import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
  */
 public class InternalClient implements SampXmlRpcClient {
 
+    private final String userAgent_;
+
+    public InternalClient() {
+        userAgent_ = "JSAMP/" + SampUtils.getSoftwareVersion();
+    }
+
     public Object callAndWait( URL endpoint, String method, List params )
             throws IOException {
         HttpURLConnection connection = 
@@ -39,6 +46,7 @@ public class InternalClient implements SampXmlRpcClient {
         connection.setRequestProperty( "Content-Type", "text/xml" );
         connection.setRequestProperty( "Content-Length",
                                        Integer.toString( callBuf.length ) );
+        connection.setRequestProperty( "User-Agent", userAgent_ );
         connection.connect();
         OutputStream out = connection.getOutputStream();
         out.write( callBuf );
@@ -60,6 +68,7 @@ public class InternalClient implements SampXmlRpcClient {
         connection.setRequestProperty( "Content-Type", "text/xml" );
         connection.setRequestProperty( "Content-Length",
                                        Integer.toString( callBuf.length ) );
+        connection.setRequestProperty( "User-Agent", userAgent_ );
         connection.connect();
         OutputStream out = connection.getOutputStream();
         out.write( callBuf );
