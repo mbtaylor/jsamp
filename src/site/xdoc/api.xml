@@ -57,7 +57,7 @@ interface directly.
 is used to initiate communication with the hub.
 Currently, a single implementation of this,
 <a target="samp-javadoc"
-   href="apidocs/org/astrogrid/samp/client/StandardClientProfile.html"
+   href="apidocs/org/astrogrid/samp/xmlrpc/StandardClientProfile.html"
                                           >StandardClientProfile</a>,
 is provided, corresponding to the SAMP Standard Profile.
 However, other profiles could be implemented and used with the rest of
@@ -68,15 +68,21 @@ the API.
 
 <subsection name="Running a SAMP Hub">
 
-<p>The classes which provide the SAMP hub functionality are in the package
+<p>The classes which provide the basic SAMP hub functionality 
+are in the package 
 <a target="samp-javadoc"
    href="apidocs/org/astrogrid/samp/hub/package-summary.html"
-                >org.astrogrid.samp.hub</a>.
-If you want to run a hub, either with or without a graphical display,
+                >org.astrogrid.samp.hub</a>,
+and the classes required for running a Standard Profile hub are in
+<a target="samp-javadoc"
+   href="apidocs/org/astrogrid/samp/xmlrpc/package-summary.html"
+                >org.astrogrid.samp.xmlrpc</a>.
+If you want to run a Standard Profile hub, 
+either with or without a graphical display,
 in most cases you can do it simply by using static methods of the
 <a target="samp-javadoc"
-   href="apidocs/org/astrogrid/samp/hub/HubRunner.html"
-                                       >HubRunner</a> class.
+   href="apidocs/org/astrogrid/samp/xmlrpc/HubRunner.html"
+                                          >HubRunner</a> class.
 This hub can be embedded within a third party application if required.
 For more configurability, for instance customising the graphical display or
 hub discovery process, you may want to look at the other classes in this

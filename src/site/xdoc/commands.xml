@@ -5,7 +5,7 @@
   <!ENTITY jsamp-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.JSamp.usage">
   <!ENTITY hubrunner-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.hub.HubRunner.usage">
+           "../../../target/docs/org.astrogrid.samp.xmlrpc.HubRunner.usage">
   <!ENTITY hubmonitor-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.gui.HubMonitor.usage">
   <!ENTITY messagesender-usage SYSTEM
@@ -75,7 +75,7 @@ metadata and subscriptions, looks something like this:
 
 <subsection name="HubRunner">
 
-<p>The <code>org.astrogrid.samp.hub.HubRunner</code> class runs a SAMP hub
+<p>The <code>org.astrogrid.samp.xmlrpc.HubRunner</code> class runs a SAMP hub
 using the SAMP Standard Profile.  A graphical window showing 
 currently registered clients and their attributes (metadata and subscribed
 MTypes) may optionally be displayed.

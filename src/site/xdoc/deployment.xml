@@ -48,30 +48,57 @@ They are organised as follows:
     whatever you're doing.
     </dd>
 <dt><a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/client/package-summary"
+       href="apidocs/org/astrogrid/samp/client/package-summary.html"
                     >org.astrogrid.samp.client</a></dt>
 <dd>Classes intended for use by application authors writing SAMP clients.
     If you only need to run a SAMP hub, you do not need these classes.
     </dd>
 <dt><a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/hub/package-summary"
+       href="apidocs/org/astrogrid/samp/hub/package-summary.html"
                     >org.astrogrid.samp.hub</a></dt>
 <dd>Classes providing the hub implementation.
     If you are only writing a client which will not contain an embedded hub,
     you do not need these classes.</dd>
 <dt><a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/gui/package-summary"
+       href="apidocs/org/astrogrid/samp/gui/package-summary.html"
                     >org.astrogrid.samp.gui</a></dt>
 <dd>Utility classes providing GUI components for visual display of SAMP
     activity.  These classes are not required for basic client or hub
     operations.</dd>
 <dt><a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/test/package-summary"
+       href="apidocs/org/astrogrid/samp/test/package-summary.html"
                     >org.astrogrid.samp.test</a></dt>
 <dd>Classes providing the hub test suite and some diagnostic tools intended
     for debugging SAMP systems.  These are not intended for use in third party
     applications.  This does not however contain unit tests for JSAMP
     itself, which are not present in the distributed jar file.
+    </dd>
+<dt><a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/xmlrpc/package-summary.html"
+                    >org.astrogrid.samp.xmlrpc</a></dt>
+<dd>Classes which deal with implementing the Standard Profile of SAMP,
+    that is the XML-RPC-based communications.
+    Everything in the packages above is independent of the Profile used,
+    so if for some reason you are using a non-standard profile, you may
+    not need the <code>xmlrpc*</code> packages.
+    The classes here define a pluggable interface to XML-RPC implementations;
+    one or other of the provided implementations, or a custom-written one,
+    will be required as well to make use of these classes.
+    </dd>
+<dt><a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/xmlrpc/apache/package-summary.html"
+                    >org.astrogrid.samp.xmlrpc.apache</a></dt>
+<dd>Implementation of the pluggable XML-RPC layer based on the Apache XML-RPC
+    library.  To use these classes you will need the Apache XML-RPC library
+    on the classpath as well.  If you are using the internal XML-RPC 
+    implementation, these classes are not required.
+    </dd>
+<dt><a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/xmlrpc/internal/package-summary.html"
+                    >org.astrogrid.samp.xmlrpc.internal</a></dt>
+<dd>Implementation of the pluggable XML-RPC layer which requires no 
+    external libraries.  If you are using the Apache library,
+    these classes are not required.
     </dd>
 </dl>
 

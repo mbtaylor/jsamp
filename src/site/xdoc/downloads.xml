@@ -18,9 +18,13 @@
 <dd><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.1.zip"
        >jsamp_src-0.1.zip</a>
     </dd>
-<dt>Required dependencies:</dt>
+<dt>Dependencies:</dt>
 <dd><a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
-       >xmlrpc-1.2-b1.jar</a>
+       >xmlrpc-1.2-b1.jar</a>.
+    Note this library is nol necessary for using JSAMP, it is only required
+    if you want to use the Apache XML-RPC implementation.  If you want to
+    use the internal XML-RPC implementation instead, then no extenal libraries
+    are required.
     </dd>
 </dl>
 </section>
