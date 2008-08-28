@@ -16,6 +16,7 @@ import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
+import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 /**
  * Client application which uses a 
@@ -27,6 +28,9 @@ import org.astrogrid.samp.xmlrpc.StandardClientProfile;
  * @since    16 Jul 2008
  */
 public class HubMonitor extends JPanel {
+
+    private static Logger logger_ =
+        Logger.getLogger( HubMonitor.class.getName() );
 
     /**
      * Constructor.
@@ -93,6 +97,7 @@ public class HubMonitor extends JPanel {
             .append( "\n           " )
             .append( " [-help]" )
             .append( " [+/-verbose]" )
+            .append( " [-xmlrpc apache|internal]" )
             .append( "\n           " )
             .append( " [-auto <secs>]" )
             .append( " [-nogui]" )
@@ -102,6 +107,7 @@ public class HubMonitor extends JPanel {
         int verbAdjust = 0;
         boolean gui = true;
         int autoSec = 3;
+        XmlRpcImplementation xmlrpc = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-auto" ) && it.hasNext() ) {
@@ -117,6 +123,20 @@ public class HubMonitor extends JPanel {
             else if ( arg.equals( "-nogui" ) ) {
                 it.remove();
                 gui = false;
+            }
+            else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
+                it.remove();
+                String impl = (String) it.next();
+                it.remove();
+                try {
+                    xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                }
+                catch ( Exception e ) {
+                    logger_.log( Level.INFO, "No XMLRPC implementation " + impl,
+                                 e );
+                    System.err.println( usage );
+                    return 1;
+                }
             }
             else if ( arg.startsWith( "-v" ) ) {
                 it.remove();
@@ -138,15 +158,24 @@ public class HubMonitor extends JPanel {
             }
         }
         assert argList.isEmpty();
+        if ( xmlrpc == null ) {
+            xmlrpc = XmlRpcImplementation.getInstance();
+        }
 
         // Adjust logging in accordance with verboseness flags.
         int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
+        // Get profile.
+        ClientProfile profile =
+            xmlrpc == null
+                ? StandardClientProfile.getInstance()
+                : new StandardClientProfile( xmlrpc.getClient(),
+                                             xmlrpc.getServerFactory() );
+
         // Start the gui in a new window.
         JFrame frame = new JFrame( "SAMP HubMonitor" );
-        ClientProfile profile = StandardClientProfile.getInstance();
         frame.getContentPane().add( new HubMonitor( profile, autoSec ) );
         frame.setIconImage( new ImageIcon( Metadata.class
                                           .getResource( "images/eye.gif" ) )

@@ -25,6 +25,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
+import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 /**
  * Sends a message to one or more other SAMP clients.
@@ -99,6 +100,7 @@ public abstract class MessageSender {
             .append( "\n           " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
+            .append( " [-xmlrpc apache|internal]" )
             .append( "\n           " )
             .append( " -mtype <mtype>" )
             .append( " [-param <name> <value> ...]" )
@@ -117,9 +119,9 @@ public abstract class MessageSender {
         Map paramMap = new HashMap();
         String mode = "sync";
         Metadata meta = new Metadata();
-        ClientProfile profile = StandardClientProfile.getInstance();
         int timeout = 0;
         int verbAdjust = 0;
+        XmlRpcImplementation xmlrpc = null;
 
         // Parse the argument list.
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -192,6 +194,20 @@ public abstract class MessageSender {
                     return 1;
                 }
             }
+            else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
+                it.remove(); 
+                String impl = (String) it.next();
+                it.remove();
+                try { 
+                    xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                }
+                catch ( Exception e ) { 
+                    logger_.log( Level.INFO, "No XMLRPC implementation " + impl,
+                                 e );
+                    System.err.println( usage );
+                    return 1;
+                }
+            }
             else if ( arg.startsWith( "-v" ) ) {
                 it.remove();
                 verbAdjust--;
@@ -219,6 +235,13 @@ public abstract class MessageSender {
             System.err.println( usage );
             return 1;
         }
+
+        // Get profile.
+        ClientProfile profile =
+            xmlrpc == null
+                ? StandardClientProfile.getInstance()
+                : new StandardClientProfile( xmlrpc.getClient(),
+                                             xmlrpc.getServerFactory() );
 
         // Set logging levels in accordance with flags.
         int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;

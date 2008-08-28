@@ -60,6 +60,15 @@ but most share the following common flags:
     it by one level.  These flags may be supplied more than once.
     May be abbreviated to <code>-v</code> or <code>+v</code>.
     </dd>
+<dt><code>-xmlrpc apache|internal</code></dt>
+<dd>Configures which pluggable XML-RPC implementation will be used for 
+    XML-RPC communications.  If <code>apache</code> is chosen, the
+    Apache XML-RPC library must be on the classpath.  For <code>internal</code>
+    no external libraries are required.  If this flag is not used,
+    an implementation will be chosen depending on what is available.
+    The implementations ought to behave the same, but the internal one is
+    currently a bit slower and may not be as well tested.
+    </dd>
 <dt><code>-gui/-nogui</code></dt>
 <dd>Shows/hides a window which shows which clients are currently registered
     with the hub and their metadata and subscriptions.

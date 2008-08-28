@@ -324,14 +324,17 @@ public class HubRunner {
             .append( "\n   Usage:" )
             .append( "\n      " )
             .append( HubRunner.class.getName() )
+            .append( "\n           " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
+            .append( " [-xmlrpc apache|internal]" )
             .append( " [-nogui]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean gui = true;
         int verbAdjust = 0;
+        XmlRpcImplementation xmlrpc = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-gui" ) ) {
@@ -341,6 +344,19 @@ public class HubRunner {
             else if ( arg.equals( "-nogui" ) ) {
                 it.remove();
                 gui = false;
+            }
+            else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
+                it.remove();
+                String impl = (String) it.next();
+                try {
+                    xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                }
+                catch ( Exception e ) {
+                    logger_.log( Level.INFO, "No XMLRPC implementation " + impl,
+                                 e );
+                    System.err.println( usage );
+                    return 1;
+                }
             }
             else if ( arg.startsWith( "-v" ) ) {
                 it.remove();
@@ -367,7 +383,7 @@ public class HubRunner {
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
-        runHub( gui );
+        runHub( gui, xmlrpc );
         return 0;
     }
 
@@ -378,8 +394,11 @@ public class HubRunner {
      * When this window is disposed, the hub will stop.
      *
      * @param   gui   if true, display a window showing hub status
+     * @param   xmlrpc  XML-RPC implementation;
+     *                  automatically determined if null
      */
-    public static void runHub( boolean gui ) throws IOException {
+    public static void runHub( boolean gui, XmlRpcImplementation xmlrpc )
+            throws IOException {
         final BasicHubService hubService;
         final HubRunner[] hubRunners = new HubRunner[ 1 ];
         if ( gui ) {
@@ -404,7 +423,9 @@ public class HubRunner {
         else {
             hubService = new BasicHubService( random_ );
         }
-        XmlRpcImplementation xmlrpc = XmlRpcImplementation.getInstance();
+        if ( xmlrpc == null ) {
+            xmlrpc = XmlRpcImplementation.getInstance();
+        }
         HubRunner runner =
             new HubRunner( xmlrpc.getClient(), xmlrpc.getServerFactory(),
                            hubService, SampUtils.getLockFile() );

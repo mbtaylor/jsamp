@@ -29,6 +29,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.gui.HubMonitor;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
+import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 /**
  * Tester for a running hub.
@@ -714,14 +715,17 @@ public class HubTester extends Tester {
             .append( "\n   Usage:" )
             .append( "\n      " )
             .append( HubTester.class.getName() )
+            .append( "\n           " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
+            .append( " [-xmlrpc apache|internal]" )
             .append( " [-gui]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean gui = false;
         int verbAdjust = 0;
+        XmlRpcImplementation xmlrpc = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-gui" ) ) {
@@ -731,6 +735,20 @@ public class HubTester extends Tester {
             else if ( arg.equals( "-nogui" ) ) {
                 it.remove();
                 gui = false;
+            }
+            else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
+                it.remove();
+                String impl = (String) it.next();
+                it.remove();
+                try {
+                    xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                }
+                catch ( Exception e ) {
+                    logger_.log( Level.INFO, "No XMLRPC implementation " + impl,
+                                 e );
+                    System.err.println( usage );
+                    return 1;
+                }
             }
             else if ( arg.startsWith( "-v" ) ) {
                 it.remove();
@@ -759,7 +777,11 @@ public class HubTester extends Tester {
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Get profile.
-        ClientProfile profile = StandardClientProfile.getInstance();
+        ClientProfile profile =
+            xmlrpc == null
+                ? StandardClientProfile.getInstance()
+                : new StandardClientProfile( xmlrpc.getClient(),
+                                             xmlrpc.getServerFactory() );
 
         // Set up GUI monitor if required.
         JFrame frame;

@@ -13,6 +13,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.gui.HubMonitor;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
+import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 /**
  * Runs a load of Calculator clients at once all sending messages to each other.
@@ -28,6 +29,8 @@ public class CalcStorm {
     private final int nClient_;
     private final int nQuery_;
     private final Calculator.SendMode sendMode_;
+    private static final Logger logger_ =
+        Logger.getLogger( CalcStorm.class.getName() );
 
     /**
      * Constructor.
@@ -168,6 +171,7 @@ public class CalcStorm {
             .append( "\n           " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
+            .append( " [-xmlrpc apache|internal]" )
             .append( " [-gui]" )
             .append( "\n           " )
             .append( " [-nclient <n>]" )
@@ -177,13 +181,13 @@ public class CalcStorm {
             .toString();
 
         // Prepare default values for test.
-        ClientProfile profile = StandardClientProfile.getInstance();
         Random random = new Random( 2333333 );
         int nClient = 20;
         int nQuery = 100;
         Calculator.SendMode sendMode = Calculator.RANDOM_MODE;
         int verbAdjust = 0;
         boolean gui = false;
+        XmlRpcImplementation xmlrpc = null;
 
         // Parse arguments, modifying test parameters as appropriate.
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -233,6 +237,20 @@ public class CalcStorm {
                     it.remove();
                     gui = false;
                 }
+                else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
+                    it.remove();
+                    String impl = (String) it.next();
+                    try {
+                        xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                    }
+                    catch ( Exception e ) {
+                        logger_.log( Level.INFO,
+                                     "No XMLRPC implementation " + impl,
+                                     e );
+                        System.err.println( usage );
+                        return 1;
+                    }
+                }
                 else if ( arg.startsWith( "-v" ) ) {
                     it.remove();
                     verbAdjust--;
@@ -264,6 +282,13 @@ public class CalcStorm {
         int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
+
+        // Prepare profile.
+        ClientProfile profile =
+            xmlrpc == null
+                ? StandardClientProfile.getInstance()
+                : new StandardClientProfile( xmlrpc.getClient(),
+                                             xmlrpc.getServerFactory() );
 
         // Set up GUI monitor if required.
         JFrame frame;
