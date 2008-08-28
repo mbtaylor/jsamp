@@ -888,7 +888,9 @@ public class HubTester extends Tester {
 
             // Just bumps a counter and returns an empty samp.result
             else if ( PING_MTYPE.equals( mtype ) ) {
-                pingCount_++;
+                synchronized ( this ) {
+                    pingCount_++;
+                }
                 return new HashMap();
             }
 
