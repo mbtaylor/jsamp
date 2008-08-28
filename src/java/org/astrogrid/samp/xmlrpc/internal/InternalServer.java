@@ -33,7 +33,6 @@ public class InternalServer implements SampXmlRpcServer {
     private final URL endpoint_;
     private final List handlerList_;
 
-    private static final String PATH = "/xmlrpc";
     private static final Logger logger_ =
         Logger.getLogger( InternalServer.class.getName() );
 
@@ -42,14 +41,16 @@ public class InternalServer implements SampXmlRpcServer {
      * It is the caller's responsibility to configure and start the HttpServer.
      *
      * @param  httpServer  server for processing HTTP requests
+     * @param  path   path part of server endpoint (starts with "/");
      */
-    public InternalServer( HttpServer httpServer ) throws IOException {
+    public InternalServer( HttpServer httpServer, final String path )
+            throws IOException {
         server_ = httpServer;
-        endpoint_ = new URL( server_.getBaseUrl(), PATH );
+        endpoint_ = new URL( server_.getBaseUrl(), path );
         handlerList_ = new ArrayList();
         server_.addHandler( new HttpServer.Handler() {
             public HttpServer.Response serveRequest( HttpServer.Request req ) {
-                if ( req.getUrl().equals( PATH ) &&
+                if ( req.getUrl().equals( path ) &&
                      req.getMethod().equals( "POST" ) ) {
                     return getXmlRpcResponse( req.getBody() );
                 }
@@ -65,7 +66,7 @@ public class InternalServer implements SampXmlRpcServer {
      * on any free port.  The server is started as a daemon thread.
      */
     public InternalServer() throws IOException {
-        this( new HttpServer() );
+        this( new HttpServer(), "/xmlrpc" );
         server_.setDaemon( true );
         server_.start();
     }
