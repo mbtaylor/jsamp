@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.DOMException;
@@ -30,6 +31,8 @@ import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 public class InternalClient implements SampXmlRpcClient {
 
     private final String userAgent_;
+    private static final Logger logger_ =
+        Logger.getLogger( InternalClient.class.getName() );
 
     public InternalClient() {
         userAgent_ = "JSAMP/" + SampUtils.getSoftwareVersion();
@@ -78,11 +81,6 @@ public class InternalClient implements SampXmlRpcClient {
         OutputStream out = connection.getOutputStream();
         out.write( callBuf );
         out.flush();
-        int responseCode = connection.getResponseCode();
-        if ( responseCode != HttpURLConnection.HTTP_OK ) {
-            throw new IOException( responseCode + " "
-                                 + connection.getResponseMessage() );
-        }
   
         // It would be nice to just not read the input stream at all.
         // However, connection.setDoInput(false) and doing no reads causes
@@ -94,6 +92,11 @@ public class InternalClient implements SampXmlRpcClient {
                     InputStream in =
                         new BufferedInputStream( connection.getInputStream() );
                     while ( in.read() >= 0 ) {}
+                    int responseCode = connection.getResponseCode();
+                    if ( responseCode != HttpURLConnection.HTTP_OK ) {
+                        logger_.warning( responseCode + " " +
+                                         connection.getResponseMessage() );
+                    }
                 }
                 catch ( IOException e ) {
                 }
