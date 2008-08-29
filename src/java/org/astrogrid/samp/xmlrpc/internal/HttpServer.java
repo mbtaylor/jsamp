@@ -212,7 +212,7 @@ public class HttpServer {
         if ( serverThread != null ) {
             serverThread.interrupt();
             serverThread_ = null;
-            logger_.info( "Server " + getBaseUrl() + " starting" );
+            logger_.info( "Server " + getBaseUrl() + " stopping" );
         }
     }
 
@@ -264,6 +264,14 @@ public class HttpServer {
                 response = createErrorResponse( 500, e.getMessage(), e );
             }
         }
+        logger_.config( new StringBuffer().append( request.getMethod() )
+                                          .append( ' ' )
+                                          .append( request.getUrl() )
+                                          .append( " --> " )
+                                          .append( response.statusCode_ )
+                                          .append( ' ' )
+                                          .append( response.statusPhrase_ )
+                                          .toString() );
 
         // Send the response back to the client.
         BufferedOutputStream bos =
