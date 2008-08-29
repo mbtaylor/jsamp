@@ -104,17 +104,36 @@ public class Message extends SampMap {
     }
 
     /**
-     * Returns the value of a single entry in this messge's
+     * Returns the value of a single entry in this message's
      * <code>samp.params</code> map.  Null is returned if the parameter
      * does not appear.
      *
      * @param  name  param name
-     * @return  param value
+     * @return  param value, or null
      */
     public Object getParam( String name ) {
         Map params = getParams();
         return params == null ? null
                               : params.get( name );
+    }
+
+    /**
+     * Returns the value of a single entry in this message's
+     * <code>samp.params</code> map, throwing an exception 
+     * if it is not present.
+     *
+     * @param   name  param name
+     * @return   param value
+     * @throws   DataException   if no parameter <code>name</code> is present
+     */
+    public Object getRequiredParam( String name ) {
+        Object param = getParam( name );
+        if ( param != null ) {
+            return param;
+        }
+        else {
+            throw new DataException( "Missing parameter " + name );
+        }
     }
 
     public void check() {
