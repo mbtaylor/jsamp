@@ -221,11 +221,11 @@ public class HubConnector {
                         try {
                             HubConnection conn = getConnection();
                             if ( conn == null ) {
-                                logger_.config( "Autoconection attempt "
+                                logger_.config( "SAMP Autoconection attempt "
                                               + "failed" );
                             }
                             else {
-                                logger_.info( "Autoconnection attempt "
+                                logger_.info( "SAMP Autoconnection attempt "
                                             + "succeeded" );
                             }
                         }
@@ -254,7 +254,8 @@ public class HubConnector {
                 connection_.declareMetadata( md );
             }
             catch ( SampException e ) {
-                logger_.log( Level.WARNING, "Metadata declaration failed", e );
+                logger_.log( Level.WARNING,
+                             "SAMP metadata declaration failed", e );
             }
         }
     }
