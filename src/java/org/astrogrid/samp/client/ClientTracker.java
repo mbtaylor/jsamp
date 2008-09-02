@@ -207,8 +207,9 @@ class ClientTracker extends AbstractMessageHandler {
 
         // If it's not, but it applies to this client itself, it's just 
         // because we haven't added ourself to the client list yet.
-        // This is harmless and we can ignore it.
+        // Queue it.
         else if ( id.equals( connection.getRegInfo().getSelfId() ) ) {
+            opQueue_.add( op );
         }
 
         // Otherwise, the client is not yet known.  This is most likely 
@@ -220,8 +221,21 @@ class ClientTracker extends AbstractMessageHandler {
         // this operation so that it can be peformed at some future date
         // when we actually have a client object we can apply it to.
         else {
-            logger_.info( "No known client " + id + " for message "
-                        + op.getMType() + " - holding till later" );
+
+            // If it's for this client, this is just because it hasn't added
+            // itself to the client list yet.  Should get resolved very soon.
+            if ( id.equals( connection.getRegInfo().getSelfId() ) ) {
+                logger_.info( "Message " + op.getMType() + " arrived for self"
+                            + " - holding till later" );
+            }
+
+            // Otherwise less certain, but we still hope.
+            else {
+                logger_.info( "No known client " + id + " for message "
+                            + op.getMType() + " - holding till later" );
+            }
+
+            // Either way, queue it.
             opQueue_.add( op );
         }
     }
