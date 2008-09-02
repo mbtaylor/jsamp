@@ -42,8 +42,9 @@ public class HubMonitor extends JPanel {
     public HubMonitor( ClientProfile profile, int autoSec ) {
         super( new BorderLayout() );
 
-        // Set up a new HubConnector.
+        // Set up a new HubConnector and GUI decorations.
         HubConnector connector = new HubConnector( profile );
+        ConnectorGui gui = new ConnectorGui( connector );
 
         // Declare the default subscriptions.  This is required so that
         // the hub knows the client is subscribed to those hub.event
@@ -72,12 +73,12 @@ public class HubMonitor extends JPanel {
 
         // Create and place a component which allows the user to control
         // registration/unregistration explicitly.
-        connectBox.add( new JButton( connector.getRegisterAction() ),
+        connectBox.add( new JButton( gui.getToggleRegisterAction() ),
                         BorderLayout.CENTER );
 
         // Create and place a component which indicates current registration
         // status of this client.
-        connectBox.add( connector.createConnectionIndicator(),
+        connectBox.add( gui.createConnectionIndicator(),
                         BorderLayout.EAST );
 
         // Attempt registration, and arrange that if/when unregistered we look

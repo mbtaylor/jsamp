@@ -1,7 +1,5 @@
 package org.astrogrid.samp.client;
 
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,12 +10,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -119,7 +111,6 @@ public class HubConnector {
     private final ConnectorCallableClient callable_;
     private final Map responseMap_;
     private final List connectionListenerList_;
-    private RegisterAction regAction_;
     private ClientTracker clientTracker_;
     private boolean isActive_;
     private HubConnection connection_;
@@ -598,56 +589,6 @@ public class HubConnector {
     }
 
     /**
-     * Returns an Action which can be used to register/unregister with a hub.
-     * Invoking the action toggles the {@link #setActive} state.
-     * This action can be used as the model for a {@link javax.swing.JButton}
-     * or {@link javax.swing.JMenuItem} which allows users to 
-     * register/unregister.
-     *
-     * @return  register/unregister action
-     */
-    public Action getRegisterAction() {
-        if ( regAction_ == null ) {
-            regAction_ = new RegisterAction();
-        }
-        return regAction_;
-    }
-
-    /**
-     * Creates a component which indicates whether this connector is currently
-     * connected or not, using default icons.
-     *
-     * @return  connection indicator
-     */
-    public JComponent createConnectionIndicator() {
-        return createConnectionIndicator(
-            new ImageIcon( Client.class
-                          .getResource( "images/connected-24.gif" ) ),
-            new ImageIcon( Client.class
-                          .getResource( "images/disconnected-24.gif" ) )
-        );
-    }
-
-    /**
-     * Creates a component which indicates whether this connector is currently
-     * connected or not, using supplied icons.
-     *
-     * @param   onIcon  icon indicating connection
-     * @param   offIcon  icon indicating no connection
-     * @return  connection indicator
-     */
-    private JComponent createConnectionIndicator( final Icon onIcon,
-                                                  final Icon offIcon ) {
-        final JLabel label = new JLabel( isConnected() ? onIcon : offIcon );
-        addConnectionListener( new ChangeListener() {
-            public void stateChanged( ChangeEvent evt ) {
-                label.setIcon( isConnected() ? onIcon : offIcon );
-            }
-        } );
-        return label;
-    }
-
-    /**
      * Returns a list model which keeps track of other clients currently
      * registered with the hub to which this object is connected, including
      * their currently declared metadata and subscriptions.
@@ -821,59 +762,6 @@ public class HubConnector {
                 logger_.warning( "Multiple (" + handleCount + ")"
                                + " handlers handled message "
                                + msgTag + " respose" );
-            }
-        }
-    }
-
-    /**
-     * Action implementation which registers/unregisters.
-     */
-    private class RegisterAction extends AbstractAction {
-
-        /**
-         * Constructor.
-         */
-        public RegisterAction() {
-            doUpdateState();
-            addConnectionListener( new ChangeListener() {
-                public void stateChanged( ChangeEvent evt ) {
-                    doUpdateState();
-                }
-            } );
-        }
-
-        public void actionPerformed( ActionEvent evt ) {
-            String cmd = evt.getActionCommand();
-            if ( "REGISTER".equals( cmd ) ) {
-                setActive( true );
-                if ( ! isConnected() ) {
-                    Toolkit.getDefaultToolkit().beep();
-                }
-            }
-            else if ( "UNREGISTER".equals( cmd ) ) {
-                setActive( false );
-            }
-            else {
-                logger_.warning( "Unknown action " + cmd );
-            }
-        }
-
-        /**
-         * Configure this action in accordance with the current
-         * connection state.
-         */
-        private void doUpdateState() {
-            if ( isConnected() ) {
-                putValue( Action.ACTION_COMMAND_KEY, "UNREGISTER" );
-                putValue( Action.NAME, "Unregister from Hub" );
-                putValue( Action.SHORT_DESCRIPTION,
-                          "Disconnect from SAMP hub" );
-            }
-            else {
-                putValue( Action.ACTION_COMMAND_KEY, "REGISTER" );
-                putValue( Action.NAME, "Register with Hub" );
-                putValue( Action.SHORT_DESCRIPTION,
-                          "Attempt to connect to SAMP hub" );
             }
         }
     }
