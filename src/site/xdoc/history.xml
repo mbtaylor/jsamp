@@ -36,6 +36,8 @@
         </dd>
     <dt>Minor changes:</dt>
     <dd><ul>
+        <li>Moved some GUI functionality from <code>client.HubConnector</code>
+            to <code>gui.ConnectorGui</code>.</li>
         <li><code>HubClient</code> privateKey member is now an Object
             not a String, for greater generality.</li>
         <li><code>RegInfo(String,String,String)</code> constructor
