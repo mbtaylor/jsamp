@@ -557,8 +557,8 @@ public class HubConnector {
         if ( connection == null && isActive_ ) {
             connection = profile_.register();
             if ( connection != null ) {
-                configureConnection( connection );
                 connection_ = connection;
+                configureConnection( connection );
                 scheduleConnectionChange();
                 clientTracker_.initialise( connection );
             }
