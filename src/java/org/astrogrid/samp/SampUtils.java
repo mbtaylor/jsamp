@@ -10,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ public class SampUtils {
         Logger.getLogger( SampUtils.class.getName() );
     private static String sampVersion_;
     private static String softwareVersion_;
+    private static final String NEWLINE = getLineSeparator();
 
     /**
      * Private constructor prevents instantiation.
@@ -207,6 +209,91 @@ public class SampUtils {
     }
 
     /**
+     * Pretty-prints a SAMP object.
+     *
+     * @param   obj  SAMP-friendly object
+     * @param   indent   base indent for text block
+     * @return   string containing formatted object
+     */
+    public static String formatObject( Object obj, int indent ) {
+        checkObject( obj );
+        StringBuffer sbuf = new StringBuffer();
+        formatObject( sbuf, 0, indent, obj );
+        return sbuf.toString();
+    }
+
+    /**
+     * Recursive routine which does the work for formatObject.
+     *
+     * @param   sbuf   string buffer to accumulate result
+     * @param   level  indent level (starts at 0, increments by 1)
+     * @param   indent  base block indentation (number of spaces)
+     * @param   obj  object to append to sbuf
+     */
+    private static void formatObject( StringBuffer sbuf, int level, int indent,
+                                      Object obj ) {
+        if ( obj instanceof String ) {
+            boolean top = sbuf.length() == 0;
+            String txt = (String) obj;
+            int npad = indent + level * 3;
+            String[] lines = txt.split( NEWLINE );
+            for ( int il = 0; il < lines.length; il++ ) {
+                if ( ! top ) {
+                    sbuf.append( '\n' );
+                }
+                for ( int ip = 0; ip < npad; ip++ ) {
+                    sbuf.append( ' ' );
+                }
+                sbuf.append( lines[ il ] );
+            }
+        }
+        else if ( obj instanceof List ) {
+            List list = (List) obj;
+            boolean top = sbuf.length() == 0;
+            if ( ! top ) {
+                sbuf.append( '[' );
+            }
+            for ( Iterator it = list.iterator(); it.hasNext(); ) {
+                formatObject( sbuf, level + 1, indent, it.next() );
+            }
+            if ( ! top ) {
+                if ( ! list.isEmpty() ) {
+                    sbuf.append( ' ' );
+                }
+                sbuf.append( ']' );
+            }
+        }
+        else if ( obj instanceof Map ) {
+            Map map = (Map) obj;
+            boolean top = sbuf.length() == 0;
+            if ( ! top ) {
+                sbuf.append( '{' );
+            }
+            for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry entry = (Map.Entry) it.next();
+                String key = (String) entry.getKey();
+                Object value = entry.getValue();
+                if ( value instanceof String ) {
+                    formatObject( sbuf, level, indent, key + ": " + value );
+                }
+                else {
+                    formatObject( sbuf, level, indent, key + ": " );
+                    formatObject( sbuf, level + 1, indent, value );
+                }
+            }
+            if ( ! top ) {
+                if ( ! map.isEmpty() ) {
+                    sbuf.append( ' ' );
+                }
+                sbuf.append( '}' );
+            }
+        }
+        else {
+            assert false;
+        }
+    }
+
+    /**
      * Returns the location of the Standard Profile lockfile.
      * This is the file <code>.samp</code> in the user's "home" directory.
      *
@@ -311,7 +398,21 @@ public class SampUtils {
             return "??";
         }
     }
-       
+
+    /**
+     * Returns the system-dependent line separator sequence.
+     *
+     * @return  line separator
+     */
+    private static String getLineSeparator() {
+        try {
+            return System.getProperty( "line.separator", "\n" );
+        }
+        catch ( SecurityException e ) {
+            return "\n";
+        }
+    }
+
     /**
      * Locates an unused server port on the local host.
      * Potential problem: between when this method completes and when
