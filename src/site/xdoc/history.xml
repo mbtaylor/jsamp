@@ -34,6 +34,10 @@
         the Apache XML-RPC library (nor any other external library) is 
         required for operation.
         </dd>
+    <dt>New command <code>snooper</code></dt>
+    <dd>Logs received messages to the terminal.
+        Useful for debugging.
+        </dd>
     <dt>Minor changes:</dt>
     <dd><ul>
         <li>Moved some GUI functionality from <code>client.HubConnector</code>

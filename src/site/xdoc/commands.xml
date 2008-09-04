@@ -8,6 +8,8 @@
            "../../../target/docs/org.astrogrid.samp.xmlrpc.HubRunner.usage">
   <!ENTITY hubmonitor-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.gui.HubMonitor.usage">
+  <!ENTITY snooper-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.test.Snooper.usage">
   <!ENTITY messagesender-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.test.MessageSender.usage">
   <!ENTITY hubtester-usage SYSTEM
@@ -141,6 +143,32 @@ See the source code for details.
     </dd>
 <dt><code>-nogui</code></dt>
 <dd>The monitor registers as a client, but no window is displayed.
+    </dd>
+</dl>
+
+</subsection>
+
+<subsection name="Snooper">
+
+<p>The <code>org.astrogrid.samp.test.Snooper</code> class
+runs a SAMP client which subscribes to some or all MTypes and logs
+each message it receives to the terminal.
+This can be useful for debugging, especially for testing whether your
+application is sending messages which look right.
+Since it does not actually understand the messages which have been
+sent, it sends a Response with 
+<code>samp.status</code>=<code>samp.warning</code>.
+</p>
+
+<p>Snooper usage is:
+</p>
+<source>&snooper-usage;</source>
+<dl>
+<dt><code>-mtypes &lt;pattern&gt;</code></dt>
+<dd>Gives an MType or wildcarded MType to subscribe to.
+    This flag may be repeated to subscribe to several different MType patterns.
+    If omitted, a value of "<code>*</code>", i.e. subscription to all MTypes,
+    will be assumed.
     </dd>
 </dl>
 
