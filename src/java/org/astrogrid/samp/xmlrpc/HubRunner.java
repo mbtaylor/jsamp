@@ -384,6 +384,21 @@ public class HubRunner {
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         runHub( gui, xmlrpc );
+
+        // For non-GUI case block indefinitely otherwise the hub (which uses
+        // a daemon thread) will not just exit immediately.
+        if ( ! gui ) {
+            Object lock = new String( "Indefinite" );
+            synchronized ( lock ) {
+                try {
+                    lock.wait();
+                }
+                catch ( InterruptedException e ) {
+                }
+            }
+        }
+
+        // Success return.
         return 0;
     }
 
@@ -431,5 +446,39 @@ public class HubRunner {
                            hubService, SampUtils.getLockFile() );
         hubRunners[ 0 ] = runner;
         runner.start();
+    }
+
+    /**
+     * Static method which will attempt to start a hub running in 
+     * an external JVM.  The resulting hub can therefore outlast the
+     * lifetime of the current application.
+     * Because of the OS interaction required, it's hard to make this
+     * bulletproof, and it may fail without an exception, but we do our best.
+     *
+     * @param   gui   if true, display a window showing hub status
+     */
+    public static void runExternalHub( boolean gui ) throws IOException {
+        File javaHome = new File( System.getProperty( "java.home" ) );
+        File javaExec = new File( new File( javaHome, "bin" ), "java" );
+        String javacmd = ( javaExec.exists() && ! javaExec.isDirectory() )
+                       ? javaExec.toString()
+                       : "java";
+        String[] args = new String[] {
+            javacmd,
+            "-classpath",
+            System.getProperty( "java.class.path" ),
+            HubRunner.class.getName(),
+            ( gui ? "-gui" : "-nogui" ),
+        };
+        StringBuffer cmdbuf = new StringBuffer();
+        for ( int iarg = 0; iarg < args.length; iarg++ ) {
+            if ( iarg > 0 ) {
+                cmdbuf.append( ' ' );
+            }
+            cmdbuf.append( args[ iarg ] );
+        }
+        logger_.info( "Starting external hub" );
+        logger_.info( cmdbuf.toString() );
+        Runtime.getRuntime().exec( args );
     }
 }
