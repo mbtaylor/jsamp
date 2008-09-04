@@ -22,6 +22,7 @@ public class JSamp {
         "org.astrogrid.samp.test.HubTester",
         "org.astrogrid.samp.test.CalcStorm",
         "org.astrogrid.samp.test.MessageSender",
+        "org.astrogrid.samp.test.Snooper",
         "org.astrogrid.samp.xmlrpc.HubRunner",
     };
 
