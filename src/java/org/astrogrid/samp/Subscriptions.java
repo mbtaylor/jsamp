@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Subscriptions extends SampMap {
 
-    private static final String ATOM_REGEX = "[0-9a-z\\-_]+";
+    private static final String ATOM_REGEX = "[0-9a-zA-Z\\-_]+";
     private static String MTYPE_REGEX =
         "(" + ATOM_REGEX + "\\.)*" + ATOM_REGEX;
     private static String MSUB_REGEX =
@@ -109,7 +109,8 @@ public class Subscriptions extends SampMap {
             String key = (String) entry.getKey();
             Object value = entry.getValue();
             if ( ! MSUB_PATTERN.matcher( key ).matches() ) {
-                throw new DataException( "Illegal subscription key " + key );
+                throw new DataException( "Illegal subscription key "
+                                       + "\"" + key + "\"" );
             }
             if ( ! ( value instanceof Map ) ) {
                 throw new DataException( "Subscription values "
