@@ -3,6 +3,8 @@ package org.astrogrid.samp;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Represents the set of subscribed messages for a SAMP client.
@@ -14,6 +16,13 @@ import java.util.Map;
  * @since    14 Jul 2008
  */
 public class Subscriptions extends SampMap {
+
+    private static final String ATOM_REGEX = "[0-9a-z\\-_]+";
+    private static String MTYPE_REGEX =
+        "(" + ATOM_REGEX + "\\.)*" + ATOM_REGEX;
+    private static String MSUB_REGEX =
+        "(" + MTYPE_REGEX + "|" + MTYPE_REGEX + "\\.\\*" + "|" + "\\*" + ")";
+    private static final Pattern MSUB_PATTERN = Pattern.compile( MSUB_REGEX );
 
     /**
      * Constructs an empty subscriptions object.
@@ -90,6 +99,22 @@ public class Subscriptions extends SampMap {
                 }
             }
             return bestValue;
+        }
+    }
+
+    public void check() {
+        super.check();
+        for ( Iterator it = entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            String key = (String) entry.getKey();
+            Object value = entry.getValue();
+            if ( ! MSUB_PATTERN.matcher( key ).matches() ) {
+                throw new DataException( "Illegal subscription key " + key );
+            }
+            if ( ! ( value instanceof Map ) ) {
+                throw new DataException( "Subscription values "
+                                       + "are not all maps" );
+            }
         }
     }
 
