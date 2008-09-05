@@ -44,7 +44,9 @@ public abstract class SendActionManager {
      * Constructor.
      *
      * @param  connector   hub connector
-     * @param  mtype   MType for messages transmitted by this object's actions
+     * @param  clientListModel  list model containing only those
+     *         clients which are suitable recipients;
+     *         all elements must be {@link org.astrogrid.samp.Client}s
      */
     protected SendActionManager( HubConnector connector,
                                  ListModel clientListModel ) {
