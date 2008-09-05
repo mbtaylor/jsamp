@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -19,6 +20,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.client.HubConnector;
+import org.astrogrid.samp.xmlrpc.HubRunner;
+import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 /**
  * Provides a number of useful Swing actions and components for use
@@ -35,6 +38,8 @@ public class ConnectorGui {
     private final RegisterAction regAct_;
     private final RegisterAction unregAct_;
     private final Action monitorAct_;
+    private final Action intHubAct_;
+    private final Action extHubAct_;
     private final List componentList_;
 
     /**
@@ -48,6 +53,8 @@ public class ConnectorGui {
         unregAct_ = new RegisterAction( false );
         toggleRegAct_ = new RegisterAction();
         monitorAct_ = new MonitorAction();
+        intHubAct_ = new HubAction( false, true );
+        extHubAct_ = new HubAction( true, true );
         componentList_ = new ArrayList();
 
         connector.addConnectionListener( new ChangeListener() {
@@ -85,6 +92,34 @@ public class ConnectorGui {
      */
     public Action getToggleRegisterAction() {
         return toggleRegAct_;
+    }
+
+    /**
+     * Returns an action which will display a SAMP hub monitor window.
+     *
+     * @return   monitor window action
+     */
+    public Action getShowMonitorAction() {
+        return monitorAct_;
+    }
+
+    /**
+     * Returns an action which will start up a SAMP hub in a new independent
+     * JVM.
+     *
+     * @return  external hub action
+     */
+    public Action getExternalHubAction() {
+        return extHubAct_;
+    }
+
+    /**
+     * Returns an action which will start up a SAMP hub in the current JVM.
+     *
+     * @return   internal hub action
+     */
+    public Action getInternalHubAction() {
+        return intHubAct_;
     }
 
     /**
@@ -138,6 +173,8 @@ public class ConnectorGui {
         regAct_.setEnabled( ! isConn );
         unregAct_.setEnabled( isConn );
         toggleRegAct_.setSense( ! isConn );
+        intHubAct_.setEnabled( ! isConn );
+        extHubAct_.setEnabled( ! isConn );
         for ( Iterator it = componentList_.iterator(); it.hasNext(); ) {
             ((Component) it.next()).repaint();
         }
@@ -223,6 +260,57 @@ public class ConnectorGui {
                 monitorWindow_.pack();
             }
             monitorWindow_.setVisible( true );
+        }
+    }
+
+    /**
+     * Action subclass for running a hub.
+     */
+    private class HubAction extends AbstractAction {
+        private final boolean external_;
+        private final boolean gui_;
+
+        /**
+         * Constructor.
+         *
+         * @param   external   false to run in the current JVM,
+         *                     true to run in a new one
+         * @param   gui   true to show a hub monitor window
+         */
+        HubAction( boolean external, boolean gui ) {
+            external_ = external;
+            gui_ = gui;
+            putValue( NAME,
+                      "Start " + ( external ? "external" : "internal" )
+                    + " hub" );
+            putValue( SHORT_DESCRIPTION,
+                      "Attempts to start up a SAMP hub"
+                    + ( external ? " running independently of this application"
+                                 : " running within this application" ) );
+        }
+
+        public void actionPerformed( ActionEvent evt ) {
+            try {
+                attemptRunHub();
+            }
+            catch ( Exception e ) {
+                ErrorDialog.showError( null, "Hub Start Failed",
+                                       e.getMessage(), e );
+            }
+            connector_.setActive( true );
+        }
+
+        /**
+         * Tries to start a hub, but may throw an exception.
+         */
+        private void attemptRunHub() throws IOException {
+            if ( external_ ) {
+                HubRunner.runExternalHub( gui_ );
+            }
+            else {
+                HubRunner.runHub( gui_, XmlRpcImplementation.getInstance() );
+            }
+            connector_.setActive( true );
         }
     }
 }
