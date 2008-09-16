@@ -15,7 +15,6 @@ import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 public class HubConnectorTest extends TestCase {
 

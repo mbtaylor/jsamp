@@ -13,7 +13,6 @@ import org.astrogrid.samp.test.CalcStorm;
 import org.astrogrid.samp.test.Calculator;
 import org.astrogrid.samp.test.HubTester;
 import org.astrogrid.samp.xmlrpc.HubRunner;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
 
 /**
  * Hub test case.
