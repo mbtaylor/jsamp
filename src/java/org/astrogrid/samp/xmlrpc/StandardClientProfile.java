@@ -1,6 +1,7 @@
 package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
+import java.net.URL;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
@@ -16,21 +17,30 @@ import org.astrogrid.samp.client.SampException;
  */
 public class StandardClientProfile implements ClientProfile {
 
-    private final SampXmlRpcClient xClient_;
+    private final SampXmlRpcClientFactory xClientFactory_;
     private final SampXmlRpcServerFactory xServerFactory_;
 
     private static StandardClientProfile defaultInstance_;
     
     /**
-     * Constructor.
+     * Constructs a profile given client and server factory implementations.
      *
-     * @param   xClient   XML-RPC client implementation
+     * @param   xClientFactory   XML-RPC client factory implementation
      * @param   xServerFactory   XML-RPC server factory implementation
      */
-    public StandardClientProfile( SampXmlRpcClient xClient,
+    public StandardClientProfile( SampXmlRpcClientFactory xClientFactory,
                                   SampXmlRpcServerFactory xServerFactory ) {
-        xClient_ = xClient;
+        xClientFactory_ = xClientFactory;
         xServerFactory_ = xServerFactory;
+    }
+
+    /**
+     * Constructs a profile given an XmlRpcKit object.
+     *
+     * @param  xmlrpc  XML-RPC implementation
+     */
+    public StandardClientProfile( XmlRpcKit xmlrpc ) {
+        this( xmlrpc.getClientFactory(), xmlrpc.getServerFactory() );
     }
 
     public HubConnection register() throws SampException {
@@ -48,8 +58,15 @@ public class StandardClientProfile implements ClientProfile {
             return null;
         }
         else {
-            return new XmlRpcHubConnection( xClient_, xServerFactory_,
-                                            lockInfo.getXmlrpcUrl(),
+            SampXmlRpcClient xClient;
+            URL xurl = lockInfo.getXmlrpcUrl();
+            try {
+                xClient = xClientFactory_.createClient( xurl );
+            }
+            catch ( IOException e ) {
+                throw new SampException( "Can't connect to " + xurl, e );
+            }
+            return new XmlRpcHubConnection( xClient, xServerFactory_,
                                             lockInfo.getSecret() );
         }
     }
@@ -65,7 +82,7 @@ public class StandardClientProfile implements ClientProfile {
         if ( defaultInstance_ == null ) {
             XmlRpcKit xmlrpc = XmlRpcKit.getInstance();
             defaultInstance_ =
-                new StandardClientProfile( xmlrpc.getClient(),
+                new StandardClientProfile( xmlrpc.getClientFactory(),
                                            xmlrpc.getServerFactory() );
         }
         return defaultInstance_;

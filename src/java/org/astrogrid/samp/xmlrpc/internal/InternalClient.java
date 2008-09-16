@@ -30,18 +30,25 @@ import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
  */
 public class InternalClient implements SampXmlRpcClient {
 
+    private final URL endpoint_;
     private final String userAgent_;
     private static final Logger logger_ =
         Logger.getLogger( InternalClient.class.getName() );
 
-    public InternalClient() {
+    /**
+     * Constructor.
+     *
+     * @param  endpoint  endpoint
+     */
+    public InternalClient( URL endpoint ) {
+        endpoint_ = endpoint;
         userAgent_ = "JSAMP/" + SampUtils.getSoftwareVersion();
     }
 
-    public Object callAndWait( URL endpoint, String method, List params )
+    public Object callAndWait( String method, List params )
             throws IOException {
-        HttpURLConnection connection = 
-            (HttpURLConnection) endpoint.openConnection();
+        HttpURLConnection connection =
+            (HttpURLConnection) endpoint_.openConnection();
         byte[] callBuf = serializeCall( method, params );
         connection.setDoOutput( true );
         connection.setDoInput( true );
@@ -65,10 +72,10 @@ public class InternalClient implements SampXmlRpcClient {
         return result;
     }
 
-    public void callAndForget( URL endpoint, String method, List params )
+    public void callAndForget( String method, List params )
             throws IOException {
         final HttpURLConnection connection =
-            (HttpURLConnection) endpoint.openConnection();
+            (HttpURLConnection) endpoint_.openConnection();
         byte[] callBuf = serializeCall( method, params );
         connection.setDoOutput( true );
         connection.setDoInput( true );
@@ -81,7 +88,7 @@ public class InternalClient implements SampXmlRpcClient {
         OutputStream out = connection.getOutputStream();
         out.write( callBuf );
         out.flush();
-  
+
         // It would be nice to just not read the input stream at all.
         // However, connection.setDoInput(false) and doing no reads causes
         // trouble - probably the call doesn't complete at the other end or
@@ -108,7 +115,7 @@ public class InternalClient implements SampXmlRpcClient {
     }
 
     /**
-     * Generates the XML <code>methodCall</code> document corresponding 
+     * Generates the XML <code>methodCall</code> document corresponding
      * to an XML-RPC method call.
      *
      * @param   method  methodName  string

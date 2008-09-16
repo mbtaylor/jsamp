@@ -1,7 +1,6 @@
 package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +26,6 @@ public class XmlRpcHubConnection implements HubConnection {
 
     private final SampXmlRpcClient xClient_;
     private final SampXmlRpcServerFactory serverFactory_;
-    private final URL endpoint_;
     private final RegInfo regInfo_;
     private CallableClientServer callableServer_;
     private boolean unregistered_;
@@ -37,16 +35,14 @@ public class XmlRpcHubConnection implements HubConnection {
      *
      * @param   xClient   XML-RPC client
      * @param   serverFactory  XML-RPC server factory implementation
-     * @param   hubUrl  hub XML-RPC endpoint
      * @param   secret  samp.secret registration password
      */
     public XmlRpcHubConnection( SampXmlRpcClient xClient,
                                 SampXmlRpcServerFactory serverFactory,
-                                URL hubUrl, String secret )
+                                String secret )
             throws SampException {
         xClient_ = xClient;
         serverFactory_ = serverFactory;
-        endpoint_ = hubUrl;
         Object regInfo =
             rawExec( "samp.hub.register", Collections.singletonList( secret ) );
         if ( regInfo instanceof Map ) {
@@ -185,7 +181,7 @@ public class XmlRpcHubConnection implements HubConnection {
     private Object rawExec( String fqName, List paramList )
             throws SampException {
         try {
-            return xClient_.callAndWait( endpoint_, fqName, paramList );
+            return xClient_.callAndWait( fqName, paramList );
         }
         catch ( IOException e ) {
             throw new SampException( e.getMessage(), e );

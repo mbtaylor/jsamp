@@ -235,10 +235,8 @@ public class Snooper {
 
         // Get profile.
         ClientProfile profile =
-            xmlrpc == null
-                ? StandardClientProfile.getInstance()
-                : new StandardClientProfile( xmlrpc.getClient(),
-                                             xmlrpc.getServerFactory() );
+            xmlrpc == null ? StandardClientProfile.getInstance()
+                           : new StandardClientProfile( xmlrpc );
 
         // Start and run snooper.
         new Snooper( profile, subs, System.out, 2 );

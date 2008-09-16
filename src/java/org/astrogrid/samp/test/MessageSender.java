@@ -243,10 +243,8 @@ public abstract class MessageSender {
 
         // Get profile.
         ClientProfile profile =
-            xmlrpc == null
-                ? StandardClientProfile.getInstance()
-                : new StandardClientProfile( xmlrpc.getClient(),
-                                             xmlrpc.getServerFactory() );
+            xmlrpc == null ? StandardClientProfile.getInstance()
+                           : new StandardClientProfile( xmlrpc );
 
         // Create a message sender object.
         final MessageSender sender;

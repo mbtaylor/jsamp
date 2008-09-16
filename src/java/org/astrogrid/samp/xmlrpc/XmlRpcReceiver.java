@@ -1,7 +1,6 @@
 package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,6 @@ import org.astrogrid.samp.hub.Receiver;
 class XmlRpcReceiver implements Receiver {
 
     private final String privateKey_;
-    private final URL endpoint_;
     private final SampXmlRpcClient xClient_;
 
     /**
@@ -27,13 +25,10 @@ class XmlRpcReceiver implements Receiver {
      *
      * @param  xClient  XML-RPC client implementation
      * @param  SAMP client's private key
-     * @param  url  XML-RPC endpoint for calling the SAMP client
      */
-    public XmlRpcReceiver( SampXmlRpcClient xClient, String privateKey,
-                           URL url ) {
+    public XmlRpcReceiver( SampXmlRpcClient xClient, String privateKey ) {
         xClient_ = xClient;
         privateKey_ = privateKey;
-        endpoint_ = url;
     }
 
     public void receiveCall( String senderId, String msgId, Map message )
@@ -85,6 +80,6 @@ class XmlRpcReceiver implements Receiver {
      * @return  XML-RPC call return value
      */
     private void rawExec( String fqName, List paramList ) throws IOException {
-        xClient_.callAndForget( endpoint_, fqName, paramList );
+        xClient_.callAndForget( fqName, paramList );
     }
 }

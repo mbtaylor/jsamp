@@ -11,6 +11,7 @@ import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 import org.astrogrid.samp.xmlrpc.XmlRpcHubConnection;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
@@ -28,29 +29,29 @@ public class TestClientProfile implements ClientProfile {
 
     private final File lockFile_;
     private final Random random_;
-    private final SampXmlRpcClient hubClient_;
+    private final SampXmlRpcClientFactory hubClientFactory_;
     private final SampXmlRpcServerFactory hubServerFactory_;
-    private final SampXmlRpcClient clientClient_;
+    private final SampXmlRpcClientFactory clientClientFactory_;
     private final SampXmlRpcServerFactory clientServerFactory_;
     private HubRunner hubRunner_;
 
     public TestClientProfile( Random random, XmlRpcKit xmlrpc ) {
-        this( random, xmlrpc.getClient(), xmlrpc.getServerFactory(),
-                      xmlrpc.getClient(), xmlrpc.getServerFactory() );
+        this( random, xmlrpc.getClientFactory(), xmlrpc.getServerFactory(),
+                      xmlrpc.getClientFactory(), xmlrpc.getServerFactory() );
     }
 
     /**
      * Constructor.
      */
     public TestClientProfile( Random random,
-                              SampXmlRpcClient hubClient,
+                              SampXmlRpcClientFactory hubClientFactory,
                               SampXmlRpcServerFactory hubServerFactory,
-                              SampXmlRpcClient clientClient,
+                              SampXmlRpcClientFactory clientClientFactory,
                               SampXmlRpcServerFactory clientServerFactory ) {
         random_ = random;
-        hubClient_ = hubClient;
+        hubClientFactory_ = hubClientFactory;
         hubServerFactory_ = hubServerFactory;
-        clientClient_ = clientClient;
+        clientClientFactory_ = clientClientFactory;
         clientServerFactory_ = clientServerFactory;
         File dir = new File( System.getProperty( "user.dir", "." ) );
         try {
@@ -71,8 +72,8 @@ public class TestClientProfile implements ClientProfile {
             throw new IllegalStateException();
         }
         HubService service = new BasicHubService( random_ );
-        hubRunner_ =
-            new HubRunner( hubClient_, hubServerFactory_, service, lockFile_ );
+        hubRunner_ = new HubRunner( hubClientFactory_, hubServerFactory_,
+                                    service, lockFile_ );
         hubRunner_.start();
     }
 
@@ -101,9 +102,10 @@ public class TestClientProfile implements ClientProfile {
                 catch ( DataException e ) {
                     return null;
                 }
-                return new XmlRpcHubConnection( clientClient_,
-                                                clientServerFactory_,
-                                                lockInfo.getXmlrpcUrl(),
+                SampXmlRpcClient xClient =
+                    clientClientFactory_.createClient( lockInfo
+                                                      .getXmlrpcUrl() );
+                return new XmlRpcHubConnection( xClient, clientServerFactory_,
                                                 lockInfo.getSecret() );
             }
         }
@@ -113,9 +115,9 @@ public class TestClientProfile implements ClientProfile {
     }
 
     public static TestClientProfile[] getTestProfiles( Random random ) {
-        SampXmlRpcClient aClient = XmlRpcKit.APACHE.getClient();
+        SampXmlRpcClientFactory aClient = XmlRpcKit.APACHE.getClientFactory();
         SampXmlRpcServerFactory aServ = XmlRpcKit.APACHE.getServerFactory();
-        SampXmlRpcClient iClient = XmlRpcKit.INTERNAL.getClient();
+        SampXmlRpcClientFactory iClient = XmlRpcKit.INTERNAL.getClientFactory();
         SampXmlRpcServerFactory iServ = XmlRpcKit.INTERNAL.getServerFactory();
         return new TestClientProfile[] {
             new TestClientProfile( random, aClient, aServ, iClient, iServ ),

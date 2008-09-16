@@ -19,22 +19,18 @@ public interface SampXmlRpcClient {
      * Makes a synchronous call, waiting for the response and returning
      * the result.
      *
-     * @param  endpoint  URL for XML-RPC server
      * @param  method    XML-RPC method name
      * @param  params    parameters for XML-RPC call (SAMP-compatible)
      * @return   XML-RPC call return value (SAMP-compatible)
      */
-    Object callAndWait( URL endpoint, String method, List params )
-            throws IOException;
+    Object callAndWait( String method, List params ) throws IOException;
 
     /**
      * Sends a call, but does not wait around for the response.
      * If possible, this method should complete quickly.
      *
-     * @param  endpoint  URL for XML-RPC server
      * @param  method    XML-RPC method name
      * @param  params    parameters for XML-RPC call (SAMP-compatible)
      */
-    void callAndForget( URL endpoint, String method, List params )
-            throws IOException;
+    void callAndForget( String method, List params ) throws IOException;
 }

@@ -285,10 +285,8 @@ public class CalcStorm {
 
         // Prepare profile.
         ClientProfile profile =
-            xmlrpc == null
-                ? StandardClientProfile.getInstance()
-                : new StandardClientProfile( xmlrpc.getClient(),
-                                             xmlrpc.getServerFactory() );
+            xmlrpc == null ? StandardClientProfile.getInstance()
+                           : new StandardClientProfile( xmlrpc );
 
         // Set up GUI monitor if required.
         JFrame frame;

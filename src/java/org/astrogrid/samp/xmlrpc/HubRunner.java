@@ -37,7 +37,7 @@ import org.astrogrid.samp.hub.LockWriter;
  */
 public class HubRunner {
 
-    private final SampXmlRpcClient xClient_;
+    private final SampXmlRpcClientFactory xClientFactory_;
     private final SampXmlRpcServerFactory xServerFactory_;
     private final HubService hub_;
     private final File lockfile_;
@@ -55,15 +55,15 @@ public class HubRunner {
      * If the supplied <code>lockfile</code> is null, no lockfile will
      * be written at hub startup.
      *
-     * @param   xClient   XML-RPC client implementation
+     * @param   xClientFactory   XML-RPC client factory implementation
      * @param   xServerFactory  XML-RPC server implementation
      * @param   hub   object providing hub services
      * @param   lockfile  location to use for hub lockfile, or null
      */
-    public HubRunner( SampXmlRpcClient xClient, 
+    public HubRunner( SampXmlRpcClientFactory xClientFactory, 
                       SampXmlRpcServerFactory xServerFactory,
                       HubService hub, File lockfile ) {
-        xClient_ = xClient;
+        xClientFactory_ = xClientFactory;
         xServerFactory_ = xServerFactory;
         hub_ = hub;
         lockfile_ = lockfile;
@@ -78,7 +78,7 @@ public class HubRunner {
 
         // Check for running or moribund hub.
         if ( lockfile_ != null && lockfile_.exists() ) {
-            if ( isHubAlive( xClient_, lockfile_ ) ) {
+            if ( isHubAlive( xClientFactory_, lockfile_ ) ) {
                 throw new IOException( "A hub is already running" );
             }
             else {
@@ -103,7 +103,7 @@ public class HubRunner {
         // Start the hub service.
         hub_.start();
         String secret = createSecret();
-        hubHandler_ = new HubXmlRpcHandler( xClient_, hub_, secret );
+        hubHandler_ = new HubXmlRpcHandler( xClientFactory_, hub_, secret );
         server_.addHandler( hubHandler_ );
 
         // Ensure tidy up in case of JVM shutdown.
@@ -249,12 +249,12 @@ public class HubRunner {
      * Attempts to determine whether a given lockfile corresponds to a hub
      * which is still alive.
      *
-     * @param  xClient  XML-RPC client implementation
+     * @param  xClientFactory  XML-RPC client factory implementation
      * @param  lockfile  lockfile location
      * @return  true if the hub described at <code>lockfile</code> appears 
      *          to be alive and well
      */
-    private static boolean isHubAlive( SampXmlRpcClient xClient,
+    private static boolean isHubAlive( SampXmlRpcClientFactory xClientFactory,
                                        File lockfile ) {
         LockInfo info;
         try { 
@@ -270,7 +270,8 @@ public class HubRunner {
         URL xurl = info.getXmlrpcUrl();
         if ( xurl != null ) {
             try {
-                xClient.callAndWait( xurl, "samp.hub.ping", new ArrayList() );
+                xClientFactory.createClient( xurl )
+                              .callAndWait( "samp.hub.ping", new ArrayList() );
                 return true;
             }
             catch ( Exception e ) {
@@ -442,7 +443,7 @@ public class HubRunner {
             xmlrpc = XmlRpcKit.getInstance();
         }
         HubRunner runner =
-            new HubRunner( xmlrpc.getClient(), xmlrpc.getServerFactory(),
+            new HubRunner( xmlrpc.getClientFactory(), xmlrpc.getServerFactory(),
                            hubService, SampUtils.getLockFile() );
         hubRunners[ 0 ] = runner;
         runner.start();

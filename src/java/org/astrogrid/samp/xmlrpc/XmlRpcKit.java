@@ -23,12 +23,12 @@ public abstract class XmlRpcKit {
             APACHE =
                 new ReflectionKit(
                     "apache",
-                    "org.astrogrid.samp.xmlrpc.apache.ApacheClient",
+                    "org.astrogrid.samp.xmlrpc.apache.ApacheClientFactory",
                     "org.astrogrid.samp.xmlrpc.apache.ApacheServerFactory" );
             INTERNAL =
                 new ReflectionKit(
                     "internal",
-                    "org.astrogrid.samp.xmlrpc.internal.InternalClient",
+                    "org.astrogrid.samp.xmlrpc.internal.InternalClientFactory",
                     "org.astrogrid.samp.xmlrpc.internal.InternalServerFactory"
                 );
         }
@@ -65,16 +65,16 @@ public abstract class XmlRpcKit {
     public abstract SampXmlRpcServerFactory getServerFactory();
 
     /**
-     * Returns an XML-RPC client.
+     * Returns an XML-RPC client factory.
      *
-     * @return  client
+     * @return  client factory
      */
-    public abstract SampXmlRpcClient getClient();
+    public abstract SampXmlRpcClientFactory getClientFactory();
 
     /**
      * Indicates whether this object is ready for use.
      * If it returns false (perhaps because some classes are unavailable
-     * at runtime) then {@link #getClient} and {@link #getServerFactory}
+     * at runtime) then {@link #getClientFactory} and {@link #getServerFactory}
      * may throw exceptions rather than behaving as documented.
      *
      * @return   true if this object works
@@ -193,7 +193,7 @@ public abstract class XmlRpcKit {
      */
     private static class ReflectionKit extends XmlRpcKit {
         private final String name_;
-        private final SampXmlRpcClient xClient_;
+        private final SampXmlRpcClientFactory xClientFactory_;
         private final SampXmlRpcServerFactory xServerFactory_;
         private final Throwable clientError_;
         private final Throwable serverError_;
@@ -203,32 +203,32 @@ public abstract class XmlRpcKit {
          * Constructor.
          *
          * @param   name   implementation name
-         * @param   clientClassName  name of SampXmlRpcClient 
+         * @param   clientFactoryClassName  name of SampXmlRpcClientFactory
          *                implementation class
          * @param   serverFactoryClassName  name of SampXmlRpcServerFactory
          *                implementation class
          */
-        ReflectionKit( String name, String clientClassName,
+        ReflectionKit( String name, String clientFactoryClassName,
                        String serverFactoryClassName )
                 throws InstantiationException, IllegalAccessException {
             name_ = name;
-            SampXmlRpcClient client;
+            SampXmlRpcClientFactory clientFactory;
             Throwable clientError;
             try {
-                client =
-                    (SampXmlRpcClient)
-                    Class.forName( clientClassName ).newInstance();
+                clientFactory =
+                    (SampXmlRpcClientFactory)
+                    Class.forName( clientFactoryClassName ).newInstance();
                 clientError = null;
             }
             catch ( ClassNotFoundException e ) {
-                client = null;
+                clientFactory = null;
                 clientError = e;
             }
             catch ( LinkageError e ) {
-                client = null;
+                clientFactory = null;
                 clientError = e;
             }
-            xClient_ = client;
+            xClientFactory_ = clientFactory;
             clientError_ = clientError;
 
             SampXmlRpcServerFactory serverFactory;
@@ -249,12 +249,12 @@ public abstract class XmlRpcKit {
             }
             xServerFactory_ = serverFactory;
             serverError_ = null;
-            isAvailable_ = xClient_ != null && xServerFactory_ != null;
+            isAvailable_ = xClientFactory_ != null && xServerFactory_ != null;
         }
 
-        public SampXmlRpcClient getClient() {
-            if ( xClient_ != null ) {
-                return xClient_;
+        public SampXmlRpcClientFactory getClientFactory() {
+            if ( xClientFactory_ != null ) {
+                return xClientFactory_;
             }
             else {
                 assert clientError_ != null;

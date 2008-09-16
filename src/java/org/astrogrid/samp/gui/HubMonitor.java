@@ -170,10 +170,8 @@ public class HubMonitor extends JPanel {
 
         // Get profile.
         ClientProfile profile =
-            xmlrpc == null
-                ? StandardClientProfile.getInstance()
-                : new StandardClientProfile( xmlrpc.getClient(),
-                                             xmlrpc.getServerFactory() );
+            xmlrpc == null ? StandardClientProfile.getInstance()
+                           : new StandardClientProfile( xmlrpc );
 
         // Start the gui in a new window.
         JFrame frame = new JFrame( "SAMP HubMonitor" );
