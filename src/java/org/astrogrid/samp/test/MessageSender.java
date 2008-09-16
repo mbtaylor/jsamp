@@ -25,7 +25,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Sends a message to one or more other SAMP clients.
@@ -121,7 +121,7 @@ public abstract class MessageSender {
         Metadata meta = new Metadata();
         int timeout = 0;
         int verbAdjust = 0;
-        XmlRpcImplementation xmlrpc = null;
+        XmlRpcKit xmlrpc = null;
 
         // Parse the argument list.
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -199,7 +199,7 @@ public abstract class MessageSender {
                 String impl = (String) it.next();
                 it.remove();
                 try { 
-                    xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                    xmlrpc = XmlRpcKit.getInstanceByName( impl );
                 }
                 catch ( Exception e ) { 
                     logger_.log( Level.INFO, "No XMLRPC implementation " + impl,

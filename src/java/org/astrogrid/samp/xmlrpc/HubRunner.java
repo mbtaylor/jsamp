@@ -334,7 +334,7 @@ public class HubRunner {
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean gui = true;
         int verbAdjust = 0;
-        XmlRpcImplementation xmlrpc = null;
+        XmlRpcKit xmlrpc = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-gui" ) ) {
@@ -349,7 +349,7 @@ public class HubRunner {
                 it.remove();
                 String impl = (String) it.next();
                 try {
-                    xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                    xmlrpc = XmlRpcKit.getInstanceByName( impl );
                 }
                 catch ( Exception e ) {
                     logger_.log( Level.INFO, "No XMLRPC implementation " + impl,
@@ -412,7 +412,7 @@ public class HubRunner {
      * @param   xmlrpc  XML-RPC implementation;
      *                  automatically determined if null
      */
-    public static void runHub( boolean gui, XmlRpcImplementation xmlrpc )
+    public static void runHub( boolean gui, XmlRpcKit xmlrpc )
             throws IOException {
         final BasicHubService hubService;
         final HubRunner[] hubRunners = new HubRunner[ 1 ];
@@ -439,7 +439,7 @@ public class HubRunner {
             hubService = new BasicHubService( random_ );
         }
         if ( xmlrpc == null ) {
-            xmlrpc = XmlRpcImplementation.getInstance();
+            xmlrpc = XmlRpcKit.getInstance();
         }
         HubRunner runner =
             new HubRunner( xmlrpc.getClient(), xmlrpc.getServerFactory(),

@@ -13,7 +13,7 @@ import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 import org.astrogrid.samp.xmlrpc.XmlRpcHubConnection;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Client profile implementation for use with test cases.
@@ -34,7 +34,7 @@ public class TestClientProfile implements ClientProfile {
     private final SampXmlRpcServerFactory clientServerFactory_;
     private HubRunner hubRunner_;
 
-    public TestClientProfile( Random random, XmlRpcImplementation xmlrpc ) {
+    public TestClientProfile( Random random, XmlRpcKit xmlrpc ) {
         this( random, xmlrpc.getClient(), xmlrpc.getServerFactory(),
                       xmlrpc.getClient(), xmlrpc.getServerFactory() );
     }
@@ -113,14 +113,10 @@ public class TestClientProfile implements ClientProfile {
     }
 
     public static TestClientProfile[] getTestProfiles( Random random ) {
-        SampXmlRpcClient aClient =
-            XmlRpcImplementation.APACHE.getClient();
-        SampXmlRpcServerFactory aServ =
-            XmlRpcImplementation.APACHE.getServerFactory();
-        SampXmlRpcClient iClient =
-            XmlRpcImplementation.INTERNAL.getClient();
-        SampXmlRpcServerFactory iServ =
-            XmlRpcImplementation.INTERNAL.getServerFactory();
+        SampXmlRpcClient aClient = XmlRpcKit.APACHE.getClient();
+        SampXmlRpcServerFactory aServ = XmlRpcKit.APACHE.getServerFactory();
+        SampXmlRpcClient iClient = XmlRpcKit.INTERNAL.getClient();
+        SampXmlRpcServerFactory iServ = XmlRpcKit.INTERNAL.getServerFactory();
         return new TestClientProfile[] {
             new TestClientProfile( random, aClient, aServ, iClient, iServ ),
             new TestClientProfile( random, iClient, iServ, aClient, aServ ),

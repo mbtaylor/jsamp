@@ -22,7 +22,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Subscribes to SAMP messages and logs any received to an output stream.
@@ -177,7 +177,7 @@ public class Snooper {
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
         int verbAdjust = 0;
-        XmlRpcImplementation xmlrpc = null;
+        XmlRpcKit xmlrpc = null;
         Subscriptions subs = new Subscriptions();
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
@@ -192,7 +192,7 @@ public class Snooper {
                 String impl = (String) it.next();
                 it.remove();
                 try {
-                    xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                    xmlrpc = XmlRpcKit.getInstanceByName( impl );
                 }
                 catch ( Exception e ) {
                     logger_.log( Level.INFO, "No XMLRPC implementation " + impl,

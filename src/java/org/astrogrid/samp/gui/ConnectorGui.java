@@ -21,7 +21,7 @@ import javax.swing.event.ChangeListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.xmlrpc.HubRunner;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Provides a number of useful Swing actions and components for use
@@ -308,7 +308,7 @@ public class ConnectorGui {
                 HubRunner.runExternalHub( gui_ );
             }
             else {
-                HubRunner.runHub( gui_, XmlRpcImplementation.getInstance() );
+                HubRunner.runHub( gui_, XmlRpcKit.getInstance() );
             }
             connector_.setActive( true );
         }

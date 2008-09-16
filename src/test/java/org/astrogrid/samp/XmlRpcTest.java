@@ -1,20 +1,20 @@
 package org.astrogrid.samp;
 
 import junit.framework.TestCase;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 public class XmlRpcTest extends TestCase {
 
     public void testImplementations() {
-        assertTrue( XmlRpcImplementation.APACHE.isAvailable() );
-        assertTrue( XmlRpcImplementation.INTERNAL.isAvailable() );
-        XmlRpcImplementation[] impls = XmlRpcImplementation.KNOWN_IMPLS;
+        assertTrue( XmlRpcKit.APACHE.isAvailable() );
+        assertTrue( XmlRpcKit.INTERNAL.isAvailable() );
+        XmlRpcKit[] impls = XmlRpcKit.KNOWN_IMPLS;
         for ( int i = 0; i < impls.length; i++ ) {
             assertTrue( impls[ i ].isAvailable() );
         }
-        assertEquals( XmlRpcImplementation.APACHE,
-                      XmlRpcImplementation.getInstanceByName( "apache" ) );
-        assertEquals( XmlRpcImplementation.INTERNAL,
-                      XmlRpcImplementation.getInstanceByName( "internal" ) );
+        assertEquals( XmlRpcKit.APACHE,
+                      XmlRpcKit.getInstanceByName( "apache" ) );
+        assertEquals( XmlRpcKit.INTERNAL,
+                      XmlRpcKit.getInstanceByName( "internal" ) );
     }
 }

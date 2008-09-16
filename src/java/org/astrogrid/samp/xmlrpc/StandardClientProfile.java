@@ -58,12 +58,12 @@ public class StandardClientProfile implements ClientProfile {
      * Returns an instance based on the default XML-RPC implementation.
      * This can be configured using system properties.
      *
-     * @see   XmlRpcImplementation#getInstance
+     * @see   XmlRpcKit#getInstance
      * @return  a client profile instance
      */
     public static StandardClientProfile getInstance() {
         if ( defaultInstance_ == null ) {
-            XmlRpcImplementation xmlrpc = XmlRpcImplementation.getInstance();
+            XmlRpcKit xmlrpc = XmlRpcKit.getInstance();
             defaultInstance_ =
                 new StandardClientProfile( xmlrpc.getClient(),
                                            xmlrpc.getServerFactory() );

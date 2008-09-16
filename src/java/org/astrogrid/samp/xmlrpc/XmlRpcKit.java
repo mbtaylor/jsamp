@@ -10,23 +10,23 @@ import java.util.logging.Logger;
  * @author   Mark Taylor
  * @since    27 Aug 2008
  */
-public abstract class XmlRpcImplementation {
+public abstract class XmlRpcKit {
 
     /** Implementation based on Apache XML-RPC. */
-    public static XmlRpcImplementation APACHE;
+    public static XmlRpcKit APACHE;
 
     /** Implementation which requires no external libraries. */
-    public static XmlRpcImplementation INTERNAL;
+    public static XmlRpcKit INTERNAL;
 
     static {
         try {
             APACHE =
-                new ReflectionImplementation(
+                new ReflectionKit(
                     "apache",
                     "org.astrogrid.samp.xmlrpc.apache.ApacheClient",
                     "org.astrogrid.samp.xmlrpc.apache.ApacheServerFactory" );
             INTERNAL =
-                new ReflectionImplementation(
+                new ReflectionKit(
                     "internal",
                     "org.astrogrid.samp.xmlrpc.internal.InternalClient",
                     "org.astrogrid.samp.xmlrpc.internal.InternalServerFactory"
@@ -41,7 +41,7 @@ public abstract class XmlRpcImplementation {
     }
 
     /** Array of available known implementations of this class. */
-    public static XmlRpcImplementation[] KNOWN_IMPLS = {
+    public static XmlRpcKit[] KNOWN_IMPLS = {
         APACHE,
         INTERNAL,
     };
@@ -53,9 +53,9 @@ public abstract class XmlRpcImplementation {
      */
     public static final String IMPL_PROP = "jsamp.xmlrpc.impl";
 
-    private static XmlRpcImplementation defaultInstance_;
+    private static XmlRpcKit defaultInstance_;
     private static Logger logger_ =
-        Logger.getLogger( XmlRpcImplementation.class.getName() );
+        Logger.getLogger( XmlRpcKit.class.getName() );
 
     /**
      * Returns an XML-RPC server factory.
@@ -82,7 +82,7 @@ public abstract class XmlRpcImplementation {
     public abstract boolean isAvailable();
 
     /**
-     * Returns the name of this implementation.
+     * Returns the name of this kit.
      *
      * @return  implementation name
      */
@@ -105,7 +105,7 @@ public abstract class XmlRpcImplementation {
      *
      * @return  default instance of this class
      */
-    public static XmlRpcImplementation getInstance() {
+    public static XmlRpcKit getInstance() {
         if ( defaultInstance_ == null ) {
             defaultInstance_ = createDefaultInstance();
             logger_.info( "Default XmlRpcInstance is " + defaultInstance_ );
@@ -114,19 +114,19 @@ public abstract class XmlRpcImplementation {
     }
 
     /** 
-     * Returns an XmlRpcImplementation instance given its name.
+     * Returns an XmlRpcKit instance given its name.
      *
      * @param   name   name of one of the known implementations, or classname
-     *          of an XmlRpcImplementation implemenatation with a no-arg
+     *          of an XmlRpcKit implementatation with a no-arg
      *          constructor
      * @return  named implementation object
      * @throws  IllegalArgumentException  if none by that name can be found
      */
-    public static XmlRpcImplementation getInstanceByName( String name ) {
+    public static XmlRpcKit getInstanceByName( String name ) {
 
         // Implementation specified by system property -
         // try to find one with a matching name in the known list.
-        XmlRpcImplementation[] impls = KNOWN_IMPLS;
+        XmlRpcKit[] impls = KNOWN_IMPLS;
         for ( int i = 0; i < impls.length; i++ ) {
             if ( name.equalsIgnoreCase( impls[ i ].getName() ) ) {
                 return impls[ i ];
@@ -145,12 +145,12 @@ public abstract class XmlRpcImplementation {
                                               + name + "\"" );
         }
         try {
-            return (XmlRpcImplementation) clazz.newInstance();
+            return (XmlRpcKit) clazz.newInstance();
         }
         catch ( Throwable e ) {
             throw (RuntimeException)
                   new IllegalArgumentException( "Error instantiating custom "
-                                              + "XmlRpcImplementation "
+                                              + "XmlRpcKit "
                                               + clazz.getName() )
                  .initCause( e );
         }
@@ -160,11 +160,11 @@ public abstract class XmlRpcImplementation {
      * Constructs the default instance of this class based on system property
      * and class availability.
      *
-     * @return   implementation object
+     * @return   XmlRpcKit object
      * @see      #getInstance
      */
-    private static XmlRpcImplementation createDefaultInstance() {
-        XmlRpcImplementation[] impls = KNOWN_IMPLS;
+    private static XmlRpcKit createDefaultInstance() {
+        XmlRpcKit[] impls = KNOWN_IMPLS;
         String implName = System.getProperty( IMPL_PROP );
         logger_.info( "Creating default XmlRpcInstance: " + IMPL_PROP + "=" +
                       implName );
@@ -191,7 +191,7 @@ public abstract class XmlRpcImplementation {
      * Implementation of this class which uses reflection to instantiate
      * client and server classes.
      */
-    private static class ReflectionImplementation extends XmlRpcImplementation {
+    private static class ReflectionKit extends XmlRpcKit {
         private final String name_;
         private final SampXmlRpcClient xClient_;
         private final SampXmlRpcServerFactory xServerFactory_;
@@ -208,9 +208,8 @@ public abstract class XmlRpcImplementation {
          * @param   serverFactoryClassName  name of SampXmlRpcServerFactory
          *                implementation class
          */
-        ReflectionImplementation( String name,
-                                  String clientClassName,
-                                  String serverFactoryClassName )
+        ReflectionKit( String name, String clientClassName,
+                       String serverFactoryClassName )
                 throws InstantiationException, IllegalAccessException {
             name_ = name;
             SampXmlRpcClient client;

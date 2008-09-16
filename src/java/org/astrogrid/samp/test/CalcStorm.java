@@ -13,7 +13,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.gui.HubMonitor;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Runs a load of Calculator clients at once all sending messages to each other.
@@ -187,7 +187,7 @@ public class CalcStorm {
         Calculator.SendMode sendMode = Calculator.RANDOM_MODE;
         int verbAdjust = 0;
         boolean gui = false;
-        XmlRpcImplementation xmlrpc = null;
+        XmlRpcKit xmlrpc = null;
 
         // Parse arguments, modifying test parameters as appropriate.
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -241,7 +241,7 @@ public class CalcStorm {
                     it.remove();
                     String impl = (String) it.next();
                     try {
-                        xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                        xmlrpc = XmlRpcKit.getInstanceByName( impl );
                     }
                     catch ( Exception e ) {
                         logger_.log( Level.INFO,

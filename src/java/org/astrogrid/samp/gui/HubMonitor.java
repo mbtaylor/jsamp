@@ -16,7 +16,7 @@ import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcImplementation;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Client application which uses a 
@@ -108,7 +108,7 @@ public class HubMonitor extends JPanel {
         int verbAdjust = 0;
         boolean gui = true;
         int autoSec = 3;
-        XmlRpcImplementation xmlrpc = null;
+        XmlRpcKit xmlrpc = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-auto" ) && it.hasNext() ) {
@@ -130,7 +130,7 @@ public class HubMonitor extends JPanel {
                 String impl = (String) it.next();
                 it.remove();
                 try {
-                    xmlrpc = XmlRpcImplementation.getInstanceByName( impl );
+                    xmlrpc = XmlRpcKit.getInstanceByName( impl );
                 }
                 catch ( Exception e ) {
                     logger_.log( Level.INFO, "No XMLRPC implementation " + impl,
@@ -160,7 +160,7 @@ public class HubMonitor extends JPanel {
         }
         assert argList.isEmpty();
         if ( xmlrpc == null ) {
-            xmlrpc = XmlRpcImplementation.getInstance();
+            xmlrpc = XmlRpcKit.getInstance();
         }
 
         // Adjust logging in accordance with verboseness flags.
