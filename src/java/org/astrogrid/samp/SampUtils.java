@@ -60,6 +60,28 @@ public class SampUtils {
     }
 
     /**
+     * Returns a <em>SAMP int</em> string representation of a long integer.
+     *
+     * @param  i  integer value
+     * @return  SAMP int string
+     */
+    public static String encodeLong( long i ) {
+        return Long.toString( i );
+    }
+
+    /**
+     * Returns the integer value as a <code>long</code> for a <em>SAMP int</em>
+     * string.
+     *
+     * @param   s   SAMP int string
+     * @return  long integer value
+     * @throws  NumberFormatException  if conversion fails
+     */
+    public static long decodeLong( String s ) {
+        return Long.parseLong( s );
+    }
+
+    /**
      * Returns a <em>SAMP float</em> string representation of a floating point
      * value.
      *
