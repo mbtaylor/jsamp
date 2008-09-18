@@ -2,6 +2,7 @@ package org.astrogrid.samp.gui;
 
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
 
@@ -15,7 +16,7 @@ import org.astrogrid.samp.client.SampException;
 public class SubscribedClientListModel extends SelectiveClientListModel {
 
     private final HubConnector connector_;
-    private final String[] mtypes_;
+    private String[] mtypes_;
 
     /**
      * Constructor for multiple MTypes.
@@ -41,10 +42,41 @@ public class SubscribedClientListModel extends SelectiveClientListModel {
         this( connector, new String[] { mtype } );
     }
 
+    /**
+     * Sets the list of MTypes which defines the elements of this list.
+     * Any client subscribed to one or more of these MTypes is included.
+     *
+     * @param   mtypes  new MType list
+     */
+    public void setMTypes( String[] mtypes ) {
+        mtypes_ = (String[]) mtypes.clone();
+        refresh();
+        fireContentsChanged( this, -1, -1 );
+    }
+
+    /**
+     * Returns the list of MTypes which defines the elements of this list.
+     *
+     * @return  MType list
+     */
+    public String[] getMTypes() {
+        return mtypes_;
+    }
+
+    /**
+     * Returns true if <code>client</code> is subscribed to one of this
+     * model's MTypes.
+     */
     protected boolean isIncluded( Client client ) {
         String selfId;
         try { 
-            selfId = connector_.getConnection().getRegInfo().getSelfId();
+            HubConnection connection = connector_.getConnection();
+            if ( connection == null ) {
+                return false;
+            }
+            else {
+                selfId = connection.getRegInfo().getSelfId();
+            }
         }
         catch ( SampException e ) {
             return false;
