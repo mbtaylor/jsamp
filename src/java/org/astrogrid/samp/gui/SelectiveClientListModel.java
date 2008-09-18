@@ -111,8 +111,17 @@ public abstract class SelectiveClientListModel extends AbstractListModel {
      * Must be called by subclass prior to use.
      */
     protected void init() {
-        map_ = calculateMap();
+        refresh();
         baseModel_.addListDataListener( listDataListener_ );
+    }
+
+    /**
+     * Recalculates the inclusions.  This should be called if the return
+     * value from {@link #isIncluded} might have changed for some of the
+     * elements.
+     */
+    protected void refresh() {
+        map_ = calculateMap();
     }
 
     public int getSize() {
