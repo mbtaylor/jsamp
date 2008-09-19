@@ -21,7 +21,7 @@
 <dt>Dependencies:</dt>
 <dd><a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
        >xmlrpc-1.2-b1.jar</a>.
-    Note this library is nol necessary for using JSAMP, it is only required
+    Note this library is not necessary for using JSAMP, it is only required
     if you want to use the Apache XML-RPC implementation.  If you want to
     use the internal XML-RPC implementation instead, then no extenal libraries
     are required.
