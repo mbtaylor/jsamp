@@ -11,24 +11,47 @@
 
 <p>JSAMP is a pure Java library.  
 It should run on any Java Runtime Environment of version J2SE1.4 or above.
+It does not <em>require</em> any external libraries, though see below.
 </p>
 
-<p>It currently has a single dependency,
-the Apache XML-RPC library
-<a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
-                                                   >xmlrpc-1.2-b1.jar</a>.
-The samp jar file's Class-Path attribute is written to look for this
-file in the same directory as the jar file itself.
+<p>In order to perform the necessry XML-RPC communications for use with
+the SAMP Standard Profile, a pluggable layer is used.  
+This means that you can choose which XML-RPC library is used.
+Currently, there are the following possibilities:
+</p>
+<dl>
+<dt>Apache XML-RPC 1.2</dt>
+<dd>To use the Apache XML-RPC library, the Apache classes must be on the
+    class path.  They can be found in the jar file
+    <a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
+                                                       >xmlrpc-1.2-b1.jar</a>.
+    </dd>
+<dt>Internal</dt>
+<dd>A standalone library implementation is provided within JSAMP,
+    so if you wish to use this, no external dependencies are required.
+    This is currently a bit slower than the Apache implementation.
+    </dd>
+<dt>Roll your own</dt>
+<dd>By implementing the class
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/xmlrpc/XmlRpcKit.html"
+                    >org.astrogrid.samp.xmlrpc.XmlRpcKit</a>
+    you can provide your own implementation, perhaps based on a third party
+    XML-RPC library.
+    </dd>
+</dl>
+<p>In some cases you can choose which of these is used by supplying
+particular implementations of the classes in the <code>xmlrpc</code>
+package.  Mostly though, an implementation will be chosen without any 
+explicit choice in the application code.  In this case, you can control
+which implementation is used by setting the value of the system property
+<code>jsamp.xmlrpc.impl</code> to "apache", "internal" or the classname
+of an <code>XmlRpcKit</code> implementation which has a no-arg constructor.
+See <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/xmlrpc/XmlRpcKit.html#IMPL_PROP"
+                                              >XmlRpcKit.IMPL_PROP</a>.
 </p>
 
-<p>In fact, not very much of the apache library is used, 
-and I am considering incorporating
-the necessary functionality into JSAMP itself.  This would reduce the
-amount of code required at runtime, and possibly ameliorate class resolution
-issues (e.g. for applications which need to use a different version of the
-Apache XML-RPC library than the one required by JSAMP).
-Let me know if you are keen to see this option.
-</p>
 
 </section>
 
