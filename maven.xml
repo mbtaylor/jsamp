@@ -63,7 +63,7 @@
         description="Deploy built archives to repository"
         prereqs="jar:jar,source-zip">
     <echo message="Do this:"/>
-    <echo message="    scp target/jsamp-${pom.currentVersion}.jar target/jsamp_src-${pom.currentVersion}.zip astrogrid@katatjuta.star.le.ac.uk:/maven/org.astrogrid/jars/"/>
+    <echo message="    scp target/jsamp-${pom.currentVersion}.jar target/jsamp_src-${pom.currentVersion}.zip maven.astrogrid.org:/maven/org.astrogrid/jars/"/>
     <echo message="and make sure you do a matching maven site:deploy too"/>
     <echo message="and ln -s jsamp-${pom.currentVersion}/ jsamp/ in terror:software_docs/"/>
   </goal>
@@ -74,8 +74,9 @@
     <ant:mkdir dir="target/docs"/>
     <j:set var="commands"
            value="org.astrogrid.samp.JSamp
-                  org.astrogrid.samp.hub.HubRunner
+                  org.astrogrid.samp.xmlrpc.HubRunner
                   org.astrogrid.samp.gui.HubMonitor
+                  org.astrogrid.samp.test.Snooper
                   org.astrogrid.samp.test.MessageSender
                   org.astrogrid.samp.test.CalcStorm
                   org.astrogrid.samp.test.HubTester"/>
