@@ -14,13 +14,16 @@
 <dd>Initial release (beta).  Targets SAMP WD v1.0 (25 June 2008).
     </dd>
 
-<dt>Next version</dt>
+<dt><a href="../samp-0.2/index.html">Version 0.2</a> (19 September 2008)</dt>
 <dd><dl>
-    <dt>Code reorganistion and pluggable XML-RPC implementation:</dt>
+    <dt>Code reorganisation and pluggable XML-RPC implementation:</dt>
     <dd>The XML-RPC and Standard Profile-related parts of the library have
         been reorganised somewhat.
-        A new package <code>org.astrogrid.samp.xmlrpc</code> and its
-        descendants now holds all
+        A new package 
+        <a target="samp-javadoc"
+           href="apidocs/org/astrogrid/samp/xmlrpc/package-summary.html"
+                        >org.astrogrid.samp.xmlrpc</a>
+        ant its descendants now hold all
         the code which relates specifically to XML-RPC communications and
         the SAMP Standard Profile; the code in the other packages is 
         profile-agnostic and handles only transport-independent aspects
@@ -28,13 +31,19 @@
         The <code>xmlrpc</code> package itself defines a pluggable 
         interface for providing XML-RPC client and server functionality;
         two implementations are also provided, in the packages 
-        <code>xmlrpc.apache</code> and <code>xmlrpc.internal</code>.
+        <a target="samp-javadoc"
+           href="apidocs/org/astrogrid/samp/xmlrpc/apache/package-summary.html"
+                                           >xmlrpc.apache</a>
+        and
+        <a target="samp-javadoc"
+          href="apidocs/org/astrogrid/samp/xmlrpc/internal/package-summary.html"
+                                          >xmlrpc.internal</a>.
         The Apache one is basically what was there in previous versions;
         the internal one is completely freestanding, and if this is used
-        the Apache XML-RPC library (nor any other external library) is 
-        required for operation.
+        the Apache XML-RPC library is not required for operation.
         </dd>
-    <dt>New command <code>snooper</code></dt>
+    <dt>New command
+        <a href="commands.html#Snooper"><code>snooper</code></a>:</dt>
     <dd>Logs received messages to the terminal.
         Useful for debugging.
         </dd>
@@ -46,6 +55,7 @@
             not a String, for greater generality.</li>
         <li><code>RegInfo(String,String,String)</code> constructor
             withdrawn.</li>
+        <li>Several other more or less minor changes.</li>
         </ul>
         </dd>
     </dl>
