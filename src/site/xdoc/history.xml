@@ -42,6 +42,22 @@
         the internal one is completely freestanding, and if this is used
         the Apache XML-RPC library is not required for operation.
         </dd>
+    <dt>GUI functionality added</dt>
+    <dd>There are more classes in the 
+        <a target="samp-javadoc"
+           href="apidocs/org/astrogrid/samp/gui/package-summary.html"
+                        >org.astrogrid.samp.gui</a> package
+        to facilitate high-level use of SAMP within GUI applications.
+        <a target="samp-javadoc"
+           href="apidocs/org/astrogrid/samp/gui/ConnectorGui.html"
+                                               >ConnectorGui</a>
+        provides Actions suitable for insertion in a general SAMP control menu,
+        and
+        <a target="samp-javadoc"
+           href="apidocs/org/astrogrid/samp/gui/SendActionManager.html"
+                                               >SendActionManager</a>
+        provides menus and Actions for sending particular messages.
+        </dd> 
     <dt>New command
         <a href="commands.html#Snooper"><code>snooper</code></a>:</dt>
     <dd>Logs received messages to the terminal.
