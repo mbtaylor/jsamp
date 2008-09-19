@@ -71,6 +71,8 @@
             not a String, for greater generality.</li>
         <li><code>RegInfo(String,String,String)</code> constructor
             withdrawn.</li>
+        <li><code>HubRunner</code> class moved from package <code>hub</code>
+            to <code>xmlrpc</code>.</li>
         <li>Several other more or less minor changes.</li>
         </ul>
         </dd>
