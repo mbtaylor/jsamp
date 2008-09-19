@@ -141,7 +141,7 @@ public class HttpServer {
      * @param  request  represents an HTTP request that has been received
      * @return   represents the content of an HTTP response that should be sent
      */
-    protected Response serve( Request request ) {
+    public Response serve( Request request ) {
         for ( Iterator it = handlerList_.iterator(); it.hasNext(); ) {
             Handler handler = (Handler) it.next();
             Response response = handler.serveRequest( request );
@@ -492,7 +492,8 @@ public class HttpServer {
          * @param  headerMap  map of HTTP request header key-value pairs
          * @param  body  bytes comprising request body, or null if none present
          */
-        Request( String method, String url, Map headerMap, byte[] body ) {
+        public Request( String method, String url, Map headerMap,
+                        byte[] body ) {
             method_ = method;
             url_ = url;
             headerMap_ = headerMap;
@@ -584,6 +585,33 @@ public class HttpServer {
         }
 
         /**
+         * Returns the 3-digit status code.
+         *
+         * @return  status code
+         */
+        public int getStatusCode() {
+            return statusCode_;
+        }
+
+        /**
+         * Returns the status phrase.
+         *
+         * @return  status phrase
+         */
+        public String getStatusPhrase() {
+            return statusPhrase_;
+        }
+
+        /**
+         * Returns a map of the header keyword-value pairs.
+         *
+         * @return   header map
+         */
+        public Map getHeaderMap() {
+            return headerMap_;
+        }
+   
+        /**
          * Implemented to generate the bytes in the body of the response.
          *
          * @param  out  destination stream for body bytes
@@ -603,16 +631,16 @@ public class HttpServer {
             String statusLine = new StringBuffer()
                 .append( "HTTP/1.0" )
                 .append( ' ' )
-                .append( statusCode_ )
+                .append( getStatusCode() )
                 .append( ' ' )
-                .append( statusPhrase_ )
+                .append( getStatusPhrase() )
                 .append( '\r' )
                 .append( '\n' )
                 .toString();
             out.write( statusLine.getBytes( "UTF-8" ) );
             if ( headerMap_ != null ) {
                 StringBuffer sbuf = new StringBuffer();
-                for ( Iterator it = headerMap_.entrySet().iterator();
+                for ( Iterator it = getHeaderMap().entrySet().iterator();
                       it.hasNext(); ) {
                     Map.Entry entry = (Map.Entry) it.next();
                     sbuf.setLength( 0 );
