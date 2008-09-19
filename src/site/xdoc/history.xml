@@ -10,11 +10,11 @@
 
 <section name="Version History">
 <dl>
-<dt><a href="../samp-0.1/index.html">Version 0.1</a> (31 July 2008)</dt>
+<dt><a href="../jsamp-0.1/index.html">Version 0.1</a> (31 July 2008)</dt>
 <dd>Initial release (beta).  Targets SAMP WD v1.0 (25 June 2008).
     </dd>
 
-<dt><a href="../samp-0.2/index.html">Version 0.2</a> (19 September 2008)</dt>
+<dt><a href="../jsamp-0.2/index.html">Version 0.2</a> (19 September 2008)</dt>
 <dd><dl>
     <dt>Code reorganisation and pluggable XML-RPC implementation:</dt>
     <dd>The XML-RPC and Standard Profile-related parts of the library have
