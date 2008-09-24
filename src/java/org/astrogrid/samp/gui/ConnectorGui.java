@@ -53,7 +53,7 @@ public class ConnectorGui {
         unregAct_ = new RegisterAction( false );
         toggleRegAct_ = new RegisterAction();
         monitorAct_ = new MonitorAction();
-        intHubAct_ = new HubAction( false, true );
+        intHubAct_ = new HubAction( false, false );
         extHubAct_ = new HubAction( true, true );
         componentList_ = new ArrayList();
 
