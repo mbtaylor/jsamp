@@ -464,13 +464,21 @@ public class HubRunner {
         String javacmd = ( javaExec.exists() && ! javaExec.isDirectory() )
                        ? javaExec.toString()
                        : "java";
-        String[] args = new String[] {
-            javacmd,
-            "-classpath",
-            System.getProperty( "java.class.path" ),
-            HubRunner.class.getName(),
-            ( gui ? "-gui" : "-nogui" ),
-        };
+        String[] propagateProps = new String[] { XmlRpcKit.IMPL_PROP, };
+        List argList = new ArrayList();
+        argList.add( javacmd );
+        for ( int ip = 0; ip < propagateProps.length; ip++ ) {
+            String propName = propagateProps[ ip ];
+            String propVal = System.getProperty( propName );
+            if ( propVal != null ) {
+                argList.add( "-D" + propName + "=" + propVal );
+            }
+        }
+        argList.add( "-classpath" );
+        argList.add( System.getProperty( "java.class.path" ) );
+        argList.add( HubRunner.class.getName() );
+        argList.add( gui ? "-gui" : "-nogui" );
+        String[] args = (String[]) argList.toArray( new String[ 0 ] );
         StringBuffer cmdbuf = new StringBuffer();
         for ( int iarg = 0; iarg < args.length; iarg++ ) {
             if ( iarg > 0 ) {
