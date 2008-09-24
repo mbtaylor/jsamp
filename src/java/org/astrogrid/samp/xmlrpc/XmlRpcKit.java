@@ -1,5 +1,7 @@
 package org.astrogrid.samp.xmlrpc;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.logging.Logger;
 
 /**
@@ -13,37 +15,18 @@ import java.util.logging.Logger;
 public abstract class XmlRpcKit {
 
     /** Implementation based on Apache XML-RPC. */
-    public static XmlRpcKit APACHE;
+    public static final XmlRpcKit APACHE;
 
     /** Implementation which requires no external libraries. */
-    public static XmlRpcKit INTERNAL;
-
-    static {
-        try {
-            APACHE =
-                new ReflectionKit(
-                    "apache",
-                    "org.astrogrid.samp.xmlrpc.apache.ApacheClientFactory",
-                    "org.astrogrid.samp.xmlrpc.apache.ApacheServerFactory" );
-            INTERNAL =
-                new ReflectionKit(
-                    "internal",
-                    "org.astrogrid.samp.xmlrpc.internal.InternalClientFactory",
-                    "org.astrogrid.samp.xmlrpc.internal.InternalServerFactory"
-                );
-        }
-        catch ( InstantiationException e ) {
-            throw new AssertionError( e );
-        }
-        catch ( IllegalAccessException e ) {
-            throw new AssertionError( e );
-        }
-    }
+    public static final XmlRpcKit INTERNAL;
 
     /** Array of available known implementations of this class. */
     public static XmlRpcKit[] KNOWN_IMPLS = {
-        APACHE,
-        INTERNAL,
+        APACHE = createApacheKit( "apache" ),
+        INTERNAL = createReflectionKit(
+            "internal",
+            "org.astrogrid.samp.xmlrpc.internal.InternalClientFactory",
+            "org.astrogrid.samp.xmlrpc.internal.InternalServerFactory" ),
     };
 
     /**
@@ -61,18 +44,18 @@ public abstract class XmlRpcKit {
         Logger.getLogger( XmlRpcKit.class.getName() );
 
     /**
-     * Returns an XML-RPC server factory.
-     *
-     * @return   server factory
-     */
-    public abstract SampXmlRpcServerFactory getServerFactory();
-
-    /**
      * Returns an XML-RPC client factory.
      *
      * @return  client factory
      */
     public abstract SampXmlRpcClientFactory getClientFactory();
+
+    /**
+     * Returns an XML-RPC server factory.
+     *
+     * @return   server factory
+     */
+    public abstract SampXmlRpcServerFactory getServerFactory();
 
     /**
      * Indicates whether this object is ready for use.
@@ -191,104 +174,184 @@ public abstract class XmlRpcKit {
     }
 
     /**
-     * Implementation of this class which uses reflection to instantiate
-     * client and server classes.
+     * Returns a new XmlRpcKit given classnames for the client and server
+     * factory classes.  If the classes are not available, a kit which
+     * returns {@link #isAvailable}()=false will be returned.
+     *
+     * @param  name  kit name
+     * @param  clientFactoryClassName  name of class implementing
+     *            SampXmlRpcClientFactory which has a no-arg constructor
+     * @param  serverFactoryClassName  name of class implementing
+     *            SampXmlRpcServerFactory which has a no-arg constructor
+     * @return  new XmlRpcKit constructed using reflection
      */
-    private static class ReflectionKit extends XmlRpcKit {
+    public static XmlRpcKit createReflectionKit( String name,
+                                                 String clientFactoryClassName,
+                                                 String serverFactoryClassName
+                                                 ) {
+        SampXmlRpcClientFactory clientFactory = null;
+        SampXmlRpcServerFactory serverFactory = null;
+        Throwable error = null;
+        try {
+            clientFactory = (SampXmlRpcClientFactory)
+                            Class.forName( clientFactoryClassName )
+                                 .newInstance();
+            serverFactory = (SampXmlRpcServerFactory)
+                            Class.forName( serverFactoryClassName )
+                                 .newInstance();
+        }
+        catch ( ClassNotFoundException e ) {
+            error = e;
+        }
+        catch ( LinkageError e ) {
+            error = e;
+        }
+        catch ( InstantiationException e ) {
+            error = e;
+        }
+        catch ( IllegalAccessException e ) {
+            error = e;
+        }
+        if ( clientFactory != null && serverFactory != null ) {
+            assert error == null;
+            return new AvailableKit( name, clientFactory, serverFactory );
+        }
+        else {
+            assert error != null;
+            return new UnavailableKit( name, error );
+        }
+    }
+
+    /**
+     * XmlRpcKit implementation which is available.
+     */
+    private static class AvailableKit extends XmlRpcKit {
         private final String name_;
-        private final SampXmlRpcClientFactory xClientFactory_;
-        private final SampXmlRpcServerFactory xServerFactory_;
-        private final Throwable clientError_;
-        private final Throwable serverError_;
-        private final boolean isAvailable_;
+        private final SampXmlRpcClientFactory clientFactory_;
+        private final SampXmlRpcServerFactory serverFactory_;
 
         /**
          * Constructor.
          *
          * @param   name   implementation name
-         * @param   clientFactoryClassName  name of SampXmlRpcClientFactory
-         *                implementation class
-         * @param   serverFactoryClassName  name of SampXmlRpcServerFactory
-         *                implementation class
+         * @param   clientFactory  SampXmlRpcClientFactory instance
+         * @param   serverFactory  SampXmlRpcServerFactory instance
          */
-        ReflectionKit( String name, String clientFactoryClassName,
-                       String serverFactoryClassName )
-                throws InstantiationException, IllegalAccessException {
+        AvailableKit( String name,
+                      SampXmlRpcClientFactory clientFactory,
+                      SampXmlRpcServerFactory serverFactory ) {
             name_ = name;
-            SampXmlRpcClientFactory clientFactory;
-            Throwable clientError;
-            try {
-                clientFactory =
-                    (SampXmlRpcClientFactory)
-                    Class.forName( clientFactoryClassName ).newInstance();
-                clientError = null;
-            }
-            catch ( ClassNotFoundException e ) {
-                clientFactory = null;
-                clientError = e;
-            }
-            catch ( LinkageError e ) {
-                clientFactory = null;
-                clientError = e;
-            }
-            xClientFactory_ = clientFactory;
-            clientError_ = clientError;
-
-            SampXmlRpcServerFactory serverFactory;
-            Throwable serverError;
-            try {
-                serverFactory =
-                    (SampXmlRpcServerFactory)
-                    Class.forName( serverFactoryClassName ).newInstance();
-                serverError = null;
-            }
-            catch ( ClassNotFoundException e ) {
-                serverError = e;
-                serverFactory = null;
-            }
-            catch ( LinkageError e ) {
-                serverError = e;
-                serverFactory = null;
-            }
-            xServerFactory_ = serverFactory;
-            serverError_ = null;
-            isAvailable_ = xClientFactory_ != null && xServerFactory_ != null;
+            clientFactory_ = clientFactory;
+            serverFactory_ = serverFactory;
         }
 
         public SampXmlRpcClientFactory getClientFactory() {
-            if ( xClientFactory_ != null ) {
-                return xClientFactory_;
-            }
-            else {
-                assert clientError_ != null;
-                throw new RuntimeException( name_ +
-                                            " implementation not available",
-                                            clientError_ );
-            }
+            return clientFactory_;
         }
 
         public SampXmlRpcServerFactory getServerFactory() {
-            if ( xServerFactory_ != null ) {
-                return xServerFactory_;
-            }
-            else {
-                assert serverError_ != null;
-                throw new RuntimeException( name_ +
-                                            " implementation not available",
-                                            serverError_ );
-            }
-        }
-
-        public boolean isAvailable() {
-            return isAvailable_;
+            return serverFactory_;
         }
 
         public String getName() {
             return name_;
         }
 
+        public boolean isAvailable() {
+            return true;
+        }
+
         public String toString() {
-            return getName();
+            return name_;
+        }
+    }
+
+    /**
+     * XmlRpcKit implementation which always returns false from isAvailable
+     * and throws exceptions from getServer/Client factory methods.
+     */
+    private static class UnavailableKit extends XmlRpcKit {
+        private final String name_;
+        private final Throwable error_;
+
+        /**
+         * Constructor.
+         *
+         * @param  kit name
+         * @param  error  the reason the kit is unavailable
+         */
+        UnavailableKit( String name, Throwable error ) {
+            name_ = name;
+            error_ = error;
+        }
+
+        public SampXmlRpcClientFactory getClientFactory() {
+            throw (RuntimeException)
+                  new UnsupportedOperationException( name_
+                                                   + " implementation not"
+                                                   + " available" )
+                 .initCause( error_ );
+        }
+
+        public SampXmlRpcServerFactory getServerFactory() {
+            throw (RuntimeException)
+                  new UnsupportedOperationException( name_
+                                                   + " implementation not"
+                                                   + " available" )
+                 .initCause( error_ );
+        }
+
+        public String getName() {
+            return name_;
+        }
+
+        public boolean isAvailable() {
+            return false;
+        }
+
+        public String toString() {
+            return name_;
+        }
+    }
+
+    /**
+     * Returns an available or unavailable XmlRpcKit based on Apache XML-RPC
+     * version 1.2.
+     *
+     * @param  name  kit name
+     * @return   new kit
+     */
+    private static XmlRpcKit createApacheKit( String name ) {
+        XmlRpcKit kit = createReflectionKit(
+            name,
+            "org.astrogrid.samp.xmlrpc.apache.ApacheClientFactory",
+            "org.astrogrid.samp.xmlrpc.apache.ApacheServerFactory" );
+        if ( kit.isAvailable() ) {
+            try {
+                Class xClazz = Class.forName( "org.apache.xmlrpc.XmlRpc" );
+                Field vField = xClazz.getField( "version" );
+                Object version = Modifier.isStatic( vField.getModifiers() )
+                               ? vField.get( null )
+                               : null;
+                if ( version instanceof String
+                     && ((String) version)
+                       .startsWith( "Apache XML-RPC 1.2" ) ) {
+                    return kit;
+                }
+                else {
+                    String msg = "Wrong Apache XML-RPC version: " + version
+                               + " not 1.2";
+                    return
+                        new UnavailableKit( name,
+                                            new ClassNotFoundException( msg ) );
+                }
+            }
+            catch ( Throwable e ) {
+                return new UnavailableKit( name, e );
+            }
+        }
+        else {
+            return kit;
         }
     }
 }
