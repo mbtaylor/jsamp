@@ -78,6 +78,13 @@
         </dd>
     </dl>
     </dd>
+
+<dt>Next version</dt>
+<dd><ul>
+    <li>Fixed a problem with XML-RPC implementation when running in presence
+        of wrong (not 1.2) version of Apache XML-RPC library.</li>
+    </ul>
+    </dd>
 </dl>
 </section>
 
