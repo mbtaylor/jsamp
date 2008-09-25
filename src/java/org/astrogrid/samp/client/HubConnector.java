@@ -212,15 +212,17 @@ public class HubConnector {
                         try {
                             HubConnection conn = getConnection();
                             if ( conn == null ) {
-                                logger_.config( "SAMP Autoconection attempt "
+                                logger_.config( "SAMP autoconnection attempt "
                                               + "failed" );
                             }
                             else {
-                                logger_.info( "SAMP Autoconnection attempt "
+                                logger_.info( "SAMP autoconnection attempt "
                                             + "succeeded" );
                             }
                         }
                         catch ( SampException e ) {
+                            logger_.config( "SAMP Autoconnection attempt "
+                                          + " failed: " + e );
                         }
                     }
                 }
