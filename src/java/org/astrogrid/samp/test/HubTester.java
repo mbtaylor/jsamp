@@ -392,9 +392,15 @@ public class HubTester extends Tester {
             // Check that getSubscribedClients returns the right list.
             // Note that it must not include the caller.
             Set recipientSet = c3.getSubscribedClients( ECHO_MTYPE ).keySet();
-            assertEquals(
-                new HashSet( Arrays.asList( new String[] { id1, id2 } ) ),
-                recipientSet );
+            try {
+                assertEquals(
+                    new HashSet( Arrays.asList( new String[] { id1, id2 } ) ),
+                    recipientSet );
+            }
+            catch ( TestException e ) {
+                throw new TestException( "You may need to shut down other "
+                                       + "SAMP clients first", e ); 
+            }
 
             // Send an echo message from client 3 using callAll and notifyAll.
             // Should go to clients 1 and 2.
