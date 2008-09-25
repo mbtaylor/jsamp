@@ -90,6 +90,9 @@
             to JVM running external hub.</li>
         <li>Race condition in unit tests which sometimes gave false 
             failures is fixed.</li>
+        <li>Fixed threading problem in <code>hubmonitor</code> which meant that
+            sometimes window did not appear.</li>
+        <li>Some other minor items.</li>
         </ul>
         </dd>
     </dl>
