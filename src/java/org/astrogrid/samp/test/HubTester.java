@@ -543,7 +543,7 @@ public class HubTester extends Tester {
         // we registered and unregistered earlier.  Do it here to give 
         // messages enough time to have arrived; SAMP offers no guarantees
         // of delivery sequence, but if they haven't showed up yet it's 
-        // very likely that they ever will.
+        // very likely that they never will.
         Throwable cwError = clientWatcher_.getError();
         if ( cwError != null ) {
             throw new TestException( "Error encountered during hub event " 
