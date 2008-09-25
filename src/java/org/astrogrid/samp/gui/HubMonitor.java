@@ -12,6 +12,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnector;
@@ -159,29 +160,39 @@ public class HubMonitor extends JPanel {
             }
         }
         assert argList.isEmpty();
-        if ( xmlrpc == null ) {
-            xmlrpc = XmlRpcKit.getInstance();
-        }
 
         // Adjust logging in accordance with verboseness flags.
         int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
+        // Get XML-RPC implementation.
+        if ( xmlrpc == null ) {
+            xmlrpc = XmlRpcKit.getInstance();
+        }
+
         // Get profile.
-        ClientProfile profile =
+        final ClientProfile profile =
             xmlrpc == null ? StandardClientProfile.getInstance()
                            : new StandardClientProfile( xmlrpc );
 
         // Start the gui in a new window.
-        JFrame frame = new JFrame( "SAMP HubMonitor" );
-        frame.getContentPane().add( new HubMonitor( profile, autoSec ) );
-        frame.setIconImage( new ImageIcon( Metadata.class
-                                          .getResource( "images/eye.gif" ) )
-                           .getImage() );
-        frame.pack();
-        frame.setVisible( gui );
-        frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+        final boolean isVisible = gui;
+        final int autoSeconds = autoSec;
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                JFrame frame = new JFrame( "SAMP HubMonitor" );
+                frame.getContentPane()
+                     .add( new HubMonitor( profile, autoSeconds ) );
+                frame.setIconImage(
+                    new ImageIcon( Metadata.class
+                                  .getResource( "images/eye.gif" ) )
+                   .getImage() );
+                frame.pack();
+                frame.setVisible( isVisible );
+                frame.setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
+            }
+        } );
         return 0;
     }
 
