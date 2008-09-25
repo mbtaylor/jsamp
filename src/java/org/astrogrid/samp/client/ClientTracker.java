@@ -134,6 +134,7 @@ class ClientTracker extends AbstractMessageHandler {
             client.setMetadata( connection.getMetadata( id ) );
             client.setSubscriptions( connection.getSubscriptions( id ) );
             clientModel_.updatedClient( client );
+            opQueue_.apply( client );
         }
     }
 
