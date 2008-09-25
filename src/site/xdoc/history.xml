@@ -79,11 +79,20 @@
     </dl>
     </dd>
 
-<dt>Next version</dt>
-<dd><ul>
-    <li>Fixed a problem with XML-RPC implementation when running in presence
-        of wrong (not 1.2) version of Apache XML-RPC library.</li>
-    </ul>
+<dt>Version 0.2-1 (25 September 2008)</dt>
+<dd><dl>
+    <dt>Bugfixes:</dt>
+    <dd><ul>
+        <li>Fixed a problem with XML-RPC implementation when running in
+            presence of unexpected (not 1.2) version of Apache XML-RPC
+            library.</li>
+        <li><code>jsamp.xmlrpc.impl</code> property now correctly propagated
+            to JVM running external hub.</li>
+        <li>Race condition in unit tests which sometimes gave false 
+            failures is fixed.</li>
+        </ul>
+        </dd>
+    </dl>
     </dd>
 </dl>
 </section>
