@@ -72,6 +72,11 @@ public class HubConnectorTest extends TestCase {
         connector.declareSubscriptions( subs );
         assertEquals( subs, connector.getSubscriptions() );
         assertEquals( subs, getSubscriptions( connector.getConnection() ) );
+        delay( 500 );
+        assertEquals( subs,
+                     ((Client) clientMap.get( connector.getConnection()
+                                             .getRegInfo().getSelfId() ))
+                    .getSubscriptions() );
         connector.addMessageHandler( new TestMessageHandler() );
         subs = connector.computeSubscriptions();
         assertTrue( subs.containsKey( ECHO_MTYPE ) );
@@ -81,19 +86,21 @@ public class HubConnectorTest extends TestCase {
         connector.declareSubscriptions( subs );
         assertEquals( subs, connector.getSubscriptions() );
         assertEquals( subs, getSubscriptions( connector.getConnection() ) );
+
         assertEquals( meta,
                       ((Client) clientMap.get( connector.getConnection()
                                               .getRegInfo().getSelfId() ))
                      .getMetadata() );
+        meta.put( "colour", "blue" );
+        connector.declareMetadata( meta );
+        assertEquals( meta, connector.getMetadata() );
+        assertEquals( meta, getMetadata( connector.getConnection() ) );
+
+        delay( 500 );
         assertEquals( subs,
                       ((Client) clientMap.get( connector.getConnection()
                                               .getRegInfo().getSelfId() ))
                      .getSubscriptions() );
-        meta.put( "colour", "blue" );
-        connector.declareMetadata( meta );
-        delay( 500 );
-        assertEquals( meta, connector.getMetadata() );
-        assertEquals( meta, getMetadata( connector.getConnection() ) );
         assertEquals( meta,
                       ((Client) clientMap.get( connector.getConnection()
                                               .getRegInfo().getSelfId() ))
