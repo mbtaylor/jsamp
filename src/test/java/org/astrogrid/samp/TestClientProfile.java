@@ -34,6 +34,7 @@ public class TestClientProfile implements ClientProfile {
     private final SampXmlRpcClientFactory clientClientFactory_;
     private final SampXmlRpcServerFactory clientServerFactory_;
     private HubRunner hubRunner_;
+    private static TestClientProfile[] testProfiles_;
 
     public TestClientProfile( Random random, XmlRpcKit xmlrpc ) {
         this( random, xmlrpc.getClientFactory(), xmlrpc.getServerFactory(),
@@ -69,7 +70,8 @@ public class TestClientProfile implements ClientProfile {
      */
     public synchronized void startHub() throws IOException {
         if ( hubRunner_ != null ) {
-            throw new IllegalStateException();
+            throw new IllegalStateException( "Hub not stopped"
+                                           + " due to earlier test failure?" );
         }
         HubService service = new BasicHubService( random_ );
         hubRunner_ = new HubRunner( hubClientFactory_, hubServerFactory_,
@@ -115,14 +117,21 @@ public class TestClientProfile implements ClientProfile {
     }
 
     public static TestClientProfile[] getTestProfiles( Random random ) {
-        SampXmlRpcClientFactory aClient = XmlRpcKit.APACHE.getClientFactory();
-        SampXmlRpcServerFactory aServ = XmlRpcKit.APACHE.getServerFactory();
-        SampXmlRpcClientFactory iClient = XmlRpcKit.INTERNAL.getClientFactory();
-        SampXmlRpcServerFactory iServ = XmlRpcKit.INTERNAL.getServerFactory();
-        return new TestClientProfile[] {
-            new TestClientProfile( random, aClient, aServ, iClient, iServ ),
-            new TestClientProfile( random, iClient, iServ, aClient, aServ ),
-            new TestClientProfile( random, iClient, iServ, iClient, iServ ),
-        };
+        if ( testProfiles_ == null ) {
+            SampXmlRpcClientFactory aClient =
+                XmlRpcKit.APACHE.getClientFactory();
+            SampXmlRpcServerFactory aServ =
+                XmlRpcKit.APACHE.getServerFactory();
+            SampXmlRpcClientFactory iClient =
+                XmlRpcKit.INTERNAL.getClientFactory();
+            SampXmlRpcServerFactory iServ =
+                XmlRpcKit.INTERNAL.getServerFactory();
+            testProfiles_ = new TestClientProfile[] {
+                new TestClientProfile( random, aClient, aServ, iClient, iServ ),
+                new TestClientProfile( random, iClient, iServ, aClient, aServ ),
+                new TestClientProfile( random, iClient, iServ, iClient, iServ ),
+            };
+        }
+        return testProfiles_;
     }
 }
