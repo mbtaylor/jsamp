@@ -2,6 +2,7 @@ package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
 import java.net.URL;
+import org.astrogrid.samp.DataException;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
@@ -58,6 +59,12 @@ public class StandardClientProfile implements ClientProfile {
             return null;
         }
         else {
+            try {
+                lockInfo.check();
+            }
+            catch ( DataException e ) {
+                throw new SampException( "Incomplete/broken lock file", e );
+            }
             SampXmlRpcClient xClient;
             URL xurl = lockInfo.getXmlrpcUrl();
             try {
