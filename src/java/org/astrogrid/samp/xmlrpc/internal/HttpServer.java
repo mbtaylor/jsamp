@@ -235,12 +235,12 @@ public class HttpServer {
         // Try to generate a request object by examining the socket's 
         // input stream.  If that fails, generate a response representing
         // the error.
-        BufferedInputStream bis =
-            new BufferedInputStream( sock.getInputStream() );
+        InputStream in = sock.getInputStream();
+        in = new BufferedInputStream( in );
         Response response = null;
         Request request = null; 
         try {
-            request = parseRequest( bis );
+            request = parseRequest( in );
         }
         catch ( HttpException e ) {
             response = e.createResponse();
@@ -250,7 +250,6 @@ public class HttpServer {
         }
         catch ( Throwable e ) {
             response = createErrorResponse( 500, "Server error", e );
-            logger_.log( Level.WARNING, "Server error", e );
         }
 
         // If we have a request (and hence no error response) process it to
@@ -264,14 +263,24 @@ public class HttpServer {
                 response = createErrorResponse( 500, e.getMessage(), e );
             }
         }
-        logger_.config( new StringBuffer().append( request.getMethod() )
-                                          .append( ' ' )
-                                          .append( request.getUrl() )
-                                          .append( " --> " )
-                                          .append( response.statusCode_ )
-                                          .append( ' ' )
-                                          .append( response.statusPhrase_ )
-                                          .toString() );
+        Level level = response.getStatusCode() == 200 ? Level.CONFIG
+                                                      : Level.WARNING;
+        if ( logger_.isLoggable( level ) ) {
+            StringBuffer sbuf = new StringBuffer();
+            if ( request != null ) {
+                sbuf.append( request.getMethod() )
+                    .append( ' ' )
+                    .append( request.getUrl() );
+            }
+            else {
+                sbuf.append( "<bad-request>" );
+            }
+            sbuf.append( " --> " )
+                .append( response.statusCode_ )
+                .append( ' ' )
+                .append( response.statusPhrase_ );
+            logger_.log( level, sbuf.toString() );
+        }
 
         // Send the response back to the client.
         BufferedOutputStream bos =
@@ -371,12 +380,17 @@ public class HttpServer {
             final byte[] body;
             if ( contentLength > 0 ) {
                 body = new byte[ contentLength ];
-                int nb = in.read( body );
-                if ( nb != contentLength ) {
-                    throw new HttpException( 500,
-                        "Insufficient bytes for declared Content-Length: "
-                       + nb + "<" + contentLength );
+                int ib = 0;
+                while ( ib < contentLength ) {
+                    int nb = in.read( body, ib, contentLength - ib );
+                    if ( nb < 0 ) {
+                        throw new HttpException( 500,
+                            "Insufficient bytes for declared Content-Length: "
+                           + ib + "<" + contentLength );
+                    }
+                    ib += nb;
                 }
+                assert ib == contentLength;
             }
             else {
                 body = null;
