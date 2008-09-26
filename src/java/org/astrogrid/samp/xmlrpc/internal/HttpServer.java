@@ -371,7 +371,12 @@ public class HttpServer {
             final byte[] body;
             if ( contentLength > 0 ) {
                 body = new byte[ contentLength ];
-                in.read( body );
+                int nb = in.read( body );
+                if ( nb != contentLength ) {
+                    throw new HttpException( 500,
+                        "Insufficient bytes for declared Content-Length: "
+                       + nb + "<" + contentLength );
+                }
             }
             else {
                 body = null;
