@@ -1,6 +1,7 @@
 package org.astrogrid.samp.xmlrpc.internal;
 
 import java.io.IOException;
+import java.io.BufferedWriter;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -27,7 +28,7 @@ class XmlWriter {
      * @param   indent  number of spaces to indent each element level
      */
     public XmlWriter( OutputStream out, int indent ) throws IOException {
-        out_ = new OutputStreamWriter( out, ENCODING );
+        out_ = new BufferedWriter( new OutputStreamWriter( out, ENCODING ) );
         indent_ = indent;
         literal( "<?xml version='1.0' encoding='" + ENCODING + "'?>" );
         newline();
