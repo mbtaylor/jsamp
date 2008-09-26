@@ -105,6 +105,9 @@
     <dd><ul>
         <li>Fixed (java version dependent?) bug in internal XML-RPC 
             implementation which sometimes caused garbled HTTP posts.</li>
+        <li>Improved performance of internal client when sending long 
+            messages.</li>
+        <li>Added test for long messages in HubTester.</li>
         </ul>
         </dd>
     </dl>
