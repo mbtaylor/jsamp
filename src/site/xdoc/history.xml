@@ -98,6 +98,17 @@
         </dd>
     </dl>
     </dd>
+
+<dt>Next version</dt>
+<dd><dl>
+    <dt>Bugfixes:</dt>
+    <dd><ul>
+        <li>Fixed (java version dependent?) bug in internal XML-RPC 
+            implementation which sometimes caused garbled HTTP posts.</li>
+        </ul>
+        </dd>
+    </dl>
+    </dd>
 </dl>
 </section>
 
