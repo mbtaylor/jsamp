@@ -103,8 +103,12 @@
 <dd><dl>
     <dt>Bugfixes:</dt>
     <dd><ul>
-        <li>Fixed (java version dependent?) bug in internal XML-RPC 
-            implementation which sometimes caused garbled HTTP posts.</li>
+        <li>Fixed server error which sometimes resulted in failed reads,
+            especially for long messages.</li>
+        </ul>
+        </dd>
+    <dt>Other:</dt>
+    <dd><ul>
         <li>Improved performance of internal client when sending long 
             messages.</li>
         <li>Added test for long messages in HubTester.</li>
