@@ -360,6 +360,24 @@ public class HubTester extends Tester {
             assertEquals( echoParams[ i ], syncR.getResult() );
         }
 
+        // Send some longer messages synchronously.
+        {
+            for ( int ie = 0; ie < 5; ie++ ) {
+                int num = (int) Math.pow( 10, ie );
+                List list = new ArrayList( num );
+                for ( int in = 0; in < num; in++ ) {
+                    list.add( SampUtils.encodeInt( in + 1 ) );
+                }
+                Message msg = new Message( ECHO_MTYPE );
+                msg.addParam( "list", list );
+                msg.check();
+                Response response = c2.callAndWait( id1, msg, 0 );
+                response.check();
+                assertEquals( Response.OK_STATUS, response.getStatus() );
+                assertEquals( list, response.getResult().get( "list" ) );
+            }
+        }
+
         // Send an echo message synchronously, with a timeout which is shorter
         // than the delay which the receiver will introduce.  So the hub
         // SHOULD time this attempt out before the response is received.
