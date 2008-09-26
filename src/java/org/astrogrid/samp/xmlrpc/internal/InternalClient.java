@@ -61,6 +61,7 @@ public class InternalClient implements SampXmlRpcClient {
         OutputStream out = connection.getOutputStream();
         out.write( callBuf );
         out.flush();
+        out.close();
         int responseCode = connection.getResponseCode();
         if ( responseCode != HttpURLConnection.HTTP_OK ) {
             throw new IOException( responseCode + " "
@@ -88,6 +89,7 @@ public class InternalClient implements SampXmlRpcClient {
         OutputStream out = connection.getOutputStream();
         out.write( callBuf );
         out.flush();
+        out.close();
 
         // It would be nice to just not read the input stream at all.
         // However, connection.setDoInput(false) and doing no reads causes
