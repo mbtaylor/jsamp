@@ -188,7 +188,7 @@ public class ErrInfo extends SampMap {
         StringBuffer sbuf = new StringBuffer( bbuf.length );
         for ( int ic = 0; ic < bbuf.length; ic++ ) {
             char c = (char) bbuf[ ic ];
-            if ( c >= 0x20 && c <= 0x7e ) {
+            if ( SampUtils.isStringChar( c ) ) {
                 sbuf.append( c );
             }
         }
