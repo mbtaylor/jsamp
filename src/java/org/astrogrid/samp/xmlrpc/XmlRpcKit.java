@@ -22,11 +22,11 @@ public abstract class XmlRpcKit {
 
     /** Array of available known implementations of this class. */
     public static XmlRpcKit[] KNOWN_IMPLS = {
-        APACHE = createApacheKit( "apache" ),
         INTERNAL = createReflectionKit(
             "internal",
             "org.astrogrid.samp.xmlrpc.internal.InternalClientFactory",
             "org.astrogrid.samp.xmlrpc.internal.InternalServerFactory" ),
+        APACHE = createApacheKit( "apache" ),
     };
 
     /**
