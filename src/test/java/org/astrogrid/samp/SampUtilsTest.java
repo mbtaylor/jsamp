@@ -34,6 +34,19 @@ public class SampUtilsTest extends TestCase {
         }
     }
 
+    public void testChars() {
+        assertTrue( SampUtils.isStringChar( 'x' ) );
+        assertTrue( SampUtils.isStringChar( 'X' ) );
+        assertTrue( SampUtils.isStringChar( (char) 0x09 ) );
+        assertTrue( SampUtils.isStringChar( (char) 0x0a ) );
+        assertTrue( SampUtils.isStringChar( (char) 0x0d ) );
+
+        assertTrue( ! SampUtils.isStringChar( (char) 0 ) );
+        assertTrue( ! SampUtils.isStringChar( (char) 0x0e ) );
+        assertTrue( ! SampUtils.isStringChar( '\b' ) );
+        assertTrue( ! SampUtils.isStringChar( (char) 0xffef ) );
+    }
+
     public void testChecks() {
         goodObject( "a" );
         goodObject( "abc\t\r\n" );
