@@ -6,8 +6,10 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -302,19 +304,28 @@ public abstract class MessageSender {
      * MessageSender implementation which uses the Notify pattern.
      */
     private static class NotifySender extends MessageSender {
-
         public Map getResponses( HubConnection connection, Message msg,
                                  String[] recipientIds )
                 throws IOException {
+            final List recipientList;
             if ( recipientIds == null ) {
-                connection.notifyAll( msg );
+                recipientList = connection.notifyAll( msg );
+                if ( recipientList.size() == 0 ) {
+                    logger_.warning( "No clients subscribed to "
+                                   + msg.getMType() );
+                }
             }
             else {
                 for ( int ir = 0; ir < recipientIds.length; ir++ ) {
                     connection.notify( recipientIds[ ir ], msg );
                 }
+                recipientList = Arrays.asList( recipientIds );
             }
-            return new HashMap();
+            Map responseMap = new HashMap();
+            for ( Iterator it = recipientList.iterator(); it.hasNext(); ) {
+                responseMap.put( it.next(), "<no response from notify>" );
+            }
+            return responseMap;
         }
     }
 
@@ -347,8 +358,9 @@ public abstract class MessageSender {
                 return new HashMap();
             }
             else {
-                logger_.info( "Waiting for responses from "
-                            + Arrays.asList( recipientIds ) );
+                int nsend = recipientIds.length;
+                logger_.log( nsend == 0 ? Level.WARNING : Level.INFO,
+                             "Waiting for " + nsend + " responses" );
             }
             final BlockingMap map = new BlockingMap();
             for ( int ir = 0; ir < recipientIds.length; ir++ ) {
@@ -379,24 +391,13 @@ public abstract class MessageSender {
      * pattern.
      */
     private static class AsynchSender extends MessageSender {
-
         private int iseq_;
 
         public Map getResponses( HubConnection connection, Message msg,
                                  String[] recipientIds ) 
                 throws IOException {
             String msgTag = "tag-" + ++iseq_;
-            int nExpected = recipientIds == null
-                ? connection.getSubscribedClients( msg.getMType() ).size()
-                : recipientIds.length;
-            if ( nExpected == 0 ) {
-                logger_.warning( "No clients subscribed to " + msg.getMType() );
-                return new HashMap();
-            }
-            else {
-                logger_.info( "Waiting for " + nExpected + " responses" );
-            }
-            Collector collector = new Collector( nExpected );
+            Collector collector = new Collector();
 
             // Sets the connection's callable client to a new object.
             // Since the Standard Profile doesn't say it's OK to do this 
@@ -404,12 +405,16 @@ public abstract class MessageSender {
             // to call getResponses more than once for this object.
             connection.setCallable( collector );
             if ( recipientIds == null ) {
-                connection.callAll( msgTag, msg );
+                Set recipientSet = connection.callAll( msgTag, msg ).keySet();
+                collector.setRecipients( recipientSet );
             }
             else {
-                for ( int i = 0; i < recipientIds.length; i++ ) {
-                    connection.call( recipientIds[ i ], msgTag, msg );
+                Set recipientSet = new HashSet( Arrays.asList( recipientIds ) );
+                for ( Iterator it = recipientSet.iterator(); it.hasNext(); ) {
+                    String recipientId = (String) it.next();
+                    connection.call( recipientId, msgTag, msg );
                 }
+                collector.setRecipients( recipientSet );
             }
             return collector.map_;
         }
@@ -419,17 +424,33 @@ public abstract class MessageSender {
          * responses.
          */
         private static class Collector implements CallableClient {
-            private final int nExpected_;
             final BlockingMap map_;
+            Collection recipients_;
 
             /**
              * Constructor.
              *
              * @param  nExpected  number of responses expected by this collector
              */
-            Collector( int nExpected ) {
+            Collector() {
                 map_ = new BlockingMap();
-                nExpected_ = nExpected;
+            }
+
+            /**
+             * Notifies this object which clients it should expect a response
+             * from.  Must be called at some point, or the returned map's
+             * iterator will block indefinitely.
+             *
+             * @param  recipients  set of client ids for expected responders
+             */
+            public void setRecipients( Collection recipients ) {
+                int nsend = recipients.size();
+                logger_.log( nsend == 0 ? Level.WARNING : Level.INFO,
+                             "Waiting for " + nsend + " responses" );
+                recipients_ = recipients;
+                if ( map_.keySet().containsAll( recipients_ ) ) {
+                    map_.done();
+                }
             }
 
             public void receiveCall( String senderId, String msgId,
@@ -444,7 +465,8 @@ public abstract class MessageSender {
             public void receiveResponse( String responderId, String msgTag,
                                          Response response ) {
                 map_.put( responderId, response );
-                if ( map_.size() >= nExpected_ ) {
+                if ( recipients_ != null &&
+                     map_.keySet().containsAll( recipients_ ) ) {
                     map_.done();
                 }
             }
