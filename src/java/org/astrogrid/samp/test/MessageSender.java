@@ -73,7 +73,7 @@ public abstract class MessageSender {
             Object response = entry.getValue();
             out.println();
             out.println( responder );
-            out.println( response );
+            out.println( SampUtils.formatObject( response, 3 ) );
         }
     }
 
