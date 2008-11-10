@@ -58,8 +58,10 @@ public class HubTester extends Tester {
     private static final String METADATA_MTYPE = "samp.hub.event.metadata";
     private static final String SUBSCRIPTIONS_MTYPE =
         "samp.hub.event.subscriptions";
-
     private static final String ERROR_KEY = "test.error";
+    private static final char[] ALPHA_CHARS = createAlphaCharacters();
+    private static final char[] GENERAL_CHARS = createGeneralCharacters();
+ 
     private static Logger logger_ =
         Logger.getLogger( HubTester.class.getName() );
 
@@ -299,16 +301,18 @@ public class HubTester extends Tester {
 
         // Send some concurrent ECHO messages via both notify and call.
         int necho = 5;
-        Object[] echoParams = new Object[ necho ];
+        Map[] echoParams = new Map[ necho ];
         String[] msgIds = new String[ necho ];
         for ( int i = 0; i < necho; i++ ) {
             Message msg = new Message( ECHO_MTYPE );
             Object val1 = createRandomObject( 2, false );
             Object val2 = createRandomObject( 4, false );
+            Object val3 = new String( GENERAL_CHARS );
             msg.put( WAITMILLIS_KEY, SampUtils.encodeInt( 200 + 100 * i ) );
             msg.put( MSGIDQUERY_KEY, SampUtils.encodeBoolean( true ) );
             msg.addParam( "val1", val1 );
             msg.addParam( "val2", val2 );
+            msg.addParam( "val3", val3 );
             echoParams[ i ] = msg.getParams();
             c2.notify( id1, msg );
             msgIds[ i ] = callable2.call( id1, "tag" + i, msg );
@@ -351,9 +355,11 @@ public class HubTester extends Tester {
             Message msg = new Message( ECHO_MTYPE );
             Object val1 = createRandomObject( 2, false );
             Object val2 = createRandomObject( 4, false );
+            Object val3 = new String( GENERAL_CHARS );
             msg.put( WAITMILLIS_KEY, SampUtils.encodeInt( 100 * i ) );
             msg.addParam( "val1", val1 );
             msg.addParam( "val2", val2 );
+            msg.addParam( "val3", val3 );
             echoParams[ i ] = msg.getParams();
             Response syncR = c2.callAndWait( id1, msg, 0 );
             assertEquals( Response.OK_STATUS, syncR.getStatus() );
@@ -692,11 +698,10 @@ public class HubTester extends Tester {
      */
     public String createRandomString( boolean ugly ) {
         int nchar = random_.nextInt( ugly ? 99 : 4 );
-        char lo = ugly ? 0x01 : 'A';
-        char hi = ugly ? 0x7f : 'Z';
         StringBuffer sbuf = new StringBuffer( nchar );
+        char[] chrs = ugly ? GENERAL_CHARS : ALPHA_CHARS;
         for ( int i = 0; i < nchar; i++ ) {
-            sbuf.append( (char) ( lo + random_.nextInt( hi - lo ) ) );
+            sbuf.append( chrs[ random_.nextInt( chrs.length ) ] );
         }
         String str = sbuf.toString();
         SampUtils.checkString( str );
@@ -718,6 +723,50 @@ public class HubTester extends Tester {
         catch ( InterruptedException e ) {
             throw new RuntimeException( "Interrupted", e );
         }
+    }
+
+    /**
+     * Returns a character array containing each distinct alphanumeric 
+     * character.
+     *
+     * @return  array of alphanumeric characters
+     */
+    private static char[] createAlphaCharacters() {
+        StringBuffer sbuf = new StringBuffer();
+        for ( char c = 'A'; c <= 'Z'; c++ ) {
+            sbuf.append( c );
+        }
+        for ( char c = '0'; c <= '9'; c++ ) {
+            sbuf.append( c );
+        }
+        return sbuf.toString().toCharArray();
+    }
+
+    /**
+     * Returns a character array containing every character which is legal
+     * for inclusion in a SAMP <code>string</code>.
+     *
+     * @return  array of string characters
+     */
+    private static char[] createGeneralCharacters() {
+        StringBuffer sbuf = new StringBuffer();
+        sbuf.append( (char) 0x09 );
+        sbuf.append( (char) 0x0a );
+
+        // Character 0x0d is problematic.  Although it is permissible to 
+        // transmit this in an XML document, it can get transformed to 
+        // 0x0a or (if adjacent to an existing 0x0a) elided.
+        // The correct thing to do probably would be to note in the standard
+        // that all bets are off when transmitting line end characters -
+        // but sending a line-end will probably end up as a line-end.
+        // However I can't be bothered to start up a new thread about this
+        // on the apps-samp list, so for the purposes of this test just
+        // avoid sending it.
+     // sbuf.append( (char) 0x0d );
+        for ( char c = 0x20; c <= 0x7f; c++ ) {
+            sbuf.append( c );
+        }
+        return sbuf.toString().toCharArray();
     }
 
     /**
