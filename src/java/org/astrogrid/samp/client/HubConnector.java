@@ -123,6 +123,7 @@ public class HubConnector {
         Logger.getLogger( HubConnector.class.getName() );
 
     private static final String SHUTDOWN_MTYPE = "samp.hub.event.shutdown";
+    private static final String DISCONNECT_MTYPE = "samp.hub.disconnect";
     private static final String PING_MTYPE = "samp.app.ping";
 
     /**
@@ -154,6 +155,28 @@ public class HubConnector {
                 checkHubMessage( connection, senderId, mtype );
                 disconnect();
                 return null;
+            }
+        } );
+
+        // Listen out for forcible disconnection events.
+        addMessageHandler( new AbstractMessageHandler( DISCONNECT_MTYPE ) {
+            public Map processCall( HubConnection connection,
+                                    String senderId, Message message ) {
+                String mtype = message.getMType();
+                assert DISCONNECT_MTYPE.equals( mtype );
+                if ( senderId.equals( connection.getRegInfo().getHubId() ) ) {
+                    Object reason = message.getParam( "reason" );
+                    logger_.warning( "Forcible disconnect from hub"
+                                   + ( reason == null ? " [no reason given]"
+                                                      : " (" + reason + ")" ) );
+                    disconnect();
+                    return null;
+                }
+                else {
+                    throw new IllegalArgumentException( "Ignoring " + mtype
+                                                      + " message from non-hub"
+                                                      + " client " + senderId );
+                }
             }
         } );
 
