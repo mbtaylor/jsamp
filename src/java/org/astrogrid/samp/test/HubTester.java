@@ -432,10 +432,11 @@ public class HubTester extends Tester {
             Object val4 = createRandomObject( 4, false );
             msg.addParam( "val4", val4 );
             msg.put( WAITMILLIS_KEY, SampUtils.encodeInt( 400 ) );
-            c3.notifyAll( msg );
+            List notifyList = c3.notifyAll( msg );
+            assertEquals( recipientSet, new HashSet( notifyList ) );
             String tag = "tag99";
             msg.put( MSGIDQUERY_KEY, "1" );
-            String msgId = callable3.callAll( tag, msg );
+            Map callMap = callable3.callAll( tag, msg );
             if ( callable3.getReplyCount() != 0 ) {
                 logger_.warning( "Looks like hub call()/notify() methods "
                                + "not completing quickly" );
@@ -448,7 +449,8 @@ public class HubTester extends Tester {
                 Response response = callable3.waitForReply( rid, tag );
                 assertEquals( Response.OK_STATUS, response.getStatus() );
                 assertEquals( val4, response.getResult().get( "val4" ) );
-                assertEquals( msgId, response.get( MSGIDQUERY_KEY ) );
+                assertEquals( (String) callMap.get( rid ),
+                              response.get( MSGIDQUERY_KEY ) );
             }
 
             // Check there are no replies beyond the ones we expect.
@@ -477,8 +479,10 @@ public class HubTester extends Tester {
             for ( int i = 0; i < pingsCount; i++ ) {
                 c3.notify( id1, pingMsg );
                 callable3.call( id1, "abc1-" + i, pingMsg );
-                c3.notifyAll( pingMsg );
-                callable3.callAll( "abc2-" + i, pingMsg );
+                List notifyList = c3.notifyAll( pingMsg );
+                Map callMap = callable3.callAll( "abc2-" + i, pingMsg );
+                assertEquals( recipients, new HashSet( notifyList ) );
+                assertEquals( recipients, callMap.keySet() );
             }
 
             // Spin-wait until all the clients have received all the messages
@@ -565,8 +569,10 @@ public class HubTester extends Tester {
 
             // Send message using notifyAll and callAll to which nobody is
             // subscribed.  Nobody will receive this, but it is not an error.
-            c3.notifyAll( dummyMsg );
-            c3.callAll( "yyy", dummyMsg );
+            List notifyList = c3.notifyAll( dummyMsg );
+            assertEquals( 0, notifyList.size() );
+            Map callMap = c3.callAll( "yyy", dummyMsg );
+            assertEquals( 0, callMap.size() );
         }
 
         // Check that hub event messages arrived concerning client 0 which

@@ -126,9 +126,9 @@ class HubXmlRpcHandler extends ActorHandler {
             service_.notify( privateKey, recipientId, msg );
         }
 
-        public void notifyAll( String privateKey, Map msg ) 
+        public List notifyAll( String privateKey, Map msg ) 
                 throws HubServiceException {
-            service_.notifyAll( privateKey, msg );
+            return service_.notifyAll( privateKey, msg );
         }
 
         public String call( String privateKey, String recipientId,
@@ -137,7 +137,7 @@ class HubXmlRpcHandler extends ActorHandler {
             return service_.call( privateKey, recipientId, msgTag, msg );
         }
 
-        public String callAll( String privateKey, String msgTag, Map msg ) 
+        public Map callAll( String privateKey, String msgTag, Map msg ) 
                 throws HubServiceException {
             return service_.callAll( privateKey, msgTag, msg );
         }

@@ -250,19 +250,21 @@ public class BasicHubService implements HubService {
         return msgId;
     }
 
-    public void notifyAll( Object callerKey, Map message )
+    public List notifyAll( Object callerKey, Map message )
             throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
         msg.check();
         String mtype = msg.getMType();
         HubClient[] recipients = getClientSet().getClients();
+        List sentList = new ArrayList();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
             if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
                 try {
                     recipient.getReceiver()
                              .receiveNotification( caller.getId(), msg );
+                    sentList.add( recipient.getId() );
                 }
                 catch ( HubServiceException e ) {
                     logger_.log( Level.WARNING, 
@@ -271,9 +273,10 @@ public class BasicHubService implements HubService {
                 }
             }
         }
+        return sentList;
     }
 
-    public String callAll( Object callerKey, String msgTag, Map message )
+    public Map callAll( Object callerKey, String msgTag, Map message )
             throws HubServiceException {
         HubClient caller = getCaller( callerKey );
         Message msg = Message.asMessage( message );
@@ -281,14 +284,16 @@ public class BasicHubService implements HubService {
         String mtype = msg.getMType();
         String msgId = MessageId.encode( caller, msgTag, false );
         HubClient[] recipients = getClientSet().getClients();
+        Map sentMap = new HashMap();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
             if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
                 recipient.getReceiver()
                          .receiveCall( caller.getId(), msgId, msg );
+                sentMap.put( recipient.getId(), msgId );
             }
         }
-        return msgId;
+        return sentMap;
     }
 
     public void reply( Object callerKey, String msgIdStr, Map response )

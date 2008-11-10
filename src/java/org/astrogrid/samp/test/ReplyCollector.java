@@ -75,7 +75,7 @@ abstract class ReplyCollector implements CallableClient {
      * @param  msg {@link org.astrogrid.samp.Message}-like map
      * @return  message ID
      */
-    public String callAll( String msgTag, Map msg ) throws SampException {
+    public Map callAll( String msgTag, Map msg ) throws SampException {
         Object key = createKey( null, msgTag );
         if ( sentSet_.contains( key ) ) {
             throw new IllegalArgumentException( "Key " + key + " reused" );

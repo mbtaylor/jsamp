@@ -1,5 +1,6 @@
 package org.astrogrid.samp.client;
 
+import java.util.List;
 import java.util.Map;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
@@ -111,8 +112,9 @@ public interface HubConnection {
      * Sends a message to all subscribed clients without wanting a response.
      *
      * @param  msg {@link org.astrogrid.samp.Message}-like map
+     * @return  list of public-ids for clients to which the notify will be sent
      */
-    void notifyAll( Map msg ) throws SampException;
+    List notifyAll( Map msg ) throws SampException;
 
     /**
      * Sends a message to a given client expecting a response.
@@ -142,9 +144,10 @@ public interface HubConnection {
      * @param  msgTag  arbitrary string tagging this message for caller's
      *         benefit
      * @param  msg {@link org.astrogrid.samp.Message}-like map
-     * @return  message ID
+     * @return  public-id->msg-id map for clients to which an attempt to 
+     *          send the call will be made
      */
-    String callAll( String msgTag, Map msg ) throws SampException;
+    Map callAll( String msgTag, Map msg ) throws SampException;
 
     /**
      * Sends a message synchronously to a client, waiting for the response.

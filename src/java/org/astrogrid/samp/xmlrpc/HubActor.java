@@ -119,8 +119,9 @@ interface HubActor {
      *
      * @param  privateKey  calling client private key
      * @param  msg {@link org.astrogrid.samp.Message}-like map
+     * @return  list of public-ids for clients to which the notify will be sent
      */
-    void notifyAll( String privateKey, Map msg ) throws HubServiceException;
+    List notifyAll( String privateKey, Map msg ) throws HubServiceException;
 
     /**
      * Sends a message to a given client expecting a response.
@@ -142,9 +143,10 @@ interface HubActor {
      * @param  msgTag  arbitrary string tagging this message for caller's
      *         benefit
      * @param  msg {@link org.astrogrid.samp.Message}-like map
-     * @return  message ID
+     * @return  public-id->msg-id map for clients to which an attempt to
+     *          send the call will be made
      */
-    String callAll( String privateKey, String msgTag, Map msg )
+    Map callAll( String privateKey, String msgTag, Map msg )
             throws HubServiceException;
 
     /**

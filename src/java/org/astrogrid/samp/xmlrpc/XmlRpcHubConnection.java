@@ -126,8 +126,8 @@ public class XmlRpcHubConnection implements HubConnection {
         exec( "notify", new Object[] { recipientId, msg } );
     }
 
-    public void notifyAll( Map msg ) throws SampException {
-        exec( "notifyAll", new Object[] { msg } );
+    public List notifyAll( Map msg ) throws SampException {
+        return asList( exec( "notifyAll", new Object[] { msg } ) );
     }
 
     public String call( String recipientId, String msgTag, Map msg )
@@ -136,8 +136,8 @@ public class XmlRpcHubConnection implements HubConnection {
                                new Object[] { recipientId, msgTag, msg } ) );
     }
 
-    public String callAll( String msgTag, Map msg ) throws SampException {
-        return asString( exec( "callAll", new Object[] { msgTag, msg } ) );
+    public Map callAll( String msgTag, Map msg ) throws SampException {
+        return asMap( exec( "callAll", new Object[] { msgTag, msg } ) );
     }
 
     public Response callAndWait( String recipientId, Map msg, int timeout )
