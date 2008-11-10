@@ -240,6 +240,7 @@ public class CalcStorm {
                 else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
                     it.remove();
                     String impl = (String) it.next();
+                    it.remove();
                     try {
                         xmlrpc = XmlRpcKit.getInstanceByName( impl );
                     }
