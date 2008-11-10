@@ -176,8 +176,18 @@ public class SampUtils {
     public static void checkMap( Map map ) {
         for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
-            checkString( (String) entry.getKey() );
-            checkObject( entry.getValue() );
+            Object key = entry.getKey();
+            if ( key instanceof String ) {
+                checkString( (String) key );
+                checkObject( entry.getValue() );
+            }
+            else if ( key == null ) {
+                throw new DataException( "Map key null" );
+            }
+            else {
+                throw new DataException( "Map key not a string ("
+                                       + key.getClass().getName() + ")" );
+            }
         }
     }
 
@@ -206,7 +216,11 @@ public class SampUtils {
         int leng = string.length();
         for ( int i = 0; i < leng; i++ ) {
             int c = string.charAt( i );
-            if ( c < 0x01 || c > 0x7f ) {
+            if ( c == 0x09 || c == 0x0a || c == 0x0d ||
+                 ( c >= 0x20 && c <= 0x7f ) ) {
+                // ok.
+            }
+            else {
                 throw new DataException( "Bad SAMP string; contains character "
                                        + "0x" + Integer.toHexString( c ) );
             }
