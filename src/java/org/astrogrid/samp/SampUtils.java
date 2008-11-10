@@ -215,12 +215,8 @@ public class SampUtils {
     public static void checkString( String string ) {
         int leng = string.length();
         for ( int i = 0; i < leng; i++ ) {
-            int c = string.charAt( i );
-            if ( c == 0x09 || c == 0x0a || c == 0x0d ||
-                 ( c >= 0x20 && c <= 0x7f ) ) {
-                // ok.
-            }
-            else {
+            char c = string.charAt( i );
+            if ( ! isStringChar( c ) ) {
                 throw new DataException( "Bad SAMP string; contains character "
                                        + "0x" + Integer.toHexString( c ) );
             }
@@ -228,7 +224,24 @@ public class SampUtils {
     }
 
     /**
-     * Checks that a string can is a legal URL.
+     * Indicates whether a given character is legal to include in a SAMP
+     * string.
+     *
+     * @return  true iff c is 0x09, 0x0a, 0x0d or 0x20--0x7f
+     */
+    public static boolean isStringChar( char c ) {
+        switch ( c ) {
+            case 0x09:
+            case 0x0a:
+            case 0x0d:
+                return true;
+            default:
+                return c >= 0x20 && c <= 0x7f;
+        }
+    }
+
+    /**
+     * Checks that a string is a legal URL.
      *
      * @param  url  string to check
      * @throws  DataException  if <code>url</code> is not a legal URL
