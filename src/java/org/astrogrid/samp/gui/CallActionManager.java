@@ -72,9 +72,10 @@ public abstract class CallActionManager extends SendActionManager {
     /**
      * Returns an object which will be informed of the results of a single-
      * or multiple-recipient send as they arrive.
+     * This method will be called from the event dispatch thread.
      *
-     * <p>The default implementation returns a handler which just outputs
-     * some information through the logging system.
+     * <p>The default implementation returns an instance of
+     * {@link PopupResultHandler}.
      *
      * @param  connection  connection object
      * @param  msg  the message which was sent
@@ -84,7 +85,9 @@ public abstract class CallActionManager extends SendActionManager {
     protected ResultHandler createResultHandler( HubConnection connection,
                                                  Message msg,
                                                  Client[] recipients ) {
-        return new LogResultHandler( msg );
+        String title = "SAMP " + sendType_ + " Send";
+        return new PopupResultHandler( parent_, "SAMP " + sendType_ + " Send",
+                                       msg, recipients, 1 );
     }
 
     /**
