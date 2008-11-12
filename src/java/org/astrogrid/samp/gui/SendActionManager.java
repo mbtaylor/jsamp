@@ -1,10 +1,16 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.Component;
+import java.awt.Graphics;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -39,6 +45,10 @@ public abstract class SendActionManager {
     private Action broadcastAct_;
     private boolean broadcastActCreated_;
     private Action[] sendActs_;
+    private static Icon SEND_ICON;
+    private static Icon BROADCAST_ICON;
+    private static final Logger logger_ =
+        Logger.getLogger( SendActionManager.class.getName() );
 
     /**
      * Constructor.
@@ -213,6 +223,57 @@ public abstract class SendActionManager {
         }
         for ( Iterator it = menuList_.iterator(); it.hasNext(); ) {
             ((JMenu) it.next()).setEnabled( active );
+        }
+    }
+
+    /**
+     * Returns an icon suitable for depicting a general targetted send.
+     *
+     * @return   send icon
+     */
+    public static Icon getSendIcon() {
+        if ( SEND_ICON == null ) {
+            SEND_ICON = createIcon( "phone2.gif" );
+        }
+        return SEND_ICON;
+    }
+
+    /**
+     * Returns an icon suitable for depicting a general broadcast send.
+     *
+     * @return  broadcast icon
+     */
+    public static Icon getBroadcastIcon() {
+        if ( BROADCAST_ICON == null ) {
+            BROADCAST_ICON = createIcon( "tx3.gif" );
+        }
+        return BROADCAST_ICON;
+    }
+
+    /**
+     * Constructs an icon given a file name in the images directory.
+     *
+     * @param  fileName  file name omitting directory
+     * @return  icon
+     */
+    private static Icon createIcon( String fileName ) {
+        String relLoc = "images/" + fileName;
+        URL resource = Client.class.getResource( relLoc );
+        if ( resource != null ) {
+            return new ImageIcon( resource );
+        }
+        else {
+            logger_.warning( "Failed to load icon " + relLoc );
+            return new Icon() {
+                public int getIconWidth() {
+                    return 24;
+                }
+                public int getIconHeight() {
+                    return 24;
+                }
+                public void paintIcon( Component c, Graphics g, int x, int y ) {
+                }
+            };
         }
     }
 }
