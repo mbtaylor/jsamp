@@ -460,7 +460,7 @@ public class HubConnector {
                     ? System.currentTimeMillis() + timeout * 1000
                     : Long.MAX_VALUE;  // 3e8 years
         HubConnection connection = getConnection();
-        String msgTag = generateTag();
+        String msgTag = createTag( this );
         responseMap_.put( msgTag, null );
         connection.call( recipientId, msgTag, msg );
         synchronized ( responseMap_ ) {
@@ -670,11 +670,17 @@ public class HubConnector {
     }
 
     /**
-     * Generates a new msgTag for use by this connector's 
-     * {@link #callAndWait} method.
+     * Generates a new <code>msgTag</code> for use with this connector.
+     * It is guaranteed to return a different value on each invocation.
+     * It is advisable to use this method whenever a message tag is required
+     * to prevent clashes.
+     *
+     * @param  owner  object to identify caller
+     *                (not really necessary - may be null)
+     * @return  unique tag for this connector
      */
-    private String generateTag() {
-        return this.toString() + ":" + ++iCall_;
+    public synchronized String createTag( Object owner ) {
+        return String.valueOf( owner ) + ":" + ++iCall_;
     }
 
     /**
