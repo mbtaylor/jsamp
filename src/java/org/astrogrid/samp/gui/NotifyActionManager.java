@@ -1,38 +1,36 @@
 package org.astrogrid.samp.gui;
 
 import java.awt.Component;
-import java.awt.Graphics;
 import java.awt.event.ActionEvent;
-import java.io.IOException;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 
 /**
- * SendActionManager concrete subclass which works with messages of a
- * single MType.
+ * SendActionManager subclass which works with messages of a single MType,
+ * using the Notify delivery pattern.
  *
  * @author   Mark Taylor
  * @since    5 Sep 2008
  */
-public abstract class DefaultSendActionManager extends SendActionManager {
+public abstract class NotifyActionManager extends SendActionManager {
 
     private final Component parent_;
     private final HubConnector connector_;
     private final String sendType_;
-    private final Icon SEND_ICON = createIcon( "phone2.gif" );
-    private final Icon BROADCAST_ICON = createIcon( "tx3.gif" );
     private static final Logger logger_ =
-        Logger.getLogger( DefaultSendActionManager.class.getName() );
+        Logger.getLogger( NotifyActionManager.class.getName() );
 
     /**
      * Constructor.
@@ -43,8 +41,8 @@ public abstract class DefaultSendActionManager extends SendActionManager {
      * @param   sendType  short string identifying the kind of thing being
      *          sent (used for action descriptions etc)
      */
-    public DefaultSendActionManager( Component parent, HubConnector connector,
-                                     String mtype, String sendType ) {
+    public NotifyActionManager( Component parent, HubConnector connector,
+                                String mtype, String sendType ) {
         super( connector, new SubscribedClientListModel( connector, mtype ) );
         parent_ = parent;
         connector_ = connector;
@@ -61,14 +59,36 @@ public abstract class DefaultSendActionManager extends SendActionManager {
      */
     protected abstract Map createMessage() throws Exception;
 
+    /**
+     * Called when a message has been sent by this object.
+     * The default action is to notify via the logging system.
+     * Subclasses may override this method.
+     *
+     * @param  connection  connection object
+     * @param  msg  the message which was sent
+     * @param  recipients  the recipients to whom an attempt was made to send
+     *         the message
+     */
+    protected void messageSent( HubConnection connection, Message msg,
+                                Client[] recipients ) {
+        for ( int i = 0; i < recipients.length; i++ ) {
+            logger_.info( "Message " + msg.getMType() + " sent to "
+                                     + SampUtils.toString( recipients[ i ] ) );
+        }
+    }
+
     protected Action createBroadcastAction() {
         Action act = new AbstractAction() {
             public void actionPerformed( ActionEvent evt ) {
+                List recipientIdList = null;
+                Message msg = null;
+                HubConnection connection = null;
                 try {
-                    Map msg = createMessage();
-                    HubConnection connection = connector_.getConnection();
+                    msg = Message.asMessage( createMessage() );
+                    msg.check();
+                    connection = connector_.getConnection();
                     if ( connection != null ) {
-                        connection.notifyAll( msg );
+                        recipientIdList = connection.notifyAll( msg );
                     }
                 }
                 catch ( Exception e ) {
@@ -76,56 +96,47 @@ public abstract class DefaultSendActionManager extends SendActionManager {
                                            "Send failure " + e.getMessage(),
                                            e );
                 }
+                if ( recipientIdList != null ) {
+                    assert connection != null;
+                    assert msg != null;
+                    List recipientList = new ArrayList();
+                    Map clientMap = connector_.getClientMap();
+                    for ( Iterator it = recipientIdList.iterator();
+                          it.hasNext(); ) {
+                        String id = (String) it.next();
+                        Client recipient = (Client) clientMap.get( id );
+                        if ( recipient != null ) {
+                            recipientList.add( recipient );
+                        }
+                    }
+                    messageSent( connection, msg,
+                                (Client[])
+                                recipientList.toArray( new Client[ 0 ] ) );
+                }
             }
         };
         act.putValue( Action.NAME, "Broadcast " + sendType_ );
         act.putValue( Action.SHORT_DESCRIPTION,
                       "Transmit " + sendType_ + " to all applications"
                     + " listening using the SAMP protocol" );
-        act.putValue( Action.SMALL_ICON, BROADCAST_ICON );
+        act.putValue( Action.SMALL_ICON, getBroadcastIcon() );
         return act;
     }
 
     /**
-     * Constructs a menu with a sensible name and icon.
+     * Returns a new menu for targetted sends with a title suitable for
+     * this object.
      *
-     * @return  new menu
+     * @return  new send menu
      */
     public JMenu createSendMenu() {
         JMenu menu = super.createSendMenu( "Send " + sendType_ + " to..." );
-        menu.setIcon( SEND_ICON );
+        menu.setIcon( getSendIcon() );
         return menu;
     }
 
     protected Action getSendAction( Client client ) {
         return new SendAction( client );
-    }
-
-    /**
-     * Constructs an icon given a file name in the images directory.
-     *
-     * @param  fileName  file name omitting directory
-     * @return  icon
-     */
-    private static Icon createIcon( String fileName ) {
-        String relLoc = "images/" + fileName;
-        URL resource = Client.class.getResource( relLoc );
-        if ( resource != null ) {
-            return new ImageIcon( resource );
-        }
-        else {
-            logger_.warning( "Failed to load icon " + relLoc );
-            return new Icon() {
-                public int getIconWidth() {
-                    return 24;
-                }
-                public int getIconHeight() {
-                    return 24;
-                }
-                public void paintIcon( Component c, Graphics g, int x, int y ) {
-                }
-            };
-        }
     }
 
     /**
@@ -142,14 +153,7 @@ public abstract class DefaultSendActionManager extends SendActionManager {
          */
         SendAction( Client client ) {
             client_ = client;
-            String cName = null;
-            Metadata meta = client.getMetadata();
-            if ( meta != null ) {
-                cName = meta.getName();
-            }
-            cName_ = cName == null || cName.trim().length() == 0
-                   ? ( "client " + client.getId() )
-                   : cName;
+            cName_ = SampUtils.toString( client );
             putValue( NAME, cName_ );
             putValue( SHORT_DESCRIPTION,
                       "Transmit " + sendType_ + " to " + cName_
@@ -157,16 +161,26 @@ public abstract class DefaultSendActionManager extends SendActionManager {
         }
 
         public void actionPerformed( ActionEvent evt ) {
+            boolean sent = false;
+            Message msg = null;
+            HubConnection connection = null;
             try {
-                Map msg = createMessage();
-                HubConnection connection = connector_.getConnection();
+                msg = Message.asMessage( createMessage() );
+                msg.check();
+                connection = connector_.getConnection();
                 if ( connection != null ) {
                     connection.notify( client_.getId(), msg );
+                    sent = true;
                 }
             }
             catch ( Exception e ) {
                 ErrorDialog.showError( parent_, "Send Error",
                                        "Send failure " + e.getMessage(), e );
+            }
+            if ( sent ) {
+                assert connection != null;
+                assert msg != null;
+                messageSent( connection, msg, new Client[] { client_ } );
             }
         }
 
