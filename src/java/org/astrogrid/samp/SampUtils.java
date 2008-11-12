@@ -258,6 +258,24 @@ public class SampUtils {
     }
 
     /**
+     * Returns a string representation of a client object.
+     * The name is used if present, otherwise the ID.
+     *
+     * @param  client   client object
+     * @return  string
+     */
+    public static String toString( Client client ) {
+        Metadata meta = client.getMetadata();
+        if ( meta != null ) {
+            String name = meta.getName();
+            if ( name != null && name.trim().length() > 0 ) {
+                return name;
+            }
+        }
+        return client.getId();
+    }
+
+    /**
      * Pretty-prints a SAMP object.
      *
      * @param   obj  SAMP-friendly object
