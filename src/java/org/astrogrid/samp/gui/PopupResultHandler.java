@@ -20,6 +20,7 @@ import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -109,7 +110,7 @@ public class PopupResultHandler extends JFrame implements ResultHandler {
         mtypeLine.add( Box.createHorizontalGlue() );
         Action msgDetailAction =
                 new DetailAction( "Detail", "Show details of message sent",
-                                  "Message Sent" ) {
+                                  "Message Sent", "SAMP message sent:" ) {
             protected Map getSampMap() {
                 return msg;
             }
@@ -202,12 +203,13 @@ public class PopupResultHandler extends JFrame implements ResultHandler {
             else {
                 new Timer( closeDelayMillis_, new ActionListener() {
                     public void actionPerformed( ActionEvent evt ) {
-                        dispose();
+                        if ( autoCloser_.isSelected() ) {
+                            dispose();
+                        }
                     }
                 } ).start();
             }
         }
-        autoCloser_.setEnabled( false );
     }
 
     /**
@@ -231,7 +233,9 @@ public class PopupResultHandler extends JFrame implements ResultHandler {
             statusLabel_.setForeground( new Color( 0x40, 0x40, 0x40 ) );
             responseDetailAction_ =
                     new DetailAction( "Detail", "Show details of response",
-                                      cName + " Response" ) {
+                                      cName + " Response",
+                                      "SAMP Response from client " + cName
+                                     + ":" ) {
                 protected Map getSampMap() {
                     return response_;
                 }
@@ -282,6 +286,7 @@ public class PopupResultHandler extends JFrame implements ResultHandler {
     private abstract class DetailAction extends AbstractAction {
 
         private final String popupTitle_;
+        private final String heading_;
 
         /**
          * Constructor.
@@ -290,10 +295,12 @@ public class PopupResultHandler extends JFrame implements ResultHandler {
          * @param  shortDesc   action short description (tool tip)
          * @param  popupTitle  title of popup window
          */
-        DetailAction( String name, String shortDesc, String popupTitle ) {
+        DetailAction( String name, String shortDesc, String popupTitle,
+                      String heading ) {
             super( name );
             putValue( SHORT_DESCRIPTION, shortDesc );
             popupTitle_ = popupTitle;
+            heading_ = heading;
         }
 
         /**
@@ -305,20 +312,56 @@ public class PopupResultHandler extends JFrame implements ResultHandler {
         protected abstract Map getSampMap();
 
         public void actionPerformed( ActionEvent evt ) {
+
+            // Make sure that autoclose is off, since otherwise these dialogues
+            // will get disappeared at the same time as the owner window,
+            // which is probably not what the user would expect.
+            autoCloser_.setSelected( false );
+
+            // Set up a text component containing the full map serialization.
             JTextArea ta = new JTextArea();
             ta.setLineWrap( false );
             ta.setEditable( false );
             ta.append( SampUtils.formatObject( getSampMap(), 3 ) );
             ta.setCaretPosition( 0 );
+
+            // Wrap it in a scroll pane and size appropriately.
             Dimension size = ta.getPreferredSize();
             size.height = Math.min( size.height + 20, 200 );
-            size.width = Math.min( size.width + 20, 300 );
+            size.width = Math.min( size.width + 20, 360 );
             JScrollPane scroller = new JScrollPane( ta );
             scroller.setPreferredSize( size );
-            Object displayObj = scroller;
-            JOptionPane.showMessageDialog( PopupResultHandler.this,
-                                           displayObj, popupTitle_,
-                                           JOptionPane.INFORMATION_MESSAGE );
+
+            // Put into a non-modal dialogue with decorations.
+            final JDialog dialog =
+                new JDialog( PopupResultHandler.this, popupTitle_, false );
+            dialog.setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
+            JComponent main = new JPanel( new BorderLayout() );
+            main.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+            dialog.getContentPane().add( main );
+            Action closeAction = new AbstractAction( "Close" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    dialog.dispose();
+                }
+            };
+            Box buttonBox = Box.createHorizontalBox();
+            buttonBox.add( Box.createHorizontalGlue() );
+            buttonBox.add( new JButton( closeAction ) );
+            buttonBox.add( Box.createHorizontalGlue() );
+            Box headBox = Box.createHorizontalBox();
+            headBox.add( new JLabel( heading_ ) );
+            headBox.add( Box.createHorizontalGlue() );
+            headBox.setBorder( BorderFactory.createEmptyBorder( 0, 0, 5, 0 ) );
+            buttonBox.setBorder( BorderFactory
+                                .createEmptyBorder( 5, 0, 0, 0 ) );
+            main.add( headBox, BorderLayout.NORTH );
+            main.add( buttonBox, BorderLayout.SOUTH );
+            main.add( scroller, BorderLayout.CENTER ); 
+
+            // Post the dialogue.
+            dialog.setLocationRelativeTo( PopupResultHandler.this );
+            dialog.pack();
+            dialog.show();
         }
     }
 }
