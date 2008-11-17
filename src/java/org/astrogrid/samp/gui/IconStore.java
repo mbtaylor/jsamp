@@ -3,6 +3,8 @@ package org.astrogrid.samp.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -71,7 +73,7 @@ public class IconStore {
             icon = defaultIcon_;
         }
         if ( size_ > 0 && icon != null ) {
-            icon = SizedIcon.sizeIcon( icon, size_ );
+            icon = sizeIcon( icon, size_ );
         }
         return icon;
     }
@@ -101,7 +103,7 @@ public class IconStore {
      * @param  size  edge size in pixels
      * @return  emtpy square icon
      */
-    static Icon createEmptyIcon( final int size ) {
+    public static Icon createEmptyIcon( final int size ) {
         return new Icon() {
             public int getIconWidth() {
                 return size;
@@ -121,7 +123,7 @@ public class IconStore {
      * @param  size  dimension in pixels
      * @return    minimal icon
      */
-    static Icon createMinimalIcon( final int size ) {
+    public static Icon createMinimalIcon( final int size ) {
         return new Icon() {
             int gap = 2;
             int size = 24;
@@ -173,6 +175,86 @@ public class IconStore {
                 public void paintIcon( Component c, Graphics g, int x, int y ) {
                 }
             };
+        }
+    }
+
+    /**
+     * Return an icon based on an existing one, but drawn to an exact size.
+     *
+     * @param  icon  original icon, or null for blank
+     * @param  size  number of horizontal and vertical pixels in output
+     * @return  resized version of <code>icon</code>
+     */
+    public static Icon sizeIcon( Icon icon, final int size ) {
+        if ( icon == null ) {
+            return new Icon() {
+                public int getIconWidth() {
+                    return size;
+                }
+                public int getIconHeight() {
+                    return size;
+                }
+                public void paintIcon( Component c, Graphics g, int x, int y ) {
+                }
+            };
+        }
+        else if ( icon.getIconWidth() == size &&
+                  icon.getIconHeight() == size ) {
+            return icon;
+        }
+        else {
+            return new SizedIcon( icon, size );
+        }
+    }
+
+    /**
+     * Icon implementation which looks like an existing one, but is resized
+     * down if necessary.
+     */
+    private static class SizedIcon implements Icon {
+        private final Icon icon_;
+        private final int size_; 
+        private final double factor_;
+
+        /**
+         * Constructor.
+         *
+         * @param   icon  original icon
+         * @param   size  number of horizontal and vertical pixels in this icon
+         */
+        public SizedIcon( Icon icon, int size ) {
+            icon_ = icon;
+            size_ = size;
+            factor_ =
+                Math.min( 1.0,
+                          Math.min( size / (double) icon.getIconWidth(),
+                                    size / (double) icon.getIconHeight() ) );
+        }
+
+        public int getIconWidth() {
+            return size_;
+        }
+
+        public int getIconHeight() { 
+            return size_;
+        }
+
+        public void paintIcon( Component c, Graphics g, int x, int y ) {
+            int iw = icon_.getIconWidth();
+            int ih = icon_.getIconHeight();
+            if ( factor_ == 1.0 ) {
+                icon_.paintIcon( c, g, x + ( size_ - iw ) / 2,
+                                       y +  ( size_ - ih ) / 2 );
+            }
+            else {
+                Graphics2D g2 = (Graphics2D) g;
+                AffineTransform trans = g2.getTransform();
+                g2.translate( x + ( size_ - iw * factor_ ) / 2,
+                              y + ( size_ - ih * factor_ ) / 2 );
+                g2.scale( factor_, factor_ );
+                icon_.paintIcon( c, g2, 0, 0 );
+                g2.setTransform( trans );
+            }
         }
     }
 }
