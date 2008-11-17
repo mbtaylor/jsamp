@@ -6,19 +6,27 @@ import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.AbstractList;
+import java.util.AbstractSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.ListModel;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JFrame;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
@@ -34,13 +42,15 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 public class ConnectorGui {
 
     private final HubConnector connector_;
+    private final ListModel clientListModel_;
     private final RegisterAction toggleRegAct_;
     private final RegisterAction regAct_;
     private final RegisterAction unregAct_;
     private final Action monitorAct_;
     private final Action intHubAct_;
     private final Action extHubAct_;
-    private final List componentList_;
+    private final Collection clientComponentSet_;
+    private final Collection connectionComponentSet_;
 
     /**
      * Constructor.
@@ -55,14 +65,31 @@ public class ConnectorGui {
         monitorAct_ = new MonitorAction();
         intHubAct_ = new HubAction( false, false );
         extHubAct_ = new HubAction( true, true );
-        componentList_ = new ArrayList();
+        connectionComponentSet_ = new WeakSet();
+        clientComponentSet_ = new WeakSet();
 
+        // Update state when hub connection starts/stops.
         connector.addConnectionListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 updateConnectionState();
             }
         } );
         updateConnectionState();
+
+        // Update state when other clients register/unregister.
+        clientListModel_ = connector.getClientListModel();
+        clientListModel_.addListDataListener( new ListDataListener() {
+            public void contentsChanged( ListDataEvent evt ) {
+                updateClients();
+            }
+            public void intervalAdded( ListDataEvent evt ) {
+                updateClients();
+            }
+            public void intervalRemoved( ListDataEvent evt ) {
+                updateClients();
+            }
+        } );
+        updateClients();
     }
 
     /**
@@ -146,7 +173,7 @@ public class ConnectorGui {
                 effIcon().paintIcon( c, g, x, y );
             }
         } );
-        componentList_.add( label );
+        connectionComponentSet_.add( label );
         return label;
     }
 
@@ -166,6 +193,42 @@ public class ConnectorGui {
     }
 
     /**
+     * Creates a component which shows an icon for each registered client.
+     *
+     * @param  vertical  true for vertical box, false for horizontal
+     * @param  iconSize  dimension in pixel of each icon (square)
+     * @param  nIcon     number of icons there is size for in the box 
+     *                   (affects only component minimum/preferred size)
+     */
+    public JComponent createClientBox( boolean vertical, int iconSize,
+                                       int nIcon) {
+        IconBox box = new IconBox( vertical, iconSize );
+        final IconStore iconStore =
+            new IconStore( iconSize, IconStore.createMinimalIcon( iconSize ) );
+        List entryList = new AbstractList() {
+            public int size() {
+                return clientListModel_.getSize();
+            }
+            public Object get( int index ) {
+                final Client client =
+                    (Client) clientListModel_.getElementAt( index );
+                return new IconBox.Entry() {
+                    public Icon getIcon() {
+                        return iconStore.getIcon( client );
+                    }
+                    public String getToolTipText() {
+                        return SampUtils.toString( client );
+                    }
+                };
+            }
+        };
+        box.setEntryList( entryList );
+        box.setPreferredSize( box.getSizeForSlots( nIcon ) );
+        clientComponentSet_.add( box );
+        return box;
+    }
+
+    /**
      * Called when the connection status has changed, or may have changed.
      */
     private void updateConnectionState() {
@@ -175,7 +238,20 @@ public class ConnectorGui {
         toggleRegAct_.setSense( ! isConn );
         intHubAct_.setEnabled( ! isConn );
         extHubAct_.setEnabled( ! isConn );
-        for ( Iterator it = componentList_.iterator(); it.hasNext(); ) {
+        for ( Iterator it = connectionComponentSet_.iterator();
+              it.hasNext(); ) {
+            ((Component) it.next()).repaint();
+        }
+        for ( Iterator it = clientComponentSet_.iterator(); it.hasNext(); ) {
+            ((Component) it.next()).setEnabled( isConn );
+        }
+    }
+
+    /**
+     * Called when the client list has changed.
+     */
+    private void updateClients() {
+        for ( Iterator it = clientComponentSet_.iterator(); it.hasNext(); ) {
             ((Component) it.next()).repaint();
         }
     }
@@ -311,6 +387,33 @@ public class ConnectorGui {
                 HubRunner.runHub( gui_, XmlRpcKit.getInstance() );
             }
             connector_.setActive( true );
+        }
+    }
+
+    /**
+     * Set in which elements are weakly linked.  Elements only weakly 
+     * reachable may disappear.  Based on a WeakHashMap.
+     */
+    private static class WeakSet extends AbstractSet {
+        private final Map map_;
+
+        /**
+         * Constructor.
+         */
+        WeakSet() {
+            map_ = new WeakHashMap();
+        }
+
+        public int size() {
+            return map_.size();
+        }
+
+        public Iterator iterator() {
+            return map_.keySet().iterator();
+        }
+
+        public boolean add( Object obj ) {
+            return map_.put( obj, null ) == null;
         }
     }
 }
