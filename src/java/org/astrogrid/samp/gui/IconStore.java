@@ -16,8 +16,7 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Metadata;
 
 /**
- * Manages client icons.  The {@link #getClientIcon} method returns the icon
- * associated with a given client.  Images are cached where appropriate.
+ * Manages client icons.  Images are cached where appropriate.
  * A size may be supplied so that all icons returned by this object's methods
  * are of a given standard size.
  * Also provides some icon utility methods.
