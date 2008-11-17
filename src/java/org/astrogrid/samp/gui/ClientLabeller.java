@@ -1,12 +1,9 @@
 package org.astrogrid.samp.gui;
 
-import java.net.URL;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -15,7 +12,7 @@ import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 
 /**
- * Provides text and icon labels for a {@link org.astrogrid.samp.Client}.
+ * Provides text label for a {@link org.astrogrid.samp.Client}.
  * This object maintains internal state so that it can render clients
  * in an appropriately consistent way.
  *
@@ -28,7 +25,6 @@ public class ClientLabeller implements ListDataListener {
     private final RegInfo regInfo_;
     private final Map clientMap_;
     private final Map nameCountMap_;
-    private final Map urlIconMap_;
 
     /**
      * Constructor.
@@ -47,7 +43,6 @@ public class ClientLabeller implements ListDataListener {
         regInfo_ = regInfo;
         clientMap_ = new HashMap();
         nameCountMap_ = new HashMap();
-        urlIconMap_ = new HashMap();
         if ( clientList_ != null ) {
             clientList_.addListDataListener( this );
             refreshClients();
@@ -66,21 +61,11 @@ public class ClientLabeller implements ListDataListener {
     }
 
     /**
-     * Attempts to return an icon associated with the given client.
-     *
-     * @param  client to find icon for
-     * @return  icon if known
-     */
-    public Icon getIcon( Client client ) {
-        return getClientInfo( client ).getIcon();
-    }
-
-    /**
      * Returns the ClientInfo object corresponding to a given client.
      * Creates a new one if none is known.
      *
      * @param  client  client
-     * @return  new or existig ClientInfo
+     * @return  new or existing ClientInfo
      */
     private ClientInfo getClientInfo( Client client ) {
         ClientInfo info = (ClientInfo) clientMap_.get( client );
@@ -155,7 +140,6 @@ public class ClientLabeller implements ListDataListener {
         private String name_;
         private int nameSeq_;
         private String label_;
-        private Icon icon_;
 
         /**
          * Constructor.
@@ -192,15 +176,6 @@ public class ClientLabeller implements ListDataListener {
         }
 
         /**
-         * Icon associated with this client.
-         *
-         * @return  icon
-         */
-        public Icon getIcon() {
-            return icon_;
-        }
-
-        /**
          * Call when the metadata of this client might have changed.
          */
         public void updateMetadata() {
@@ -215,13 +190,6 @@ public class ClientLabeller implements ListDataListener {
                     nameSeq_ = nameCount;
                     nameCountMap_.put( name, new Integer( nameCount + 1 ) );
                 }
-                URL url = meta.getIconUrl();
-                if ( url != null ) {
-                    if ( ! urlIconMap_.containsKey( url ) ) {
-                        urlIconMap_.put( url, new ImageIcon( url ) );
-                    }
-                }
-                icon_ = (Icon) urlIconMap_.get( url );
             }
             StringBuffer lbuf = new StringBuffer();
             if ( name_ != null ) {
