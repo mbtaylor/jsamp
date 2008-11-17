@@ -1,8 +1,5 @@
 package org.astrogrid.samp.gui;
 
-import java.awt.Component;
-import java.awt.Graphics;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -233,7 +230,7 @@ public abstract class SendActionManager {
      */
     public static Icon getSendIcon() {
         if ( SEND_ICON == null ) {
-            SEND_ICON = createIcon( "phone2.gif" );
+            SEND_ICON = IconStore.createResourceIcon( "phone2.gif" );
         }
         return SEND_ICON;
     }
@@ -245,35 +242,8 @@ public abstract class SendActionManager {
      */
     public static Icon getBroadcastIcon() {
         if ( BROADCAST_ICON == null ) {
-            BROADCAST_ICON = createIcon( "tx3.gif" );
+            BROADCAST_ICON = IconStore.createResourceIcon( "tx3.gif" );
         }
         return BROADCAST_ICON;
-    }
-
-    /**
-     * Constructs an icon given a file name in the images directory.
-     *
-     * @param  fileName  file name omitting directory
-     * @return  icon
-     */
-    private static Icon createIcon( String fileName ) {
-        String relLoc = "images/" + fileName;
-        URL resource = Client.class.getResource( relLoc );
-        if ( resource != null ) {
-            return new ImageIcon( resource );
-        }
-        else {
-            logger_.warning( "Failed to load icon " + relLoc );
-            return new Icon() {
-                public int getIconWidth() {
-                    return 24;
-                }
-                public int getIconHeight() {
-                    return 24;
-                }
-                public void paintIcon( Component c, Graphics g, int x, int y ) {
-                }
-            };
-        }
     }
 }
