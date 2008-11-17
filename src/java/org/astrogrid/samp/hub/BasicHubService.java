@@ -21,8 +21,8 @@ import org.astrogrid.samp.Subscriptions;
 
 /**
  * HubService implementation.
- * This is suitable for use with the SAMP Standard Profile, since it
- * 
+ * This is suitable for use with the SAMP Standard Profile, since most
+ * methods require a <code>callerKey</code> object.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
