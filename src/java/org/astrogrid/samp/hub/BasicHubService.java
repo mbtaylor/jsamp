@@ -95,6 +95,11 @@ public class BasicHubService implements HubService {
         started_ = true;
     }
 
+    /**
+     * Returns a client object which corresponds to the hub itself.
+     *
+     * @return   hub client
+     */
     protected HubClient getHubClient() {
         return hubClient_;
     }
