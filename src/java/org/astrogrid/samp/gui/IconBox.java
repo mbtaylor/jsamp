@@ -7,21 +7,18 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.ListModel;
+import javax.swing.ToolTipManager;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 
 /**
  * Component which displays the contents of a list with {@link #Entry} elements.
  * Each icon is considered to have the same dimensions.
- *
- * <p>Unlike for instance a <code>JList</code>,
- * this component does not listen for changes to its model.
- * It is necessary to call a <code>repaint</code> if the entry list may have
- * changed.
  *
  * @author   Mark Taylor
  * @since    17 Nov
@@ -29,12 +26,14 @@ import javax.swing.JComponent;
 class IconBox extends JComponent {
 
     private final boolean vertical_;
-    private List entryList_;
+    private ListModel entryListModel_;
     private final int iconSize_;
     private final int border_;
     private final int gap_;
     private Dimension prefSize_;
     private Dimension minSize_;
+    private final ListDataListener modelListener_;
+    private static final ListModel EMPTY_LIST_MODEL = createEmptyListModel();
 
     /**
      * Constructor.
@@ -48,9 +47,21 @@ class IconBox extends JComponent {
         setBorder( BorderFactory.createLineBorder( Color.BLACK ) );
         vertical_ = vertical;
         iconSize_ = iconSize;
-        entryList_ = new ArrayList();
+        entryListModel_ = EMPTY_LIST_MODEL;
         border_ = 2;
         gap_ = 4;
+        modelListener_ = new ListDataListener() {
+            public void contentsChanged( ListDataEvent evt ) {
+                repaint();
+            }
+            public void intervalAdded( ListDataEvent evt ) {
+                repaint();
+            }
+            public void intervalRemoved( ListDataEvent evt ) {
+                repaint();
+            }
+        };
+        ToolTipManager.sharedInstance().registerComponent( this );
     }
 
     /**
@@ -73,12 +84,18 @@ class IconBox extends JComponent {
     }
 
     /**
-     * Sets the list of entries displayed by this box.
+     * Sets the list model of entries displayed by this box.
      *
-     * @param  entryList  list in which elements are {@link #Entry}s
+     * @param  entryListModel  ListModel in which elements are {@link #Entry}s
      */
-    public void setEntryList( List entryList ) {
-        entryList_ = entryList;
+    public void setModel( ListModel entryListModel ) {
+        if ( entryListModel_ != null ) {
+            entryListModel_.removeListDataListener( modelListener_ );
+        }
+        entryListModel_ = entryListModel;
+        if ( entryListModel_ != null ) {
+            entryListModel_.addListDataListener( modelListener_ );
+        }
     }
 
     /**
@@ -91,8 +108,8 @@ class IconBox extends JComponent {
         int index = ( ( vertical_ ? ( point.y - getY() )
                                   : ( point.x - getX() ) ) - border_ )
                   / ( iconSize_ + gap_ * 2 );
-        return index >= 0 && index < entryList_.size()
-             ? (Entry) entryList_.get( index )
+        return index >= 0 && index < entryListModel_.getSize()
+             ? (Entry) entryListModel_.getElementAt( index )
              : null;
     }
 
@@ -101,7 +118,7 @@ class IconBox extends JComponent {
     }
 
     public Dimension getPreferredSize() {
-        return prefSize_ == null ? getSizeForSlots( entryList_.size() )
+        return prefSize_ == null ? getSizeForSlots( entryListModel_.getSize() )
                                  : prefSize_;
     }
 
@@ -134,8 +151,9 @@ class IconBox extends JComponent {
         g.setColor( color );
         int x = insets.left + border_;
         int y = insets.top + border_;
-        for ( Iterator it = entryList_.iterator(); it.hasNext(); ) {
-            Entry entry = (Entry) it.next();
+        int nEntry = entryListModel_.getSize();
+        for ( int ie = 0; ie < nEntry; ie++ ) {
+            Entry entry = (Entry) entryListModel_.getElementAt( ie );
             Icon icon = IconStore.sizeIcon( entry.getIcon(), iconSize_ );
             int width = icon.getIconWidth();
             int height = icon.getIconHeight();
@@ -149,6 +167,22 @@ class IconBox extends JComponent {
                 x += width + gap_;
             }
         }
+    }
+
+    /**
+     * Creates an empty and unmodifiable list model.
+     *
+     * @return   empty list model
+     */
+    private static ListModel createEmptyListModel() {
+        return new AbstractListModel() {
+            public int getSize() {
+                return 0;
+            }
+            public Object getElementAt( int index ) {
+                throw new IllegalArgumentException( "No data" );
+            }
+        };
     }
 
     /**

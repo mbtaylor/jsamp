@@ -6,7 +6,6 @@ import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.AbstractList;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
@@ -49,7 +48,6 @@ public class ConnectorGui {
     private final Action monitorAct_;
     private final Action intHubAct_;
     private final Action extHubAct_;
-    private final Collection clientComponentSet_;
     private final Collection connectionComponentSet_;
 
     /**
@@ -59,6 +57,7 @@ public class ConnectorGui {
      */
     public ConnectorGui( HubConnector connector ) {
         connector_ = connector;
+        clientListModel_ = connector.getClientListModel();
         regAct_ = new RegisterAction( true );
         unregAct_ = new RegisterAction( false );
         toggleRegAct_ = new RegisterAction();
@@ -66,7 +65,6 @@ public class ConnectorGui {
         intHubAct_ = new HubAction( false, false );
         extHubAct_ = new HubAction( true, true );
         connectionComponentSet_ = new WeakSet();
-        clientComponentSet_ = new WeakSet();
 
         // Update state when hub connection starts/stops.
         connector.addConnectionListener( new ChangeListener() {
@@ -75,21 +73,6 @@ public class ConnectorGui {
             }
         } );
         updateConnectionState();
-
-        // Update state when other clients register/unregister.
-        clientListModel_ = connector.getClientListModel();
-        clientListModel_.addListDataListener( new ListDataListener() {
-            public void contentsChanged( ListDataEvent evt ) {
-                updateClients();
-            }
-            public void intervalAdded( ListDataEvent evt ) {
-                updateClients();
-            }
-            public void intervalRemoved( ListDataEvent evt ) {
-                updateClients();
-            }
-        } );
-        updateClients();
     }
 
     /**
@@ -202,29 +185,26 @@ public class ConnectorGui {
      */
     public JComponent createClientBox( boolean vertical, int iconSize,
                                        int nIcon) {
-        IconBox box = new IconBox( vertical, iconSize );
         final IconStore iconStore =
             new IconStore( iconSize, IconStore.createMinimalIcon( iconSize ) );
-        List entryList = new AbstractList() {
-            public int size() {
+        IconBox box = new IconBox( vertical, iconSize );
+        box.setModel( new ListModel() {
+            public int getSize() {
                 return clientListModel_.getSize();
             }
-            public Object get( int index ) {
-                final Client client =
-                    (Client) clientListModel_.getElementAt( index );
-                return new IconBox.Entry() {
-                    public Icon getIcon() {
-                        return iconStore.getIcon( client );
-                    }
-                    public String getToolTipText() {
-                        return SampUtils.toString( client );
-                    }
-                };
+            public Object getElementAt( int index ) {
+                return new ClientEntry( iconStore,
+                                        (Client) clientListModel_
+                                                .getElementAt( index ) );
             }
-        };
-        box.setEntryList( entryList );
+            public void addListDataListener( ListDataListener listener ) {
+                clientListModel_.addListDataListener( listener );
+            }
+            public void removeListDataListener( ListDataListener listener ) {
+                clientListModel_.removeListDataListener( listener );
+            }
+        } );
         box.setPreferredSize( box.getSizeForSlots( nIcon ) );
-        clientComponentSet_.add( box );
         return box;
     }
 
@@ -240,18 +220,6 @@ public class ConnectorGui {
         extHubAct_.setEnabled( ! isConn );
         for ( Iterator it = connectionComponentSet_.iterator();
               it.hasNext(); ) {
-            ((Component) it.next()).repaint();
-        }
-        for ( Iterator it = clientComponentSet_.iterator(); it.hasNext(); ) {
-            ((Component) it.next()).setEnabled( isConn );
-        }
-    }
-
-    /**
-     * Called when the client list has changed.
-     */
-    private void updateClients() {
-        for ( Iterator it = clientComponentSet_.iterator(); it.hasNext(); ) {
             ((Component) it.next()).repaint();
         }
     }
@@ -387,6 +355,47 @@ public class ConnectorGui {
                 HubRunner.runHub( gui_, XmlRpcKit.getInstance() );
             }
             connector_.setActive( true );
+        }
+    }
+
+    /**
+     * IconBox.Entry implementation to contain Clients.
+     */
+    private static class ClientEntry implements IconBox.Entry {
+        private final IconStore iconStore_;
+        private final Client client_;
+
+        /**
+         * Constructor.
+         *
+         * @param  iconStore  object used to resolve clients to icons
+         * @param  client  client
+         */
+        ClientEntry( IconStore iconStore, Client client ) {
+            iconStore_ = iconStore;
+            client_ = client;
+        }
+
+        public Icon getIcon() {
+            return iconStore_.getIcon( client_ );
+        }
+
+        public String getToolTipText() {
+            return SampUtils.toString( client_ );
+        }
+
+        public int hashCode() {
+            return client_.hashCode();
+        }
+
+        public boolean equals( Object o ) {
+            if ( o instanceof ClientEntry ) {
+                ClientEntry other = (ClientEntry) o;
+                return other.client_.equals( this.client_ );
+            }
+            else {
+                return false;
+            }
         }
     }
 
