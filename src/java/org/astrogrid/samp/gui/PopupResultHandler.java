@@ -253,29 +253,33 @@ public class PopupResultHandler extends JFrame implements ResultHandler {
         public void result( Response response ) {
             response_ = response;
             String status;
+            String tip;
             boolean success;
             if ( response_ == null ) {
                 success = false;
                 status = "Aborted";
+                tip = "Interruption in messaging system prevented "
+                    + "receipt of response?";
             }
             else if ( response.isOK() ) {
                 success = true;
                 status = "OK";
+                tip = "Message processed successfully";
             }
             else {
                 success = false;
                 status = "Fail";
                 ErrInfo errInfo = response.getErrInfo();
-                if ( errInfo != null ) {
-                    String errtxt = errInfo.getErrortxt();
-                    if ( errtxt != null ) {
-                        status += " (" + errtxt + ")";
-                    }
+                String errtxt = errInfo == null ? null : errInfo.getErrortxt();
+                tip = errtxt;
+                if ( errtxt != null ) {
+                    status += " (" + errtxt + ")";
                 }
             }
             statusLabel_.setText( status );
             statusLabel_.setForeground( success ? new Color( 0, 0x80, 0 )
                                                 : new Color( 0x80, 0, 0 ) );
+            statusLabel_.setToolTipText( tip );
             responseDetailAction_.setEnabled( response_ != null );
         }
     }
