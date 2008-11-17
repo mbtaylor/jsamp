@@ -95,8 +95,8 @@ public class ClientListCellRenderer extends DefaultListCellRenderer {
             }
             jl.setText( text );
             jl.setFont( font );
-            jl.setIcon( SizedIcon.sizeIcon( iconStore_.getIcon( client ),
-                                            size ) );
+            jl.setIcon( IconStore
+                       .sizeIcon( iconStore_.getIcon( client ), size ) );
         }
         return c;
     }
