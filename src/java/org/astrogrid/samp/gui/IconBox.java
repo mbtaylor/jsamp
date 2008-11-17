@@ -111,12 +111,16 @@ class IconBox extends JComponent {
         int y = insets.top + border_;
         for ( Iterator it = iconList_.iterator(); it.hasNext(); ) {
             Icon icon = IconStore.sizeIcon( (Icon) it.next(), iconSize_ );
-            icon.paintIcon( this, g, x, y );
+            int width = icon.getIconWidth();
+            int height = icon.getIconHeight();
+            if ( g.hitClip( x, y, width, height ) ) {
+                icon.paintIcon( this, g, x, y );
+            }
             if ( vertical_ ) {
-                y += icon.getIconHeight() + gap_;
+                y += height + gap_;
             }
             else {
-                x += icon.getIconWidth() + gap_;
+                x += width + gap_;
             }
         }
     }
