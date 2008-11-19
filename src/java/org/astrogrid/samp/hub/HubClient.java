@@ -108,7 +108,7 @@ public class HubClient implements Client {
     }
 
     /**
-     * Returns the receiveer which allows this client to receive callbacks.
+     * Returns the receiver which allows this client to receive callbacks.
      * It is never null.
      *
      * @return  receiver
