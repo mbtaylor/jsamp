@@ -3,13 +3,12 @@ package org.astrogrid.samp.gui;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.Set;
 import javax.swing.AbstractListModel;
 import javax.swing.ImageIcon;
 import javax.swing.ListModel;
@@ -23,6 +22,7 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.hub.ClientSet;
 import org.astrogrid.samp.hub.HubClient;
 import org.astrogrid.samp.hub.HubServiceException;
 import org.astrogrid.samp.hub.Receiver;
@@ -40,7 +40,7 @@ public class MessageTrackerHubService extends GuiHubService {
 
     private final Map callMap_;
     private final Collection notifySet_;
-    private final ListModel clientListModel_;
+    private MessageTrackerClientSet clientSet_;
 
     /**
      * Constructor.
@@ -51,12 +51,15 @@ public class MessageTrackerHubService extends GuiHubService {
         super( random );
         callMap_ = Collections.synchronizedMap( new HashMap() );
         notifySet_ = Collections.synchronizedSet( new HashSet() );
-        clientListModel_ =
-            new MessageTrackerClientListModel( super.getClientListModel() );
     }
 
-    public ListModel getClientListModel() {
-        return clientListModel_;
+    public void start() {
+        super.start();
+        clientSet_ = (MessageTrackerClientSet) getClientSet();
+    }
+
+    public ClientSet createClientSet() {
+        return new MessageTrackerClientSet( getIdComparator() );
     }
 
     public HubClient createClient( String privateKey, String publicId ) {
@@ -65,7 +68,7 @@ public class MessageTrackerHubService extends GuiHubService {
 
     public JFrame createHubWindow() {
         HubView hubView = new HubView();
-        hubView.setClientListModel( getClientListModel() );
+        hubView.setClientListModel( clientSet_ );
         hubView.getClientList()
                .setCellRenderer( new MessageTrackerCellRenderer() );
         JFrame frame = new JFrame( "SAMP Hub" );
@@ -97,32 +100,6 @@ public class MessageTrackerHubService extends GuiHubService {
     }
 
     /**
-     * Returns a list model of the transmissions sent by a given client.
-     * This model is updated automatically as the hub forwards messages and
-     * responses.
-     *
-     * @return  list model containing {@link Transmission} objects
-     */
-    public ListModel getTxListModel( Client client ) {
-        return client instanceof MessageTrackerHubClient
-             ? ((MessageTrackerHubClient) client).txListModel_
-             : null;
-    }
-
-    /**
-     * Returns a list model of the transmissions received by a given client.
-     * This model is updated automatically as the hub forwards messages and
-     * responses.
-     *
-     * @return  list model containing {@link Transmission} objects
-     */
-    private ListModel getRxListModel( Client client ) {
-        return client instanceof MessageTrackerHubClient 
-             ? ((MessageTrackerHubClient) client).rxListModel_
-             : null;
-    }
-
-    /**
      * HubClient class used by this HubService implementation.
      */
     private class MessageTrackerHubClient extends HubClient {
@@ -137,8 +114,13 @@ public class MessageTrackerHubService extends GuiHubService {
          */
         public MessageTrackerHubClient( String privateKey, String publicId ) {
             super( privateKey, publicId );
-            rxListModel_ = new TransmissionListModel();
+
+            // Prepare list models for the transmissions sent/received by
+            // a given client.  These models are updated as the hub forwards
+            // messages and responses.  The contents of these models are
+            // Transmission objects.
             txListModel_ = new TransmissionListModel();
+            rxListModel_ = new TransmissionListModel();
         }
 
         public void setReceiver( Receiver receiver ) {
@@ -177,7 +159,7 @@ public class MessageTrackerHubService extends GuiHubService {
             Message msg = Message.asMessage( message );
             final MessageTrackerHubClient sender = 
                 (MessageTrackerHubClient)
-                getClientSet().getFromPublicId( senderId );
+                clientSet_.getFromPublicId( senderId );
             final MessageTrackerHubClient recipient = client_;
             final Transmission trans = 
                 new Transmission( sender, recipient, msg, msgId );
@@ -211,7 +193,7 @@ public class MessageTrackerHubService extends GuiHubService {
             Message msg = Message.asMessage( message );
             final MessageTrackerHubClient sender =
                 (MessageTrackerHubClient)
-                getClientSet().getFromPublicId( senderId );
+                clientSet_.getFromPublicId( senderId );
             final MessageTrackerHubClient recipient = client_;
             final Transmission trans =
                 new Transmission( sender, recipient, msg, null );
@@ -335,21 +317,18 @@ public class MessageTrackerHubService extends GuiHubService {
     }
 
     /**
-     * ClientListModel implementation used by this GuiHubService.
+     * ClientSet implementation used by this hub service.
      */
-    private class MessageTrackerClientListModel extends AbstractListModel {
-        private final ListModel baseModel_;
-        private Set transModelSet_;
+    private class MessageTrackerClientSet extends GuiClientSet {
         private final ListDataListener transListener_;
 
         /**
          * Constructor.
          *
-         * @return   baseModel  base list model, containing Client objects
+         * @param  clientIdComparator  comparator for client IDs
          */
-        MessageTrackerClientListModel( ListModel baseModel ) {
-            transModelSet_ = new HashSet();
-            baseModel_ = baseModel;
+        MessageTrackerClientSet( Comparator clientIdComparator ) {
+            super( clientIdComparator );
 
             // Prepare a listener which will be notified when a client's
             // send or receive list changes, or when any of the Transmission
@@ -369,74 +348,56 @@ public class MessageTrackerHubService extends GuiHubService {
                     assert src instanceof Transmission;
                     if ( src instanceof Transmission ) {
                         Transmission trans = (Transmission) src;
-                        int nclient = baseModel_.getSize();
+                        int nclient = getSize();
                         for ( int ic = 0; ic < nclient; ic++ ) {
-                            Client client =
-                                (Client) baseModel_.getElementAt( ic );
+                            Client client = (Client) getElementAt( ic );
                             if ( trans.getSender().equals( client ) ||
                                  trans.getReceiver().equals( client ) ) {
-                                fireContentsChanged( trans, ic, ic );
+                                ListDataEvent clientEvt =
+                                    new ListDataEvent( trans,
+                                                       ListDataEvent
+                                                      .CONTENTS_CHANGED,
+                                                       ic, ic );
+                                fireListDataEvent( clientEvt );
                             }
                         }
                     }
                 }
             };
+        }
 
-            // Ensure that the transListener is listening to changes from 
-            // the right places.
-            baseModel_.addListDataListener( new ListDataListener() {
-                public void contentsChanged( ListDataEvent evt ) {
-                    fireContentsChanged( evt.getSource(),
-                                         evt.getIndex0(), evt.getIndex1() );
-                    adjustTransmissionListeners();
-                }
-                public void intervalAdded( ListDataEvent evt ) {
-                    fireIntervalAdded( evt.getSource(),
-                                       evt.getIndex0(), evt.getIndex1() );
-                    adjustTransmissionListeners();
-                }
-                public void intervalRemoved( ListDataEvent evt ) {
-                    fireIntervalRemoved( evt.getSource(),
-                                         evt.getIndex0(), evt.getIndex1() );
-                    adjustTransmissionListeners();
+        public void add( HubClient client ) {
+            final MessageTrackerHubClient mtClient =
+                (MessageTrackerHubClient) client;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    mtClient.txListModel_.addListDataListener( transListener_ );
+                    mtClient.rxListModel_.addListDataListener( transListener_ );
                 }
             } );
+            super.add( client );
         }
 
-        public int getSize() {
-            return baseModel_.getSize();
-        }
-
-        public Object getElementAt( int index ) {
-            return baseModel_.getElementAt( index );
-        }
-
-        /**
-         * Called when there is any change to the client list.
-         * It makes sure that the listener tracking changes to Transmission
-         * lists is listening to the right list models.
-         */
-        private void adjustTransmissionListeners() {
-            int nClient = baseModel_.getSize();
-            Set tSet = new HashSet();
-            for ( int i = 0; i < nClient; i++ ) {
-                Client client = (Client) baseModel_.getElementAt( i );
-                tSet.add( getRxListModel( client ) );
-                tSet.add( getTxListModel( client ) );
-            }
-            Set addedSet = new HashSet( tSet );
-            addedSet.removeAll( transModelSet_ );
-            for ( Iterator it = addedSet.iterator(); it.hasNext(); ) {
-                ((TransmissionListModel)
-                 it.next()).addListDataListener( transListener_ );
-            }
-            Set removedSet = new HashSet( transModelSet_ );
-            removedSet.removeAll( tSet );
-            for ( Iterator it = removedSet.iterator(); it.hasNext(); ) {
-                ((TransmissionListModel)
-                  it.next()).removeListDataListener( transListener_ );
-            }
-            transModelSet_ = tSet;
+        public void remove( HubClient client ) {
+            super.remove( client );
+            MessageTrackerHubClient mtClient =
+                (MessageTrackerHubClient) client;
+            final TransmissionListModel txListModel = mtClient.txListModel_;
+            final TransmissionListModel rxListModel = mtClient.rxListModel_;
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    for ( int i = 0; i < txListModel.getSize(); i++ ) {
+                        ((Transmission) txListModel.getElementAt( i ))
+                                       .setSenderUnregistered();
+                    }
+                    for ( int i = 0; i < rxListModel.getSize(); i++ ) {
+                        ((Transmission) rxListModel.getElementAt( i ))
+                                       .setReceiverUnregistered();
+                    }
+                    txListModel.removeListDataListener( transListener_ );
+                    rxListModel.removeListDataListener( transListener_ );
+                }
+            } );
         }
     }
 
