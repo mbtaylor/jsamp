@@ -32,7 +32,7 @@ public class BasicHubService implements HubService {
     private final KeyGenerator keyGen_;
     private final ClientIdGenerator idGen_;
     private final Map waiterMap_;
-    private final ClientSet clientSet_;
+    private ClientSet clientSet_;
     private HubClient hubClient_;
     private boolean started_;
     private boolean shutdown_;
@@ -59,15 +59,15 @@ public class BasicHubService implements HubService {
         keyGen_ = new KeyGenerator( "k:", 16, random );
         idGen_ = new ClientIdGenerator( "c" );
 
-        // Prepare the data structure which keeps track of registered clients.
-        clientSet_ = new BasicClientSet( idGen_.getComparator() );
-
         // Prepare the data structure which keeps track of pending synchronous
         // calls.
         waiterMap_ = Collections.synchronizedMap( new HashMap() );
     }
 
     public void start() {
+
+        // Prepare the data structure which keeps track of registered clients.
+        clientSet_ = createClientSet();
 
         // Prepare and store the client object which represents the hub itself
         // (the one that apparently sends samp.hub.event.shutdown messages etc).
@@ -84,7 +84,7 @@ public class BasicHubService implements HubService {
             new HubReceiver( this, hubClient_.getPrivateKey() );
         hubClient_.setReceiver( hubRec );
         hubClient_.setSubscriptions( hubRec.getSubscriptions() );
-        getClientSet().add( hubClient_ );
+        clientSet_.add( hubClient_ );
 
         // Ensure that things are tidied up (importantly, shutdown messages
         // get sent) in the case of a JVM termination.
@@ -95,6 +95,20 @@ public class BasicHubService implements HubService {
             }
         } );
         started_ = true;
+    }
+
+   /**
+     * Factory method used to create the client set used by this hub service.
+     *
+     * @return  client set 
+     */
+    protected ClientSet createClientSet() {
+        return new BasicClientSet( getIdComparator() ) {
+            public void add( HubClient client ) {
+                assert client.getId().indexOf( ID_DELIMITER ) < 0;
+                super.add( client );
+            }
+        };
     }
 
     /**
@@ -108,13 +122,21 @@ public class BasicHubService implements HubService {
     }
 
     /**
+     * Returns a comparator which will order client IDs.
+     * The ordering is in creation sequence.
+     *
+     * @return   public ID comparator
+     */
+    public Comparator getIdComparator() {
+        return idGen_.getComparator();
+    }
+
+    /**
      * Returns the structure which keeps track of registered clients.
-     * May be overridden by subclasses which wish to intercept calls to
-     * this object.
      *
      * @return   client set
      */
-    protected ClientSet getClientSet() {
+    public ClientSet getClientSet() {
         return clientSet_;
     }
 
@@ -127,7 +149,7 @@ public class BasicHubService implements HubService {
             throw new HubServiceException( "Not started" );
         }
         HubClient client = createClient( keyGen_.next(), idGen_.next() );
-        getClientSet().add( client );
+        clientSet_.add( client );
         hubEvent( new Message( "samp.hub.event.register" )
                      .addParam( "id", client.getId() ) );
         RegInfo regInfo = new RegInfo();
@@ -142,7 +164,7 @@ public class BasicHubService implements HubService {
 
     public void unregister( Object callerKey ) throws HubServiceException {
         HubClient caller = getCaller( callerKey );
-        getClientSet().remove( caller );
+        clientSet_.remove( caller );
         hubEvent( new Message( "samp.hub.event.unregister" )
                      .addParam( "id", caller.getId() ) );
     }
@@ -193,7 +215,7 @@ public class BasicHubService implements HubService {
     public List getRegisteredClients( Object callerKey )
             throws HubServiceException {
         HubClient caller = getCaller( callerKey );
-        HubClient[] clients = getClientSet().getClients();
+        HubClient[] clients = clientSet_.getClients();
         List idList = new ArrayList( clients.length );
         for ( int ic = 0; ic < clients.length; ic++ ) {
             if ( ! clients[ ic ].equals( caller ) ) {
@@ -206,7 +228,7 @@ public class BasicHubService implements HubService {
     public Map getSubscribedClients( Object callerKey, String mtype )
             throws HubServiceException {
         HubClient caller = getCaller( callerKey );
-        HubClient[] clients = getClientSet().getClients();
+        HubClient[] clients = clientSet_.getClients();
         Map subMap = new TreeMap(); 
         for ( int ic = 0; ic < clients.length; ic++ ) {
             HubClient client = clients[ ic ];
@@ -263,7 +285,7 @@ public class BasicHubService implements HubService {
         Message msg = Message.asMessage( message );
         msg.check();
         String mtype = msg.getMType();
-        HubClient[] recipients = getClientSet().getClients();
+        HubClient[] recipients = clientSet_.getClients();
         List sentList = new ArrayList();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
@@ -290,7 +312,7 @@ public class BasicHubService implements HubService {
         msg.check();
         String mtype = msg.getMType();
         String msgId = MessageId.encode( caller, msgTag, false );
-        HubClient[] recipients = getClientSet().getClients();
+        HubClient[] recipients = clientSet_.getClients();
         Map sentMap = new HashMap();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
@@ -494,8 +516,7 @@ public class BasicHubService implements HubService {
      * @return   hub client object representing caller
      */
     public HubClient getCaller( Object callerKey ) throws HubServiceException {
-        HubClient caller =
-            getClientSet().getFromPrivateKey( (String) callerKey );
+        HubClient caller = clientSet_.getFromPrivateKey( (String) callerKey );
         if ( caller != null ) {
             return caller;
         }
@@ -513,7 +534,7 @@ public class BasicHubService implements HubService {
      * @return  HubClient object
      */
     private HubClient getClient( String id ) throws HubServiceException {
-        HubClient client = getClientSet().getFromPublicId( id );
+        HubClient client = clientSet_.getFromPublicId( id );
         if ( client != null ) {
             return client;
         }
@@ -524,50 +545,6 @@ public class BasicHubService implements HubService {
         else {
             throw new HubServiceException( "No registered client with ID \""
                                          + id + "\"" );
-        }
-    }
-
-    /**
-     * ClientSet implementation used by this class.
-     */
-    private static class BasicClientSet implements ClientSet {
-
-        private final Map publicIdMap_;
-        private final Map privateKeyMap_;
-
-        /**
-         * Constructor.
-         *
-         * @param  clientIdComparator  comparator for client IDs
-         */
-        public BasicClientSet( Comparator clientIdComparator ) {
-            publicIdMap_ = Collections
-                          .synchronizedMap( new TreeMap( clientIdComparator ) );
-            privateKeyMap_ = Collections.synchronizedMap( new HashMap() );
-        }
-
-        public synchronized void add( HubClient client ) {
-            assert client.getId().indexOf( ID_DELIMITER ) < 0;
-            publicIdMap_.put( client.getId(), client );
-            privateKeyMap_.put( client.getPrivateKey(), client );
-        }
-
-        public synchronized void remove( HubClient client ) {
-            publicIdMap_.remove( client.getId() );
-            privateKeyMap_.remove( client.getPrivateKey() );
-        }
-
-        public synchronized HubClient getFromPublicId( String publicId ) {
-            return (HubClient) publicIdMap_.get( publicId );
-        }
-
-        public synchronized HubClient getFromPrivateKey( String privateKey ) {
-            return (HubClient) privateKeyMap_.get( privateKey );
-        }
-
-        public synchronized HubClient[] getClients() {
-            return (HubClient[])
-                   publicIdMap_.values().toArray( new HubClient[ 0 ] );
         }
     }
 
