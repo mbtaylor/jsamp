@@ -7,7 +7,9 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.HubConnector;
+import org.astrogrid.samp.xmlrpc.HubMode;
 import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
@@ -46,9 +49,8 @@ public class ConnectorGui {
     private final RegisterAction regAct_;
     private final RegisterAction unregAct_;
     private final Action monitorAct_;
-    private final Action intHubAct_;
-    private final Action extHubAct_;
     private final Collection connectionComponentSet_;
+    private final Map hubActMap_;
 
     /**
      * Constructor.
@@ -62,9 +64,8 @@ public class ConnectorGui {
         unregAct_ = new RegisterAction( false );
         toggleRegAct_ = new RegisterAction();
         monitorAct_ = new MonitorAction();
-        intHubAct_ = new HubAction( false, false );
-        extHubAct_ = new HubAction( true, true );
         connectionComponentSet_ = new WeakSet();
+        hubActMap_ = new HashMap();
 
         // Update state when hub connection starts/stops.
         connector.addConnectionListener( new ChangeListener() {
@@ -114,22 +115,22 @@ public class ConnectorGui {
     }
 
     /**
-     * Returns an action which will start up a SAMP hub in a new independent
-     * JVM.
+     * Returns an action which will start up a SAMP hub.
+     * You can specify whether it runs in the current JVM or a newly
+     * created one; in the former case, it will shut down when the 
+     * current application does.
      *
-     * @return  external hub action
+     * @param   external  false to run in the current JVM,
+     *                    true to run in a new one
+     * @param   hubMode   hub mode
      */
-    public Action getExternalHubAction() {
-        return extHubAct_;
-    }
-
-    /**
-     * Returns an action which will start up a SAMP hub in the current JVM.
-     *
-     * @return   internal hub action
-     */
-    public Action getInternalHubAction() {
-        return intHubAct_;
+    public Action getHubAction( boolean external, HubMode hubMode ) {
+        Object key = Arrays.asList( new Object[] { new Boolean( external ),
+                                                   hubMode } );
+        if ( ! hubActMap_.containsKey( key ) ) {
+            hubActMap_.put( key, new HubAction( external, hubMode ) );
+        }
+        return (HubAction) hubActMap_.get( key );
     }
 
     /**
@@ -216,8 +217,11 @@ public class ConnectorGui {
         regAct_.setEnabled( ! isConn );
         unregAct_.setEnabled( isConn );
         toggleRegAct_.setSense( ! isConn );
-        intHubAct_.setEnabled( ! isConn );
-        extHubAct_.setEnabled( ! isConn );
+        for ( Iterator it = hubActMap_.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            HubAction hubAct = (HubAction) entry.getValue();
+            hubAct.setEnabled( ! isConn );
+        }
         for ( Iterator it = connectionComponentSet_.iterator();
               it.hasNext(); ) {
             ((Component) it.next()).repaint();
@@ -312,18 +316,18 @@ public class ConnectorGui {
      */
     private class HubAction extends AbstractAction {
         private final boolean external_;
-        private final boolean gui_;
+        private final HubMode hubMode_;
 
         /**
          * Constructor.
          *
          * @param   external   false to run in the current JVM,
          *                     true to run in a new one
-         * @param   gui   true to show a hub monitor window
+         * @param   hubMode    hub mode
          */
-        HubAction( boolean external, boolean gui ) {
+        HubAction( boolean external, HubMode hubMode ) {
             external_ = external;
-            gui_ = gui;
+            hubMode_ = hubMode;
             putValue( NAME,
                       "Start " + ( external ? "external" : "internal" )
                     + " hub" );
@@ -331,6 +335,7 @@ public class ConnectorGui {
                       "Attempts to start up a SAMP hub"
                     + ( external ? " running independently of this application"
                                  : " running within this application" ) );
+            setEnabled( ! connector_.isConnected() );
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -349,10 +354,10 @@ public class ConnectorGui {
          */
         private void attemptRunHub() throws IOException {
             if ( external_ ) {
-                HubRunner.runExternalHub( gui_ );
+                HubRunner.runExternalHub( hubMode_ );
             }
             else {
-                HubRunner.runHub( gui_, XmlRpcKit.getInstance() );
+                HubRunner.runHub( hubMode_, XmlRpcKit.getInstance() );
             }
             connector_.setActive( true );
         }
