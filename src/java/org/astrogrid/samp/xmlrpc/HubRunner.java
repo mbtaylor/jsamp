@@ -1,8 +1,5 @@
 package org.astrogrid.samp.xmlrpc;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -17,11 +14,8 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
 import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.SampUtils;
-import org.astrogrid.samp.gui.GuiHubService;
-import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.LockWriter;
 
@@ -321,30 +315,44 @@ public class HubRunner {
      * @return  0 means success, non-zero means error status
      */
     public static int runMain( String[] args ) throws IOException {
-        String usage = new StringBuffer()
-            .append( "\n   Usage:" )
+        StringBuffer ubuf = new StringBuffer();
+        ubuf.append( "\n   Usage:" )
             .append( "\n      " )
             .append( HubRunner.class.getName() )
             .append( "\n           " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
             .append( " [-xmlrpc apache|internal]" )
-            .append( " [-nogui]" )
-            .append( "\n" )
-            .toString();
+            .append( "\n           " )
+            .append( " [-mode " );
+        HubMode[] modes = HubMode.getAvailableModes();
+        for ( int im = 0; im < modes.length; im++ ) {
+            if ( im > 0 ) {
+                ubuf.append( '|' );
+            }
+            ubuf.append( modes[ im ].getName() );
+        }
+        ubuf.append( ']' );
+        ubuf.append( "\n" );
+        String usage = ubuf.toString();
         List argList = new ArrayList( Arrays.asList( args ) );
-        boolean gui = true;
+        HubMode hubMode = HubMode.MESSAGE_GUI;
+        if ( ! Arrays.asList( HubMode.getAvailableModes() )
+                     .contains( hubMode ) ) {
+            hubMode = HubMode.NO_GUI;
+        }
         int verbAdjust = 0;
         XmlRpcKit xmlrpc = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
-            if ( arg.equals( "-gui" ) ) {
+            if ( arg.equals( "-mode" ) && it.hasNext() ) {
                 it.remove();
-                gui = true;
-            }
-            else if ( arg.equals( "-nogui" ) ) {
+                String mode = (String) it.next();
                 it.remove();
-                gui = false;
+                hubMode = HubMode.getModeFromName( mode );
+                if ( hubMode == null ) {
+                    System.err.println( "Unknown mode " + mode );
+                }
             }
             else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
                 it.remove();
@@ -384,11 +392,12 @@ public class HubRunner {
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
-        runHub( gui, xmlrpc );
+        // Start the hub.
+        runHub( hubMode, xmlrpc );
 
         // For non-GUI case block indefinitely otherwise the hub (which uses
         // a daemon thread) will not just exit immediately.
-        if ( ! gui ) {
+        if ( hubMode.isDaemon() ) {
             Object lock = new String( "Indefinite" );
             synchronized ( lock ) {
                 try {
@@ -413,38 +422,16 @@ public class HubRunner {
      * @param   xmlrpc  XML-RPC implementation;
      *                  automatically determined if null
      */
-    public static void runHub( boolean gui, XmlRpcKit xmlrpc )
+    public static void runHub( HubMode hubMode, XmlRpcKit xmlrpc )
             throws IOException {
-        final BasicHubService hubService;
-        final HubRunner[] hubRunners = new HubRunner[ 1 ];
-        if ( gui ) {
-            final WindowListener closeWatcher = new WindowAdapter() {
-                public void windowClosed( WindowEvent evt ) {
-                    HubRunner runner = hubRunners[ 0 ];
-                    if ( runner != null ) {
-                        runner.shutdown();
-                    }
-                }
-            };
-            hubService = new GuiHubService( random_ ) {
-                public void start() {
-                    super.start();
-                    JFrame frame = createHubWindow();
-                    frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-                    frame.addWindowListener( closeWatcher );
-                    frame.setVisible( true );
-                }
-            };
-        }
-        else {
-            hubService = new BasicHubService( random_ );
-        }
         if ( xmlrpc == null ) {
             xmlrpc = XmlRpcKit.getInstance();
         }
+        HubRunner[] hubRunners = new HubRunner[ 1 ];
         HubRunner runner =
             new HubRunner( xmlrpc.getClientFactory(), xmlrpc.getServerFactory(),
-                           hubService, SampUtils.getLockFile() );
+                           hubMode.createHubService( random_, hubRunners ),
+                           SampUtils.getLockFile() );
         hubRunners[ 0 ] = runner;
         runner.start();
     }
@@ -458,7 +445,7 @@ public class HubRunner {
      *
      * @param   gui   if true, display a window showing hub status
      */
-    public static void runExternalHub( boolean gui ) throws IOException {
+    public static void runExternalHub( HubMode hubMode ) throws IOException {
         File javaHome = new File( System.getProperty( "java.home" ) );
         File javaExec = new File( new File( javaHome, "bin" ), "java" );
         String javacmd = ( javaExec.exists() && ! javaExec.isDirectory() )
@@ -477,7 +464,8 @@ public class HubRunner {
         argList.add( "-classpath" );
         argList.add( System.getProperty( "java.class.path" ) );
         argList.add( HubRunner.class.getName() );
-        argList.add( gui ? "-gui" : "-nogui" );
+        argList.add( "-mode" );
+        argList.add( hubMode.toString() );
         String[] args = (String[]) argList.toArray( new String[ 0 ] );
         StringBuffer cmdbuf = new StringBuffer();
         for ( int iarg = 0; iarg < args.length; iarg++ ) {
