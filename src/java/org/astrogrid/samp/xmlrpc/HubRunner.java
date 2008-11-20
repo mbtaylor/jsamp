@@ -416,11 +416,11 @@ public class HubRunner {
 
     /**
      * Static method which may be used to start a SAMP hub programmatically.
-     * If the <code>gui</code> flag is set, a window will be posted
-     * which displays the current status of the hub.
+     * If the hub mode corresponds to one of the GUI options,
+     * a window will be posted which displays the current status of the hub.
      * When this window is disposed, the hub will stop.
      *
-     * @param   gui   if true, display a window showing hub status
+     * @param   hubMode  hub mode
      * @param   xmlrpc  XML-RPC implementation;
      *                  automatically determined if null
      */
