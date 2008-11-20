@@ -33,7 +33,7 @@ public class BasicHubService implements HubService {
     private final ClientIdGenerator idGen_;
     private final Map waiterMap_;
     private final ClientSet clientSet_;
-    private final HubClient hubClient_;
+    private HubClient hubClient_;
     private boolean started_;
     private boolean shutdown_;
     private static final char ID_DELIMITER = '_';
@@ -54,12 +54,24 @@ public class BasicHubService implements HubService {
      * @param  random   random number generator used for private keys etc
      */
     public BasicHubService( Random random ) {
+
+        // Prepare ID generators.
         keyGen_ = new KeyGenerator( "k:", 16, random );
         idGen_ = new ClientIdGenerator( "c" );
 
-        // Prepare the client object which represents the hub itself
+        // Prepare the data structure which keeps track of registered clients.
+        clientSet_ = new BasicClientSet( idGen_.getComparator() );
+
+        // Prepare the data structure which keeps track of pending synchronous
+        // calls.
+        waiterMap_ = Collections.synchronizedMap( new HashMap() );
+    }
+
+    public void start() {
+
+        // Prepare and store the client object which represents the hub itself
         // (the one that apparently sends samp.hub.event.shutdown messages etc).
-        hubClient_ = new HubClient( keyGen_.next(), "hub" );
+        hubClient_ = createClient( keyGen_.next(), "hub" );
         Metadata meta = new Metadata();
         meta.setName( "Hub" );
         meta.setIconUrl( "http://www.star.bristol.ac.uk/"
@@ -72,13 +84,7 @@ public class BasicHubService implements HubService {
             new HubReceiver( this, hubClient_.getPrivateKey() );
         hubClient_.setReceiver( hubRec );
         hubClient_.setSubscriptions( hubRec.getSubscriptions() );
-
-        // Prepare the data structure which keeps track of registered clients.
-        clientSet_ = new BasicClientSet( idGen_.getComparator() );
-
-        // Prepare the data structure which keeps track of pending synchronous
-        // calls.
-        waiterMap_ = Collections.synchronizedMap( new HashMap() );
+        getClientSet().add( hubClient_ );
 
         // Ensure that things are tidied up (importantly, shutdown messages
         // get sent) in the case of a JVM termination.
@@ -88,20 +94,17 @@ public class BasicHubService implements HubService {
                 shutdown();
             }
         } );
-    }
-
-    public void start() {
-        getClientSet().add( getHubClient() );
         started_ = true;
     }
 
     /**
-     * Returns a client object which corresponds to the hub itself.
+     * Factory method used to create all the client objects which will
+     * be used by this hub service.
      *
      * @return   hub client
      */
-    protected HubClient getHubClient() {
-        return hubClient_;
+    protected HubClient createClient( String privateKey, String publicId ) {
+        return new HubClient( privateKey, publicId );
     }
 
     /**
@@ -123,13 +126,12 @@ public class BasicHubService implements HubService {
         if ( ! started_ ) {
             throw new HubServiceException( "Not started" );
         }
-        HubClient client =
-            new HubClient( keyGen_.next(), idGen_.next() );
+        HubClient client = createClient( keyGen_.next(), idGen_.next() );
         getClientSet().add( client );
         hubEvent( new Message( "samp.hub.event.register" )
                      .addParam( "id", client.getId() ) );
         RegInfo regInfo = new RegInfo();
-        regInfo.put( RegInfo.HUBID_KEY, getHubClient().getId() );
+        regInfo.put( RegInfo.HUBID_KEY, hubClient_.getId() );
         regInfo.put( RegInfo.SELFID_KEY, client.getId() );
 
         // Specific to standard profile.
@@ -419,6 +421,8 @@ public class BasicHubService implements HubService {
                     if ( response != null ) {
                         return response;
                     }
+
+                    // Otherwise, it must have timed out.  Exit with an error.
                     else {
                         assert System.currentTimeMillis() >= finish;
                         String millis =
@@ -436,8 +440,6 @@ public class BasicHubService implements HubService {
                         throw new HubServiceException( emsg );
                     }
                 }
-
-                // Otherwise, it must have timed out.  Exit with an error.
                 else {
                     throw new HubServiceException(
                         "Synchronous call aborted"
@@ -467,7 +469,7 @@ public class BasicHubService implements HubService {
      */
     private void hubEvent( Message msg ) {
         try {
-            notifyAll( getHubClient().getPrivateKey(), msg );
+            notifyAll( hubClient_.getPrivateKey(), msg );
         }
         catch ( HubServiceException e ) {
             assert false;
@@ -491,7 +493,7 @@ public class BasicHubService implements HubService {
      * @param  callerKey  calling client key
      * @return   hub client object representing caller
      */
-    private HubClient getCaller( Object callerKey ) throws HubServiceException {
+    public HubClient getCaller( Object callerKey ) throws HubServiceException {
         HubClient caller =
             getClientSet().getFromPrivateKey( (String) callerKey );
         if ( caller != null ) {
