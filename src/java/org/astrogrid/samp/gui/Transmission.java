@@ -29,6 +29,8 @@ public class Transmission {
     private final ChangeEvent evt_;
     private Response response_;
     private Throwable error_;
+    private boolean senderUnreg_;
+    private boolean receiverUnreg_;
 
     /**
      * Constructor.
@@ -110,13 +112,32 @@ public class Transmission {
     }
 
     /**
+     * Indicates that the sender of this transmission has unregistered.
+     */
+    public void setSenderUnregistered() {
+        senderUnreg_ = true;
+        fireChange();
+    }
+
+    /**
+     * Indicates that the receiver of this transmission has unregistered.
+     */
+    public void setReceiverUnregistered() {
+        receiverUnreg_ = true;
+        fireChange();
+    }
+
+    /**
      * Indicates whether further changes to the state of this object 
      * are expected, that is if a response/failure is yet to be received.
      *
      * @return   true  iff no further changes are expected
      */
     public boolean isDone() {
-        return error_ != null || response_ != null || msgId_ == null;
+        return error_ != null
+            || response_ != null
+            || msgId_ == null
+            || receiverUnreg_;
     }
 
     /**
