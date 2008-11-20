@@ -105,6 +105,7 @@
     <dd><ul>
         <li>Fixed server error which sometimes resulted in failed reads,
             especially for long messages.</li>
+        <li>Fixed error in handling CalcStorm <code>-xmlrpc</code> flag.</li>
         </ul>
         </dd>
     <dt>Other:</dt>
@@ -112,6 +113,29 @@
         <li>Improved performance of internal client when sending long 
             messages.</li>
         <li>Added test for long messages in HubTester.</li>
+        <li>HubTester now tests nearly all <code>string</code> characters.</li>
+        <li>Change return values of <code>callAll</code> and
+            <code>notifyAll</code> hub methods as per modifications to 
+            standard.  Affects hub and client API, implementation and 
+            test suite.</li>
+        <li>HubConnector now subscribes to <code>samp.hub.disconnect</code>
+            MType.</li>
+        <li>Add <code>SampUtils.isSampChar()</code> convenience method.</li>
+        <li>MessageSender now pretty-prints response(s).</li>
+        <li>Default XML-RPC implementation is now Internal rather than
+            Apache.</li>
+        <li>Add public <code>createTag</code> method to 
+            <code>HubConnector</code>.</li>
+        <li>Replace <code>DefaultSendActionManager</code> class with
+            <code>NotifyActionManager</code> and <code>CallActionManager</code>.
+            The latter makes it easy to inform the user of responses to 
+            messages which have been sent, graphically or in other ways.</li>
+        <li><code>HubRunner</code> and <code>ConnectorGui</code> APIs modified 
+            to permit use of various different hub implementations
+            (with different graphical characteristics -
+            see <code>HubMode</code>).</li>
+        <li>Added the option to see what messages are in progress to the
+            hub view.</li>
         </ul>
         </dd>
     </dl>
