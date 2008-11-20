@@ -13,6 +13,7 @@ import javax.swing.event.ListDataListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.Metadata;
 
 /**
  * Component displaying a list of SAMP {@link org.astrogrid.samp.Client}s,
@@ -36,6 +37,7 @@ public class HubView extends JPanel {
         // Set up a JList to display the list of clients.
         // If a selection is made, update the client detail panel.
         jlist_ = new JList();
+        jlist_.setCellRenderer( new ClientListCellRenderer() );
         ListSelectionModel selModel = jlist_.getSelectionModel();
         selModel.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         selModel.addListSelectionListener( new ListSelectionListener() {
@@ -97,12 +99,20 @@ public class HubView extends JPanel {
         jlist_.setModel( clientModel );
         if ( clientModel != null ) {
             clientModel.addListDataListener( listListener_ );
-            ClientListCellRenderer renderer = 
-                new ClientListCellRenderer( clientModel, null );
-            renderer.setUseNicknames( true );
-            jlist_.setCellRenderer( renderer );
             preferSelection();
         }
+    }
+
+    /**
+     * Returns the JList component which houses the active list of clients.
+     * This can be manipulated to, for instance, customise the renderer
+     * if required.  Its model should not be set directly however; use the
+     * {@link #setClientListModel} method.
+     *
+     * @return   client JList
+     */
+    public JList getClientList() {
+        return jlist_;
     }
 
     /**
