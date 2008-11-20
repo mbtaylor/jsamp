@@ -352,6 +352,8 @@ public class HubRunner {
                 hubMode = HubMode.getModeFromName( mode );
                 if ( hubMode == null ) {
                     System.err.println( "Unknown mode " + mode );
+                    System.err.println( usage );
+                    return 1;
                 }
             }
             else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
