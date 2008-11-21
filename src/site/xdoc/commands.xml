@@ -96,11 +96,28 @@ MTypes) may optionally be displayed.
 </p>
 <source>&hubrunner-usage;</source>
 <dl>
-<dt><code>-nogui</code></dt>
-<dd>Normally, a window is shown which shows currently registered clients.
-    This window remains visible for as long as the hub is running.
-    If the window is closed, the hub will terminate.
-    If the <code>-nogui</code> flag is supplied, this window is not shown.
+<dt><code>-mode [no-gui|client-gui|msg-gui]</code></dt>
+<dd>Determines what hub implementation is used; currently this affects
+    whether and how the hub status is displayed graphically.
+    The following options are available:
+    <dl>
+    <dt><code>no-gui</code></dt>
+    <dd>There is no graphical display.
+        </dd>
+    <dt><code>client-gui</code></dt>
+    <dd>A window is displayed showing which clients are registered and
+        their metadata and subscriptions.
+        </dd>
+    <dt><code>msg-gui</code></dt>
+    <dd>A window is displayed showing clients with metadata and subscriptions;
+        it also gives a graphical representation of what messages are being
+        sent and received between clients.  In the case of heavy messaging
+        traffic, the extra processing required for this display can
+        slow down hub operations a bit.
+        </dd>
+    </dl>
+    In the case of the GUI options, they pop up a window when the hub starts;
+    if the window is closed, the hub will shut down.
     </dd>
 </dl>
 
