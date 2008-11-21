@@ -445,7 +445,7 @@ public class HubRunner {
      * Because of the OS interaction required, it's hard to make this
      * bulletproof, and it may fail without an exception, but we do our best.
      *
-     * @param   gui   if true, display a window showing hub status
+     * @param   hubMode  hub mode
      */
     public static void runExternalHub( HubMode hubMode ) throws IOException {
         File javaHome = new File( System.getProperty( "java.home" ) );
