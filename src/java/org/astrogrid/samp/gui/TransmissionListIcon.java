@@ -60,7 +60,7 @@ public class TransmissionListIcon implements Icon {
     public Transmission getTransmissionAt( Point point ) {
         int x = point.x;
         int y = point.y;
-        if ( x < 0 || x > getIconHeight() || y < 0 || y > getIconWidth() ) {
+        if ( x < 0 || x > getIconWidth() || y < 0 || y > getIconHeight() ) {
             return null;
         }
         int x0 = 0;
