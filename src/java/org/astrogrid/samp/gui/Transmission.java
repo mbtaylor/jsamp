@@ -79,6 +79,16 @@ public class Transmission {
     }
 
     /**
+     * Returns the message ID corresponding to this transmission.
+     * Will be null for notify-type sends.
+     *
+     * @return   msg id
+     */
+    public String getMessageId() {
+        return msgId_;
+    }
+
+    /**
      * Sets the response for this transmission.
      *
      * @param   response  response
