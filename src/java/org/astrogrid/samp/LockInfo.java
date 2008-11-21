@@ -41,7 +41,7 @@ public class LockInfo extends SampMap {
     };
 
     /** SAMP Standard Profile version for this toolkit implementation. */
-    public static final String DEFAULT_VERSION_VALUE = "1.0";
+    public static final String DEFAULT_VERSION_VALUE = "1.1";
 
     private static final Pattern TOKEN_REGEX =
         Pattern.compile( "[a-zA-Z0-9\\-_\\.]+" );
