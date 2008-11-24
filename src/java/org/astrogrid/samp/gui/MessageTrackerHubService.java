@@ -95,8 +95,11 @@ public class MessageTrackerHubService extends GuiHubService {
 
         // Notify the transmission object corresponding to this response
         // that the response has been received.
-        final Transmission trans = (Transmission) callMap_.get( msgId );
+        final Transmission trans =
+            (Transmission) callMap_.get( getCallKey( getCaller( callerKey ),
+                                                     msgId ) );
         final Response resp = Response.asResponse( response );
+        assert trans != null;
         if ( trans != null ) {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
@@ -107,6 +110,21 @@ public class MessageTrackerHubService extends GuiHubService {
 
         // Forward the call to the base implementation.
         super.reply( callerKey, msgId, response );
+    }
+
+    /**
+     * Returns a key for use in the call map.
+     * Identifies a call/response mode transmission.
+     *
+     * @param  receiver  message receiver
+     * @param  msgId     message ID
+     */
+    private static Object getCallKey( Client receiver, String msgId ) {
+        return new StringBuffer()
+              .append( msgId )
+              .append( "->" )
+              .append( receiver.getId() )
+              .toString();
     }
 
     /**
@@ -173,7 +191,9 @@ public class MessageTrackerHubService extends GuiHubService {
             final MessageTrackerHubClient recipient = client_;
             final Transmission trans = 
                 new Transmission( sender, recipient, msg, msgId );
-            callMap_.put( msgId, trans );
+            Object callKey = getCallKey( recipient, msgId );
+            assert ! callMap_.containsKey( callKey );
+            callMap_.put( callKey, trans );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     sender.txListModel_.add( trans );
