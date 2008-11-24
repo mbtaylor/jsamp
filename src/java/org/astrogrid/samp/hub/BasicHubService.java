@@ -40,7 +40,7 @@ public class BasicHubService implements HubService {
     private final Logger logger_ =
         Logger.getLogger( BasicHubService.class.getName() );
 
-    /** The maximum timeout for a synchronous call prermitted in seconds.
+    /** The maximum timeout for a synchronous call permitted in seconds.
      *  Default is 43200 = 12 hours. */
     public static int MAX_TIMEOUT = 12 * 60 * 60;
 
