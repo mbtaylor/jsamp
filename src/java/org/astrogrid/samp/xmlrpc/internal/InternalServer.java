@@ -97,8 +97,11 @@ public class InternalServer implements SampXmlRpcServer {
         try {
             rbuf = getResultBytes( getXmlRpcResult( body ) );
         }
-        catch ( Exception e ) {
-            logger_.log( Level.INFO, "XML-RPC fault return", e );
+        catch ( Throwable e ) {
+            boolean isChecked = ! ( e instanceof RuntimeException ||
+                                    e instanceof Error );
+            logger_.log( isChecked ? Level.INFO : Level.WARNING,
+                         "XML-RPC fault return", e );
             try {
                 rbuf = getFaultBytes( e );
             }
