@@ -15,7 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import javax.swing.AbstractListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.ListModel;
@@ -24,8 +23,6 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
@@ -268,81 +265,6 @@ public class MessageTrackerHubService extends GuiHubService {
             // Handling the responses happens elsewhere (where we have the
             // msgId not the msgTag).
             base_.receiveResponse( responderId, msgTag, response );
-        }
-    }
-
-    /**
-     * ListModel implementation for containing {@link Transmission} objects.
-     */
-    private static class TransmissionListModel extends AbstractListModel {
-        private final List list_;
-        private final ChangeListener changeListener_;
-
-        /**
-         * Constructor.
-         */
-        public TransmissionListModel() {
-            list_ = new ArrayList();
-            changeListener_ = new ChangeListener() {
-                public void stateChanged( ChangeEvent evt ) {
-                    Object src = evt.getSource();
-                    assert src instanceof Transmission;
-                    if ( src instanceof Transmission ) {
-                        transmissionChanged( (Transmission) src );
-                    }
-                }
-            };
-        }
-
-        /**
-         * Called whenever a transmission which is in this list has changed
-         * state.
-         */
-        private void transmissionChanged( Transmission trans ) {
-            int index = list_.indexOf( trans );
-            if ( index >= 0 ) {
-                if ( trans.isDone() ) {
-                    list_.remove( index );
-                    fireIntervalRemoved( trans, index, index );
-                }
-                else {
-                    fireContentsChanged( trans, index, index );
-                }
-            }
-        }
-
-        public int getSize() {
-            return list_.size();
-        }
-
-        public Object getElementAt( int index ) {
-            return list_.get( index );
-        }
-
-        /**
-         * Adds a transmission to this list.
-         *
-         * @param  trans  transmission to add
-         */
-        public void add( Transmission trans ) {
-            int index = list_.size();
-            list_.add( trans );
-            fireIntervalAdded( trans, index, index );
-            trans.addChangeListener( changeListener_ );
-        }
-
-        /**
-         * Removes a transmission from this list.
-         *
-         * @param  trans  transmission to remove
-         */
-        public void remove( Transmission trans ) {
-            int index = list_.indexOf( trans );
-            trans.removeChangeListener( changeListener_ );
-            if ( index >= 0 ) {
-                list_.remove( index );
-                fireIntervalRemoved( trans, index, index );
-            }
         }
     }
 
