@@ -64,7 +64,7 @@ class TransmissionListModel extends AbstractListModel {
      *
      * @param  trans  transmission to add
      */
-    public void add( Transmission trans ) {
+    public void addTransmission( Transmission trans ) {
         int index = list_.size();
         list_.add( trans );
         fireIntervalAdded( trans, index, index );
@@ -76,7 +76,7 @@ class TransmissionListModel extends AbstractListModel {
      *
      * @param  trans  transmission to remove
      */
-    public void remove( Transmission trans ) {
+    public void removeTransmission( Transmission trans ) {
         int index = list_.indexOf( trans );
         trans.removeChangeListener( changeListener_ );
         if ( index >= 0 ) {

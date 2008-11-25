@@ -193,8 +193,8 @@ public class MessageTrackerHubService extends GuiHubService {
             callMap_.put( callKey, trans );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    sender.txListModel_.add( trans );
-                    recipient.rxListModel_.add( trans );
+                    sender.txListModel_.addTransmission( trans );
+                    recipient.rxListModel_.addTransmission( trans );
                 }
             } );
 
@@ -227,8 +227,8 @@ public class MessageTrackerHubService extends GuiHubService {
             notifySet_.add( trans );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    sender.txListModel_.add( trans );
-                    recipient.rxListModel_.add( trans );
+                    sender.txListModel_.addTransmission( trans );
+                    recipient.rxListModel_.addTransmission( trans );
                 }
             } );
 
