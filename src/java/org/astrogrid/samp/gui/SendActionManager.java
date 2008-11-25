@@ -16,7 +16,6 @@ import javax.swing.event.ListDataListener;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import org.astrogrid.samp.Client;
-import org.astrogrid.samp.client.HubConnector;
 
 /**
  * Manages actions to send SAMP messages to one or all recipients.
@@ -33,7 +32,7 @@ import org.astrogrid.samp.client.HubConnector;
  */
 public abstract class SendActionManager {
 
-    private final HubConnector connector_;
+    private final GuiHubConnector connector_;
     final ListModel subscribedClientModel_;
     private final List menuList_;
     private final ListDataListener subscriptionListener_;
@@ -55,7 +54,7 @@ public abstract class SendActionManager {
      *         clients which are suitable recipients;
      *         all elements must be {@link org.astrogrid.samp.Client}s
      */
-    protected SendActionManager( HubConnector connector,
+    protected SendActionManager( GuiHubConnector connector,
                                  ListModel clientListModel ) {
         connector_ = connector;
         subscribedClientModel_ = clientListModel;

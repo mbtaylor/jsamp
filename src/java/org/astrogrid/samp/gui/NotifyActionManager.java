@@ -27,7 +27,7 @@ import org.astrogrid.samp.client.HubConnector;
 public abstract class NotifyActionManager extends SendActionManager {
 
     private final Component parent_;
-    private final HubConnector connector_;
+    private final GuiHubConnector connector_;
     private final String sendType_;
     private static final Logger logger_ =
         Logger.getLogger( NotifyActionManager.class.getName() );
@@ -41,7 +41,7 @@ public abstract class NotifyActionManager extends SendActionManager {
      * @param   sendType  short string identifying the kind of thing being
      *          sent (used for action descriptions etc)
      */
-    public NotifyActionManager( Component parent, HubConnector connector,
+    public NotifyActionManager( Component parent, GuiHubConnector connector,
                                 String mtype, String sendType ) {
         super( connector, new SubscribedClientListModel( connector, mtype ) );
         parent_ = parent;

@@ -20,7 +20,6 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.HubConnection;
-import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.ResponseHandler;
 
 /**
@@ -33,7 +32,7 @@ import org.astrogrid.samp.client.ResponseHandler;
 public abstract class CallActionManager extends SendActionManager {
 
     private final Component parent_;
-    private final HubConnector connector_;
+    private final GuiHubConnector connector_;
     private final String sendType_;
     private final CallResponseHandler responder_;
     private static final Logger logger_ =
@@ -48,7 +47,7 @@ public abstract class CallActionManager extends SendActionManager {
      * @param   sendType  short string identifying the kind of thing being
      *          sent (used for action descriptions etc)
      */
-    public CallActionManager( Component parent, HubConnector connector,
+    public CallActionManager( Component parent, GuiHubConnector connector,
                               String mtype, String sendType ) {
         super( connector, new SubscribedClientListModel( connector, mtype ) );
         parent_ = parent;

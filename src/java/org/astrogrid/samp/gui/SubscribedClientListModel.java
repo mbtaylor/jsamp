@@ -3,7 +3,6 @@ package org.astrogrid.samp.gui;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.HubConnection;
-import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
 
 /**
@@ -15,7 +14,7 @@ import org.astrogrid.samp.client.SampException;
  */
 public class SubscribedClientListModel extends SelectiveClientListModel {
 
-    private final HubConnector connector_;
+    private final GuiHubConnector connector_;
     private String[] mtypes_;
 
     /**
@@ -24,7 +23,7 @@ public class SubscribedClientListModel extends SelectiveClientListModel {
      * @param  connector   hub connector
      * @param  mtypes   mtypes of interest (may have wildcards)
      */
-    public SubscribedClientListModel( HubConnector connector,
+    public SubscribedClientListModel( GuiHubConnector connector,
                                       String[] mtypes ) {
         super( connector.getClientListModel() );
         connector_ = connector;
@@ -38,7 +37,8 @@ public class SubscribedClientListModel extends SelectiveClientListModel {
      * @param  connector   hub connector
      * @param  mtype   mtype of interest (may have wildcards)
      */
-    public SubscribedClientListModel( HubConnector connector, String mtype ) {
+    public SubscribedClientListModel( GuiHubConnector connector,
+                                      String mtype ) {
         this( connector, new String[] { mtype } );
     }
 

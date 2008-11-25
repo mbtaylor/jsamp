@@ -7,6 +7,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,48 +19,63 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.ListModel;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.ListModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
+import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.client.TrackedClientSet;
 import org.astrogrid.samp.xmlrpc.HubMode;
 import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
- * Provides a number of useful Swing actions and components for use
- * with a {@link org.astrogrid.samp.client.HubConnector} instance.
- * Many of these can be lifted direct to populate application menus etc.
+ * Extends HubConnector to provide additional graphical functionality.
+ * In particular Swing {@link javax.swing.Action}s are provided for 
+ * hub connection/disconnection
+ * and the client list is made available as a {@link javax.swing.ListModel}.
+ * See the {@link org.astrogrid.samp.client.HubConnector superclass} 
+ * documentation for details of how to use this class.
+ * A number of utility methods build on these features to provide
+ * Swing components and Actions which can be used directly to populate
+ * application menus etc.
  *
  * @author   Mark Taylor
- * @since    2 Sep 2008
+ * @since    25 Nov 2008
  */
-public class ConnectorGui {
+public class GuiHubConnector extends HubConnector {
 
-    private final HubConnector connector_;
     private final ListModel clientListModel_;
+    private final List connectionListenerList_;
     private final RegisterAction toggleRegAct_;
     private final RegisterAction regAct_;
     private final RegisterAction unregAct_;
     private final Action monitorAct_;
     private final Collection connectionComponentSet_;
     private final Map hubActMap_;
+    private boolean wasConnected_;
 
     /**
-     * Constructor.
+     * Constructs a hub connector based on a given profile instance.
      *
-     * @param   connector  hub connector on which this object depends
+     * @param  profile  profile implementation
      */
-    public ConnectorGui( HubConnector connector ) {
-        connector_ = connector;
-        clientListModel_ = connector.getClientListModel();
+    public GuiHubConnector( ClientProfile profile ) {
+        super( profile, new ListModelTrackedClientSet() );
+        clientListModel_ = (ListModelTrackedClientSet) getClientSet();
+        connectionListenerList_ = new ArrayList();
+
+        // Set up actions and other items to be updated with connection state.
         regAct_ = new RegisterAction( true );
         unregAct_ = new RegisterAction( false );
         toggleRegAct_ = new RegisterAction();
@@ -68,7 +84,7 @@ public class ConnectorGui {
         hubActMap_ = new HashMap();
 
         // Update state when hub connection starts/stops.
-        connector.addConnectionListener( new ChangeListener() {
+        addConnectionListener( new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
                 updateConnectionState();
             }
@@ -76,9 +92,50 @@ public class ConnectorGui {
         updateConnectionState();
     }
 
+    public HubConnection getConnection() throws SampException {
+        HubConnection connection = super.getConnection();
+        scheduleConnectionChange();
+        return connection;
+    }
+
+    protected void disconnect() {
+        super.disconnect();
+        scheduleConnectionChange();
+    }
+
+    /**
+     * Adds a listener which will be notified when this connector
+     * registers or unregisters with a hub.
+     *
+     * @param  listener   listener to add
+     */
+    public void addConnectionListener( ChangeListener listener ) {
+        connectionListenerList_.add( listener );
+    }
+
+    /**
+     * Removes a listener previously added by {@link #addConnectionListener}.
+     *
+     * @param   listener  listener to remove
+     */
+    public void removeConnectionListener( ChangeListener listener ) {
+        connectionListenerList_.remove( listener );
+    }
+
+    /**
+     * Returns a ListModel containing the registered clients.
+     * Listeners to this model are correctly notified whenever any change
+     * in its contents takes place.
+     * 
+     * @return  list model containing {@link Client} objects
+     */
+    public ListModel getClientListModel() {
+        return clientListModel_;
+    }
+
     /**
      * Returns an action which attempts to register with the hub.
-     * Disabled when already registered.    
+     * Disabled when already registered.
      *
      * @return  registration action
      */
@@ -98,7 +155,7 @@ public class ConnectorGui {
 
     /**
      * Returns an action which toggles hub registration.
-     * 
+     *
      * @return   registration toggler action
      */
     public Action getToggleRegisterAction() {
@@ -117,7 +174,7 @@ public class ConnectorGui {
     /**
      * Returns an action which will start up a SAMP hub.
      * You can specify whether it runs in the current JVM or a newly
-     * created one; in the former case, it will shut down when the 
+     * created one; in the former case, it will shut down when the
      * current application does.
      *
      * @param   external  false to run in the current JVM,
@@ -145,7 +202,7 @@ public class ConnectorGui {
                                                  final Icon offIcon ) {
         JLabel label = new JLabel( new Icon() {
             private Icon effIcon() {
-                return connector_.isConnected() ? onIcon : offIcon;
+                return isConnected() ? onIcon : offIcon;
             }
             public int getIconWidth() {
                 return effIcon().getIconWidth();
@@ -181,7 +238,7 @@ public class ConnectorGui {
      *
      * @param  vertical  true for vertical box, false for horizontal
      * @param  iconSize  dimension in pixel of each icon (square)
-     * @param  nIcon     number of icons there is size for in the box 
+     * @param  nIcon     number of icons there is size for in the box
      *                   (affects only component minimum/preferred size)
      */
     public JComponent createClientBox( boolean vertical, int iconSize,
@@ -209,11 +266,33 @@ public class ConnectorGui {
         return box;
     }
 
+
+
+    /**
+     * Called when the connection status (registered/unregistered) may have
+     * changed.  May be called from any thread.
+     */
+    private void scheduleConnectionChange() {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                boolean isConnected = isConnected();
+                if ( isConnected != wasConnected_ ) {
+                    wasConnected_ = isConnected;
+                    ChangeEvent evt = new ChangeEvent( GuiHubConnector.this );
+                    for ( Iterator it = connectionListenerList_.iterator();
+                          it.hasNext(); ) {
+                        ((ChangeListener) it.next()).stateChanged( evt );
+                    }
+                }
+            }
+        } );
+    }
+
     /**
      * Called when the connection status has changed, or may have changed.
      */
     private void updateConnectionState() {
-        boolean isConn = connector_.isConnected();
+        boolean isConn = isConnected();
         regAct_.setEnabled( ! isConn );
         unregAct_.setEnabled( isConn );
         toggleRegAct_.setSense( ! isConn );
@@ -225,6 +304,136 @@ public class ConnectorGui {
         for ( Iterator it = connectionComponentSet_.iterator();
               it.hasNext(); ) {
             ((Component) it.next()).repaint();
+        }
+    }
+
+    /**
+     * TrackedClientSet implementation used by this class.
+     * Implements ListModel as well.
+     */
+    private static class ListModelTrackedClientSet extends TrackedClientSet
+                                                   implements ListModel {
+
+        private final List clientList_;
+        private final List listenerList_;
+
+        /**
+         * Constructor.
+         */
+        ListModelTrackedClientSet() {
+            clientList_ = new ArrayList();
+            listenerList_ = new ArrayList();
+        }
+
+        public int getSize() {
+            return clientList_.size();
+        }
+
+        public Object getElementAt( int index ) {
+            return clientList_.get( index );
+        }
+
+        public void addListDataListener( ListDataListener listener ) {
+            listenerList_.add( listener );
+        }
+
+        public void removeListDataListener( ListDataListener listener ) {
+            listenerList_.remove( listener );
+        }
+
+        public void addClient( final Client client ) {
+            super.addClient( client );
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    int index = clientList_.size();
+                    clientList_.add( client );
+                    ListDataEvent evt =
+                        new ListDataEvent( ListModelTrackedClientSet.this,
+                                           ListDataEvent.INTERVAL_ADDED,
+                                           index, index );
+                    for ( Iterator it = listenerList_.iterator();
+                          it.hasNext(); ) {
+                        ((ListDataListener) it.next()).intervalAdded( evt );
+                    }
+                }
+            } );
+        }
+
+        public void removeClient( final Client client ) {
+            super.removeClient( client );
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    int index = clientList_.indexOf( client );
+                    assert index >= 0;
+                    if ( index >= 0 ) {
+                        clientList_.remove( index );
+                        ListDataEvent evt =
+                            new ListDataEvent( ListModelTrackedClientSet.this,
+                                               ListDataEvent.INTERVAL_REMOVED,
+                                               index, index );
+                        for ( Iterator it = listenerList_.iterator();
+                              it.hasNext(); ) {
+                            ((ListDataListener) it.next())
+                                               .intervalRemoved( evt );
+                        }
+                    }
+                }
+            } );
+        }
+
+        public void setClients( final Client[] clients ) {
+            super.setClients( clients );
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    int oldSize = clientList_.size();
+                    if ( oldSize > 0 ) {
+                        clientList_.clear();
+                        ListDataEvent removeEvt =
+                            new ListDataEvent( ListModelTrackedClientSet.this,
+                                               ListDataEvent.INTERVAL_REMOVED,
+                                               0, oldSize - 1); 
+                        for ( Iterator it = listenerList_.iterator();
+                              it.hasNext(); ) {
+                            ((ListDataListener) it.next())
+                                               .intervalRemoved( removeEvt );
+                        }
+                    }
+                    if ( clients.length > 0 ) {
+                        clientList_.addAll( Arrays.asList( clients ) );
+                        int newSize = clientList_.size();
+                        ListDataEvent addEvt =
+                            new ListDataEvent( ListModelTrackedClientSet.this,
+                                               ListDataEvent.INTERVAL_ADDED,
+                                               0, newSize - 1); 
+                        for ( Iterator it = listenerList_.iterator();
+                              it.hasNext(); ) {
+                            ((ListDataListener) it.next())
+                                               .intervalAdded( addEvt );
+                        }
+                    }
+                }
+            } );
+        }
+
+        public void updateClient( final Client client ) {
+            super.updateClient( client );
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    int index = clientList_.indexOf( client );
+                    assert index >= 0;
+                    if ( index >= 0 ) {
+                        ListDataEvent evt =
+                            new ListDataEvent( ListModelTrackedClientSet.this,
+                                               ListDataEvent.CONTENTS_CHANGED,
+                                               index, index );
+                        for ( Iterator it = listenerList_.iterator();
+                              it.hasNext(); ) {
+                            ((ListDataListener) it.next())
+                                               .contentsChanged( evt );
+                        }
+                    }
+                }
+            } );
         }
     }
 
@@ -267,13 +476,13 @@ public class ConnectorGui {
         public void actionPerformed( ActionEvent evt ) {
             String cmd = evt.getActionCommand();
             if ( "REGISTER".equals( cmd ) ) {
-                connector_.setActive( true );
-                if ( ! connector_.isConnected() ) {
+                setActive( true );
+                if ( ! isConnected() ) {
                     Toolkit.getDefaultToolkit().beep();
                 }
             }
             else if ( "UNREGISTER".equals( cmd ) ) {
-                connector_.setActive( false );
+                setActive( false );
             }
             else {
                 throw new UnsupportedOperationException( "Unknown action "
@@ -301,7 +510,7 @@ public class ConnectorGui {
         public void actionPerformed( ActionEvent evt ) {
             if ( monitorWindow_ == null ) {
                 HubView view = new HubView();
-                view.setClientListModel( connector_.getClientListModel() );
+                view.setClientListModel( getClientListModel() );
                 monitorWindow_ = new JFrame( "SAMP Clients" );
                 monitorWindow_.getContentPane()
                               .add( view, BorderLayout.CENTER );
@@ -335,7 +544,7 @@ public class ConnectorGui {
                       "Attempts to start up a SAMP hub"
                     + ( external ? " running independently of this application"
                                  : " running within this application" ) );
-            setEnabled( ! connector_.isConnected() );
+            setEnabled( ! isConnected() );
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -346,7 +555,7 @@ public class ConnectorGui {
                 ErrorDialog.showError( null, "Hub Start Failed",
                                        e.getMessage(), e );
             }
-            connector_.setActive( true );
+            setActive( true );
         }
 
         /**
@@ -359,7 +568,7 @@ public class ConnectorGui {
             else {
                 HubRunner.runHub( hubMode_, XmlRpcKit.getInstance() );
             }
-            connector_.setActive( true );
+            setActive( true );
         }
     }
 
@@ -405,7 +614,7 @@ public class ConnectorGui {
     }
 
     /**
-     * Set in which elements are weakly linked.  Elements only weakly 
+     * Set in which elements are weakly linked.  Elements only weakly
      * reachable may disappear.  Based on a WeakHashMap.
      */
     private static class WeakSet extends AbstractSet {

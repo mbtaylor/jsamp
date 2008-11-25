@@ -15,13 +15,11 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.client.ClientProfile;
-import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
- * Client application which uses a 
- * {@link org.astrogrid.samp.client.HubConnector}
+ * Client application which uses a {@link GuiHubConnector}
  * to connect to any running hub and display information about all currently
  * registered clients.
  * 
@@ -43,9 +41,8 @@ public class HubMonitor extends JPanel {
     public HubMonitor( ClientProfile profile, int autoSec ) {
         super( new BorderLayout() );
 
-        // Set up a new HubConnector and GUI decorations.
-        HubConnector connector = new HubConnector( profile );
-        ConnectorGui gui = new ConnectorGui( connector );
+        // Set up a new GuiHubConnector and GUI decorations.
+        GuiHubConnector connector = new GuiHubConnector( profile );
 
         // Declare the default subscriptions.  This is required so that
         // the hub knows the client is subscribed to those hub.event
@@ -74,13 +71,16 @@ public class HubMonitor extends JPanel {
 
         // Create and place a component which allows the user to control
         // registration/unregistration explicitly.
-        connectBox.add( new JButton( gui.getToggleRegisterAction() ),
+        connectBox.add( new JButton( connector.getToggleRegisterAction() ),
                         BorderLayout.CENTER );
 
         // Create and place a component which indicates current registration
         // status of this client.
-        connectBox.add( gui.createConnectionIndicator(),
+        connectBox.add( connector.createConnectionIndicator(),
                         BorderLayout.EAST );
+
+  connectBox.add( connector.createClientBox( false, 24, 6 ),
+                  BorderLayout.WEST );
 
         // Attempt registration, and arrange that if/when unregistered we look
         // for a hub to register with on a regular basis.
