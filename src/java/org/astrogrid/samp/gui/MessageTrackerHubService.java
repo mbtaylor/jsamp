@@ -46,7 +46,6 @@ import org.astrogrid.samp.hub.Receiver;
 public class MessageTrackerHubService extends GuiHubService {
 
     private final Map callMap_;
-    private final Collection notifySet_;
     private MessageTrackerClientSet clientSet_;
 
     /**
@@ -56,8 +55,7 @@ public class MessageTrackerHubService extends GuiHubService {
      */
     public MessageTrackerHubService( Random random ) {
         super( random );
-        callMap_ = Collections.synchronizedMap( new HashMap() );
-        notifySet_ = Collections.synchronizedSet( new HashSet() );
+        callMap_ = new HashMap();  // access only from EDT;
     }
 
     public void start() {
@@ -87,23 +85,45 @@ public class MessageTrackerHubService extends GuiHubService {
         return frame;
     }
 
-    public void reply( Object callerKey, String msgId, Map response )
+    /**
+     * Returns a ListModel representing the pending messages sent 
+     * from a given client.
+     * Elements of the model are {@link Transmission} objects.
+     *
+     * @param   client  client owned by this hub service
+     * @return  transmission list model
+     */
+    public ListModel getTxListModel( Client client ) {
+        return ((MessageTrackerHubClient) client).txListModel_;
+    }
+
+    /**
+     * Returns a ListModel representing the pending messages received
+     * by a given client.
+     * Elements of the model are {@link Transmission} objects.
+     *
+     * @param  client  client owned by this hub service
+     * @return   transmission list model
+     */
+    public ListModel getRxListModel( Client client ) {
+        return ((MessageTrackerHubClient) client).txListModel_;
+    }
+
+    public void reply( Object callerKey, String msgId, final Map response )
             throws HubServiceException {
 
         // Notify the transmission object corresponding to this response
         // that the response has been received.
-        final Transmission trans =
-            (Transmission) callMap_.get( getCallKey( getCaller( callerKey ),
-                                                     msgId ) );
-        final Response resp = Response.asResponse( response );
-        assert trans != null;
-        if ( trans != null ) {
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    trans.setResponse( resp );
+        final Object callKey = getCallKey( getCaller( callerKey ), msgId );
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                Transmission trans = (Transmission) callMap_.remove( callKey );
+                assert trans != null;
+                if ( trans != null ) {
+                    trans.setResponse( Response.asResponse( response ) );
                 }
-            } );
-        }
+            }
+        } );
 
         // Forward the call to the base implementation.
         super.reply( callerKey, msgId, response );
@@ -187,12 +207,12 @@ public class MessageTrackerHubService extends GuiHubService {
                 clientSet_.getFromPublicId( senderId );
             final MessageTrackerHubClient recipient = client_;
             final Transmission trans = 
-                new Transmission( sender, recipient, msg, msgId );
-            Object callKey = getCallKey( recipient, msgId );
-            assert ! callMap_.containsKey( callKey );
-            callMap_.put( callKey, trans );
+                new Transmission( sender, recipient, msg, null, msgId );
+            final Object callKey = getCallKey( recipient, msgId );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
+                    assert ! callMap_.containsKey( callKey );
+                    callMap_.put( callKey, trans );
                     sender.txListModel_.addTransmission( trans );
                     recipient.rxListModel_.addTransmission( trans );
                 }
@@ -223,8 +243,7 @@ public class MessageTrackerHubService extends GuiHubService {
                 clientSet_.getFromPublicId( senderId );
             final MessageTrackerHubClient recipient = client_;
             final Transmission trans =
-                new Transmission( sender, recipient, msg, null );
-            notifySet_.add( trans );
+                new Transmission( sender, recipient, msg, null, null );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     sender.txListModel_.addTransmission( trans );
