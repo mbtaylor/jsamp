@@ -10,11 +10,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ListModel;
-import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import org.astrogrid.samp.Client;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -23,7 +18,7 @@ import org.astrogrid.samp.Subscriptions;
 
 /**
  * Manages a client's connection to SAMP hubs.
- * Normally SAMP client applications will use one instance of this class 
+ * Normally SAMP client applications will use one instance of this class
  * for as long as they are running.
  * It provides the following services:
  * <ul>
@@ -35,36 +30,35 @@ import org.astrogrid.samp.Subscriptions;
  * <li>Implements simple MTypes such as <code>samp.app.ping</code>.
  * <li>Optionally looks out for hubs starting up and connects automatically
  *     when they do
- * <li>Provides hooks for GUI components
  * </ul>
  *
  * <p>This object provides a {@link #getConnection} method which provides
- * the currently active {@link HubConnection} object if one exists or can be 
+ * the currently active {@link HubConnection} object if one exists or can be
  * acquired.  The <code>HubConnection</code> can be used for direct calls
  * on the running hub, but in some cases similar methods with additional
  * functionality exist in this class:
  * <dl>
  * <dt>{@link #declareMetadata}
  * <dt>{@link #declareSubscriptions}
- * <dd>These methods not only make the relevant declarations to the 
- *     existing hub connection, if one exists, but will retain the 
- *     metadata and subscriptions information and declare them to 
- *     other connections if the hub connection is terminated and 
+ * <dd>These methods not only make the relevant declarations to the
+ *     existing hub connection, if one exists, but will retain the
+ *     metadata and subscriptions information and declare them to
+ *     other connections if the hub connection is terminated and
  *     restarted (with either the same or a different hub)
  *     over the lifetime of this object.
  *     </dd>
  * <dt>{@link #callAndWait}
- * <dd>Provides identical semantics to the similarly named 
- *     <code>HubConnection</code> method, but communicates with the hub 
+ * <dd>Provides identical semantics to the similarly named
+ *     <code>HubConnection</code> method, but communicates with the hub
  *     asynchronously and fakes the synchrony at the client end.
  *     This is more robust and almost certainly a better idea.
  *     </dd>
  * </dl>
  *
- * <p>It is good practice to call {@link #setActive setActive(false)} 
- * when this object is finished with; however if it is not called 
- * explicitly, any open connection will unregister itself on 
- * object finalisation or JVM termination, as long as the JVM shuts 
+ * <p>It is good practice to call {@link #setActive setActive(false)}
+ * when this object is finished with; however if it is not called
+ * explicitly, any open connection will unregister itself on
+ * object finalisation or JVM termination, as long as the JVM shuts
  * down cleanly.
  *
  * <h3>Examples</h3>
@@ -97,8 +91,13 @@ import org.astrogrid.samp.Subscriptions;
  *   conn.getConnection().notifyAll(new Message("stuff.event.doing"));
  * </pre>
  *
- * <p>A real example, including use of the GUI hooks, can be found in the 
+ * <p>A real example, including use of the GUI hooks, can be found in the
  * {@link org.astrogrid.samp.gui.HubMonitor} client source code.
+ *
+ * <h3>Backwards Compatibility Note</h3>
+ * This class does less than it did in earlier versions;
+ * the functionality which is no longer here can now be found in the 
+ * {@link org.astrogrid.samp.gui.GuiHubConnector} class instead.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
@@ -106,12 +105,12 @@ import org.astrogrid.samp.Subscriptions;
 public class HubConnector {
 
     private final ClientProfile profile_;
+    private final TrackedClientSet clientSet_;
     private final List messageHandlerList_;
     private final List responseHandlerList_;
     private final ConnectorCallableClient callable_;
     private final Map responseMap_;
-    private final List connectionListenerList_;
-    private ClientTracker clientTracker_;
+    private final ClientTracker clientTracker_;
     private boolean isActive_;
     private HubConnection connection_;
     private Metadata metadata_;
@@ -128,11 +127,25 @@ public class HubConnector {
 
     /**
      * Constructs a HubConnector based on a given profile instance.
+     * A default client set implementation is used.
      *
      * @param  profile  profile implementation
      */
     public HubConnector( ClientProfile profile ) {
+        this( profile, new TrackedClientSet() );
+    }
+
+    /**
+     * Constructs a HubConnector based on a given profile instance
+     * using a custom client set implementation.
+     *
+     * @param  profile  profile implementation
+     * @param  clientSet  object to keep track of registered clients
+     */
+    protected HubConnector( ClientProfile profile,
+                            TrackedClientSet clientSet ) {
         profile_ = profile;
+        clientSet_ = clientSet;
         isActive_ = true;
 
         // Set up data structures.
@@ -140,10 +153,9 @@ public class HubConnector {
         responseHandlerList_ = new ArrayList();
         callable_ = new ConnectorCallableClient();
         responseMap_ = Collections.synchronizedMap( new HashMap() );
-        connectionListenerList_ = new ArrayList();
 
         // Listen out for events describing changes to registered clients.
-        clientTracker_ = new ClientTracker();
+        clientTracker_ = new ClientTracker( clientSet_ );
         addMessageHandler( clientTracker_ );
 
         // Listen out for hub shutdown events.
@@ -188,7 +200,7 @@ public class HubConnector {
             }
         } );
 
-        // Listen out for responses to calls for which we are providing 
+        // Listen out for responses to calls for which we are providing
         // faked synchronous call behaviour.
         addResponseHandler( new ResponseHandler() {
             public boolean ownsTag( String msgTag ) {
@@ -209,11 +221,10 @@ public class HubConnector {
     }
 
     /**
-     * Sets the interval at which this connector attempts to connect to a 
+     * Sets the interval at which this connector attempts to connect to a
      * hub if no connection currently exists.
-     * Otherwise, a connection will be attempted whenever 
+     * Otherwise, a connection will be attempted whenever
      * {@link #getConnection} is called.
-     * 
      *
      * @param  autoSec  number of seconds between attempts;
      *                  &lt;=0 means no automatic connections are attempted
@@ -291,9 +302,9 @@ public class HubConnector {
      *
      * <p>Note that this call must be made, with a subscription list
      * which includes the various hub administrative messages, in order
-     * for this connector to act on those messages (for instance to 
+     * for this connector to act on those messages (for instance to
      * update its client map and so on).  For this reason, it is usual
-     * to call it with the <code>subs</code> argument given by 
+     * to call it with the <code>subs</code> argument given by
      * the result of calling {@link #computeSubscriptions}.
      *
      * @param  subscriptions  {@link org.astrogrid.samp.Subscriptions}-like map
@@ -324,12 +335,12 @@ public class HubConnector {
 
     /**
      * Works out the subscriptions map for this connector.
-     * This is based on the subscriptions declared by for any 
+     * This is based on the subscriptions declared by for any
      * {@link MessageHandler}s installed in this connector as well as
      * any MTypes which this connector implements internally.
      * The result of this method is usually a suitable value to pass
      * to {@link #declareSubscriptions}.  However you might wish to
-     * remove some entries from the result if there are temporarily 
+     * remove some entries from the result if there are temporarily
      * unsubscribed services.
      *
      * @return  subscription list for MTypes apparently implemented by this
@@ -383,7 +394,7 @@ public class HubConnector {
      * can provide a synchronous facade for fully asynchronous messaging,
      * which in many cases will be more convenient than installing your
      * own response handlers to deal with asynchronous replies.
-     * 
+     *
      * @param  handler  handler to add
      */
     public void addResponseHandler( ResponseHandler handler ) {
@@ -411,7 +422,6 @@ public class HubConnector {
      */
     public void setActive( boolean active ) {
         isActive_ = active;
-        scheduleConnectionChange();
         if ( active ) {
             if ( connection_ == null ) {
                 try {
@@ -423,7 +433,7 @@ public class HubConnector {
                 }
             }
         }
-        else {
+        else { 
             HubConnection connection = connection_;
             if ( connection != null ) {
                 disconnect();
@@ -485,7 +495,7 @@ public class HubConnector {
                 else {
                     assert System.currentTimeMillis() >= finish;
                     throw new SampException( "Synchronous call timeout" );
-                } 
+                }
             }
             else {
                 if ( connection != connection_ ) {
@@ -510,64 +520,11 @@ public class HubConnector {
     }
 
     /**
-     * Adds a listener which will be notified when this connector 
-     * registers or unregisters with a hub.
-     *
-     * @param  listener   listener to add
-     */
-    public void addConnectionListener( ChangeListener listener ) {
-        connectionListenerList_.add( listener );
-    }
-
-    /**
-     * Removes a listener previously added by {@link #addConnectionListener}.
-     *
-     * @param   listener  listener to remove
-     */
-    public void removeConnectionListener( ChangeListener listener ) {
-        connectionListenerList_.remove( listener );
-    }
-
-    /**
-     * Schedule an action to inform listeners that there has been a 
-     * change to connection status.  May be called from any thread.
-     */
-    private void scheduleConnectionChange() {
-        final ChangeListener[] listeners = (ChangeListener[])
-                                           connectionListenerList_
-                                          .toArray( new ChangeListener[ 0 ] );
-        if ( listeners.length > 0 ) {
-            if ( SwingUtilities.isEventDispatchThread() ) {
-                doFireConnectionChange( listeners );
-            }
-            else {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        doFireConnectionChange( listeners );
-                    }
-                } );
-            }
-        }
-    }
-
-    /**
-     * Inform listeners that there has been a change to connection status.
-     * May only be called from the AWT event dispatch thread.
-     */
-    private void doFireConnectionChange( ChangeListener[] listeners ) {
-        assert SwingUtilities.isEventDispatchThread();
-        ChangeEvent evt = new ChangeEvent( this );
-        for ( int i = 0; i < listeners.length; i++ ) {
-            listeners[ i ].stateChanged( evt );
-        }
-    }
-
-    /**
      * If necessary attempts to acquire, and returns, a connection to a
      * running hub.
-     * If there is an existing connection representing a registration 
-     * with a hub, it is returned.  If not, and this connector is active, 
-     * an attempt is made to connect and register, followed by a call to 
+     * If there is an existing connection representing a registration
+     * with a hub, it is returned.  If not, and this connector is active,
+     * an attempt is made to connect and register, followed by a call to
      * {@link #configureConnection}, is made.
      *
      * <p>Note that if {@link #setActive setActive(false)} has been called,
@@ -584,7 +541,6 @@ public class HubConnector {
             if ( connection != null ) {
                 connection_ = connection;
                 configureConnection( connection );
-                scheduleConnectionChange();
                 clientTracker_.initialise( connection );
             }
         }
@@ -614,38 +570,40 @@ public class HubConnector {
     }
 
     /**
-     * Returns a list model which keeps track of other clients currently
-     * registered with the hub to which this object is connected, including
-     * their currently declared metadata and subscriptions.
-     * This can be used as the model for a {@link javax.swing.JList}.
-     *
-     * @return   a list model in which the elements are 
-     *           {@link org.astrogrid.samp.Client}s
-     */
-    public ListModel getClientListModel() {
-        return clientTracker_.getClientListModel();
-    }
-
-    /**
      * Returns a map which keeps track of other clients currently registered
      * with the hub to which this object is connected, including their
      * currently declared metadata and subscriptions.
-     * Map keys are public IDs and values are 
+     * Map keys are public IDs and values are
      * {@link org.astrogrid.samp.Client}s.
+     *
+     * <p>This map is {@link java.util.Collections#synchronizedMap synchronized}
+     * which means that to iterate over any of its views 
+     * you must synchronize on it.
+     * When the map or any of its contents changes, it will receive a
+     * {@link java.lang.Object#notifyAll}.
      *
      * @return   id->Client map
      */
     public Map getClientMap() {
-        return clientTracker_.getClientMap();
+        return getClientSet().getClientMap();
+    }
+
+    /**
+     * Returns the tracked client set implementation which is used to keep
+     * track of the currently registered clients.
+     *
+     * @return  client set implementation
+     */
+    protected TrackedClientSet getClientSet() {
+        return clientSet_;
     }
 
     /**
      * Unregisters from the currently connected hub, if any.
      * Performs any associated required cleanup.
      */
-    private void disconnect() {
+    protected void disconnect() {
         connection_ = null;
-        scheduleConnectionChange();
         clientTracker_.clear();
         synchronized ( responseMap_ ) {
             responseMap_.clear();
@@ -661,7 +619,7 @@ public class HubConnector {
      * @param  senderId  public client id of sender
      * @param  mtype    MType of sent message
      */
-    private void checkHubMessage( HubConnection connection, String senderId, 
+    private void checkHubMessage( HubConnection connection, String senderId,
                                   String mtype ) {
         if ( ! senderId.equals( connection.getRegInfo().getHubId() ) ) {
             logger_.warning( "Hub admin message " + mtype + " received from "
@@ -725,7 +683,7 @@ public class HubConnector {
                                  Message message ) {
 
             // Offer the call to each registered MessageHandler in turn.
-            // Since only one should be allowed to respond to it, only 
+            // Since only one should be allowed to respond to it, only
             // the first one which bites is allowed to process it.
             String mtype = message.getMType();
             ErrInfo errInfo = null;

@@ -1,20 +1,13 @@
 package org.astrogrid.samp.client;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
-import javax.swing.ListModel;
-import javax.swing.SwingUtilities;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -24,13 +17,17 @@ import org.astrogrid.samp.Subscriptions;
  * Message handler which watches hub event messages to keep track of
  * what clients are currently registered and what their attributes are
  * on behalf of the hub.
+ * The results are stored in an externally supplied {@link TrackedClientSet}
+ * object.  This class tries its best to handle complications arising 
+ * from the fact that calls concerning a client may arrive out of order 
+ * (for instance declareMetadata before registration or after unregistration).
  *
  * @author   Mark Taylor
  * @since    16 Jul 2008
  */
 class ClientTracker extends AbstractMessageHandler {
 
-    private final ClientListModel clientModel_;
+    private final TrackedClientSet clientSet_;
     private final Map clientMap_;
     private final OperationQueue opQueue_;
     private final static Logger logger_ =
@@ -47,38 +44,18 @@ class ClientTracker extends AbstractMessageHandler {
         METADATA_MTYPE = "samp.hub.event.metadata",
         SUBSCRIPTIONS_MTYPE = "samp.hub.event.subscriptions",
     };
-    private static final Client MORIBUND_CLIENT = 
-        new TrackedClient( "<moribund>" );
 
     /**
      * Constructor.
+     *
+     * @param   clientSet  object used to record registered clients and their 
+     *                     attributes
      */
-    public ClientTracker() {
+    public ClientTracker( TrackedClientSet clientSet ) {
         super( TRACKED_MTYPES );
-        clientModel_ = new ClientListModel();
+        clientSet_ = clientSet;
+        clientMap_ = clientSet.getClientMap();
         opQueue_ = new OperationQueue();
-        clientMap_ = clientModel_.getClientMap();
-    }
-
-    /**
-     * Returns a ListModel representing the state of registered clients.
-     * Elements are {@link org.astrogrid.samp.Client} instances.
-     *
-     * @return  list model
-     */
-    public ListModel getClientListModel() {
-        return clientModel_;
-    }
-
-    /**
-     * Returns a map representing the state of registered clients.
-     * The map keys are client public IDs and the values are 
-     * {@link org.astrogrid.samp.Client} objects.
-     *
-     * @return  id-&gt;Client map
-     */
-    public Map getClientMap() {
-        return clientMap_;
     }
 
     /**
@@ -118,14 +95,14 @@ class ClientTracker extends AbstractMessageHandler {
             clientIds[ otherIds.length ] = connection.getRegInfo().getSelfId();
         }
 
-        // Set up the client model to contain an entry for each registered
+        // Set up the client set to contain an entry for each registered
         // client.
         int nc = clientIds.length;
         TrackedClient[] clients = new TrackedClient[ nc ];
         for ( int ic = 0; ic < nc; ic++ ) {
             clients[ ic ] = new TrackedClient( clientIds[ ic ] );
         }
-        clientModel_.setClients( clients );
+        clientSet_.setClients( clients );
 
         // Then get the metadata and subscriptions for each.
         for ( int ic = 0; ic < nc; ic++ ) {
@@ -133,7 +110,7 @@ class ClientTracker extends AbstractMessageHandler {
             String id = client.getId();
             client.setMetadata( connection.getMetadata( id ) );
             client.setSubscriptions( connection.getSubscriptions( id ) );
-            clientModel_.updatedClient( client );
+            clientSet_.updateClient( client );
             opQueue_.apply( client );
         }
     }
@@ -154,13 +131,13 @@ class ClientTracker extends AbstractMessageHandler {
         if ( REGISTER_MTYPE.equals( mtype ) ) {
             TrackedClient client = new TrackedClient( id );
             opQueue_.apply( client );
-            clientModel_.addClient( client );
+            clientSet_.addClient( client );
         }
         else if ( UNREGISTER_MTYPE.equals( mtype ) ) {
             performClientOperation( new ClientOperation( id, mtype ) {
                 public void perform( TrackedClient client ) {
                     opQueue_.discard( client );
-                    clientModel_.removeClient( client );
+                    clientSet_.removeClient( client );
                 }
             }, connection );
         }
@@ -169,7 +146,7 @@ class ClientTracker extends AbstractMessageHandler {
             performClientOperation( new ClientOperation( id, mtype ) {
                 public void perform( TrackedClient client ) {
                     client.setMetadata( meta );
-                    clientModel_.updatedClient( client );
+                    clientSet_.updateClient( client );
                 }
             }, connection );
         }
@@ -178,7 +155,7 @@ class ClientTracker extends AbstractMessageHandler {
             performClientOperation( new ClientOperation( id, mtype ) {
                 public void perform( TrackedClient client ) {
                     client.setSubscriptions( subs );
-                    clientModel_.updatedClient( client );
+                    clientSet_.updateClient( client );
                 }
             }, connection );
         }
@@ -485,173 +462,6 @@ class ClientTracker extends AbstractMessageHandler {
                 logger_.warning( "Discarding queued " + op );
             }
             opList_.clear();
-        }
-    }
-
-    /**
-     * ListModel implementation for holding Client objects.
-     */
-    private static class ClientListModel implements ListModel {
-
-        private final List clientList_;
-        private final List listenerList_;
-        private final Map clientMap_;
-        private final Map clientMapView_;
-
-        /**
-         * Constructor.
-         */
-        ClientListModel() {
-            listenerList_ = new ArrayList();
-            clientList_ = Collections.synchronizedList( new ArrayList() );
-            clientMap_ = Collections.synchronizedMap( new HashMap() );
-            clientMapView_ = Collections.unmodifiableMap( clientMap_ );
-        }
-
-        public int getSize() {
-            return clientList_.size();
-        }
-
-        public Object getElementAt( int index ) {
-            try {
-                return clientList_.get( index );
-            }
-
-            // May be called from out of event dispatch thread.
-            catch ( IndexOutOfBoundsException e ) {
-                return MORIBUND_CLIENT;
-            }
-        }
-
-        public void addListDataListener( ListDataListener l ) {
-            listenerList_.add( l );
-        }
-
-        public void removeListDataListener( ListDataListener l ) {
-            listenerList_.remove( l );
-        }
-
-        /**
-         * Adds a client to this model.
-         * Listeners are informed.  May be called from any thread.
-         *
-         * @param  client  client to add
-         */
-        public synchronized void addClient( Client client ) {
-            int index = clientList_.size();
-            clientList_.add( client );
-            clientMap_.put( client.getId(), client );
-            scheduleListDataEvent( ListDataEvent.INTERVAL_ADDED, index, index );
-        }
-
-        /**
-         * Removes a client from this model.
-         * Listeners are informed.  May be called from any thread.
-         *
-         * @param   client  client to remove
-         */
-        public synchronized void removeClient( Client client ) {
-            int index = clientList_.indexOf( client );
-            boolean removed = clientList_.remove( client );
-            Client c = (Client) clientMap_.remove( client.getId() );
-            assert removed;
-            assert client.equals( c );
-            scheduleListDataEvent( ListDataEvent.INTERVAL_REMOVED,
-                                   index, index );
-        }
-
-        /**
-         * Sets the contents of this model to a given list.
-         * Listeners are informed.  May be called from any thread.
-         *
-         * @param  clients  current client list
-         */
-        public synchronized void setClients( Client[] clients ) {
-            int nc = clientList_.size();
-            clientList_.clear();
-            clientMap_.clear();
-            if ( nc > 0 ) {
-                scheduleListDataEvent( ListDataEvent.INTERVAL_REMOVED,
-                                       0, nc - 1 );
-            }
-            clientList_.addAll( Arrays.asList( clients ) );
-            for ( int ic = 0; ic < clients.length; ic++ ) {
-                Client client = clients[ ic ];
-                clientMap_.put( client.getId(), client );
-            }
-            if ( clients.length > 0 ) {
-                scheduleListDataEvent( ListDataEvent.INTERVAL_ADDED,
-                                       0, clients.length - 1 );
-            }
-        }
-
-        /**
-         * Notifies listeners that a given client's attributes (may) have
-         * changed.  May be called from any thread.
-         *
-         * @param  client  modified client
-         */
-        public void updatedClient( Client client ) {
-            int index = clientList_.indexOf( client );
-            if ( index >= 0 ) {
-                scheduleListDataEvent( ListDataEvent.CONTENTS_CHANGED,
-                                       index, index );
-            }
-        }
-
-        /**
-         * Returns a Map representing the client list.
-         *
-         * @return   id -&gt; Client map
-         */
-        public Map getClientMap() {
-            return clientMapView_;
-        }
-
-        /**
-         * Schedules notification of list data listeners about an event.
-         * May be called from any thread.
-         *
-         * @param  type  ListDataEvent event type
-         * @param  int  index0  ListDataEvent start index
-         * @param  int  index1  ListDataEvent end index
-         */
-        private void scheduleListDataEvent( int type, int index0, int index1 ) {
-            if ( ! listenerList_.isEmpty() ) {
-                final ListDataEvent evt =
-                    new ListDataEvent( this, type, index0, index1 );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        fireEvent( evt );
-                    }
-                } );
-            }
-        }
-
-        /**
-         * Passes a ListDataEvent to all listeners.
-         * Must be called from AWT event dispatch thread.
-         *
-         * @param  evt  event to forward
-         */
-        private void fireEvent( ListDataEvent evt ) {
-            assert SwingUtilities.isEventDispatchThread();
-            int type = evt.getType();
-            for ( Iterator it = listenerList_.iterator(); it.hasNext(); ) {
-                ListDataListener listener = (ListDataListener) it.next();
-                if ( type == ListDataEvent.INTERVAL_ADDED ) {
-                    listener.intervalAdded( evt );
-                }
-                else if ( type == ListDataEvent.INTERVAL_REMOVED ) {
-                    listener.intervalRemoved( evt );
-                }
-                else if ( type == ListDataEvent.CONTENTS_CHANGED ) {
-                    listener.contentsChanged( evt );
-                }
-                else {
-                    assert false;
-                }
-            }
         }
     }
 }
