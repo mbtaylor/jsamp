@@ -39,8 +39,8 @@ import org.astrogrid.samp.Subscriptions;
  * on the running hub, but in some cases similar methods with additional
  * functionality exist in this class:
  * <dl>
- * <dt>{@link #declareMetadata}
- * <dt>{@link #declareSubscriptions}
+ * <dt>{@link #declareMetadata declareMetadata}
+ * <dt>{@link #declareSubscriptions declareSubscriptions}
  * <dd>These methods not only make the relevant declarations to the
  *     existing hub connection, if one exists, but will retain the
  *     metadata and subscriptions information and declare them to
@@ -48,7 +48,7 @@ import org.astrogrid.samp.Subscriptions;
  *     restarted (with either the same or a different hub)
  *     over the lifetime of this object.
  *     </dd>
- * <dt>{@link #callAndWait}
+ * <dt>{@link #callAndWait callAndWait}
  * <dd>Provides identical semantics to the similarly named
  *     <code>HubConnection</code> method, but communicates with the hub
  *     asynchronously and fakes the synchrony at the client end.
@@ -399,7 +399,7 @@ public class HubConnector {
      * Adds a ResponseHandler to this connector, which allows it to receive
      * replies from messages sent asynchronously.
      *
-     * <p>Note however that this class's {@link #callAndWait} method
+     * <p>Note however that this class's {@link #callAndWait callAndWait} method
      * can provide a synchronous facade for fully asynchronous messaging,
      * which in many cases will be more convenient than installing your
      * own response handlers to deal with asynchronous replies.
@@ -534,7 +534,7 @@ public class HubConnector {
      * If there is an existing connection representing a registration
      * with a hub, it is returned.  If not, and this connector is active,
      * an attempt is made to connect and register, followed by a call to
-     * {@link #configureConnection}, is made.
+     * {@link #configureConnection configureConnection}, is made.
      *
      * <p>Note that if {@link #setActive setActive(false)} has been called,
      * null will be returned.
