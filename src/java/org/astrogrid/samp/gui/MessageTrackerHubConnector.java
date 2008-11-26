@@ -8,10 +8,14 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -29,12 +33,17 @@ import org.astrogrid.samp.client.SampException;
  * @author   Mark Taylor
  * @since    26 Nov 2008
  */
-public class MessageTrackerHubConnector extends GuiHubConnector {
+public class MessageTrackerHubConnector extends GuiHubConnector
+                                        implements ClientTransmissionHolder {
 
     private final TransmissionListModel txListModel_;
     private final TransmissionListModel rxListModel_;
     private final Map clientMap_;
     private final Map callAllMap_;
+    private final Map txModelMap_;
+    private final Map rxModelMap_;
+    private final ListDataListener txListListener_;
+    private final ListDataListener rxListListener_;
     private static final Logger logger_ =
         Logger.getLogger( MessageTrackerHubConnector.class.getName() );
 
@@ -49,6 +58,10 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
         rxListModel_ = new TransmissionListModel();
         clientMap_ = getClientMap();
         callAllMap_ = new HashMap();  // access only from EDT
+        txModelMap_ = new WeakHashMap();
+        rxModelMap_ = new WeakHashMap();
+        txListListener_ = new ClientTransmissionListListener( true );
+        rxListListener_ = new ClientTransmissionListListener( false );
     }
 
     /**
@@ -73,9 +86,35 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
         return rxListModel_;
     }
 
+    public ListModel getTxListModel( Client client ) {
+        if ( ! txModelMap_.containsKey( client ) ) {
+            TransmissionListModel listModel = new TransmissionListModel();
+            listModel.addListDataListener( txListListener_ );
+            txModelMap_.put( client, listModel );
+        }
+        return (ListModel) txModelMap_.get( client );
+    }
+
+    public ListModel getRxListModel( Client client ) {
+        if ( ! rxModelMap_.containsKey( client ) ) {
+            TransmissionListModel listModel = new TransmissionListModel();
+            listModel.addListDataListener( rxListListener_ );
+            rxModelMap_.put( client, listModel );
+        }
+        return (ListModel) rxModelMap_.get( client );
+    }
+
     public JComponent createMessageBox( int iconSize, int nMessage ) {
         return new TransmissionListIcon( rxListModel_, txListModel_, iconSize )
               .createBox( nMessage );
+    }
+
+    public ListCellRenderer createClientListCellRenderer() {
+        return new MessageTrackerListCellRenderer( this ) {
+            protected String getToolTipText( Transmission trans ) {
+                return trans.getMessage().getMType();
+            }
+        };
     }
 
     protected HubConnection createConnection() throws SampException {
@@ -83,6 +122,61 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
         return connection == null
              ? null
              : new MessageTrackerHubConnection( connection );
+    }
+
+    /**
+     * Schedules a new transmission to add to the appropriate list models.
+     * May be called from any thread.
+     *
+     * @param  trans  transmission
+     * @param  tx    true for send, false for receive
+     */
+    private void scheduleAddTransmission( final Transmission trans,
+                                          final boolean tx ) {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                ( tx ? txListModel_
+                     : rxListModel_ ).addTransmission( trans );
+                ((TransmissionListModel)
+                 ( tx ? getTxListModel( trans.getReceiver() )
+                      : getRxListModel( trans.getSender() ) ))
+                          .addTransmission( trans );
+            }
+        } );
+    }
+
+    /**
+     * Schedules a response to be registered for a previously added 
+     * transmission.
+     * May be called from any thread.
+     *
+     * @param  trans  transmission
+     * @param  response   response to associated with trans
+     */
+    private void scheduleSetResponse( final Transmission trans,
+                                      final Response response ) {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                trans.setResponse( response );
+            }
+        } );
+    }
+
+    /**
+     * Schedules an error to be registered for a previously added
+     * transmission.
+     * May be called from any thread.
+     *
+     * @param  trans  transmission
+     * @param  error  exception
+     */
+    private void scheduleSetFailure( final Transmission trans,
+                                     final Throwable error ) {
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                trans.fail( error );
+            }
+        } );
     }
 
     /**
@@ -124,17 +218,13 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
             // Construct a transmission corresponding to this notify and
             // add it to the send list.
             Client recipient = (Client) clientMap_.get( recipientId );
-            final Transmission trans =
+            Transmission trans =
                 recipient == null ? null
                                   : new Transmission( selfClient_, recipient,
                                                       Message.asMessage( msg ),
                                                       null, null );
             if ( trans != null ) {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        txListModel_.addTransmission( trans );
-                    }
-                } );
+                scheduleAddTransmission( trans, true );
             }
 
             // Do the actual send.
@@ -143,22 +233,14 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
 
                 // Notify won't generate a response, so signal that now.
                 if ( trans != null ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            trans.setResponse( null );
-                        }
-                    } );
+                    scheduleSetResponse( trans, null );
                 }
             }
 
             // If the send failed, signal it.
-            catch ( final SampException e ) {
+            catch ( SampException e ) {
                 if ( trans != null ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            trans.fail( e );
-                        }
-                    } );
+                    scheduleSetFailure( trans, e );
                 }
                 throw e;
             }
@@ -177,24 +259,15 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
                 Client recipient =
                     (Client) clientMap_.get( (String) it.next() );
                 if ( recipient != null ) {
-                    transList.add( new Transmission( selfClient_, recipient,
-                                                     message, null, null ) );
-                }
-            }
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    for ( Iterator it = transList.iterator(); it.hasNext(); ) {
-                        Transmission trans = (Transmission) it.next();
-                        txListModel_.addTransmission( trans );
-                    }
+                    Transmission trans =
+                        new Transmission( selfClient_, recipient, message,
+                                          null, null );
+                    scheduleAddTransmission( trans, true );
 
                     // Notify won't generate a response, so signal that now.
-                    for ( Iterator it = transList.iterator(); it.hasNext(); ) {
-                        Transmission trans = (Transmission) it.next();
-                        trans.setResponse( null );
-                    }
+                    scheduleSetResponse( trans, null );
                 }
-            } );
+            }
             return recipientIdList;
         }
 
@@ -204,17 +277,13 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
             // Construct a transmission corresponding to this call
             // and add it to the send list.
             Client recipient = (Client) clientMap_.get( recipientId );
-            final Transmission trans =
+            Transmission trans =
                 recipient == null ? null
                                   : new Transmission( selfClient_, recipient,
                                                       Message.asMessage( msg ),
                                                       msgTag, null );
             if ( trans != null ) {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        txListModel_.addTransmission( trans );
-                    }
-                } );
+                scheduleAddTransmission( trans, true );
             }
 
             // Do the actual call.
@@ -225,13 +294,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
             // If the send failed, signal that since no reply will be
             // forthcoming.
             catch ( final SampException e ) {
-                if ( trans != null ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            trans.fail( e );
-                        }
-                    } );
-                }
+                scheduleSetFailure( trans, e );
                 throw e;
             }
         }
@@ -266,8 +329,11 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
                 Client recipient = (Client) clientMap_.get( recipientId );
                 if ( recipient != null ) {
                     String msgId = (String) entry.getValue();
-                    transList.add( new Transmission( selfClient_, recipient,
-                                                     message, msgTag, msgId ) );
+                    Transmission trans =
+                        new Transmission( selfClient_, recipient, message,
+                                          msgTag, msgId );
+                    scheduleAddTransmission( trans, true );
+                    transList.add( trans );
                 }
             }
             final Transmission[] transmissions =
@@ -277,9 +343,6 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
             // it knows how to process (possibly already received) responses.
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    for ( int i = 0; i < transmissions.length; i++ ) {
-                        txListModel_.addTransmission( transmissions[ i ] );
-                    }
                     cah.setTransmissions( transmissions );
                 }
             } );
@@ -292,7 +355,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
             // Construct a transmission obejct corresponding to this call
             // and add it to the send list.
             Client recipient = (Client) clientMap_.get( recipientId );
-            final Transmission trans =
+            Transmission trans =
                 recipient == null
                           ? null
                           : new Transmission( selfClient_, recipient,
@@ -300,37 +363,25 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
                                               "<synchronous>",
                                               "<synchronous>" );
             if ( trans != null ) {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        txListModel_.addTransmission( trans );
-                    }
-                } );
+                scheduleAddTransmission( trans, true );
             }
 
             // Do the actual call.
             try {
-                final Response response =
+                Response response =
                     super.callAndWait( recipientId, msg, timeout );
 
                 // Inform the transmission of the response.
                 if ( trans != null ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            trans.setResponse( response );
-                        }
-                    } );
+                    scheduleSetResponse( trans, response );
                 }
                 return response;
             }
 
             // In case of error, inform the transmission of failure.
-            catch ( final SampException e ) {
+            catch ( SampException e ) {
                 if ( trans != null ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            trans.fail( e );
-                        }
-                    } );
+                    scheduleSetFailure( trans, e );
                 }
                 throw e;
             }
@@ -410,16 +461,12 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
             // Construct a transmission corresponding to the incoming call
             // and add it to the receive list.
             Client sender = (Client) clientMap_.get( senderId );
-            final Transmission trans =
+            Transmission trans =
                 sender == null ? null
                                : new Transmission( sender, selfClient_, msg,
                                                    null, msgId );
             if ( trans != null ) {
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        rxListModel_.addTransmission( trans );
-                    }
-                } );
+                scheduleAddTransmission( trans, false );
             }
 
             // Actually handle the call.
@@ -428,14 +475,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
             }
 
             // If the call handler fails, inform the transmission.
-            catch ( final Exception e ) {
-                if ( trans != null ) {
-                    SwingUtilities.invokeLater( new Runnable() {
-                        public void run() {
-                            trans.fail( e );
-                        }
-                    } );
-                }
+            catch ( Exception e ) {
+                scheduleSetFailure( trans, e );
                 throw e;
             }
         }
@@ -454,12 +495,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
             if ( sender != null ) {
                 final Transmission trans =
                     new Transmission( sender, selfClient_, msg, null, null );
-                SwingUtilities.invokeLater( new Runnable() {
-                    public void run() {
-                        rxListModel_.addTransmission( trans );
-                        trans.setResponse( null );
-                    }
-                } );
+                scheduleAddTransmission( trans, false );
+                scheduleSetResponse( trans, null );
             }
         }
 
@@ -609,6 +646,50 @@ public class MessageTrackerHubConnector extends GuiHubConnector {
             if ( transSet_.isEmpty() ) {
                 assert callAllMap_.containsKey( msgTag_ );
                 callAllMap_.remove( msgTag_ );
+            }
+        }
+    }
+
+    /**
+     * ListDataListener implementation which responds to transmission list
+     * events and passes them on to the client list, since any changes to
+     * the transmission list may change the way that a client is renderered
+     * in the JList.
+     */
+    private class ClientTransmissionListListener implements ListDataListener {
+        private final boolean tx_;
+
+        /**
+         * Constructor.
+         *
+         * @param  tx  true for send, false for receive
+         */
+        ClientTransmissionListListener( boolean tx ) {
+            tx_ = tx;
+        }
+
+        public void contentsChanged( ListDataEvent evt ) {
+            transmissionChanged( evt );
+        }
+
+        public void intervalAdded( ListDataEvent evt ) {
+            transmissionChanged( evt );
+        }
+
+        public void intervalRemoved( ListDataEvent evt ) {
+            transmissionChanged( evt );
+        }
+
+        /**
+         * Called when there is any change to a known transmission.
+         */
+        private void transmissionChanged( ListDataEvent evt ) {
+            Object src = evt.getSource();
+            assert src instanceof Transmission;
+            if ( src instanceof Transmission ) {
+                Transmission trans = (Transmission) src;
+                getClientSet().updateClient( tx_ ? trans.getReceiver()
+                                                 : trans.getSender() );
             }
         }
     }
