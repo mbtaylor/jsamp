@@ -24,6 +24,7 @@ public class Transmission {
     private final Client receiver_;
     private final Message msg_;
     private final String msgId_;
+    private final String msgTag_;
     private final long birthday_;
     private final List listenerList_;
     private final ChangeEvent evt_;
@@ -38,13 +39,15 @@ public class Transmission {
      * @param   sender  sender
      * @param   receiver  receiver
      * @param   msg   message
+     * @param   msgTag  message tag
      * @param   msgId  message ID
      */
     public Transmission( Client sender, Client receiver, Message msg,
-                         String msgId ) {
+                         String msgTag, String msgId ) {
         sender_ = sender;
         receiver_ = receiver;
         msg_ = msg;
+        msgTag_ = msgTag;
         msgId_ = msgId;
         birthday_ = System.currentTimeMillis();
         listenerList_ = new ArrayList();
@@ -76,6 +79,16 @@ public class Transmission {
      */
     public Message getMessage() {
         return msg_;
+    }
+
+    /**
+     * Returns the message tag corresponding to this transmission.
+     * Will be null for notify-type sends.
+     *
+     * @return  msg tag
+     */
+    public String getMessageTag() {
+        return msgTag_;
     }
 
     /**
@@ -146,7 +159,7 @@ public class Transmission {
     public boolean isDone() {
         return error_ != null
             || response_ != null
-            || msgId_ == null
+            || ( msgId_ == null && msgTag_ == null )
             || receiverUnreg_;
     }
 
