@@ -22,6 +22,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -131,6 +132,16 @@ public class GuiHubConnector extends HubConnector {
      */
     public ListModel getClientListModel() {
         return clientListModel_;
+    }
+
+    /**
+     * Returns a list cell renderer suitable for use with the 
+     * client list model returned by {@link #getClientListModel}.
+     *
+     * @return   list cell renderer for Client objects
+     */
+    public ListCellRenderer createClientListCellRenderer() {
+        return new ClientListCellRenderer();
     }
 
     /**
