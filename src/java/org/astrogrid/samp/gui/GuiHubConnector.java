@@ -2,6 +2,7 @@ package org.astrogrid.samp.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -258,23 +259,18 @@ public class GuiHubConnector extends HubConnector {
         final IconStore iconStore =
             new IconStore( iconSize, IconStore.createMinimalIcon( iconSize ) );
         IconBox box = new IconBox( vertical, iconSize );
-        box.setModel( new ListModel() {
-            public int getSize() {
-                return clientListModel_.getSize();
+        box.setModel( clientListModel_ );
+        box.setRenderer( new IconBox.CellRenderer() {
+            public Icon getIcon( Object value ) {
+                return iconStore.getIcon( (Client) value );
             }
-            public Object getElementAt( int index ) {
-                return new ClientEntry( iconStore,
-                                        (Client) clientListModel_
-                                                .getElementAt( index ) );
-            }
-            public void addListDataListener( ListDataListener listener ) {
-                clientListModel_.addListDataListener( listener );
-            }
-            public void removeListDataListener( ListDataListener listener ) {
-                clientListModel_.removeListDataListener( listener );
+            public String getToolTipText( Object value ) {
+                return SampUtils.toString( (Client) value );
             }
         } );
-        box.setPreferredSize( box.getSizeForSlots( nIcon ) );
+        Dimension boxSize = box.getPreferredSize();
+        boxSize.width = 128;
+        box.setPreferredSize( boxSize ); 
         return box;
     }
 
@@ -580,47 +576,6 @@ public class GuiHubConnector extends HubConnector {
                 HubRunner.runHub( hubMode_, XmlRpcKit.getInstance() );
             }
             setActive( true );
-        }
-    }
-
-    /**
-     * IconBox.Entry implementation to contain Clients.
-     */
-    private static class ClientEntry implements IconBox.Entry {
-        private final IconStore iconStore_;
-        private final Client client_;
-
-        /**
-         * Constructor.
-         *
-         * @param  iconStore  object used to resolve clients to icons
-         * @param  client  client
-         */
-        ClientEntry( IconStore iconStore, Client client ) {
-            iconStore_ = iconStore;
-            client_ = client;
-        }
-
-        public Icon getIcon() {
-            return iconStore_.getIcon( client_ );
-        }
-
-        public String getToolTipText() {
-            return SampUtils.toString( client_ );
-        }
-
-        public int hashCode() {
-            return client_.hashCode();
-        }
-
-        public boolean equals( Object o ) {
-            if ( o instanceof ClientEntry ) {
-                ClientEntry other = (ClientEntry) o;
-                return other.client_.equals( this.client_ );
-            }
-            else {
-                return false;
-            }
         }
     }
 
