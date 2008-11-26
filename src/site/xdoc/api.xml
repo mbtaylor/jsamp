@@ -22,16 +22,27 @@ in order to use the toolkit for a particular purpose.
 functionality, you should in most cases use the
 <a target="samp-javadoc"
    href="apidocs/org/astrogrid/samp/client/HubConnector.html"
-                                          >HubConnector</a> class.
+                                          >HubConnector</a> class
+or one of its subclasses.
+
 It is suitable for long-running applications which wish to
 send and receive SAMP messages, and seamlessly handles registering
 and unregistering with hubs, including taking care of the case in which
 a running hub shuts down and another one starts up later
 during the application's lifetime.
-<code>HubConnector</code> provides some hooks for graphical capabilities,
-for instance a <code>ListModel</code> which keeps track of other clients
-and their attributes as the hub notifies of changes in them.
-Some ready-to-use GUI components suitable for use with these hooks
+</p>
+
+<p>The <code>HubConnector</code> subclasses
+<a target="samp-javadoc"
+   href="apidocs/org/astrogrid/samp/gui/GuiHubConnector.html"
+                                       >GuiHubConnector</a> and
+<a target="samp-javadoc"
+   href="apidocs/org/astrogrid/samp/gui/MessageTrackerHubConnector.html"
+                                       >MessageTrackerHubConnector</a>
+layer some additional graphical facilities on top of <code>HubConnector</code>
+itself, for instance automatically updated <code>ListModel</code>s 
+which keep track of registered clients and sent/received messages.
+Some ready-to-use GUI components suitable for use with these
 are provided in the
 <a target="samp-javadoc"
    href="apidocs/org/astrogrid/samp/gui/package-summary.html"
