@@ -1,11 +1,5 @@
 package org.astrogrid.samp.gui;
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,20 +7,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.ListModel;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JList;
 import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.hub.ClientSet;
 import org.astrogrid.samp.hub.HubClient;
 import org.astrogrid.samp.hub.HubServiceException;
@@ -41,7 +30,8 @@ import org.astrogrid.samp.hub.Receiver;
  * @author   Mark Taylor
  * @since    20 Nov 2008
  */
-public class MessageTrackerHubService extends GuiHubService {
+public class MessageTrackerHubService extends GuiHubService
+                                      implements ClientTransmissionHolder {
 
     private final Map callMap_;
     private MessageTrackerClientSet clientSet_;
@@ -73,7 +63,7 @@ public class MessageTrackerHubService extends GuiHubService {
         HubView hubView = new HubView();
         hubView.setClientListModel( clientSet_ );
         hubView.getClientList()
-               .setCellRenderer( new MessageTrackerCellRenderer() );
+               .setCellRenderer( new MessageTrackerListCellRenderer( this ) );
         JFrame frame = new JFrame( "SAMP Hub" );
         frame.getContentPane().add( hubView );
         frame.setIconImage( new ImageIcon( Client.class
@@ -92,7 +82,9 @@ public class MessageTrackerHubService extends GuiHubService {
      * @return  transmission list model
      */
     public ListModel getTxListModel( Client client ) {
-        return ((MessageTrackerHubClient) client).txListModel_;
+        return client instanceof MessageTrackerHubClient
+             ? ((MessageTrackerHubClient) client).txListModel_
+             : null;
     }
 
     /**
@@ -104,7 +96,9 @@ public class MessageTrackerHubService extends GuiHubService {
      * @return   transmission list model
      */
     public ListModel getRxListModel( Client client ) {
-        return ((MessageTrackerHubClient) client).txListModel_;
+        return client instanceof MessageTrackerHubClient
+             ? ((MessageTrackerHubClient) client).rxListModel_
+             : null;
     }
 
     public void reply( Object callerKey, String msgId, final Map response )
@@ -367,105 +361,6 @@ public class MessageTrackerHubService extends GuiHubService {
                     rxListModel.removeListDataListener( transListener_ );
                 }
             } );
-        }
-    }
-
-    /**
-     * Cell renderer used by this GuiHubService.
-     * It draws a TransmissionListIcon to the right of the default 
-     * representation.
-     */
-    private static class MessageTrackerCellRenderer
-            extends ClientListCellRenderer {
-        private MessageTrackerHubClient client_;
-        private TransmissionListIcon transListIcon_;
-        private final int padding_ = 10;
-
-        /**
-         * Constructor.
-         */
-        MessageTrackerCellRenderer() {
-            ToolTipManager.sharedInstance().registerComponent( this );
-        }
-
-        protected void paintComponent( Graphics g ) {
-            super.paintComponent( g );
-            if ( transListIcon_ != null ) {
-                Point p = getIconPosition();
-                if ( g.hitClip( p.x, p.y, transListIcon_.getIconWidth(), 
-                                          transListIcon_.getIconHeight() ) ) {
-                    transListIcon_.paintIcon( this, g, p.x, p.y );
-                }
-            }
-        }
-
-        public Dimension getPreferredSize() {
-            Dimension prefSize = super.getPreferredSize();
-            if ( transListIcon_ != null ) {
-                prefSize.width += transListIcon_.getIconWidth() + padding_;
-            }
-            return prefSize;
-        }
-
-        public String getToolTipText( MouseEvent evt ) {
-            if ( transListIcon_ != null ) {
-                Point iconPos = getIconPosition();
-                Point p = new Point( evt.getPoint() );
-                p.x -= iconPos.x;
-                p.y -= iconPos.y;
-                Transmission trans = transListIcon_.getTransmissionAt( p );
-                if ( trans != null ) {
-                    String mtype = trans.getMessage().getMType();
-                    if ( client_ == trans.getSender() ) {
-                        return mtype + " -> "
-                             + SampUtils.toString( trans.getReceiver() );
-                    }
-                    else if ( client_ == trans.getReceiver() ) {
-                        return mtype + " <- "
-                             + SampUtils.toString( trans.getSender() );
-                    }
-                    else {
-                        assert false;
-                    }
-                }
-            }
-            return null;
-        }
-
-        public Component getListCellRendererComponent( JList list, Object value,
-                                                       int index, boolean isSel,
-                                                       boolean hasFocus ) {
-            Component c =
-                super.getListCellRendererComponent( list, value, index,
-                                                    isSel, hasFocus );
-            if ( value instanceof MessageTrackerHubClient ) {
-                client_ = (MessageTrackerHubClient) value;
-                int size = c.getPreferredSize().height;
-                if ( c instanceof JComponent ) {
-                    Insets insets = ((JComponent) c).getInsets();
-                    size -= insets.top + insets.bottom;
-                }
-                transListIcon_ =
-                    new TransmissionListIcon( client_.rxListModel_,
-                                              client_.txListModel_, size );
-            }
-            else {
-                transListIcon_ = null;
-            }
-            return c;
-        }
-
-        /**
-         * Returns the position at which the transmission list icon should
-         * be drawn.
-         *
-         * @return   icon base position
-         */
-        private Point getIconPosition() {
-            Insets insets = getInsets();
-            return new Point( insets.left + super.getPreferredSize().width
-                                          + padding_,
-                              insets.top );
         }
     }
 }
