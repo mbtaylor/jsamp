@@ -35,14 +35,19 @@ public class HubMonitor extends JPanel {
      * Constructor.
      *
      * @param  profile  SAMP profile
+     * @param  trackMessages  if true, the GUI will contain a visual
+     *         representation of messages sent and received
      * @param  autoSec  number of seconds between automatic hub connection
      *         attempts; &lt;=0 means no automatic connections
      */
-    public HubMonitor( ClientProfile profile, int autoSec ) {
+    public HubMonitor( ClientProfile profile, boolean trackMessages,
+                       int autoSec ) {
         super( new BorderLayout() );
 
         // Set up a new GuiHubConnector and GUI decorations.
-        GuiHubConnector connector = new GuiHubConnector( profile );
+        GuiHubConnector connector =
+            trackMessages ? new MessageTrackerHubConnector( profile )
+                          : new GuiHubConnector( profile );
 
         // Declare the default subscriptions.  This is required so that
         // the hub knows the client is subscribed to those hub.event
@@ -63,6 +68,8 @@ public class HubMonitor extends JPanel {
         // use the client list model as a model for a JList component.
         HubView hubView = new HubView();
         hubView.setClientListModel( connector.getClientListModel() );
+        hubView.getClientList()
+               .setCellRenderer( connector.createClientListCellRenderer() );
         add( hubView, BorderLayout.CENTER );
 
         // Prepare a container for other widgets at the bottom of the window.
@@ -78,9 +85,6 @@ public class HubMonitor extends JPanel {
         // status of this client.
         connectBox.add( connector.createConnectionIndicator(),
                         BorderLayout.EAST );
-
-  connectBox.add( connector.createClientBox( false, 24, 6 ),
-                  BorderLayout.WEST );
 
         // Attempt registration, and arrange that if/when unregistered we look
         // for a hub to register with on a regular basis.
@@ -102,12 +106,14 @@ public class HubMonitor extends JPanel {
             .append( " [-xmlrpc apache|internal]" )
             .append( "\n           " )
             .append( " [-auto <secs>]" )
+            .append( " [-nomsg]" )
             .append( " [-nogui]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
         int verbAdjust = 0;
         boolean gui = true;
+        boolean trackMsgs = true;
         int autoSec = 3;
         XmlRpcKit xmlrpc = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
@@ -125,6 +131,14 @@ public class HubMonitor extends JPanel {
             else if ( arg.equals( "-nogui" ) ) {
                 it.remove();
                 gui = false;
+            }
+            else if ( arg.equals( "-msg" ) ) {
+                it.remove();
+                trackMsgs = true;
+            }
+            else if ( arg.equals( "-nomsg" ) ) {
+                it.remove();
+                trackMsgs = false;
             }
             else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
                 it.remove();
@@ -179,11 +193,13 @@ public class HubMonitor extends JPanel {
         // Start the gui in a new window.
         final boolean isVisible = gui;
         final int autoSeconds = autoSec;
+        final boolean trackMessages = trackMsgs;
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 JFrame frame = new JFrame( "SAMP HubMonitor" );
                 frame.getContentPane()
-                     .add( new HubMonitor( profile, autoSeconds ) );
+                     .add( new HubMonitor( profile, trackMessages,
+                                           autoSeconds ) );
                 frame.setIconImage(
                     new ImageIcon( Metadata.class
                                   .getResource( "images/eye.gif" ) )
