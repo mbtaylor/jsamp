@@ -15,7 +15,7 @@ import org.astrogrid.samp.Metadata;
  * @author   Mark Taylor
  * @since    16 Jul 2008
  */
-public class ClientListCellRenderer extends DefaultListCellRenderer {
+class ClientListCellRenderer extends DefaultListCellRenderer {
 
     private Font[] labelFonts_;
     private IconStore iconStore_;
