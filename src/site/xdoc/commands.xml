@@ -161,6 +161,11 @@ See the source code for details.
 <dt><code>-nogui</code></dt>
 <dd>The monitor registers as a client, but no window is displayed.
     </dd>
+<dt><code>-nomsg</code></dt>
+<dd>Normally the window displays an indication of pending messages sent
+    and received by the monitor itself.  If the <code>-nomsg</code>
+    flag is given, these will not be shown.
+    </dd>
 </dl>
 
 </subsection>
