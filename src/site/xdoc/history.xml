@@ -135,7 +135,16 @@
             (with different graphical characteristics -
             see <code>HubMode</code>).</li>
         <li>Added the option to see what messages are in progress to the
-            hub view.</li>
+            hub view and the hub monitor.</li>
+        <li>New class <code>gui.GuiHubConnector</code> now contains the
+            Swing-related functionality which was previously in 
+            (its superclass) <code>client.HubConnector</code>, and also
+            all the functionality from the now removed class
+            <code>gui.ConnectorGui</code>.  This is a backwardly-incompatible
+            change which may well be visible to client code, but
+            the changes required are not difficult to make.</li>
+        <li><code>HubConnector</code> class moved from <code>samp.client</code>
+            into <code>samp.gui</code> package.</li>
         </ul>
         </dd>
     </dl>
