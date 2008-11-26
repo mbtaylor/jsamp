@@ -293,7 +293,7 @@ public class CalcStorm {
         JFrame frame;
         if ( gui ) {
             frame = new JFrame( "CalcStorm Monitor" );
-            frame.getContentPane().add( new HubMonitor( profile, 1 ) );
+            frame.getContentPane().add( new HubMonitor( profile, true, 1 ) );
             frame.pack();
             frame.setVisible( true );
         }

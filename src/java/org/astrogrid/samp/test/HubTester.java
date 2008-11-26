@@ -864,7 +864,7 @@ public class HubTester extends Tester {
         JFrame frame;
         if ( gui ) {
             frame = new JFrame( "HubTester Monitor" );
-            frame.getContentPane().add( new HubMonitor( profile, 1 ) );
+            frame.getContentPane().add( new HubMonitor( profile, true, 1 ) );
             frame.pack();
             frame.setVisible( true );
         }
