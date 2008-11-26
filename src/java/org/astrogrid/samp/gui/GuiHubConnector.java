@@ -115,7 +115,8 @@ public class GuiHubConnector extends HubConnector {
     }
 
     /**
-     * Removes a listener previously added by {@link #addConnectionListener}.
+     * Removes a listener previously added by
+     * {@link #addConnectionListener addConnectionListener}.
      *
      * @param   listener  listener to remove
      */
