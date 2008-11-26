@@ -1,10 +1,21 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.ListModel;
+import javax.swing.ToolTipManager;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
+import org.astrogrid.samp.SampUtils;
 
 /**
  * Icon which paints a graphical representation of a list of Transmissions.
@@ -144,5 +155,100 @@ public class TransmissionListIcon implements Icon {
                 g.fillPolygon( xs, ys, 3 );
             }
         };
+    }
+
+    public JComponent createBox( int nTrans ) {
+        return new TransmissionListBox( this, nTrans );
+    }
+
+    private static class TransmissionListBox extends JComponent {
+        private final TransmissionListIcon icon_;
+        private final int nTrans_;
+        private final boolean hasRx_;
+        private final boolean hasTx_;
+        private Dimension minSize_;
+
+        TransmissionListBox( TransmissionListIcon icon, int nTrans ) {
+            icon_ = icon;
+            nTrans_ = nTrans;
+            setOpaque( true );
+            setBackground( Color.WHITE );
+            setBorder( BorderFactory.createLineBorder( Color.BLACK ) );
+            ListDataListener listener = new ListDataListener() {
+                public void contentsChanged( ListDataEvent evt ) {
+                    repaint();
+                }
+                public void intervalAdded( ListDataEvent evt ) {
+                    repaint();
+                }
+                public void intervalRemoved( ListDataEvent evt ) {
+                    repaint();
+                }
+            };
+            hasRx_ = icon.rxModel_ != null;
+            hasTx_ = icon.txModel_ != null;
+            if ( hasRx_ ) {
+                icon.rxModel_.addListDataListener( listener );
+            }
+            if ( hasTx_ ) {
+                icon.txModel_.addListDataListener( listener );
+            }
+            setPreferredSize( getSizeForCount( nTrans ) );
+            setMinimumSize( getSizeForCount( Math.max( nTrans, 4 ) ) );
+            ToolTipManager.sharedInstance().registerComponent( this );
+        }
+
+        public Dimension getSizeForCount( int nTrans ) {
+            int width = icon_.targetIcon_.getIconWidth();
+            width += ( ( hasRx_ ? 1 : 0 ) + ( hasTx_ ? 1 : 0 ) )
+                   * nTrans_ * icon_.transIconWidth_;
+            int height = icon_.size_;
+            Dimension size = new Dimension( width, height );
+            Insets insets = getInsets();
+            size.width += insets.left + insets.right;
+            size.height += insets.top + insets.bottom;
+            return size;
+        }
+
+        public String getToolTipText( MouseEvent evt ) {
+            Point p = evt.getPoint();
+            Point iconPos = getIconPosition();
+            p.x -= iconPos.x;
+            p.y -= iconPos.y;
+            Transmission trans = icon_.getTransmissionAt( p );
+            if ( trans != null ) {
+                return new StringBuffer()
+                    .append( trans.getMessage().getMType() )
+                    .append( ": " )
+                    .append( SampUtils.toString( trans.getSender() ) )
+                    .append( " -> " )
+                    .append( SampUtils.toString( trans.getReceiver() ) )
+                    .toString();
+            }
+            else {
+                return null;
+            }
+        }
+
+        private Point getIconPosition() {
+            Insets insets = getInsets();
+            return new Point( insets.left, insets.top );
+        }
+
+        protected void paintComponent( Graphics g ) {
+            super.paintComponent( g );
+            Color color = g.getColor();
+            Rectangle bounds = getBounds();
+            Insets insets = getInsets();
+            if ( isOpaque() ) {
+                g.setColor( getBackground() );
+                g.fillRect( insets.left, insets.top,
+                            bounds.width - insets.left - insets.right,
+                            bounds.height - insets.top - insets.bottom );
+            }
+            g.setColor( color );
+            Point p = getIconPosition();
+            icon_.paintIcon( this, g, p.x, p.y );
+        }
     }
 }
