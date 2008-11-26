@@ -14,6 +14,7 @@ import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 
 /**
@@ -195,7 +196,15 @@ public class HubConnector {
         // Implement samp.app.ping MType.
         addMessageHandler( new AbstractMessageHandler( PING_MTYPE ) {
             public Map processCall( HubConnection connection,
-                                    String senderId, Message message ) {
+                                    String senderId, Message message )
+                    throws InterruptedException {
+                String waitMillis = (String) message.getParam( "waitMillis" );
+                if ( waitMillis != null ) {
+                    Object lock = new Object();
+                    synchronized ( lock ) {
+                        lock.wait( SampUtils.decodeInt( waitMillis ) );
+                    }
+                }
                 return null;
             }
         } );
@@ -537,7 +546,7 @@ public class HubConnector {
     public HubConnection getConnection() throws SampException {
         HubConnection connection = connection_;
         if ( connection == null && isActive_ ) {
-            connection = profile_.register();
+            connection = createConnection();
             if ( connection != null ) {
                 connection_ = connection;
                 configureConnection( connection );
@@ -596,6 +605,16 @@ public class HubConnector {
      */
     protected TrackedClientSet getClientSet() {
         return clientSet_;
+    }
+
+    /**
+     * Invoked by this class to create a hub connection.
+     * The default implementation just calls <code>profile.register()</code>.
+     *
+     * @return   new hub connection
+     */
+    protected HubConnection createConnection() throws SampException {
+        return profile_.register();
     }
 
     /**
