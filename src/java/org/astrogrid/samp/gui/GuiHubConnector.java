@@ -432,7 +432,6 @@ public class GuiHubConnector extends HubConnector {
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     int index = clientList_.indexOf( client );
-                    assert index >= 0;
                     if ( index >= 0 ) {
                         ListDataEvent evt =
                             new ListDataEvent( ListModelTrackedClientSet.this,
