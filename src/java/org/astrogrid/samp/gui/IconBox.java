@@ -45,8 +45,8 @@ class IconBox extends JComponent {
      * Constructor.
      *
      * @param   vertical  true for vertical run, false for horizontal
-     * @param   transSize  the transverse (horizontal/vertical) size of the
-     *          component in pixels
+     * @param   transSize  the transverse (horizontal/vertical) size 
+     *          available for icons in pixels
      */
     public IconBox( boolean vertical, int transSize ) {
         vertical_ = vertical;
