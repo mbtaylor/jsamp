@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -257,12 +258,13 @@ public class GuiHubConnector extends HubConnector {
     public JComponent createClientBox( boolean vertical, int iconSize,
                                        int nIcon) {
         final IconStore iconStore =
-            new IconStore( iconSize, IconStore.createMinimalIcon( iconSize ) );
+            new IconStore( IconStore.createMinimalIcon( iconSize ) );
         IconBox box = new IconBox( vertical, iconSize );
         box.setModel( clientListModel_ );
         box.setRenderer( new IconBox.CellRenderer() {
             public Icon getIcon( IconBox iconBox, Object value, int index ) {
-                return iconStore.getIcon( (Client) value );
+                return IconStore.sizeIcon( iconStore.getIcon( (Client) value ),
+                                           iconBox.getTransverseSize() );
             }
             public String getToolTipText( IconBox iconBox, Object value,
                                           int index ) {
@@ -274,8 +276,6 @@ public class GuiHubConnector extends HubConnector {
         box.setPreferredSize( boxSize ); 
         return box;
     }
-
-
 
     /**
      * Called when the connection status (registered/unregistered) may have

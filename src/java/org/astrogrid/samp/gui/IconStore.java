@@ -26,7 +26,6 @@ import org.astrogrid.samp.Metadata;
  */
 public class IconStore {
 
-    private final int size_;
     private final Icon defaultIcon_;
 
     private static final Map urlIconMap_ = new HashMap();
@@ -36,12 +35,9 @@ public class IconStore {
     /**
      * Constructor.
      *
-     * @param  size  dimension in pixels of icons returned by this object;
-     *               if &lt;=0 no resizing is performed
      * @param  defaultIcon   icon returned if no client icon is available
      */
-    public IconStore( int size, Icon defaultIcon ) {
-        size_ = size;
+    public IconStore( Icon defaultIcon ) {
         defaultIcon_ = defaultIcon;
     }
 
@@ -70,9 +66,6 @@ public class IconStore {
         Icon icon = (Icon) urlIconMap_.get( url );
         if ( icon.getIconWidth() < 0 ) {
             icon = defaultIcon_;
-        }
-        if ( size_ > 0 && icon != null ) {
-            icon = sizeIcon( icon, size_ );
         }
         return icon;
     }

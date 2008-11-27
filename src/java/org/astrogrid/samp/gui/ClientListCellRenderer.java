@@ -24,7 +24,7 @@ class ClientListCellRenderer extends DefaultListCellRenderer {
      * Constructor.
      */
     public ClientListCellRenderer() {
-        iconStore_ = new IconStore( -1, IconStore.createEmptyIcon( 16 ) );
+        iconStore_ = new IconStore( IconStore.createEmptyIcon( 16 ) );
     }
 
     /**
