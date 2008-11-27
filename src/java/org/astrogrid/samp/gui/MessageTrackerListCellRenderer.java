@@ -17,6 +17,7 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.SampUtils;
 
 /**
  * ListCellRenderer which draws a representation of incoming and outgoing
@@ -32,7 +33,6 @@ class MessageTrackerListCellRenderer extends ClientListCellRenderer {
     private final IconBox iconBox_;
     private final IconListModel iconListModel_;
     private final Object separator_;
-    private final int border_;
 
     /**
      * Constructor.
@@ -46,37 +46,53 @@ class MessageTrackerListCellRenderer extends ClientListCellRenderer {
         iconListModel_ = new IconListModel();
         msgGap_ = 10;
         separator_ = new Object();
-        border_ = 1;
         iconBox_ = new IconBox( false, 16 );
         iconBox_.setOpaque( false );
-        iconBox_.setBorder( BorderFactory
-                           .createEmptyBorder( border_, border_,
-                                               border_, border_ ) );
+        iconBox_.setBorder( BorderFactory.createEmptyBorder( 1, 1, 1, 1 ) );
         iconBox_.setModel( iconListModel_ );
-        iconBox_.setRenderer( new IconBoxRenderer() );
+        iconBox_.setRenderer( new TransmissionCellRenderer() {
+            public String getToolTipText( IconBox iconBox, Object value,
+                                          int index ) {
+                if ( value instanceof Transmission ) {
+                    Transmission trans = (Transmission) value;
+                    String mtype = trans.getMessage().getMType();
+                    Client client = iconListModel_.client_;
+                    if ( client == trans.getSender() ) {
+                        return mtype + " -> "
+                             + SampUtils.toString( trans.getReceiver() );
+                    }
+                    else if ( client == trans.getReceiver() ) {
+                        return mtype + " <- "
+                             + SampUtils.toString( trans.getSender() );
+                    }
+                    else {
+                        assert false;
+                        return null;
+                    }
+                }
+                else {
+                    return null;
+                }
+            }
+        } );
     }
 
     /**
-     * Returns the tooltip to use for a given transmission.
+     * Sets the cell renderer for transmission objects.
      *
-     * @param   trans   non-null transmission
-     * @return  tool tip
+     * @param  transRend  renderer
      */
-    protected String getToolTipText( Transmission trans ) {
-        String mtype = trans.getMessage().getMType();
-        Client client = iconListModel_.client_;
-        if ( client == trans.getSender() ) {
-            return mtype + " -> "
-                 + org.astrogrid.samp.SampUtils.toString( trans.getReceiver() );
-        }
-        else if ( client == trans.getReceiver() ) {
-            return mtype + " <- "
-                 + org.astrogrid.samp.SampUtils.toString( trans.getSender() );
-        }
-        else {
-            assert false;
-            return null;
-        }
+    public void setTransmissionCellRenderer( IconBox.CellRenderer transRend ) {
+        iconBox_.setRenderer( transRend );
+    }
+
+    /**
+     * Returns the cell renderer for transmission objects.
+     *
+     * @return  renderer
+     */
+    public IconBox.CellRenderer getTransmissionCellRenderer() {
+        return iconBox_.getRenderer();
     }
 
     protected void paintComponent( Graphics g ) {
@@ -301,56 +317,6 @@ class MessageTrackerListCellRenderer extends ClientListCellRenderer {
                 else {
                     fireEvent( evt );
                 }
-            }
-        }
-    }
-
-    private class IconBoxRenderer implements IconBox.CellRenderer {
-        public Icon getIcon( final Object value ) {
-            final int height = iconBox_.getTransverseSize() - border_ * 2;
-            if ( value == separator_ ) {
-                return new Icon() {
-                    public void paintIcon( Component c, Graphics g,
-                                           int x, int y ) {
-                        g.drawOval( x, y, height, height );
-                    }
-                    public int getIconWidth() {
-                        return height;
-                    }
-                    public int getIconHeight() {
-                        return height;
-                    }
-                };
-            }
-            else {
-                final int width = (int) Math.floor( 0.866 * height );
-                return new Icon() {
-                    public void paintIcon( Component c, Graphics g,
-                                           int x, int y ) {
-                        int xlo = x;
-                        int xhi = x + width;
-                        int ylo = y;
-                        int yhi = y + height;
-                        int[] xs = new int[] { xlo, xhi, xlo, };
-                        int[] ys = new int[] { ylo, y + height / 2, yhi, };
-                        g.fillPolygon( xs, ys, 3 );
-                    }
-                    public int getIconWidth() {
-                        return width;
-                    }
-                    public int getIconHeight() {
-                        return height;
-                    }
-                };
-            }
-        }
-        public String getToolTipText( Object value ) {
-            if ( value instanceof Transmission ) {
-                return MessageTrackerListCellRenderer.this
-                      .getToolTipText( (Transmission) value );
-            }
-            else {
-                return null;
             }
         }
     }
