@@ -30,10 +30,10 @@ import javax.swing.event.ListDataListener;
 class IconBox extends JComponent {
 
     private final boolean vertical_;
-    private final int transSize_;
     private final List entryList_;
-    private final int gap_;
     private final ListDataListener modelListener_;
+    private int transSize_;
+    private int gap_;
     private CellRenderer renderer_;
     private ListModel model_;
     private Dimension minSize_;
@@ -62,8 +62,7 @@ class IconBox extends JComponent {
                 int i1 = evt.getIndex1();
                 if ( 0 <= i0 && i0 <= i1 && i1 <= entryList_.size() ) {
                     for ( int i = i0; i <= i1; i++ ) {
-                        entryList_.set( i, createEntry( model_
-                                                       .getElementAt( i ) ) );
+                        entryList_.set( i, createEntry( i ) );
                     }
                     repaint();  // could be more efficient
                 }
@@ -76,8 +75,7 @@ class IconBox extends JComponent {
                 int i1 = evt.getIndex1();
                 if ( 0 <= i0 && i0 <= i1 && i1 <= model_.getSize() ) {
                     for ( int i = i0; i <= i1; i++ ) {
-                        entryList_.add( i, createEntry( model_
-                                                       .getElementAt( i ) ) );
+                        entryList_.add( i, createEntry( i ) );
                     }
                     repaint();  // could be more efficient
                 }
@@ -113,7 +111,7 @@ class IconBox extends JComponent {
         entryList_.clear();
         int count = model_.getSize();
         for ( int i = 0; i < count; i++ ) {
-            entryList_.add( createEntry( model_.getElementAt( i ) ) );
+            entryList_.add( createEntry( i ) );
         }
         repaint();
     }
@@ -121,10 +119,14 @@ class IconBox extends JComponent {
     /**
      * Constructs an Entry object from an object contained in the ListModel,
      * using the currently installed renderer.
+     *
+     * @param  index   index of entry in list
+     * @return  new entry
      */
-    private Entry createEntry( Object value ) {
-        return new Entry( renderer_.getIcon( value ),
-                          renderer_.getToolTipText( value ) );
+    private Entry createEntry( int index ) {
+        Object value = model_.getElementAt( index );
+        return new Entry( renderer_.getIcon( this, value, index ),
+                          renderer_.getToolTipText( this, value, index ) );
     }
 
     /**
@@ -143,6 +145,36 @@ class IconBox extends JComponent {
             model_.addListDataListener( modelListener_ );
         }
         refreshState();
+    }
+
+    /**
+     * Returns the list model used by this component.
+     *
+     * @return   list model
+     */
+    public ListModel getModel() {
+        return model_;
+    }
+
+    /**
+     * Sets the transverse dimension in pixels of this box.
+     *
+     * @param   transSize  pixel count across list run
+     */
+    public void setTransverseSize( int transSize ) {
+        transSize_ = transSize;
+        if ( transSize_ != transSize ) {
+            repaint();
+        }
+    }
+
+    /**
+     * Returns the transverse dimension in pixels of this box.
+     *
+     * @return   pixel count across run
+     */
+    public int getTransverseSize() {
+        return transSize_;
     }
 
     /**
@@ -313,17 +345,23 @@ class IconBox extends JComponent {
         /**
          * Returns the icon to be displayed for a given list model element.
          *
+         * @param  iconBox  component using this renderer
          * @param  value  list model element
+         * @param  index  index in the entry list being rendered
+         * @return  icon to paint
          */
-        Icon getIcon( Object value );
+        Icon getIcon( IconBox iconBox, Object value, int index );
 
         /**
          * Returns the tooltip text to be used for a given list model element.
          * Null is OK.
          *
+         * @param  iconBox  component using this renderer
          * @param   value  list model element
+         * @param  index  index in the entry list being rendered
+         * @return   tooltip for value
          */
-        String getToolTipText( Object value );
+        String getToolTipText( IconBox iconBox, Object value, int index );
     }
 
     /**
@@ -365,12 +403,13 @@ class IconBox extends JComponent {
      * Default renderer.
      */
     private class DefaultRenderer implements CellRenderer, Icon {
-        public Icon getIcon( Object value ) {
+        public Icon getIcon( IconBox iconBox, Object value, int index ) {
             return value instanceof Icon
                  ? (Icon) value
                  : (Icon) this;
         }
-        public String getToolTipText( Object value ) {
+        public String getToolTipText( IconBox iconBox, Object value,
+                                      int index ) {
             return value == null
                  ? null
                  : value.toString();
