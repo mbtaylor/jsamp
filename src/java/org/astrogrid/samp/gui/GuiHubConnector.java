@@ -261,10 +261,11 @@ public class GuiHubConnector extends HubConnector {
         IconBox box = new IconBox( vertical, iconSize );
         box.setModel( clientListModel_ );
         box.setRenderer( new IconBox.CellRenderer() {
-            public Icon getIcon( Object value ) {
+            public Icon getIcon( IconBox iconBox, Object value, int index ) {
                 return iconStore.getIcon( (Client) value );
             }
-            public String getToolTipText( Object value ) {
+            public String getToolTipText( IconBox iconBox, Object value,
+                                          int index ) {
                 return SampUtils.toString( (Client) value );
             }
         } );
