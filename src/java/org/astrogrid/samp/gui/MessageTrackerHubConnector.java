@@ -110,11 +110,17 @@ public class MessageTrackerHubConnector extends GuiHubConnector
     }
 
     public ListCellRenderer createClientListCellRenderer() {
-        return new MessageTrackerListCellRenderer( this ) {
-            protected String getToolTipText( Transmission trans ) {
-                return trans.getMessage().getMType();
+        MessageTrackerListCellRenderer renderer =
+            new MessageTrackerListCellRenderer( this );
+        renderer.setTransmissionCellRenderer( new TransmissionCellRenderer() {
+            public String getToolTipText( IconBox iconBox, Object value,
+                                          int index ) {
+                return value instanceof Transmission
+                     ? ((Transmission) value).getMessage().getMType()
+                     : super.getToolTipText( iconBox, value, index );
             }
-        };
+        } );
+        return renderer;
     }
 
     protected HubConnection createConnection() throws SampException {
