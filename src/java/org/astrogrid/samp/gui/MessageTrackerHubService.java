@@ -110,7 +110,6 @@ public class MessageTrackerHubService extends GuiHubService
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 Transmission trans = (Transmission) callMap_.remove( callKey );
-                assert trans != null;
                 if ( trans != null ) {
                     trans.setResponse( Response.asResponse( response ) );
                 }
