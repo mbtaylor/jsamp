@@ -37,7 +37,7 @@ class WrapperHubConnection implements HubConnection {
     }
 
     public void unregister() throws SampException {
-        base_.ping();
+        base_.unregister();
     }
 
     public void declareMetadata( Map meta ) throws SampException {
