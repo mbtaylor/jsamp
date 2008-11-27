@@ -15,8 +15,7 @@ class TransmissionCellRenderer implements IconBox.CellRenderer {
 
     public Icon getIcon( IconBox iconBox, Object value, int index ) {
         Insets insets = iconBox.getInsets();
-        final int size = iconBox.getTransverseSize()
-                       - insets.top - insets.bottom;
+        final int size = iconBox.getTransverseSize();
         if ( value instanceof Transmission ) {
             final Transmission trans = (Transmission) value;
             final int width = (int) Math.floor( 0.866 * size );

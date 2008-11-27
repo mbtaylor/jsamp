@@ -132,8 +132,10 @@ class MessageTrackerListCellRenderer extends ClientListCellRenderer {
             iconListModel_.setClient( (Client) value );
             int size = c.getPreferredSize().height;
             if ( c instanceof JComponent ) {
-                Insets insets = ((JComponent) c).getInsets();
-                size -= insets.top + insets.bottom;
+                Insets cInsets = ((JComponent) c).getInsets();
+                size -= cInsets.top + cInsets.bottom;
+                Insets bInsets = iconBox_.getInsets();
+                size -= bInsets.top + bInsets.bottom;
             }
             iconBox_.setTransverseSize( size );
         }
