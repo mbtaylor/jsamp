@@ -346,7 +346,8 @@ class MessageTrackerListCellRenderer extends ClientListCellRenderer {
         }
         public String getToolTipText( Object value ) {
             if ( value instanceof Transmission ) {
-                return getToolTipText( (Transmission) value );
+                return MessageTrackerListCellRenderer.this
+                      .getToolTipText( (Transmission) value );
             }
             else {
                 return null;
