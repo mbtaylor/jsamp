@@ -46,7 +46,7 @@ class MessageTrackerListCellRenderer extends ClientListCellRenderer {
         iconListModel_ = new IconListModel();
         msgGap_ = 10;
         separator_ = new Object();
-        iconBox_ = new IconBox( false, 16 );
+        iconBox_ = new IconBox( 16 );
         iconBox_.setOpaque( false );
         iconBox_.setBorder( BorderFactory.createEmptyBorder( 1, 1, 1, 1 ) );
         iconBox_.setModel( iconListModel_ );
