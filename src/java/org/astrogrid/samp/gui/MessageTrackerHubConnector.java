@@ -25,6 +25,7 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.ClientProfile;
@@ -134,12 +135,26 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                                                ListModel txListModel ) {
         JComponent box = Box.createHorizontalBox();
         box.setBackground( Color.WHITE );
-        IconBox.CellRenderer cellRend = new TransmissionCellRenderer();
         if ( rxListModel != null ) {
             IconBox rxBox = new IconBox( iconSize );
             rxBox.setTrailing( true );
             rxBox.setModel( rxListModel );
-            rxBox.setRenderer( cellRend );
+            rxBox.setRenderer( new TransmissionCellRenderer() {
+                public String getToolTipText( IconBox iconBox, Object value,
+                                              int index ) {
+                    if ( value instanceof Transmission ) {
+                        Transmission trans = (Transmission) value;
+                        return new StringBuffer()
+                            .append( trans.getMessage().getMType() )
+                            .append( " <- " )
+                            .append( SampUtils.toString( trans.getSender() ) )
+                            .toString();
+                    }
+                    else {
+                        return super.getToolTipText( iconBox, value, index );
+                    }
+                }
+            } );
             Dimension prefSize = rxBox.getPreferredSize();
             prefSize.width = iconSize * 3;
             rxBox.setPreferredSize( prefSize );
@@ -156,7 +171,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                 return "app";
             }
         } );
-        cBox.setRenderer( cellRend );
+        cBox.setRenderer( new TransmissionCellRenderer() );
         Dimension cSize = cBox.getPreferredSize();
         cBox.setMaximumSize( cSize );
         cBox.setMinimumSize( cSize );
@@ -164,7 +179,22 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         if ( txListModel != null ) {
             IconBox txBox = new IconBox( iconSize );
             txBox.setModel( txListModel );
-            txBox.setRenderer( cellRend );
+            txBox.setRenderer( new TransmissionCellRenderer() {
+                public String getToolTipText( IconBox iconBox, Object value,
+                                              int index ) {
+                    if ( value instanceof Transmission ) {
+                        Transmission trans = (Transmission) value;
+                        return new StringBuffer()
+                            .append( trans.getMessage().getMType() )
+                            .append( " -> " )
+                            .append( SampUtils.toString( trans.getSender() ) )
+                            .toString();
+                    }
+                    else {
+                        return super.getToolTipText( iconBox, value, index );
+                    }
+                }
+            } );
             Dimension prefSize = txBox.getPreferredSize();
             prefSize.width = iconSize * 3;
             txBox.setPreferredSize( prefSize );
