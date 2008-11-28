@@ -1,5 +1,7 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.Color;
+import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.logging.Logger;
+import javax.swing.AbstractListModel;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.JComponent;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
@@ -104,9 +109,69 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         return (ListModel) rxModelMap_.get( client );
     }
 
-    public JComponent createMessageBox( int iconSize, int nMessage ) {
-        return new TransmissionListIcon( rxListModel_, txListModel_, iconSize )
-              .createBox( nMessage );
+    /**
+     * Returns a component which displays messages currently being 
+     * sent/received by this connector.
+     *
+     * @return  iconSize  height of icons in box
+     */
+    public JComponent createMessageBox( int iconSize ) {
+        return createMessageBox( iconSize, rxListModel_, txListModel_ );
+    }
+
+    /**
+     * Returns a component which displays messages in receiver and/or sender
+     * list models.
+     *
+     * @param  iconSize  height of icons
+     * @param  rxListModel   list model containing received
+     *                       {@link Transmission} objects
+     * @param  txListModel   list model containing sent
+     *                       {@link Transmission} objects
+     */
+    public static JComponent createMessageBox( int iconSize,
+                                               ListModel rxListModel,
+                                               ListModel txListModel ) {
+        JComponent box = Box.createHorizontalBox();
+        box.setBackground( Color.WHITE );
+        IconBox.CellRenderer cellRend = new TransmissionCellRenderer();
+        if ( rxListModel != null ) {
+            IconBox rxBox = new IconBox( iconSize );
+            rxBox.setTrailing( true );
+            rxBox.setModel( rxListModel );
+            rxBox.setRenderer( cellRend );
+            Dimension prefSize = rxBox.getPreferredSize();
+            prefSize.width = iconSize * 3;
+            rxBox.setPreferredSize( prefSize );
+            box.add( rxBox );
+        }
+        IconBox cBox = new IconBox( iconSize );
+        cBox.setBorder( BorderFactory.createMatteBorder( 0, 2, 0, 2,
+                                                         Color.WHITE ) );
+        cBox.setModel( new AbstractListModel() {
+            public int getSize() {
+                return 1;
+            }
+            public Object getElementAt( int index ) {
+                return "app";
+            }
+        } );
+        cBox.setRenderer( cellRend );
+        Dimension cSize = cBox.getPreferredSize();
+        cBox.setMaximumSize( cSize );
+        cBox.setMinimumSize( cSize );
+        box.add( cBox );
+        if ( txListModel != null ) {
+            IconBox txBox = new IconBox( iconSize );
+            txBox.setModel( txListModel );
+            txBox.setRenderer( cellRend );
+            Dimension prefSize = txBox.getPreferredSize();
+            prefSize.width = iconSize * 3;
+            txBox.setPreferredSize( prefSize );
+            box.add( txBox );
+        }
+        box.setBorder( createBoxBorder() );
+        return box;
     }
 
     public ListCellRenderer createClientListCellRenderer() {
