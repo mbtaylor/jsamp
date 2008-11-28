@@ -300,17 +300,6 @@ public class GuiHubConnector extends HubConnector {
     }
 
     /**
-     * Returns a border suitable for icon boxes.
-     *
-     * @return border
-     */
-    Border createBoxBorder() {
-        return BorderFactory.createCompoundBorder(
-                   BorderFactory.createLineBorder( Color.BLACK ),
-                   BorderFactory.createLineBorder( Color.WHITE, 2 ) );
-    }
-
-    /**
      * Called when the connection status has changed, or may have changed.
      */
     private void updateConnectionState() {
@@ -327,6 +316,17 @@ public class GuiHubConnector extends HubConnector {
               it.hasNext(); ) {
             ((Component) it.next()).repaint();
         }
+    }
+
+    /**
+     * Returns a border suitable for icon boxes.
+     *
+     * @return border
+     */
+    static Border createBoxBorder() {
+        return BorderFactory.createCompoundBorder(
+                   BorderFactory.createLineBorder( Color.BLACK ),
+                   BorderFactory.createLineBorder( Color.WHITE, 2 ) );
     }
 
     /**
