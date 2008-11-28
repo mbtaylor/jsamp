@@ -8,10 +8,10 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.AbstractListModel;
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.ListModel;
@@ -29,9 +29,11 @@ import javax.swing.event.ListDataListener;
  */
 class IconBox extends JComponent {
 
-    private final boolean vertical_;
     private final List entryList_;
     private final ListDataListener modelListener_;
+    private boolean vertical_;
+    private boolean trailing_;
+    private boolean reversed_;
     private int transSize_;
     private int gap_;
     private CellRenderer renderer_;
@@ -44,18 +46,13 @@ class IconBox extends JComponent {
     /**
      * Constructor.
      *
-     * @param   vertical  true for vertical run, false for horizontal
      * @param   transSize  the transverse (horizontal/vertical) size 
      *          available for icons in pixels
      */
-    public IconBox( boolean vertical, int transSize ) {
-        vertical_ = vertical;
+    public IconBox( int transSize ) {
         transSize_ = transSize;
         setOpaque( true );
         setBackground( Color.WHITE );
-        setBorder( BorderFactory.createCompoundBorder(
-                       BorderFactory.createLineBorder( Color.BLACK ),
-                       BorderFactory.createEmptyBorder( 2, 2, 2, 2 ) ) );
         modelListener_ = new ListDataListener() {
             public void contentsChanged( ListDataEvent evt ) {
                 int i0 = evt.getIndex0();
@@ -102,6 +99,66 @@ class IconBox extends JComponent {
         ToolTipManager.sharedInstance().registerComponent( this );
         setModel( EMPTY_LIST_MODEL );
         setRenderer( new DefaultRenderer() );
+    }
+
+    /**
+     * Sets whether icons will be lined up in a horizontal or vertical line.
+     *
+     * @param   vertical  true for vertical run, false for horizontal
+     */
+    public void setVertical( boolean vertical ) {
+        vertical_ = vertical;
+        revalidate();
+        repaint();
+    }
+
+    /**
+     * Returns whether icons will be lined up horizontally or vertically.
+     *
+     * @return  false for hormizontal run, true for vertical
+     */
+    public boolean getVertical() {
+        return vertical_;
+    }
+
+    /**
+     * Sets the alignment of the icons in this component.
+     *
+     * @param  trailing  false for left/top, true for right/bottom alignment
+     */
+    public void setTrailing( boolean trailing ) {
+        trailing_ = trailing;
+        repaint();
+    }
+
+    /**
+     * Returns the alignment of the icons in this component.
+     *
+     * @return   false for left/top, true for right/bottom alignment
+     */
+    public boolean getTrailing() {
+        return trailing_;
+    }
+
+    /**
+     * Sets the first-to-last ordering of the icons in this component.
+     *
+     * @param   reversed  false for increasing to right/bottom,
+     *                    true for increasig to left/top
+     */
+    public void setReversed( boolean reversed ) {
+        reversed_ = reversed;
+        repaint();
+    }
+
+    /**
+     * Returns the first-to-last ordering of the icons in this component.
+     *
+     * @return  false for increasing to right/bottom,
+     *          true for increasig to left/top
+     */
+    public boolean getReversed() {
+        return reversed_;
     }
 
     /**
@@ -274,33 +331,40 @@ class IconBox extends JComponent {
      * @return   list model index, or -1 if not found
      */
     public int getIndexAt( Point point ) {
-        int pTrans = vertical_ ? point.x : point.y;
-        int pLeng = vertical_ ? point.y : point.x;
+        Dimension size = getSize();
         Insets insets = getInsets();
-        int lengLo = vertical_ ? insets.top : insets.left;
-        if ( pTrans < ( vertical_ ? insets.left : insets.top ) ||
-             pTrans > ( transSize_ + ( vertical_ ? insets.right
-                                                 : insets.bottom ) ) ) {
+        if ( point.x < insets.left || point.x > size.width - insets.right ||
+             point.y < insets.top || point.y > size.height - insets.bottom ) {
             return -1;
         }
-        else {
-            pLeng -= vertical_ ? insets.top : insets.left;
-            if ( pLeng < 0 ) {
-                return -1;
-            }
-            int index = 0;
-            for ( Iterator it = entryList_.iterator(); it.hasNext(); ) {
-                Icon icon = ((Entry) it.next()).icon_;
-                int leng = gap_ + ( vertical_ ? icon.getIconHeight()
-                                              : icon.getIconWidth() );
-                if ( pLeng < leng ) {
+        List entryList = entryList_;
+        if ( reversed_ ) {
+            entryList = new ArrayList( entryList );
+            Collections.reverse( entryList );
+        }
+        int pLeng = trailing_
+                  ? ( vertical_ ? size.height - insets.bottom - point.y
+                                : size.width - insets.right - point.x )
+                  : ( vertical_ ? point.y - insets.top
+                                : point.x - insets.left );
+        int index = 0;
+        for ( Iterator it = entryList.iterator(); it.hasNext(); ) {
+            Icon icon = ((Entry) it.next()).icon_;
+            int leng = gap_ + ( vertical_ ? icon.getIconHeight()
+                                          : icon.getIconWidth() );
+            if ( pLeng < leng ) {
+                if ( index < entryList.size() ) {
                     return index;
                 }
-                pLeng -= leng;
-                index++;
+                else {
+                    assert false;
+                    return -1;
+                }
             }
-            return -1;
+            pLeng -= leng;
+            index++;
         }
+        return -1;
     }
 
     protected void paintComponent( Graphics g ) {
@@ -312,10 +376,29 @@ class IconBox extends JComponent {
             g.fillRect( 0, 0, size.width, size.height );
             g.setColor( color );
         }
+        Dimension size = getSize();
         Insets insets = getInsets();
-        int x = insets.left;
-        int y = insets.top;
-        for ( Iterator it = entryList_.iterator(); it.hasNext(); ) {
+        List entryList = entryList_;
+        if ( reversed_ ) {
+            entryList = new ArrayList( entryList );
+            Collections.reverse( entryList );
+        }
+        if ( entryList.isEmpty() ) {
+            return;
+        }
+        int x = vertical_
+              ? insets.left
+              : ( trailing_ ? size.width - insets.right
+                                         - ((Entry) entryList.get( 0 ))
+                                          .icon_.getIconWidth()
+                            : insets.left );
+        int y = vertical_
+              ? ( trailing_ ? size.height - insets.bottom
+                                          - ((Entry) entryList.get( 0 ))
+                                           .icon_.getIconHeight()
+                            : insets.top )
+              : insets.top;
+        for ( Iterator it = entryList.iterator(); it.hasNext(); ) {
             Icon icon = ((Entry) it.next()).icon_;
             int width = icon.getIconWidth();
             int height = icon.getIconHeight();
@@ -323,10 +406,10 @@ class IconBox extends JComponent {
                 icon.paintIcon( this, g, x, y );
             }
             if ( vertical_ ) {
-                y += height + gap_;
+                y += ( trailing_ ? -1 : +1 ) * ( height + gap_ );
             }
             else {
-                x += width + gap_;
+                x += ( trailing_ ? -1 : +1 ) * ( width + gap_ );
             }
         }
     }
