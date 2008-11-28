@@ -333,10 +333,16 @@ class IconBox extends JComponent {
     public int getIndexAt( Point point ) {
         Dimension size = getSize();
         Insets insets = getInsets();
-        if ( point.x < insets.left || point.x > size.width - insets.right ||
-             point.y < insets.top || point.y > size.height - insets.bottom ) {
-            return -1;
-        }
+
+     // The following should reject the request if it's outside this components
+     // bounds.  However, it seems that sometimes (always??) getSize() reports
+     // zero size.  I don't understand why, and I'm surprised the rest of the
+     // functionality here works under these circumstances; but it does.
+     // Leave it like this for now.
+     // if ( point.x < insets.left || point.x > size.width - insets.right ||
+     //      point.y < insets.top || point.y > size.height - insets.bottom ) {
+     //     return -1;
+     // }
         List entryList = entryList_;
         if ( reversed_ ) {
             entryList = new ArrayList( entryList );
@@ -369,14 +375,13 @@ class IconBox extends JComponent {
 
     protected void paintComponent( Graphics g ) {
         super.paintComponent( g );
+        Dimension size = getSize();
         if ( isOpaque() ) {
-            Dimension size = getSize();
             Color color = g.getColor();
             g.setColor( getBackground() );
             g.fillRect( 0, 0, size.width, size.height );
             g.setColor( color );
         }
-        Dimension size = getSize();
         Insets insets = getInsets();
         List entryList = entryList_;
         if ( reversed_ ) {
