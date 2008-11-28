@@ -1,6 +1,7 @@
 package org.astrogrid.samp.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -27,6 +29,7 @@ import javax.swing.JLabel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataEvent;
@@ -252,14 +255,13 @@ public class GuiHubConnector extends HubConnector {
      *
      * @param  vertical  true for vertical box, false for horizontal
      * @param  iconSize  dimension in pixel of each icon (square)
-     * @param  nIcon     number of icons there is size for in the box
-     *                   (affects only component minimum/preferred size)
      */
-    public JComponent createClientBox( boolean vertical, int iconSize,
-                                       int nIcon) {
+    public JComponent createClientBox( boolean vertical, int iconSize ) {
         final IconStore iconStore =
             new IconStore( IconStore.createMinimalIcon( iconSize ) );
-        IconBox box = new IconBox( vertical, iconSize );
+        IconBox box = new IconBox( iconSize );
+        box.setVertical( vertical );
+        box.setBorder( createBoxBorder() );
         box.setModel( clientListModel_ );
         box.setRenderer( new IconBox.CellRenderer() {
             public Icon getIcon( IconBox iconBox, Object value, int index ) {
@@ -295,6 +297,17 @@ public class GuiHubConnector extends HubConnector {
                 }
             }
         } );
+    }
+
+    /**
+     * Returns a border suitable for icon boxes.
+     *
+     * @return border
+     */
+    Border createBoxBorder() {
+        return BorderFactory.createCompoundBorder(
+                   BorderFactory.createLineBorder( Color.BLACK ),
+                   BorderFactory.createLineBorder( Color.WHITE, 2 ) );
     }
 
     /**
