@@ -38,7 +38,7 @@ class TransmissionCellRenderer implements IconBox.CellRenderer {
         else {
             return new Icon() {
                 public void paintIcon( Component c, Graphics g, int x, int y ) {
-                    g.drawOval( x, y, size, size );
+                    g.drawOval( x + 1, y + 1, size - 3, size - 3 );
                 }
                 public int getIconWidth() {
                     return size;
