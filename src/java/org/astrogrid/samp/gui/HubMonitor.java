@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -73,18 +74,27 @@ public class HubMonitor extends JPanel {
         add( hubView, BorderLayout.CENTER );
 
         // Prepare a container for other widgets at the bottom of the window.
-        JPanel connectBox = new JPanel( new BorderLayout() );
-        add( connectBox, BorderLayout.SOUTH );
+        JPanel infoBox = new JPanel( new BorderLayout() );
+        add( infoBox, BorderLayout.SOUTH );
 
-        // Create and place a component which allows the user to control
-        // registration/unregistration explicitly.
+        // Create and place components which allow the user to 
+        // view and control registration/unregistration explicitly.
+        JComponent connectBox = new JPanel( new BorderLayout() );
         connectBox.add( new JButton( connector.getToggleRegisterAction() ),
                         BorderLayout.CENTER );
-
-        // Create and place a component which indicates current registration
-        // status of this client.
         connectBox.add( connector.createConnectionIndicator(),
                         BorderLayout.EAST );
+        infoBox.add( connectBox, BorderLayout.EAST );
+
+        // Create and place components which provide a compact display 
+        // of the connector's status.
+        JComponent statusBox = Box.createHorizontalBox();
+        statusBox.add( connector.createClientBox( false, 24 ) );
+        if ( connector instanceof MessageTrackerHubConnector ) {
+            statusBox.add( ((MessageTrackerHubConnector) connector)
+                          .createMessageBox( 24 ) );
+        }
+        infoBox.add( statusBox, BorderLayout.CENTER );
 
         // Attempt registration, and arrange that if/when unregistered we look
         // for a hub to register with on a regular basis.
