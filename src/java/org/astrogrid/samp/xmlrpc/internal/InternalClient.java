@@ -124,7 +124,7 @@ public class InternalClient implements SampXmlRpcClient {
      * @param   paramList  list of XML-RPC parameters
      * @return   XML document as byte array
      */
-    private static byte[] serializeCall( String method, List paramList )
+    protected byte[] serializeCall( String method, List paramList )
             throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         XmlWriter xout = new XmlWriter( bos, 2 );
@@ -150,7 +150,7 @@ public class InternalClient implements SampXmlRpcClient {
      *
      * @param   in  input stream containing response document
      */
-    private static Object deserializeResponse( InputStream in )
+    protected Object deserializeResponse( InputStream in )
             throws IOException {
         try {
             Document doc = DocumentBuilderFactory.newInstance()

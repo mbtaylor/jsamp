@@ -92,7 +92,7 @@ public class InternalServer implements SampXmlRpcServer {
      * @param  body  byte buffer containing POSTed body
      * @return  XML-RPC response (possibly fault)
      */
-    private HttpServer.Response getXmlRpcResponse( byte[] body ) {
+    protected HttpServer.Response getXmlRpcResponse( byte[] body ) {
         byte[] rbuf;
         try {
             rbuf = getResultBytes( getXmlRpcResult( body ) );
@@ -190,6 +190,20 @@ public class InternalServer implements SampXmlRpcServer {
         }
 
         // Pass the call to the handler and return the result.
+        return handleCall( handler, methodName, paramList );
+    }
+
+    /**
+     * Actually passes the XML-RPC method name and parameter list to one
+     * of the registered servers for processing.
+     *
+     * @param   handler  handler which has declared it can handle the
+     *                   named method
+     * @param   methodName  XML-RPC method name
+     * @param   paramList  list of parameters to XML-RPC call
+     */
+    protected Object handleCall( SampXmlRpcHandler handler, String methodName,
+                                 List paramList ) throws Exception {
         return handler.handleCall( methodName, paramList );
     }
 

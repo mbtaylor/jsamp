@@ -20,12 +20,30 @@ public abstract class XmlRpcKit {
     /** Implementation which requires no external libraries. */
     public static final XmlRpcKit INTERNAL;
 
+    /** Internal implementation variant with verbose logging of XML I/O. */
+    public static final XmlRpcKit XML_LOGGING;
+
+    /** Internal implementation variant with verbose logging of RPC calls. */
+    public static final XmlRpcKit RPC_LOGGING;
+
     /** Array of available known implementations of this class. */
     public static XmlRpcKit[] KNOWN_IMPLS = {
         INTERNAL = createReflectionKit(
             "internal",
             "org.astrogrid.samp.xmlrpc.internal.InternalClientFactory",
             "org.astrogrid.samp.xmlrpc.internal.InternalServerFactory" ),
+        XML_LOGGING = createReflectionKit(
+            "xml-log",
+            "org.astrogrid.samp.xmlrpc.internal"
+                       + ".XmlLoggingInternalClientFactory",
+            "org.astrogrid.samp.xmlrpc.internal"
+                       + ".XmlLoggingInternalServerFactory" ),
+        RPC_LOGGING = createReflectionKit(
+            "rpc-log",
+            "org.astrogrid.samp.xmlrpc.internal"
+                       + ".RpcLoggingInternalClientFactory",
+            "org.astrogrid.samp.xmlrpc.internal"
+                       + ".RpcLoggingInternalServerFactory" ),
         APACHE = createApacheKit( "apache" ),
     };
 
