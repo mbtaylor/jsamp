@@ -798,6 +798,7 @@ public class HubTester extends Tester {
             .append( " [-help]" )
             .append( " [-/+verbose]" )
             .append( " [-xmlrpc internal|apache|xml-log|rpc-log]" )
+            .append( "\n           " )
             .append( " [-gui]" )
             .append( "\n" )
             .toString();
