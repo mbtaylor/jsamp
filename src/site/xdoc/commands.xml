@@ -62,14 +62,35 @@ but most share the following common flags:
     it by one level.  These flags may be supplied more than once.
     May be abbreviated to <code>-v</code> or <code>+v</code>.
     </dd>
-<dt><code>-xmlrpc apache|internal</code></dt>
+<dt><code>-xmlrpc internal|apache|xml-log|rpc-log</code></dt>
 <dd>Configures which pluggable XML-RPC implementation will be used for 
-    XML-RPC communications.  If <code>apache</code> is chosen, the
-    Apache XML-RPC library must be on the classpath.  For <code>internal</code>
-    no external libraries are required.  If this flag is not used,
-    an implementation will be chosen depending on what is available.
-    The implementations ought to behave the same, but the internal one is
-    currently a bit slower and may not be as well tested.
+    XML-RPC communications.
+    <dl>
+    <dt><code>internal</code></dt>
+    <dd>A free-standing implementation is used.  This requires no external
+        libraries.
+        </dd>
+    <dt><code>apache</code></dt>
+    <dd>The Apache XML-RPC library is used.  The apache-xmlrpc-1.2b classes
+        must be on the classpath for this to work.
+        </dd>
+    <dt><code>xml-log</code></dt>
+    <dd>Like <code>internal</code>, but all incoming and outgoing HTTP 
+        communications are logged to standard output as raw XML.
+        This is quite verbose and only likely to be suitable for 
+        debugging purposes.
+        </dd>
+    <dt><code>rpc-log</code></dt>
+    <dd>Like <code>internal</code>, but all incoming and outgoing XML-RPC
+        messages are logged to standard output in terms of XML-RPC method names,
+        parameter lists and responses.  This is still pretty verbose, but
+        somewhat more readable than <code>xml-log</code>.
+        </dd>
+    </dl>
+    The implementations ought to behave the same as far as communications go,
+    though there may be performance differences (the logging ones will
+    be slower for sure).
+    The default is currently <code>internal</code>.
     </dd>
 <dt><code>-gui/-nogui</code></dt>
 <dd>Shows/hides a window which shows which clients are currently registered

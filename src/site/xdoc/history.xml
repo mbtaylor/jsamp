@@ -145,6 +145,12 @@
             the changes required are not difficult to make.</li>
         <li><code>HubConnector</code> class moved from <code>samp.client</code>
             into <code>samp.gui</code> package.</li>
+        <li>Added facilities for full logging of all XML or RPC communications.
+            See new <code>xml-log</code> and <code>rpc-log</code> options
+            to <code>-xmlrpc</code> flags of command-line tools,
+            and classes
+            <code>org.astrogrid.samp.xmlrpc.internal.*LoggingInternal*</code>.
+            </li>
         </ul>
         </dd>
     </dl>
