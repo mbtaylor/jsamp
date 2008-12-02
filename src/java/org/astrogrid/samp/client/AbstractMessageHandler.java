@@ -98,7 +98,7 @@ public abstract class AbstractMessageHandler implements MessageHandler {
         try {
             processCall( connection, senderId, message );
         }
-        catch ( Exception e ) {
+        catch ( Throwable e ) {
             logger_.log( Level.INFO,
                          "Error processing notification " + message.getMType()
                        + " - ignored", e );
@@ -118,7 +118,7 @@ public abstract class AbstractMessageHandler implements MessageHandler {
             result = result == null ? new HashMap() : result;
             response = Response.createSuccessResponse( result );
         }
-        catch ( Exception e ) {
+        catch ( Throwable e ) {
             response = Response.createErrorResponse( new ErrInfo( e ) );
         }
         connection.reply( msgId, response );
