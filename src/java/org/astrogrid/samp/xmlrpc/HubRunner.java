@@ -322,7 +322,7 @@ public class HubRunner {
             .append( "\n           " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
-            .append( " [-xmlrpc apache|internal]" )
+            .append( " [-xmlrpc internal|apache|xml-log|rpc-log]" )
             .append( "\n           " )
             .append( " [-mode " );
         HubMode[] modes = HubMode.getAvailableModes();

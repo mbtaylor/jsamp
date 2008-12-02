@@ -113,7 +113,7 @@ public class HubMonitor extends JPanel {
             .append( "\n           " )
             .append( " [-help]" )
             .append( " [+/-verbose]" )
-            .append( " [-xmlrpc apache|internal]" )
+            .append( " [-xmlrpc internal|apache|xml-log|rpc-log]" )
             .append( "\n           " )
             .append( " [-auto <secs>]" )
             .append( " [-nomsg]" )

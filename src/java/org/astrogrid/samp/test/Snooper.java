@@ -170,7 +170,7 @@ public class Snooper {
             .append( "\n         " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
-            .append( " [-xmlrpc apache|internal]" )
+            .append( " [-xmlrpc internal|apache|xml-log|rpc-log]" )
             .append( "\n         " )
             .append( " [-mtypes <pattern>]" )
             .append( "\n" )
