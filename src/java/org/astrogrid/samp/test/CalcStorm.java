@@ -176,6 +176,7 @@ public class CalcStorm {
             .append( " [-gui]" )
             .append( " [-nclient <n>]" )
             .append( " [-nquery <n>]" )
+            .append( "\n           " )
             .append( " [-mode sync|async|notify|random]" )
             .append( "\n" )
             .toString();
