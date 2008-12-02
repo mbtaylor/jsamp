@@ -21,7 +21,7 @@ public class RpcLoggingInternalServer extends InternalServer {
      * Constructor based on a given HTTP server.
      * It is the caller's responsibility to configure and start the HttpServer.
      *
-     * @param  httpServer  server for processing HTTP requests
+     * @param  server  server for processing HTTP requests
      * @param  path   path part of server endpoint (starts with "/");
      * @param  out   output stream for logging
      */
