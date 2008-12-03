@@ -9,10 +9,8 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +27,7 @@ import javax.swing.JLabel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -63,13 +62,28 @@ public class GuiHubConnector extends HubConnector {
 
     private final ListModel clientListModel_;
     private final List connectionListenerList_;
-    private final RegisterAction toggleRegAct_;
-    private final RegisterAction regAct_;
-    private final RegisterAction unregAct_;
-    private final Action monitorAct_;
-    private final Collection connectionComponentSet_;
-    private final Map hubActMap_;
+    private final Map updateMap_;
     private boolean wasConnected_;
+    static ConnectionUpdate ENABLE_ACTION = new ConnectionUpdate() {
+        public void setConnected( Object action, boolean isConnected ) {
+            ((Action) action).setEnabled( isConnected );
+        }
+    };
+    static ConnectionUpdate DISABLE_ACTION = new ConnectionUpdate() {
+        public void setConnected( Object action, boolean isConnected ) {
+            ((Action) action).setEnabled( ! isConnected );
+        }
+    };
+    static ConnectionUpdate REPAINT_COMPONENT = new ConnectionUpdate() {
+        public void setConnected( Object comp, boolean isConnected ) {
+            ((Component) comp).repaint();
+        }
+    };
+    static ConnectionUpdate ENABLE_COMPONENT = new ConnectionUpdate() {
+        public void setConnected( Object comp, boolean isConnected ) {
+            ((Component) comp).setEnabled( isConnected );
+        }
+    };
 
     /**
      * Constructs a hub connector based on a given profile instance.
@@ -80,14 +94,7 @@ public class GuiHubConnector extends HubConnector {
         super( profile, new ListModelTrackedClientSet() );
         clientListModel_ = (ListModelTrackedClientSet) getClientSet();
         connectionListenerList_ = new ArrayList();
-
-        // Set up actions and other items to be updated with connection state.
-        regAct_ = new RegisterAction( true );
-        unregAct_ = new RegisterAction( false );
-        toggleRegAct_ = new RegisterAction();
-        monitorAct_ = new MonitorAction();
-        connectionComponentSet_ = new WeakSet();
-        hubActMap_ = new HashMap();
+        updateMap_ = new WeakHashMap();
 
         // Update state when hub connection starts/stops.
         addConnectionListener( new ChangeListener() {
@@ -156,8 +163,10 @@ public class GuiHubConnector extends HubConnector {
      *
      * @return  registration action
      */
-    public Action getRegisterAction() {
-        return regAct_;
+    public Action createRegisterAction() {
+        Action regAct = new RegisterAction( true );
+        registerUpdater( regAct, DISABLE_ACTION );
+        return regAct;
     }
 
     /**
@@ -166,8 +175,10 @@ public class GuiHubConnector extends HubConnector {
      *
      * @return  unregistration action
      */
-    public Action getUnregisterAction() {
-        return unregAct_;
+    public Action createUnregisterAction() {
+        Action unregAct = new RegisterAction( false ); 
+        registerUpdater( unregAct, ENABLE_ACTION );
+        return unregAct;
     }
 
     /**
@@ -175,8 +186,14 @@ public class GuiHubConnector extends HubConnector {
      *
      * @return   registration toggler action
      */
-    public Action getToggleRegisterAction() {
-        return toggleRegAct_;
+    public Action createToggleRegisterAction() {
+        RegisterAction toggleRegAct = new RegisterAction();
+        registerUpdater( toggleRegAct, new ConnectionUpdate() {
+            public void setConnected( Object item, boolean isConnected ) {
+                ((RegisterAction) item).setSense( ! isConnected );
+            }
+        } );
+        return toggleRegAct;
     }
 
     /**
@@ -184,8 +201,8 @@ public class GuiHubConnector extends HubConnector {
      *
      * @return   monitor window action
      */
-    public Action getShowMonitorAction() {
-        return monitorAct_;
+    public Action createShowMonitorAction() {
+        return new MonitorAction();
     }
 
     /**
@@ -198,13 +215,8 @@ public class GuiHubConnector extends HubConnector {
      *                    true to run in a new one
      * @param   hubMode   hub mode
      */
-    public Action getHubAction( boolean external, HubMode hubMode ) {
-        Object key = Arrays.asList( new Object[] { new Boolean( external ),
-                                                   hubMode } );
-        if ( ! hubActMap_.containsKey( key ) ) {
-            hubActMap_.put( key, new HubAction( external, hubMode ) );
-        }
-        return (HubAction) hubActMap_.get( key );
+    public Action createHubAction( boolean external, HubMode hubMode ) {
+        return new HubAction( external, hubMode );
     }
 
     /**
@@ -231,7 +243,7 @@ public class GuiHubConnector extends HubConnector {
                 effIcon().paintIcon( c, g, x, y );
             }
         } );
-        connectionComponentSet_.add( label );
+        registerUpdater( label, REPAINT_COMPONENT );
         return label;
     }
 
@@ -276,6 +288,7 @@ public class GuiHubConnector extends HubConnector {
         Dimension boxSize = box.getPreferredSize();
         boxSize.width = 128;
         box.setPreferredSize( boxSize ); 
+        registerUpdater( box, ENABLE_COMPONENT );
         return box;
     }
 
@@ -304,17 +317,11 @@ public class GuiHubConnector extends HubConnector {
      */
     private void updateConnectionState() {
         boolean isConn = isConnected();
-        regAct_.setEnabled( ! isConn );
-        unregAct_.setEnabled( isConn );
-        toggleRegAct_.setSense( ! isConn );
-        for ( Iterator it = hubActMap_.entrySet().iterator(); it.hasNext(); ) {
+        for ( Iterator it = updateMap_.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
-            HubAction hubAct = (HubAction) entry.getValue();
-            hubAct.setEnabled( ! isConn );
-        }
-        for ( Iterator it = connectionComponentSet_.iterator();
-              it.hasNext(); ) {
-            ((Component) it.next()).repaint();
+            Object item = entry.getKey();
+            ConnectionUpdate update = (ConnectionUpdate) entry.getValue();
+            update.setConnected( item, isConn );
         }
     }
 
@@ -327,6 +334,36 @@ public class GuiHubConnector extends HubConnector {
         return BorderFactory.createCompoundBorder(
                    BorderFactory.createLineBorder( Color.BLACK ),
                    BorderFactory.createLineBorder( Color.WHITE, 2 ) );
+    }
+
+    /**
+     * Adds a given item to the list of objects which will be notified
+     * when the hub is connected/disconnected.  By doing it like this
+     * rather than with the usual listener mechanism the problem of 
+     * retaining references to otherwise unused listeners is circumvented.
+     *
+     * @param   item   object to be notified
+     * @param   updater   object which performs the notification on hub
+     *                    connect/disconnect
+     */
+    void registerUpdater( Object item, ConnectionUpdate updater ) {
+        updater.setConnected( item, isConnected() );
+        updateMap_.put( item, updater );
+    }
+
+    /**
+     * Interface defining how an object is to be notified when the hub
+     * connection status changes.
+     */
+    interface ConnectionUpdate {
+
+        /**
+         * Invoked when hub connection status changes.
+         *
+         * @param  item which is being notified
+         * @param  isConnected   whether the hub is now connected or not
+         */
+        void setConnected( Object item, boolean isConnected );
     }
 
     /**
@@ -566,6 +603,7 @@ public class GuiHubConnector extends HubConnector {
                     + ( external ? " running independently of this application"
                                  : " running within this application" ) );
             setEnabled( ! isConnected() );
+            registerUpdater( this, DISABLE_ACTION );
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -590,33 +628,6 @@ public class GuiHubConnector extends HubConnector {
                 HubRunner.runHub( hubMode_, XmlRpcKit.getInstance() );
             }
             setActive( true );
-        }
-    }
-
-    /**
-     * Set in which elements are weakly linked.  Elements only weakly
-     * reachable may disappear.  Based on a WeakHashMap.
-     */
-    private static class WeakSet extends AbstractSet {
-        private final Map map_;
-
-        /**
-         * Constructor.
-         */
-        WeakSet() {
-            map_ = new WeakHashMap();
-        }
-
-        public int size() {
-            return map_.size();
-        }
-
-        public Iterator iterator() {
-            return map_.keySet().iterator();
-        }
-
-        public boolean add( Object obj ) {
-            return map_.put( obj, null ) == null;
         }
     }
 }
