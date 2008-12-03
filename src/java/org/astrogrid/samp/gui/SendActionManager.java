@@ -207,6 +207,24 @@ public abstract class SendActionManager {
     }
 
     /**
+     * Returns the client list to which this manager will offer sends.
+     *
+     * @return  listmodel whose elements are suitably subscribed {@link Client}s
+     */
+    public ListModel getClientListModel() {
+        return subscribedClientModel_;
+    }
+
+    /**
+     * Returns this manager's hub connector.
+     *
+     * @return  connector
+     */
+    public GuiHubConnector getConnector() {
+        return connector_;
+    }
+
+    /**
      * Updates the enabled status of controlled actions in accordance with
      * this object's current state.
      */
