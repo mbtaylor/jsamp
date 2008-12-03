@@ -1,9 +1,11 @@
 package org.astrogrid.samp.gui;
 
 import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import org.astrogrid.samp.Client;
@@ -64,8 +66,7 @@ class ClientListCellRenderer extends DefaultListCellRenderer {
             }
             jl.setText( text );
             jl.setFont( font );
-            jl.setIcon( IconStore
-                       .sizeIcon( iconStore_.getIcon( client ), size ) );
+            jl.setIcon( reshapeIcon( iconStore_.getIcon( client ), size ) );
         }
         return c;
     }
@@ -83,5 +84,30 @@ class ClientListCellRenderer extends DefaultListCellRenderer {
             labelFonts_ = new Font[] { normalFont, aliasFont };
         }
         return labelFonts_[ special ? 1 : 0 ];
+    }
+
+    /**
+     * Modifies an icon so that it has a fixed shape and positioning.
+     *
+     * @param    icon   input icon
+     * @param    height  fixed icon height
+     * @return   reshaped icon
+     */
+    private static Icon reshapeIcon( Icon icon, final int height ) {
+        double aspect = 2.0;
+        final int width = (int) Math.ceil( aspect * size );
+        final Icon sIcon = IconStore.scaleIcon( icon, size, aspect, true );
+        final int xoff = ( width - sIcon.getIconWidth() ) / 2;
+        return new Icon() {
+            public int getIconWidth() {
+                return width;
+            }
+            public int getIconHeight() {
+                return height;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                sIcon.paintIcon( c, g, x + xoff, y );
+            }
+        };
     }
 }
