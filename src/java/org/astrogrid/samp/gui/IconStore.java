@@ -200,6 +200,60 @@ public class IconStore {
     }
 
     /**
+     * Icon implementation which is rescaled to so that one dimension
+     * (either width or height) has a fixed value.
+     *
+     * @param  icon  input icon
+     * @param  fixDim  the fixed dimension in pixels
+     * @param  maxAspect  maximum aspect ratio (>= 1)
+     * @param  fixVertical  true to fix height, false to fix width
+     */
+    public static Icon scaleIcon( final Icon icon, final int fixDim,
+                                  double maxAspect, boolean fixVertical ) {
+        final int w = icon.getIconWidth();
+        final int h = icon.getIconHeight();
+        if ( ( fixVertical ? h : w ) == fixDim &&
+             ( fixVertical ? h / (double) w
+                           : w / (double) h ) <= maxAspect ) {
+            return icon;
+        }
+        double factor = fixDim / (double) ( fixVertical ? h : w );
+        if ( factor > 1.0 && factor < 2.0 ) {
+            factor = 1.0;
+        }
+        double aspect = factor * ( fixVertical ? h : w ) / fixDim;
+        if ( aspect > maxAspect ) {
+            factor *= maxAspect / aspect;
+        }
+        final int width = fixVertical ? (int) Math.ceil( factor * w ) : fixDim;
+        final int height = fixVertical ? fixDim : (int) Math.ceil( factor * h );
+        final double fact = factor;
+        return new Icon() {
+            public int getIconWidth() {
+                return width;
+            }
+            public int getIconHeight() {
+                return height;
+            }
+            public void paintIcon( Component c, Graphics g, int x, int y ) {
+                if ( fact == 1.0 ) {
+                    icon.paintIcon( c, g, x + ( width - w ) / 2,
+                                          y + ( height - h ) / 2 );
+                }
+                else {
+                    Graphics2D g2 = (Graphics2D) g;
+                    AffineTransform trans = g2.getTransform();
+                    g2.translate( x + ( width - w * fact ) / 2,
+                                  y + ( height - h * fact ) / 2 );
+                    g2.scale( fact, fact );
+                    icon.paintIcon( c, g2, 0, 0 );
+                    g2.setTransform( trans );
+                }
+            }
+        };
+    }
+
+    /**
      * Icon implementation which looks like an existing one, but is resized
      * down if necessary.
      */
