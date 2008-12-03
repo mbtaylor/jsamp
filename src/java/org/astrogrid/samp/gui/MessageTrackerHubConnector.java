@@ -15,10 +15,13 @@ import java.util.logging.Logger;
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
@@ -136,10 +139,22 @@ public class MessageTrackerHubConnector extends GuiHubConnector
     public static JComponent createMessageBox( int iconSize,
                                                ListModel rxListModel,
                                                ListModel txListModel ) {
-        JComponent box = Box.createHorizontalBox();
-        box.setBackground( Color.WHITE );
+        final Color dtColor = UIManager.getColor( "Label.disabledText" );
+        JComponent box = new JPanel() {
+            final Color enabledFg = getForeground();
+            final Color enabledBg = Color.WHITE;
+            final Color disabledFg = null;
+            final Color disabledBg = getBackground();
+            public void setEnabled( boolean enabled ) {
+                super.setEnabled( enabled );
+                setForeground( enabled ? enabledFg : disabledFg );
+                setBackground( enabled ? enabledBg : disabledFg );
+            }
+        };
+        box.setLayout( new BoxLayout( box, BoxLayout.X_AXIS ) );
         if ( rxListModel != null ) {
             IconBox rxBox = new IconBox( iconSize );
+            rxBox.setOpaque( false );
             rxBox.setTrailing( true );
             rxBox.setModel( rxListModel );
             rxBox.setRenderer( new TransmissionCellRenderer() {
@@ -164,8 +179,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             box.add( rxBox );
         }
         IconBox cBox = new IconBox( iconSize );
-        cBox.setBorder( BorderFactory.createMatteBorder( 0, 2, 0, 2,
-                                                         Color.WHITE ) );
+        cBox.setOpaque( false );
+        cBox.setBorder( BorderFactory.createEmptyBorder( 0, 2, 0, 2 ) );
         cBox.setModel( new AbstractListModel() {
             public int getSize() {
                 return 1;
@@ -181,6 +196,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         box.add( cBox );
         if ( txListModel != null ) {
             IconBox txBox = new IconBox( iconSize );
+            txBox.setOpaque( false );
             txBox.setModel( txListModel );
             txBox.setRenderer( new TransmissionCellRenderer() {
                 public String getToolTipText( IconBox iconBox, Object value,
@@ -203,6 +219,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             txBox.setPreferredSize( prefSize );
             box.add( txBox );
         }
+        box.setBackground( Color.WHITE );
         box.setBorder( createBoxBorder() );
         return box;
     }

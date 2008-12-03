@@ -31,6 +31,8 @@ class IconBox extends JComponent {
 
     private final List entryList_;
     private final ListDataListener modelListener_;
+    private final Color enabledBg_;
+    private final Color disabledBg_;
     private boolean vertical_;
     private boolean trailing_;
     private boolean reversed_;
@@ -52,7 +54,9 @@ class IconBox extends JComponent {
     public IconBox( int transSize ) {
         transSize_ = transSize;
         setOpaque( true );
-        setBackground( Color.WHITE );
+        disabledBg_ = null;
+        enabledBg_ = Color.WHITE;
+        setBackground( enabledBg_ );
         modelListener_ = new ListDataListener() {
             public void contentsChanged( ListDataEvent evt ) {
                 int i0 = evt.getIndex0();
@@ -159,6 +163,11 @@ class IconBox extends JComponent {
      */
     public boolean getReversed() {
         return reversed_;
+    }
+
+    public void setEnabled( boolean enabled ) {
+        super.setEnabled( enabled );
+        setBackground( enabled ? enabledBg_ : disabledBg_ );
     }
 
     /**
