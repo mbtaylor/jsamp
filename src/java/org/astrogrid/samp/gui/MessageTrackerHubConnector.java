@@ -117,7 +117,10 @@ public class MessageTrackerHubConnector extends GuiHubConnector
      * @return  iconSize  height of icons in box
      */
     public JComponent createMessageBox( int iconSize ) {
-        return createMessageBox( iconSize, rxListModel_, txListModel_ );
+        JComponent box =
+            createMessageBox( iconSize, rxListModel_, txListModel_ );
+        registerUpdater( box, ENABLE_COMPONENT );
+        return box;
     }
 
     /**

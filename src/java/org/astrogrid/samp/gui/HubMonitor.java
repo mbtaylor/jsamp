@@ -80,7 +80,7 @@ public class HubMonitor extends JPanel {
         // Create and place components which allow the user to 
         // view and control registration/unregistration explicitly.
         JComponent connectBox = new JPanel( new BorderLayout() );
-        connectBox.add( new JButton( connector.getToggleRegisterAction() ),
+        connectBox.add( new JButton( connector.createToggleRegisterAction() ),
                         BorderLayout.CENTER );
         connectBox.add( connector.createConnectionIndicator(),
                         BorderLayout.EAST );
