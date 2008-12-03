@@ -2,17 +2,14 @@ package org.astrogrid.samp.gui;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JMenu;
+import javax.swing.ListModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.astrogrid.samp.Client;
@@ -23,17 +20,20 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.ResponseHandler;
 
 /**
- * SendActionManager subclass which works with messages of a single MType,
- * using the Aysnchronous Call/Response delivery pattern.
+ * Partial SendActionManager implementation which 
+ * uses the Asynchronous Call/Response delivery pattern.
+ * It supplies most of the machinery required for tracking what happened
+ * to responses to messages sent at the same time, but does not 
+ * implement the actual {@link #createBroadcastAction} method.
+ * Subclasses are provided which do this.
  *
  * @author   Mark Taylor
  * @since    11 Nov 2008
  */
-public abstract class CallActionManager extends SendActionManager {
+public abstract class AbstractCallActionManager extends SendActionManager {
 
     private final Component parent_;
     private final GuiHubConnector connector_;
-    private final String sendType_;
     private final CallResponseHandler responder_;
     private static final Logger logger_ =
         Logger.getLogger( CallActionManager.class.getName() );
@@ -43,16 +43,16 @@ public abstract class CallActionManager extends SendActionManager {
      * 
      * @param   parent  parent component
      * @param   connector  hub connector
-     * @param   mtype   MType for messages transmitted by this object's actions
-     * @param   sendType  short string identifying the kind of thing being
-     *          sent (used for action descriptions etc)
+     * @param   clientListModel  list model containing only those clients
+     *          which are suitable recipients;
+     *          all elements must be {@link Client}s
      */
-    public CallActionManager( Component parent, GuiHubConnector connector,
-                              String mtype, String sendType ) {
-        super( connector, new SubscribedClientListModel( connector, mtype ) );
+    public AbstractCallActionManager( Component parent,
+                                      GuiHubConnector connector,
+                                      ListModel clientListModel ) {
+        super( connector, clientListModel );
         parent_ = parent;
         connector_ = connector;
-        sendType_ = sendType;
         responder_ = new CallResponseHandler();
         connector_.addResponseHandler( responder_ );
         connector_.addConnectionListener( responder_ );
@@ -60,13 +60,9 @@ public abstract class CallActionManager extends SendActionManager {
     }
 
     /**
-     * Generates the message which is sent to one or all clients
-     * by this object's actions.
-     *
-     * @return   {@link org.astrogrid.samp.Message}-like Map representing
-     *           message to transmit
+     * Must be implemented by concrete subclasses.
      */
-    protected abstract Map createMessage() throws Exception;
+    abstract protected Action createBroadcastAction();
 
     /**
      * Returns an object which will be informed of the results of a single-
@@ -84,9 +80,8 @@ public abstract class CallActionManager extends SendActionManager {
     protected ResultHandler createResultHandler( HubConnection connection,
                                                  Message msg,
                                                  Client[] recipients ) {
-        String title = "SAMP " + sendType_ + " Send";
-        return new PopupResultHandler( parent_, "SAMP " + sendType_ + " Send",
-                                       msg, recipients, 1 );
+        return new PopupResultHandler( parent_, "SAMP Send", msg, recipients,
+                                       1 );
     }
 
     /**
@@ -99,84 +94,46 @@ public abstract class CallActionManager extends SendActionManager {
         connector_.removeConnectionListener( responder_ );
     }
 
-    protected Action createBroadcastAction() {
-        Action act = new AbstractAction() {
-            public void actionPerformed( ActionEvent evt ) {
-                Set recipientIdSet = null;
-                Message msg = null;
-                HubConnection connection = null;
-                String tag = null;
-
-                // Attempt to send the message.
-                try {
-                    msg = Message.asMessage( createMessage() );
-                    msg.check();
-                    connection = connector_.getConnection();
-                    if ( connection != null ) {
-                        tag = responder_.createTag();
-                        recipientIdSet =
-                            connection.callAll( tag, msg ).keySet();
-                    }
-                }
-                catch ( Exception e ) {
-                    ErrorDialog.showError( parent_, "Send Error",
-                                           "Send failure " + e.getMessage(),
-                                           e );
-                }
-
-                // If it was sent, arrange for the results to be passed to
-                // a suitable result handler.
-                if ( recipientIdSet != null ) {
-                    assert connection != null;
-                    assert msg != null;
-                    assert tag != null;
-                    List recipientList = new ArrayList();
-                    Map clientMap = connector_.getClientMap();
-                    for ( Iterator it = recipientIdSet.iterator();
-                          it.hasNext(); ) {
-                        String id = (String) it.next();
-                        Client recipient = (Client) clientMap.get( id );
-                        if ( recipient != null ) {
-                            recipientList.add( recipient );
-                        }
-                    }
-                    Client[] recipients =
-                        (Client[]) recipientList.toArray( new Client[ 0 ] );
-                    ResultHandler handler =
-                        createResultHandler( connection, msg, recipients );
-                    if ( recipients.length == 0 ) {
-                        if ( handler != null ) {
-                            handler.done();
-                        }
-                        handler = null;
-                    }
-                    responder_.registerHandler( tag, recipients, handler );
-                }
-            }
-        };
-
-        // Configure the action further and return.
-        act.putValue( Action.NAME, "Broadcast " + sendType_ );
-        act.putValue( Action.SHORT_DESCRIPTION,
-                      "Transmit " + sendType_ + " to all applications"
-                    + " listening using the SAMP protocol" );
-        act.putValue( Action.SMALL_ICON, getBroadcastIcon() );
-        return act;
-    }
-
     /**
-     * Returns a new targetted send menu with a title suitable for this object.
+     * Returns the Message object which is to be transmitted by this manager
+     * to a given client.  This is called by the action returned by 
+     * {@link #getSendAction}.
      *
-     * @return  new send menu
+     * @param   client  target
+     * @return   message
      */
-    public JMenu createSendMenu() {
-        JMenu menu = super.createSendMenu( "Send " + sendType_ + " to..." );
-        menu.setIcon( getSendIcon() );
-        return menu;
-    }
+    protected abstract Map createMessage( Client client ) throws Exception;
 
     protected Action getSendAction( Client client ) {
         return new SendAction( client );
+    }
+
+    /**
+     * Creates and returns a new tag which will be attached to 
+     * an outgoing message, and updates internal structures so that
+     * it will be recognised in the future.
+     * A subsequent call to {@link #registerHandler} should be made for the
+     * returned tag.
+     *
+     * @return  new tag
+     */
+    public String createTag() {
+        return responder_.createTag();
+    }
+
+    /**
+     * Registers a result handler to handle results corresponding to a
+     * message tag.
+     * 
+     * @param   tag   tag returned by an earlier invocation of 
+     *                {@link #createTag}
+     * @param   recipients  clients from which responses are expected
+     * @param   handler    result handler for responses; may be null
+     *                     if no handling is required
+     */
+    public void registerHandler( String tag, Client[] recipients,
+                                 ResultHandler handler ) {
+        responder_.registerHandler( tag, recipients, handler );
     }
 
     /** 
@@ -196,8 +153,7 @@ public abstract class CallActionManager extends SendActionManager {
             cName_ = SampUtils.toString( client );
             putValue( NAME, cName_ );
             putValue( SHORT_DESCRIPTION,
-                      "Transmit " + sendType_ + " to " + cName_
-                    + " using SAMP protocol" );
+                      "Transmit to " + cName_ + " using SAMP protocol" );
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -208,7 +164,7 @@ public abstract class CallActionManager extends SendActionManager {
 
             // Attempt to send the messsage.
             try {
-                msg = Message.asMessage( createMessage() );
+                msg = Message.asMessage( createMessage( client_ ) );
                 msg.check();
                 connection = connector_.getConnection();
                 if ( connection != null ) {
