@@ -268,7 +268,7 @@ public class GuiHubConnector extends HubConnector {
      * @param  vertical  true for vertical box, false for horizontal
      * @param  iconSize  dimension in pixel of each icon (square)
      */
-    public JComponent createClientBox( boolean vertical, int iconSize ) {
+    public JComponent createClientBox( final boolean vertical, int iconSize ) {
         final IconStore iconStore =
             new IconStore( IconStore.createMinimalIcon( iconSize ) );
         IconBox box = new IconBox( iconSize );
@@ -277,8 +277,9 @@ public class GuiHubConnector extends HubConnector {
         box.setModel( clientListModel_ );
         box.setRenderer( new IconBox.CellRenderer() {
             public Icon getIcon( IconBox iconBox, Object value, int index ) {
-                return IconStore.sizeIcon( iconStore.getIcon( (Client) value ),
-                                           iconBox.getTransverseSize() );
+                return IconStore.scaleIcon( iconStore.getIcon( (Client) value ),
+                                            iconBox.getTransverseSize(),
+                                            2.0, ! vertical );
             }
             public String getToolTipText( IconBox iconBox, Object value,
                                           int index ) {
