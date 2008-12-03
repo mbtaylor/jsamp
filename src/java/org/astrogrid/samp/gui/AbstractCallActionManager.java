@@ -36,7 +36,7 @@ public abstract class AbstractCallActionManager extends SendActionManager {
     private final GuiHubConnector connector_;
     private final CallResponseHandler responder_;
     private static final Logger logger_ =
-        Logger.getLogger( CallActionManager.class.getName() );
+        Logger.getLogger( AbstractCallActionManager.class.getName() );
 
     /**
      * Constructor.
