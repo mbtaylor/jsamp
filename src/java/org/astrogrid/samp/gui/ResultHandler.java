@@ -4,7 +4,7 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Response;
 
 /**
- * Interface for use with {@link CallActionManager} which consumes call
+ * Interface for use with {@link AbstractCallActionManager} which consumes call
  * responses.
  *
  * @author   Mark Taylor
