@@ -24,10 +24,10 @@ import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -332,8 +332,8 @@ public class GuiHubConnector extends HubConnector {
      */
     static Border createBoxBorder() {
         return BorderFactory.createCompoundBorder(
-                   BorderFactory.createLineBorder( Color.BLACK ),
-                   BorderFactory.createLineBorder( Color.WHITE, 2 ) );
+                   new JTextField().getBorder(),
+                   BorderFactory.createEmptyBorder( 1, 1, 1, 1 ) );
     }
 
     /**
