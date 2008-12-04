@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,7 @@ public class Snooper {
         // Prepare all-purpose response to logged messages.
         final Response response = new Response();
         response.setStatus( Response.WARNING_STATUS );
+        response.setResult( new HashMap() );
         response.setErrInfo( new ErrInfo( "Message logged, not acted on" ) );
 
         // Add a handler which will handle the subscribed messages.
