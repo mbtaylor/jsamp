@@ -114,6 +114,10 @@ public abstract class IndividualCallActionManager
                         ResultHandler handler =
                             createResultHandler( connection, msg, recipients );
                         registerHandler( tag, recipients, handler );
+                        for ( int ir = 0; ir < recipients.length; ir++ ) {
+                            connection.call( recipients[ ir ].getId(),
+                                             tag, msg );
+                        }
                     }
                 }
             }
