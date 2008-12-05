@@ -1,8 +1,11 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.AbstractListModel;
+import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -15,6 +18,7 @@ import javax.swing.event.ChangeListener;
 class TransmissionListModel extends AbstractListModel {
     private final List list_;
     private final ChangeListener changeListener_;
+    private int removeDelay_;
 
     /**
      * Constructor.
@@ -30,6 +34,27 @@ class TransmissionListModel extends AbstractListModel {
                 }
             }
         };
+        removeDelay_ = 500;
+    }
+
+    /**
+     * Sets the delay between a transmission becoming resolved and 
+     * it getting removed from this model.
+     *
+     * @param   removeDelay  delay in milliseconds
+     */
+    public void setRemoveDelay( int removeDelay ) {
+        removeDelay_ = removeDelay;
+    }
+
+    /**
+     * Returns the delay between a transmission becoming resolved and
+     * it getting removed from this model.
+     *
+     * @return   delay in milliseconds
+     */
+    public int getRemoveDelay() {
+        return removeDelay_;
     }
 
     /**
@@ -38,12 +63,27 @@ class TransmissionListModel extends AbstractListModel {
      *
      * @param   trans  transmission
      */
-    private void transmissionChanged( Transmission trans ) {
+    private void transmissionChanged( final Transmission trans ) {
         int index = list_.indexOf( trans );
         if ( index >= 0 ) {
             if ( trans.isDone() ) {
-                list_.remove( index );
-                fireIntervalRemoved( trans, index, index );
+                if ( removeDelay_ == 0 ) {
+                    list_.remove( index );
+                    fireIntervalRemoved( trans, index, index );
+                }
+                else if ( removeDelay_ > 0 ) {
+                    ActionListener remover = new ActionListener() {
+                        public void actionPerformed( ActionEvent evt ) {
+                            int ix = list_.indexOf( trans );
+                            if ( ix >= 0 ) {
+                                list_.remove( ix );
+                                fireIntervalRemoved( trans, ix, ix );
+                            }
+                        }
+                    };
+                    new Timer( removeDelay_, remover ).start();
+                    fireContentsChanged( trans, index, index );
+                }
             }
             else {
                 fireContentsChanged( trans, index, index );
