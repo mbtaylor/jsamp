@@ -25,13 +25,13 @@ public class Transmission {
     private final Message msg_;
     private final String msgId_;
     private final String msgTag_;
-    private final long birthday_;
     private final List listenerList_;
     private final ChangeEvent evt_;
     private Response response_;
     private Throwable error_;
     private boolean senderUnreg_;
     private boolean receiverUnreg_;
+    private long doneTime_;
 
     /**
      * Constructor.
@@ -49,9 +49,9 @@ public class Transmission {
         msg_ = msg;
         msgTag_ = msgTag;
         msgId_ = msgId;
-        birthday_ = System.currentTimeMillis();
         listenerList_ = new ArrayList();
         evt_ = new ChangeEvent( this );
+        doneTime_ = Long.MAX_VALUE;
     }
 
     /**
@@ -161,6 +161,18 @@ public class Transmission {
         fireChange();
     }
 
+    /** 
+     * Returns the epoch at which this transmission was completed.
+     * If it is still pending ({@link #isDone()==false}),
+     * the returned value will be (way) in the future.
+     *
+     * @return   value of <code>System.currentTimeMillis()</code> at which 
+     *           {@link #isDone} first returned true
+     */
+    public long getDoneTime() {
+        return doneTime_;
+    }
+
     /**
      * Indicates whether further changes to the state of this object 
      * are expected, that is if a response/failure is yet to be received.
@@ -172,6 +184,45 @@ public class Transmission {
             || response_ != null
             || ( msgId_ == null && msgTag_ == null )
             || receiverUnreg_;
+    }
+
+    /**
+     * Returns a short string indicating the current status of this 
+     * transmission.
+     *
+     * @return  status string
+     */
+    public String getStatus() {
+        if ( error_ != null ) {
+            return "Error";
+        }
+        else if ( response_ != null ) {
+            String status = response_.getStatus();
+            if ( Response.OK_STATUS.equals( status ) ) {
+                return "Success";
+            }
+            else if ( Response.WARNING_STATUS.equals( status ) ) {
+                return "Warning";
+            }
+            else if ( Response.ERROR_STATUS.equals( status ) ) {
+                return "Error";
+            }
+            else if ( status == null ) {
+                return "Completed (??)";
+            }
+            else {
+                return "Completed (" + status + ")";
+            }
+        }
+        else if ( msgId_ == null && msgTag_ == null ) {
+            return "Notified";
+        }
+        else if ( receiverUnreg_ ) {
+            return "Orphaned";
+        }
+        else {
+            return "...in progress...";
+        }
     }
 
     /**
@@ -199,6 +250,9 @@ public class Transmission {
      * Notifies listeners of a state change.
      */
     private void fireChange() {
+        if ( doneTime_ == Long.MAX_VALUE && isDone() ) {
+            doneTime_ = System.currentTimeMillis();
+        }
         for ( Iterator it = listenerList_.iterator();
               it.hasNext(); ) {
             ChangeListener listener = (ChangeListener) it.next();
