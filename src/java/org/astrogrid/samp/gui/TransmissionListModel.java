@@ -27,8 +27,12 @@ class TransmissionListModel extends AbstractListModel {
 
     /**
      * Constructor.
+     *
+     * @param   removeDelay  delay in milliseconds after message completion
+     *                       before transmission is removed from list
      */
-    public TransmissionListModel() {
+    public TransmissionListModel( int removeDelay ) {
+        removeDelay_ = removeDelay;
         list_ = new ArrayList();
         changeListener_ = new ChangeListener() {
             public void stateChanged( ChangeEvent evt ) {
@@ -39,7 +43,6 @@ class TransmissionListModel extends AbstractListModel {
                 }
             }
         };
-        removeDelay_ = 500;
     }
 
     /**
