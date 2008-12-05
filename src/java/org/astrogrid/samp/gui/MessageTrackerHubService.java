@@ -1,5 +1,6 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -11,6 +12,8 @@ import javax.swing.ImageIcon;
 import javax.swing.ListModel;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
@@ -35,6 +38,9 @@ public class MessageTrackerHubService extends GuiHubService
                                       implements ClientTransmissionHolder {
 
     private final Map callMap_;
+    private final TransmissionTableModel transTableModel_;
+    private final int listRemoveDelay_ = 0;
+    private final int tableRemoveDelay_ = 20000;
     private MessageTrackerClientSet clientSet_;
 
     /**
@@ -45,6 +51,8 @@ public class MessageTrackerHubService extends GuiHubService
     public MessageTrackerHubService( Random random ) {
         super( random );
         callMap_ = new HashMap();  // access only from EDT;
+        transTableModel_ =
+            new TransmissionTableModel( true, true, tableRemoveDelay_ );
     }
 
     public void start() {
@@ -61,11 +69,22 @@ public class MessageTrackerHubService extends GuiHubService
     }
 
     public JComponent createHubPanel() {
+        JTabbedPane tabber = new JTabbedPane();
+
+        // Add client view tab.
         HubView hubView = new HubView();
         hubView.setClientListModel( getClientListModel() );
         hubView.getClientList()
                .setCellRenderer( new MessageTrackerListCellRenderer( this ) );
-        return hubView;
+        tabber.add( "Clients", hubView );
+
+        // Add messages tab.
+        tabber.add( "Messages", new TransmissionView( transTableModel_ ) );
+
+        // Position and return.
+        JComponent panel = new JPanel( new BorderLayout() );
+        panel.add( tabber, BorderLayout.CENTER );
+        return panel;
     }
 
     /**
@@ -150,8 +169,8 @@ public class MessageTrackerHubService extends GuiHubService
             // a given client.  These models are updated as the hub forwards
             // messages and responses.  The contents of these models are
             // Transmission objects.
-            txListModel_ = new TransmissionListModel();
-            rxListModel_ = new TransmissionListModel();
+            txListModel_ = new TransmissionListModel( listRemoveDelay_ );
+            rxListModel_ = new TransmissionListModel( listRemoveDelay_ );
         }
 
         public void setReceiver( Receiver receiver ) {
@@ -324,12 +343,15 @@ public class MessageTrackerHubService extends GuiHubService
         }
 
         public void add( HubClient client ) {
-            final MessageTrackerHubClient mtClient =
-                (MessageTrackerHubClient) client;
+            MessageTrackerHubClient mtClient = (MessageTrackerHubClient) client;
+            final ListModel txListModel = mtClient.txListModel_;
+            final ListModel rxListModel = mtClient.rxListModel_;
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    mtClient.txListModel_.addListDataListener( transListener_ );
-                    mtClient.rxListModel_.addListDataListener( transListener_ );
+                    txListModel.addListDataListener( transListener_ );
+                    rxListModel.addListDataListener( transListener_ );
+                    txListModel.addListDataListener( transTableModel_ );
+                    rxListModel.addListDataListener( transTableModel_ );
                 }
             } );
             super.add( client );
@@ -337,8 +359,7 @@ public class MessageTrackerHubService extends GuiHubService
 
         public void remove( HubClient client ) {
             super.remove( client );
-            MessageTrackerHubClient mtClient =
-                (MessageTrackerHubClient) client;
+            MessageTrackerHubClient mtClient = (MessageTrackerHubClient) client;
             final TransmissionListModel txListModel = mtClient.txListModel_;
             final TransmissionListModel rxListModel = mtClient.rxListModel_;
             SwingUtilities.invokeLater( new Runnable() {
@@ -353,6 +374,8 @@ public class MessageTrackerHubService extends GuiHubService
                     }
                     txListModel.removeListDataListener( transListener_ );
                     rxListModel.removeListDataListener( transListener_ );
+                    txListModel.removeListDataListener( transTableModel_ );
+                    rxListModel.removeListDataListener( transTableModel_ );
                 }
             } );
         }
