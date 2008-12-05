@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.AbstractListModel;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -115,9 +116,16 @@ class TransmissionListModel extends AbstractListModel {
      *
      * @param  trans  transmission to remove
      */
-    public void removeTransmission( Transmission trans ) {
+    public void removeTransmission( final Transmission trans ) {
         int index = list_.indexOf( trans );
-        trans.removeChangeListener( changeListener_ );
+
+        // Defer listener removal to avoid concurrency problems 
+        // (trying to remove a listener which generated this event).
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                trans.removeChangeListener( changeListener_ );
+            }
+        } );
         if ( index >= 0 ) {
             list_.remove( index );
             fireIntervalRemoved( trans, index, index );
