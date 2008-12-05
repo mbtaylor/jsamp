@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import javax.swing.Timer;
 import javax.swing.event.ListDataEvent;
@@ -24,6 +25,7 @@ import org.astrogrid.samp.SampUtils;
 class TransmissionTableModel implements TableModel, ListDataListener {
 
     private final int removeDelay_;
+    private final int maxRows_;
     private final List transList_;
     private final List tableListenerList_;
     private final Column[] columns_;
@@ -36,12 +38,15 @@ class TransmissionTableModel implements TableModel, ListDataListener {
      * @param   removeDelay  time in milliseconds after transmission resolution
      *          that it will stay in the table - after this it will be
      *          removed automatically
+     * @param   maxRows  maximum row count for table - if not set to a finite
+     *          value, Swing can get overloaded in very high message traffic
      */
     public TransmissionTableModel( final boolean showSender,
                                    final boolean showReceiver,
-                                   int removeDelay ) {
+                                   int removeDelay, int maxRows ) {
         removeDelay_ = removeDelay;
-        transList_ = new ArrayList();
+        maxRows_ = maxRows;
+        transList_ = new LinkedList();
         tableListenerList_ = new ArrayList();
 
         // Set up table columns.
@@ -95,7 +100,12 @@ class TransmissionTableModel implements TableModel, ListDataListener {
      * @param  trans   transmission to add
      */
     public void addTransmission( Transmission trans ) {
-        
+        while ( transList_.size() > maxRows_ ) {
+            transList_.remove( maxRows_ );
+            fireTableChanged( new TableModelEvent( this, maxRows_, maxRows_,
+                                                   TableModelEvent.ALL_COLUMNS,
+                                                   TableModelEvent.DELETE ) );
+        }
         transList_.add( 0, trans );
         fireTableChanged( new TableModelEvent( this, 0, 0,
                                                TableModelEvent.ALL_COLUMNS,

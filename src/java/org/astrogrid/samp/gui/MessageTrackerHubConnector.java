@@ -57,6 +57,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
     private final ListDataListener rxListListener_;
     private final int listRemoveDelay_ = 500;
     private final int tableRemoveDelay_ = 60000;
+    private final int tableMaxRows_ = 100;
     private static final Logger logger_ =
         Logger.getLogger( MessageTrackerHubConnector.class.getName() );
 
@@ -258,7 +259,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         ListModel rxListModel = getRxListModel();
         if ( rxListModel != null ) {
             TransmissionTableModel rxTableModel =
-                new TransmissionTableModel( true, false, tableRemoveDelay_ );
+                new TransmissionTableModel( true, false, tableRemoveDelay_,
+                                            tableMaxRows_ );
             rxListModel.addListDataListener( rxTableModel );
             tabber.add( "Received Messages",
                         new TransmissionView( rxTableModel ) );
@@ -268,7 +270,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         ListModel txListModel = getTxListModel();
         if ( txListModel != null ) {
             TransmissionTableModel txTableModel =
-                new TransmissionTableModel( false, true, tableRemoveDelay_ );
+                new TransmissionTableModel( false, true, tableRemoveDelay_,
+                                            tableMaxRows_ );
             txListModel.addListDataListener( txTableModel );
             tabber.add( "Sent Messages",
                         new TransmissionView( txTableModel ) );

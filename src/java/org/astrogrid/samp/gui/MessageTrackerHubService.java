@@ -41,6 +41,7 @@ public class MessageTrackerHubService extends GuiHubService
     private final TransmissionTableModel transTableModel_;
     private final int listRemoveDelay_ = 0;
     private final int tableRemoveDelay_ = 20000;
+    private final int tableMaxRows_ = 100;
     private MessageTrackerClientSet clientSet_;
 
     /**
@@ -52,7 +53,8 @@ public class MessageTrackerHubService extends GuiHubService
         super( random );
         callMap_ = new HashMap();  // access only from EDT;
         transTableModel_ =
-            new TransmissionTableModel( true, true, tableRemoveDelay_ );
+            new TransmissionTableModel( true, true, tableRemoveDelay_,
+                                        tableMaxRows_ );
     }
 
     public void start() {
