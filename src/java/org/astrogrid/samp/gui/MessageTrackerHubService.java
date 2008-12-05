@@ -216,7 +216,7 @@ public class MessageTrackerHubService extends GuiHubService
             catch ( final HubServiceException e ) {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
-                        trans.fail( e );
+                        trans.setError( e );
                     }
                 } );
             }
@@ -261,7 +261,7 @@ public class MessageTrackerHubService extends GuiHubService
                         trans.setResponse( null );
                     }
                     else {
-                        trans.fail( err2 );
+                        trans.setError( err2 );
                     }
                 }
             } );
