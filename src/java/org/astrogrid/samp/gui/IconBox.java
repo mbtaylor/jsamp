@@ -437,7 +437,7 @@ class IconBox extends JComponent {
     /**
      * Defines how list model elements will be rendered as icons and tooltips.
      */
-    public interface CellRenderer {
+    interface CellRenderer {
 
         /**
          * Returns the icon to be displayed for a given list model element.
