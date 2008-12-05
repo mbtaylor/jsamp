@@ -65,13 +65,9 @@ public class HubMonitor extends JPanel {
         connector.declareMetadata( meta );
 
         // Create and place a component which maintains a display of 
-        // currently registered clients.  A more modest GUI could just
-        // use the client list model as a model for a JList component.
-        HubView hubView = new HubView();
-        hubView.setClientListModel( connector.getClientListModel() );
-        hubView.getClientList()
-               .setCellRenderer( connector.createClientListCellRenderer() );
-        add( hubView, BorderLayout.CENTER );
+        // currently registered clients.  A more modest GUI could just use
+        // connector.getClientListModel() as a model for a JList component.
+        add( connector.createMonitorPanel(), BorderLayout.CENTER );
 
         // Prepare a container for other widgets at the bottom of the window.
         JPanel infoBox = new JPanel( new BorderLayout() );
