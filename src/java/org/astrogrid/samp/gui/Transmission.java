@@ -92,10 +92,12 @@ public class Transmission {
     }
 
     /**
-     * Returns the message ID corresponding to this transmission.
-     * Will be null for notify-type sends.
+     * Returns the message ID associated with this message.
+     * This is the identifier passed to the receiver which it uses to
+     * match messages with responses; it will be null iff the transmission 
+     * used the <em>notify</em> delivery pattern (no response expected).
      *
-     * @return   msg id
+     * @return   msgId; possibly null
      */
     public String getMessageId() {
         return msgId_;
@@ -122,16 +124,25 @@ public class Transmission {
     }
 
     /**
-     * Returns the message ID associated with this message.
-     * This is the identifier passed to the receiver which it uses to
-     * match messages with responses; it will be null iff the transmission 
-     * used the <em>notify</em> delivery pattern (no response expected).
+     * Associates an error with this transmission.
+     * This is probably an indication that the send failed or some other
+     * non-SAMP event intervened to prevent normal resolution.
      *
-     * @return   msgId; possibly null
+     * @param  error   throwable causing the failure
      */
-    public void fail( Throwable error ) {
+    public void setError( Throwable error ) {
         error_ = error;
         fireChange();
+    }
+
+    /**
+     * Returns a Throwable which prevented normal resolution of this 
+     * transmission.
+     *
+     * @return   error
+     */
+    public Throwable getError() {
+        return error_;
     }
 
     /**
