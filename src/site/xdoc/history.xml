@@ -151,6 +151,7 @@
             and classes
             <code>org.astrogrid.samp.xmlrpc.internal.*LoggingInternal*</code>.
             </li>
+        <li>Add GUI message tracking facilities in hub and client.</li>
         </ul>
         </dd>
     </dl>
