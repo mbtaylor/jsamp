@@ -163,7 +163,7 @@ public class Transmission {
 
     /** 
      * Returns the epoch at which this transmission was completed.
-     * If it is still pending ({@link #isDone()==false}),
+     * If it is still pending ({@link #isDone()}==false),
      * the returned value will be (way) in the future.
      *
      * @return   value of <code>System.currentTimeMillis()</code> at which 
