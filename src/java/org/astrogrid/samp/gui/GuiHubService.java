@@ -3,6 +3,7 @@ package org.astrogrid.samp.gui;
 import java.util.Map;
 import java.util.Random;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.ListModel;
 import org.astrogrid.samp.Client;
@@ -41,16 +42,27 @@ public class GuiHubService extends BasicHubService {
     }
 
     /**
+     * Creates a new component containing a display of the current hub
+     * internal state.
+     *
+     * @return   new hub viewer panel
+     */
+    public JComponent createHubPanel() {
+        HubView hubView = new HubView();
+        hubView.setClientListModel( getClientListModel() );
+        hubView.getClientList().setCellRenderer( new ClientListCellRenderer() );
+        return hubView;
+    }
+
+    /**
      * Creates a new window which maintains a display of the current hub
      * internal state.
      *
      * @return   new hub viewer window
      */
     public JFrame createHubWindow() {
-        HubView hubView = new HubView();
-        hubView.setClientListModel( getClientListModel() );
         JFrame frame = new JFrame( "SAMP Hub" );
-        frame.getContentPane().add( hubView );
+        frame.getContentPane().add( createHubPanel() );
         frame.setIconImage( new ImageIcon( Client.class
                                           .getResource( "images/hub.png" ) )
                            .getImage() );

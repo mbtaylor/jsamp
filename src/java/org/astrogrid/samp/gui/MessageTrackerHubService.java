@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.ListModel;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListDataEvent;
@@ -59,18 +60,12 @@ public class MessageTrackerHubService extends GuiHubService
         return new MessageTrackerHubClient( privateKey, publicId );
     }
 
-    public JFrame createHubWindow() {
+    public JComponent createHubPanel() {
         HubView hubView = new HubView();
-        hubView.setClientListModel( clientSet_ );
+        hubView.setClientListModel( getClientListModel() );
         hubView.getClientList()
                .setCellRenderer( new MessageTrackerListCellRenderer( this ) );
-        JFrame frame = new JFrame( "SAMP Hub" );
-        frame.getContentPane().add( hubView );
-        frame.setIconImage( new ImageIcon( Client.class
-                                          .getResource( "images/hub.png" ) )
-                           .getImage() );
-        frame.pack();
-        return frame;
+        return hubView;
     }
 
     /**
