@@ -1,5 +1,6 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities;
@@ -238,6 +240,43 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         return renderer;
     }
 
+    public JComponent createMonitorPanel() {
+        int removeDelay = 60000;
+        JTabbedPane tabber = new JTabbedPane();
+
+        // Add client view tab.
+        HubView hubView = new HubView();
+        hubView.setClientListModel( getClientListModel() );
+        hubView.getClientList()
+               .setCellRenderer( createClientListCellRenderer() );
+        tabber.add( "Clients", hubView );
+
+        // Add received message tab.
+        ListModel rxListModel = getRxListModel();
+        if ( rxListModel != null ) {
+            TransmissionTableModel rxTableModel =
+                new TransmissionTableModel( true, false, removeDelay );
+            rxListModel.addListDataListener( rxTableModel );
+            tabber.add( "Received Messages",
+                        new TransmissionView( rxTableModel ) );
+        }
+
+        // Add sent message tab.
+        ListModel txListModel = getTxListModel();
+        if ( txListModel != null ) {
+            TransmissionTableModel txTableModel =
+                new TransmissionTableModel( false, true, removeDelay );
+            txListModel.addListDataListener( txTableModel );
+            tabber.add( "Sent Messages",
+                        new TransmissionView( txTableModel ) );
+        }
+
+        // Position and return.
+        JComponent panel = new JPanel( new BorderLayout() );
+        panel.add( tabber, BorderLayout.CENTER );
+        return panel;
+    }
+
     protected HubConnection createConnection() throws SampException {
         HubConnection connection = super.createConnection();
         return connection == null
@@ -295,7 +334,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                                      final Throwable error ) {
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                trans.fail( error );
+                trans.setError( error );
             }
         } );
     }
