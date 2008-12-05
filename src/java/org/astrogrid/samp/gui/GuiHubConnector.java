@@ -294,6 +294,17 @@ public class GuiHubConnector extends HubConnector {
     }
 
     /**
+     * Returns a new component which displays status for this connector.
+     *
+     * @return   new hub connection monitor component
+     */
+    public JComponent createMonitorPanel() {
+        HubView view = new HubView();
+        view.setClientListModel( getClientListModel() );
+        return view;
+    }
+
+    /**
      * Called when the connection status (registered/unregistered) may have
      * changed.  May be called from any thread.
      */
@@ -568,11 +579,9 @@ public class GuiHubConnector extends HubConnector {
 
         public void actionPerformed( ActionEvent evt ) {
             if ( monitorWindow_ == null ) {
-                HubView view = new HubView();
-                view.setClientListModel( getClientListModel() );
-                monitorWindow_ = new JFrame( "SAMP Clients" );
+                monitorWindow_ = new JFrame( "SAMP Status" );
                 monitorWindow_.getContentPane()
-                              .add( view, BorderLayout.CENTER );
+                              .add( createMonitorPanel(), BorderLayout.CENTER );
                 monitorWindow_.pack();
             }
             monitorWindow_.setVisible( true );
