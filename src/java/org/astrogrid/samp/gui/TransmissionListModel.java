@@ -11,6 +11,10 @@ import javax.swing.event.ChangeListener;
 
 /**
  * ListModel implementation for containing {@link Transmission} objects.
+ * This extends the basic ListModel contract as follows:
+ * all ListDataEvents sent to ListDataListeners will have their 
+ * <code>source</code> set to the {@link Transmission} object concerned, 
+ * and will have both <code>index</code> values equal to each other.
  *
  * @author   Mark Taylor
  * @since    24 Nov 2008
