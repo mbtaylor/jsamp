@@ -70,27 +70,22 @@ class TransmissionListModel extends AbstractListModel {
     private void transmissionChanged( final Transmission trans ) {
         int index = list_.indexOf( trans );
         if ( index >= 0 ) {
-            if ( trans.isDone() ) {
-                if ( removeDelay_ == 0 ) {
-                    list_.remove( index );
-                    fireIntervalRemoved( trans, index, index );
+            fireContentsChanged( trans, index, index );
+            if ( trans.isDone() && removeDelay_ >= 0 ) {
+                long sinceDone =
+                    System.currentTimeMillis() - trans.getDoneTime();
+                long delay = removeDelay_ - sinceDone;
+                if ( delay <= 0 ) {
+                    removeTransmission( trans );
                 }
-                else if ( removeDelay_ > 0 ) {
+                else {
                     ActionListener remover = new ActionListener() {
                         public void actionPerformed( ActionEvent evt ) {
-                            int ix = list_.indexOf( trans );
-                            if ( ix >= 0 ) {
-                                list_.remove( ix );
-                                fireIntervalRemoved( trans, ix, ix );
-                            }
+                            removeTransmission( trans );
                         }
                     };
-                    new Timer( removeDelay_, remover ).start();
-                    fireContentsChanged( trans, index, index );
+                    new Timer( (int) delay + 1, remover ).start();
                 }
-            }
-            else {
-                fireContentsChanged( trans, index, index );
             }
         }
     }
