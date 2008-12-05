@@ -55,6 +55,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
     private final Map rxModelMap_;
     private final ListDataListener txListListener_;
     private final ListDataListener rxListListener_;
+    private final int listRemoveDelay_ = 500;
+    private final int tableRemoveDelay_ = 60000;
     private static final Logger logger_ =
         Logger.getLogger( MessageTrackerHubConnector.class.getName() );
 
@@ -65,8 +67,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
      */
     public MessageTrackerHubConnector( ClientProfile profile ) {
         super( profile );
-        txListModel_ = new TransmissionListModel();
-        rxListModel_ = new TransmissionListModel();
+        txListModel_ = new TransmissionListModel( listRemoveDelay_ );
+        rxListModel_ = new TransmissionListModel( listRemoveDelay_ );
         clientMap_ = getClientMap();
         callAllMap_ = new HashMap();  // access only from EDT
         txModelMap_ = new WeakHashMap();
@@ -99,7 +101,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
 
     public ListModel getTxListModel( Client client ) {
         if ( ! txModelMap_.containsKey( client ) ) {
-            TransmissionListModel listModel = new TransmissionListModel();
+            TransmissionListModel listModel =
+                new TransmissionListModel( listRemoveDelay_ );
             listModel.addListDataListener( txListListener_ );
             txModelMap_.put( client, listModel );
         }
@@ -108,7 +111,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
 
     public ListModel getRxListModel( Client client ) {
         if ( ! rxModelMap_.containsKey( client ) ) {
-            TransmissionListModel listModel = new TransmissionListModel();
+            TransmissionListModel listModel =
+                new TransmissionListModel( listRemoveDelay_ );
             listModel.addListDataListener( rxListListener_ );
             rxModelMap_.put( client, listModel );
         }
@@ -241,7 +245,6 @@ public class MessageTrackerHubConnector extends GuiHubConnector
     }
 
     public JComponent createMonitorPanel() {
-        int removeDelay = 60000;
         JTabbedPane tabber = new JTabbedPane();
 
         // Add client view tab.
@@ -255,7 +258,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         ListModel rxListModel = getRxListModel();
         if ( rxListModel != null ) {
             TransmissionTableModel rxTableModel =
-                new TransmissionTableModel( true, false, removeDelay );
+                new TransmissionTableModel( true, false, tableRemoveDelay_ );
             rxListModel.addListDataListener( rxTableModel );
             tabber.add( "Received Messages",
                         new TransmissionView( rxTableModel ) );
@@ -265,7 +268,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         ListModel txListModel = getTxListModel();
         if ( txListModel != null ) {
             TransmissionTableModel txTableModel =
-                new TransmissionTableModel( false, true, removeDelay );
+                new TransmissionTableModel( false, true, tableRemoveDelay_ );
             txListModel.addListDataListener( txTableModel );
             tabber.add( "Sent Messages",
                         new TransmissionView( txTableModel ) );
