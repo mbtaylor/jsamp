@@ -1,8 +1,12 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.Icon;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -187,41 +191,41 @@ public class Transmission {
     }
 
     /**
-     * Returns a short string indicating the current status of this 
-     * transmission.
-     *
-     * @return  status string
+     * Returns an object which describes the current status of this 
+     * transmission in terms which can be presented to the GUI.
      */
-    public String getStatus() {
+    public Status getStatus() {
         if ( error_ != null ) {
-            return "Error";
+            return Status.EXCEPTION;
         }
         else if ( response_ != null ) {
             String status = response_.getStatus();
             if ( Response.OK_STATUS.equals( status ) ) {
-                return "Success";
+                return Status.OK;
             }
             else if ( Response.WARNING_STATUS.equals( status ) ) {
-                return "Warning";
+                return Status.WARNING;
             }
             else if ( Response.ERROR_STATUS.equals( status ) ) {
-                return "Error";
+                return Status.ERROR;
             }
             else if ( status == null ) {
-                return "Completed (??)";
+                return Status.NONE;
             }
             else {
-                return "Completed (" + status + ")";
+                return new Status( "Completed (" + status + ")",
+                                   Status.WARNING_COLOR, true );
             }
         }
         else if ( msgId_ == null && msgTag_ == null ) {
-            return "Notified";
+            return Status.NOTIFIED;
         }
         else if ( receiverUnreg_ ) {
-            return "Orphaned";
+            return Status.ORPHANED;
         }
         else {
-            return "...in progress...";
+            assert ! isDone();
+            return Status.PENDING;
         }
     }
 
@@ -257,6 +261,96 @@ public class Transmission {
               it.hasNext(); ) {
             ChangeListener listener = (ChangeListener) it.next();
             listener.stateChanged( evt_ );
+        }
+    }
+
+    /**
+     * Describes the status of a transmission in terms that can be 
+     * presented in the GUI.
+     */
+    public static class Status {
+
+        private final String text_;
+        private final Color iconColor_;
+        private final boolean isDone_;
+
+        private final static Color PENDING_COLOR = Color.BLACK;
+        private final static Color OK_COLOR = new Color( 0x00c000 );
+        private final static Color ERROR_COLOR = new Color( 0xc00000 );
+        private final static Color WARNING_COLOR = new Color( 0x806030 );
+
+        private final static Status OK =
+            new Status( "Success", OK_COLOR, true );
+        private final static Status WARNING =
+            new Status( "Warning", WARNING_COLOR, true );
+        private final static Status ERROR =
+            new Status( "Error", ERROR_COLOR, true );
+        private final static Status NONE =
+            new Status( "Completed (??)", WARNING_COLOR, true );
+        private final static Status NOTIFIED =
+            new Status( "Notified", OK_COLOR, true );
+        private final static Status EXCEPTION =
+            new Status( "Exception", ERROR_COLOR, true );
+        private final static Status ORPHANED =
+            new Status( "Orphaned", WARNING_COLOR, true );
+        private final static Status PENDING =
+            new Status( "...pending...", PENDING_COLOR, false );
+
+        /**
+         * Constructor.
+         *
+         * @param   text   short status summary
+         * @param   iconColor   colour to plot icon
+         * @param   isDone  whether status represents completed processing
+         */
+        Status( String text, Color iconColor, boolean isDone ) {
+            text_ = text;
+            iconColor_ = iconColor;
+            isDone_ = isDone;
+        }
+
+        /**
+         * Returns the text for this status.
+         *
+         * @return  short summmary
+         */
+        public String getText() {
+            return text_;
+        }
+
+        /**
+         * Returns a little icon representing status.
+         *
+         * @param   height  required height of icon
+         * @return   icon
+         */
+        public Icon getIcon( final int height ) {
+            final int width = (int) Math.floor( 0.866 * height );
+            return new Icon() {
+                public void paintIcon( Component c, Graphics g, int x, int y ) {
+                    int[] xs = new int[] { x, x + width, x, };
+                    int[] ys = new int[] { y, y + height / 2, y + height, };
+                    Color gcolor = g.getColor();
+                    g.setColor( iconColor_ );
+                    if ( isDone_ ) {
+                        g.drawPolygon( xs, ys, 3 );
+                    }
+                    else {
+                        g.fillPolygon( xs, ys, 3 );
+                    }
+                    g.setColor( gcolor );
+                }
+                public int getIconWidth() {
+                    return width;
+                }
+                public int getIconHeight() {
+                    return height;
+                }
+            };
+        }
+
+        public String toString() {
+            return text_;
         }
     }
 }
