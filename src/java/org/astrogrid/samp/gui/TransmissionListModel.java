@@ -121,6 +121,10 @@ class TransmissionListModel extends AbstractListModel {
      */
     public void removeTransmission( final Transmission trans ) {
         int index = list_.indexOf( trans );
+        if ( index >= 0 ) {
+            list_.remove( index );
+            fireIntervalRemoved( trans, index, index );
+        }
 
         // Defer listener removal to avoid concurrency problems 
         // (trying to remove a listener which generated this event).
@@ -129,9 +133,5 @@ class TransmissionListModel extends AbstractListModel {
                 trans.removeChangeListener( changeListener_ );
             }
         } );
-        if ( index >= 0 ) {
-            list_.remove( index );
-            fireIntervalRemoved( trans, index, index );
-        }
     }
 }
