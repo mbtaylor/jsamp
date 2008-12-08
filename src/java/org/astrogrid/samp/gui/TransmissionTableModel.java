@@ -6,9 +6,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.event.ListDataEvent;
-import javax.swing.event.ListDataListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
@@ -16,18 +17,17 @@ import org.astrogrid.samp.SampUtils;
 
 /**
  * TableModel implementation which displays Transmission objects.
- * To populate it, either call {@link #addTransmission} directly or 
- * add it as a listener to one or more TransmissionListModels.
  *
  * @author   Mark Taylor
  * @since    5 Dec 2008
  */
-class TransmissionTableModel implements TableModel, ListDataListener {
+class TransmissionTableModel implements TableModel {
 
     private final int removeDelay_;
     private final int maxRows_;
     private final List transList_;
     private final List tableListenerList_;
+    private final ChangeListener changeListener_;
     private final Column[] columns_;
 
     /**
@@ -82,6 +82,17 @@ class TransmissionTableModel implements TableModel, ListDataListener {
             }
         } );
         columns_ = (Column[]) colList.toArray( new Column[ 0 ] );
+
+        // Set up listener to monitor changes of transmissions.
+        changeListener_ = new ChangeListener() {
+            public void stateChanged( ChangeEvent evt ) {
+                Object src = evt.getSource();
+                assert src instanceof Transmission;
+                if ( src instanceof Transmission ) {
+                    transmissionChanged( (Transmission) src );
+                }
+            }
+        };
     }
 
     /**
@@ -107,6 +118,7 @@ class TransmissionTableModel implements TableModel, ListDataListener {
                                                    TableModelEvent.DELETE ) );
         }
         transList_.add( 0, trans );
+        trans.addChangeListener( changeListener_ );
         fireTableChanged( new TableModelEvent( this, 0, 0,
                                                TableModelEvent.ALL_COLUMNS,
                                                TableModelEvent.INSERT ) );
@@ -117,7 +129,7 @@ class TransmissionTableModel implements TableModel, ListDataListener {
      *
      * @param  trans  transmission to remove
      */
-    public void removeTransmission( Transmission trans ) {
+    public void removeTransmission( final Transmission trans ) {
         int index = transList_.indexOf( trans );
         if ( index >= 0 ) {
             transList_.remove( index );
@@ -125,6 +137,14 @@ class TransmissionTableModel implements TableModel, ListDataListener {
                                                    TableModelEvent.ALL_COLUMNS,
                                                    TableModelEvent.DELETE ) );
         }
+
+        // Defer listener removal to avoid concurrency problems
+        // (trying to remove a listener which generated this event).
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                trans.removeChangeListener( changeListener_ );
+            }
+        } );
     }
 
     public int getColumnCount() {
@@ -147,56 +167,6 @@ class TransmissionTableModel implements TableModel, ListDataListener {
         return columns_[ icol ].clazz_;
     }
 
-    public void contentsChanged( ListDataEvent evt ) {
-        Object src = evt.getSource();
-        assert src instanceof Transmission;
-        assert evt.getIndex0() == evt.getIndex1();
-        int index = transList_.indexOf( src );
-        if ( index >= 0 ) {
-            final Transmission trans = (Transmission) src;
-            if ( trans.isDone() ) {
-                if ( removeDelay_ >= 0 ) {
-                    long sinceDone =
-                        System.currentTimeMillis() - trans.getDoneTime();
-                    long delay = removeDelay_ - sinceDone;
-                    if ( delay <= 0 ) {
-                        removeTransmission( trans );
-                    }
-                    else {
-                        ActionListener remover = new ActionListener() {
-                            public void actionPerformed( ActionEvent evt ) {
-                                removeTransmission( trans );
-                            }
-                        };
-                        new Timer( (int) (delay + 1), remover ).start();
-                    }
-                }
-                else {
-                    fireTableChanged( new TableModelEvent( this, index ) );
-                }
-            }
-            else {
-                fireTableChanged( new TableModelEvent( this, index ) );
-            }
-        }
-    }
-
-    public void intervalAdded( ListDataEvent evt ) {
-        Object src = evt.getSource();
-        assert src instanceof Transmission;
-        assert evt.getIndex0() == evt.getIndex1();
-        if ( src instanceof Transmission ) {
-            addTransmission( (Transmission) src );
-        }
-    }
-
-    public void intervalRemoved( ListDataEvent evt ) {
-        Object src = evt.getSource();
-        assert src instanceof Transmission;
-        assert evt.getIndex0() == evt.getIndex1();
-        // no action required - we remove our own elements
-    }
-
     public boolean isCellEditable( int irow, int icol ) {
         return false;
     }
@@ -213,6 +183,40 @@ class TransmissionTableModel implements TableModel, ListDataListener {
         tableListenerList_.remove( listener );
     }
 
+    /**
+     * Called whenever a transmission which is in this list has changed
+     * state.
+     *
+     * @param   trans  transmission
+     */
+    private void transmissionChanged( final Transmission trans ) {
+        int index = transList_.indexOf( trans );
+        if ( index >= 0 ) {
+            fireTableChanged( new TableModelEvent( this, index ) );
+            if ( trans.isDone() && removeDelay_ >= 0 ) {
+                long sinceDone =
+                    System.currentTimeMillis() - trans.getDoneTime();
+                long delay = removeDelay_ - sinceDone;
+                if ( delay <= 0 ) {
+                    removeTransmission( trans );
+                }
+                else {
+                    ActionListener remover = new ActionListener() {
+                        public void actionPerformed( ActionEvent evt ) {
+                            removeTransmission( trans );
+                        }
+                    };
+                    new Timer( (int) delay + 1, remover ).start();
+                }
+            }
+        }
+    }
+
+    /**
+     * Passes a table event to all registered listeners.
+     *
+     * @param  evt   event to forward
+     */
     private void fireTableChanged( TableModelEvent evt ) {
         for ( Iterator it = tableListenerList_.iterator(); it.hasNext(); ) {
             ((TableModelListener) it.next()).tableChanged( evt );
