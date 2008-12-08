@@ -178,6 +178,7 @@ public class ClientPanel extends JPanel {
             JTextField field = new JTextField();
             field.setEditable( false );
             field.setText( (String) value );
+            field.setCaretPosition( 0 );
             try {
                 final URL url = new URL( (String) value );
                 field.setForeground( Color.BLUE );
@@ -205,6 +206,7 @@ public class ClientPanel extends JPanel {
             JEditorPane edPane =
                 new JEditorPane( "text/html", toHtml( value ) );
             edPane.setEditable( false );
+            edPane.setCaretPosition( 0 );
             return edPane;
         }
         else {
