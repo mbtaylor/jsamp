@@ -69,7 +69,7 @@ public abstract class AbstractCallActionManager extends SendActionManager {
      * This method will be called from the event dispatch thread.
      *
      * <p>The default implementation returns an instance of
-     * {@link PopupResultHandler}.
+     * {@link LogResultHandler}.
      *
      * @param  connection  connection object
      * @param  msg  the message which was sent
@@ -79,8 +79,7 @@ public abstract class AbstractCallActionManager extends SendActionManager {
     protected ResultHandler createResultHandler( HubConnection connection,
                                                  Message msg,
                                                  Client[] recipients ) {
-        return new PopupResultHandler( parent_, "SAMP Send", msg, recipients,
-                                       1 );
+        return new LogResultHandler( msg );
     }
 
     /**
