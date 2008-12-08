@@ -1,19 +1,26 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.Component;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import javax.swing.JLabel;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.Client;
 
 /**
  * TableModel implementation which displays Transmission objects.
@@ -29,6 +36,14 @@ class TransmissionTableModel implements TableModel {
     private final List tableListenerList_;
     private final ChangeListener changeListener_;
     private final Column[] columns_;
+
+    /** Cell renderer for Transmission.Status objects. */
+    public static final TableCellRenderer STATUS_RENDERER =
+        createStatusCellRenderer();
+
+    /** Cell renderer for Client objects. */
+    private static final TableCellRenderer CLIENT_RENDERER =
+        createClientCellRenderer();
 
     /**
      * Constructor.
@@ -51,34 +66,39 @@ class TransmissionTableModel implements TableModel {
 
         // Set up table columns.
         List colList = new ArrayList();
-        colList.add( new Column( "MType", String.class ) {
+        int charWidth = 8;
+        int icol = 0;
+        colList.add( new Column( "MType", String.class,
+                                 new TableColumn( icol++, 30 * charWidth ) ) {
             Object getValue( Transmission trans ) {
                 return trans.getMessage().getMType();
             }
         } );
         if ( showSender ) {
-            colList.add( new Column( "Sender", String.class ) {
+            colList.add( new Column( "Sender", Object.class,
+                                     new TableColumn( icol++, 20 * charWidth,
+                                                      CLIENT_RENDERER,
+                                                      null ) ) {
                 Object getValue( Transmission trans ) {
                     return trans.getSender();
                 }
             } );
         }
         if ( showReceiver ) {
-            colList.add( new Column( "Receiver", String.class ) {
+            colList.add( new Column( "Receiver", Object.class,
+                                     new TableColumn( icol++, 20 * charWidth,
+                                                      CLIENT_RENDERER,
+                                                      null ) ) {
                 Object getValue( Transmission trans ) {
                     return trans.getReceiver();
                 }
             } );
         }
-        colList.add( new Column( "Status", String.class ) {
+        colList.add( new Column( "Status", Object.class,
+                                 new TableColumn( icol++, 16 * charWidth,
+                                                  STATUS_RENDERER, null ) ) {
             Object getValue( Transmission trans ) {
-                if ( trans.isDone() ) {
-                    return trans.getStatus();
-                }
-                else {
-                    return showReceiver ? "...waiting..."
-                                        : "...processing...";
-                }
+                return trans.getStatus();
             }
         } );
         columns_ = (Column[]) colList.toArray( new Column[ 0 ] );
@@ -183,6 +203,17 @@ class TransmissionTableModel implements TableModel {
         tableListenerList_.remove( listener );
     }
 
+    /** 
+     * Returns a TableColumn suitable for a given column of this table.
+     * Can be used for more customised presentation.
+     *
+     * @param   icol   column index
+     * @return   table column
+     */
+    public TableColumn getTableColumn( int icol ) {
+        return columns_[ icol ].tcol_;
+    }
+
     /**
      * Called whenever a transmission which is in this list has changed
      * state.
@@ -229,6 +260,7 @@ class TransmissionTableModel implements TableModel {
     private abstract class Column {
         final String name_;
         final Class clazz_;
+        final TableColumn tcol_;
 
         /**
          * Constructor.
@@ -236,9 +268,11 @@ class TransmissionTableModel implements TableModel {
          * @param  name  column name
          * @param  clazz  column content class
          */
-        Column( String name, Class clazz ) {
+        Column( String name, Class clazz, TableColumn tcol ) {
             name_ = name;
             clazz_ = clazz;
+            tcol_ = tcol;
+            tcol_.setHeaderValue( name );
         }
 
         /**
@@ -248,5 +282,85 @@ class TransmissionTableModel implements TableModel {
          * @return   cell value
          */
         abstract Object getValue( Transmission trans );
+    }
+
+    /**
+     * Template custom TableCellRenderer for subclassing.
+     */
+    private static abstract class CustomTableCellRenderer
+                                  extends DefaultTableCellRenderer {
+        public Component getTableCellRendererComponent( JTable table,
+                                                        Object value,
+                                                        boolean isSel,
+                                                        boolean hasFocus,
+                                                        int irow, int icol ) {
+            int size;
+            try {
+                size =
+                    (int) Math.ceil( getFont()
+                                    .getMaxCharBounds( ((Graphics2D)
+                                                        table.getGraphics())
+                                                      .getFontRenderContext() )
+                                    .getHeight() );
+            }
+            catch ( NullPointerException e ) {
+                size = 16;
+            }
+            Component comp =
+                super.getTableCellRendererComponent( table, value, isSel,
+                                                     hasFocus, irow, icol );
+            if ( comp instanceof JLabel ) {
+                configureLabel( (JLabel) comp, value, size - 2 );
+            }
+            return comp;
+        }
+
+        /**
+         * Configures a JLabel given the value to render and the 
+         * component size.
+         *
+         * @param   label   renderer component to configure
+         * @param   value   object to render
+         * @param   height  component height in pixels
+         */
+        abstract void configureLabel( JLabel label, Object value, int height );
+    }
+
+    /**
+     * Returns a cell renderer for Transmission.Status objects.
+     *
+     * @return  table cell renderer
+     */
+    private static TableCellRenderer createStatusCellRenderer() {
+        return new CustomTableCellRenderer() {
+            void configureLabel( JLabel label, Object value, int height ) {
+                if ( value instanceof Transmission.Status ) {
+                    Transmission.Status status = (Transmission.Status) value;
+                    label.setText( status.getText() );
+                    label.setIcon( status.getIcon( height ) );
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns a cell renderer for Client objects.
+     *
+     * @return  table cell renderer
+     */
+    private static TableCellRenderer createClientCellRenderer() {
+        final IconStore iconStore =
+            new IconStore( IconStore.createEmptyIcon( 16 ) );
+        return new CustomTableCellRenderer() {
+            void configureLabel( JLabel label, Object value, int height ) {
+                if ( value instanceof Client ) {
+                    Client client = (Client) value;
+                    label.setText( client.toString() );
+                    label.setIcon( ClientListCellRenderer
+                                  .reshapeIcon( iconStore.getIcon( client ),
+                                   height ) );
+                }
+            }
+        };
     }
 }
