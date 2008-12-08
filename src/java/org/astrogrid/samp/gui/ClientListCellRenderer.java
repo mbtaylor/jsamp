@@ -93,7 +93,7 @@ class ClientListCellRenderer extends DefaultListCellRenderer {
      * @param    height  fixed icon height
      * @return   reshaped icon
      */
-    private static Icon reshapeIcon( Icon icon, final int height ) {
+    static Icon reshapeIcon( Icon icon, final int height ) {
         double aspect = 2.0;
         final int width = (int) Math.ceil( aspect * height );
         final Icon sIcon = IconStore.scaleIcon( icon, height, aspect, true );
