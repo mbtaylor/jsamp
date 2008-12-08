@@ -150,7 +150,7 @@ public class TransmissionPanel extends JPanel {
             senderField_.setCaretPosition( 0 );
             receiverField_.setText( formatClient( trans_.getReceiver() ) );
             receiverField_.setCaretPosition( 0 );
-            statusField_.setText( trans_.getStatusString() );
+            statusField_.setText( trans_.getStatus().getText() );
             statusField_.setCaretPosition( 0 );
             messageField_.setText( SampUtils.formatObject( msg, 2 ) );
             messageField_.setCaretPosition( 0 );
