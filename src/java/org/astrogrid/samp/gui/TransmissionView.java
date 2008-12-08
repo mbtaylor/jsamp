@@ -12,6 +12,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableColumnModel;
 
 /**
  * Displays a set of transmissions in a table model,
@@ -36,6 +37,11 @@ class TransmissionView extends JPanel {
         Dimension tableSize = table.getPreferredScrollableViewportSize();
         tableSize.height = 80;
         table.setPreferredScrollableViewportSize( tableSize );
+        DefaultTableColumnModel tcolModel = new DefaultTableColumnModel();
+        for ( int icol = 0; icol < transModel.getColumnCount(); icol++ ) {
+            tcolModel.addColumn( transModel.getTableColumn( icol ) );
+        }
+        table.setColumnModel( tcolModel );
         final ListSelectionModel selModel = table.getSelectionModel();
         selModel.setSelectionMode( ListSelectionModel.SINGLE_SELECTION );
         selModel.addListSelectionListener( new ListSelectionListener() {
