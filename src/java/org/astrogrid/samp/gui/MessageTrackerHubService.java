@@ -137,6 +137,20 @@ public class MessageTrackerHubService extends GuiHubService
     }
 
     /**
+     * Registers a newly created transmission with internal data models
+     * as required.
+     *
+     * @param   trans  new transmission to track
+     */
+    private void addTransmission( Transmission trans ) {
+        ((MessageTrackerHubClient) trans.getSender())
+                                  .txListModel_.addTransmission( trans );
+        ((MessageTrackerHubClient) trans.getReceiver())
+                                  .rxListModel_.addTransmission( trans );
+        transTableModel_.addTransmission( trans );
+    }
+
+    /**
      * Returns a key for use in the call map.
      * Identifies a call/response mode transmission.
      *
@@ -209,10 +223,10 @@ public class MessageTrackerHubService extends GuiHubService
             // object and add it to both the send list of the sender and
             // the receive list of the recipient.
             Message msg = Message.asMessage( message );
-            final MessageTrackerHubClient sender = 
+            MessageTrackerHubClient sender = 
                 (MessageTrackerHubClient)
                 clientSet_.getFromPublicId( senderId );
-            final MessageTrackerHubClient recipient = client_;
+            MessageTrackerHubClient recipient = client_;
             final Transmission trans = 
                 new Transmission( sender, recipient, msg, null, msgId );
             final Object callKey = getCallKey( recipient, msgId );
@@ -220,8 +234,7 @@ public class MessageTrackerHubService extends GuiHubService
                 public void run() {
                     assert ! callMap_.containsKey( callKey );
                     callMap_.put( callKey, trans );
-                    sender.txListModel_.addTransmission( trans );
-                    recipient.rxListModel_.addTransmission( trans );
+                    addTransmission( trans );
                 }
             } );
 
@@ -245,16 +258,15 @@ public class MessageTrackerHubService extends GuiHubService
             // Transmission object and add it to both the send list of the
             // sender and the receive list of the recipient.
             Message msg = Message.asMessage( message );
-            final MessageTrackerHubClient sender =
+            MessageTrackerHubClient sender =
                 (MessageTrackerHubClient)
                 clientSet_.getFromPublicId( senderId );
-            final MessageTrackerHubClient recipient = client_;
+            MessageTrackerHubClient recipient = client_;
             final Transmission trans =
                 new Transmission( sender, recipient, msg, null, null );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    sender.txListModel_.addTransmission( trans );
-                    recipient.rxListModel_.addTransmission( trans );
+                    addTransmission( trans );
                 }
             } );
 
@@ -352,8 +364,6 @@ public class MessageTrackerHubService extends GuiHubService
                 public void run() {
                     txListModel.addListDataListener( transListener_ );
                     rxListModel.addListDataListener( transListener_ );
-                    txListModel.addListDataListener( transTableModel_ );
-                    rxListModel.addListDataListener( transTableModel_ );
                 }
             } );
             super.add( client );
@@ -376,8 +386,6 @@ public class MessageTrackerHubService extends GuiHubService
                     }
                     txListModel.removeListDataListener( transListener_ );
                     rxListModel.removeListDataListener( transListener_ );
-                    txListModel.removeListDataListener( transTableModel_ );
-                    rxListModel.removeListDataListener( transTableModel_ );
                 }
             } );
         }

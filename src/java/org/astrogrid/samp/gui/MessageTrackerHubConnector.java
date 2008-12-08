@@ -49,6 +49,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
 
     private final TransmissionListModel txListModel_;
     private final TransmissionListModel rxListModel_;
+    private final TransmissionTableModel txTableModel_;
+    private final TransmissionTableModel rxTableModel_;
     private final Map clientMap_;
     private final Map callAllMap_;
     private final Map txModelMap_;
@@ -70,6 +72,12 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         super( profile );
         txListModel_ = new TransmissionListModel( listRemoveDelay_ );
         rxListModel_ = new TransmissionListModel( listRemoveDelay_ );
+        txTableModel_ =
+            new TransmissionTableModel( true, false,
+                                        tableRemoveDelay_, tableMaxRows_ );
+        rxTableModel_ =
+            new TransmissionTableModel( false, true,
+                                        tableRemoveDelay_, tableMaxRows_ );
         clientMap_ = getClientMap();
         callAllMap_ = new HashMap();  // access only from EDT
         txModelMap_ = new WeakHashMap();
@@ -256,26 +264,12 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         tabber.add( "Clients", hubView );
 
         // Add received message tab.
-        ListModel rxListModel = getRxListModel();
-        if ( rxListModel != null ) {
-            TransmissionTableModel rxTableModel =
-                new TransmissionTableModel( true, false, tableRemoveDelay_,
-                                            tableMaxRows_ );
-            rxListModel.addListDataListener( rxTableModel );
-            tabber.add( "Received Messages",
-                        new TransmissionView( rxTableModel ) );
-        }
+        tabber.add( "Received Messages",
+                    new TransmissionView( rxTableModel_ ) );
 
         // Add sent message tab.
-        ListModel txListModel = getTxListModel();
-        if ( txListModel != null ) {
-            TransmissionTableModel txTableModel =
-                new TransmissionTableModel( false, true, tableRemoveDelay_,
-                                            tableMaxRows_ );
-            txListModel.addListDataListener( txTableModel );
-            tabber.add( "Sent Messages",
-                        new TransmissionView( txTableModel ) );
-        }
+        tabber.add( "Sent Messages",
+                    new TransmissionView( txTableModel_ ) );
 
         // Position and return.
         JComponent panel = new JPanel( new BorderLayout() );
@@ -303,6 +297,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             public void run() {
                 ( tx ? txListModel_
                      : rxListModel_ ).addTransmission( trans );
+                ( tx ? txTableModel_
+                     : rxTableModel_ ).addTransmission( trans );
                 ((TransmissionListModel)
                  ( tx ? getTxListModel( trans.getReceiver() )
                       : getRxListModel( trans.getSender() ) ))
