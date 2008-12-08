@@ -174,7 +174,7 @@ public class Snooper {
             .append( " [-/+verbose]" )
             .append( " [-xmlrpc internal|apache|xml-log|rpc-log]" )
             .append( "\n         " )
-            .append( " [-mtypes <pattern>]" )
+            .append( " [-mtype <pattern>]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
