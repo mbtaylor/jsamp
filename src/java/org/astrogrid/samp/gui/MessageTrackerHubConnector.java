@@ -30,7 +30,6 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.ClientProfile;
@@ -73,10 +72,10 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         txListModel_ = new TransmissionListModel( listRemoveDelay_ );
         rxListModel_ = new TransmissionListModel( listRemoveDelay_ );
         txTableModel_ =
-            new TransmissionTableModel( true, false,
+            new TransmissionTableModel( false, true,
                                         tableRemoveDelay_, tableMaxRows_ );
         rxTableModel_ =
-            new TransmissionTableModel( false, true,
+            new TransmissionTableModel( true, false,
                                         tableRemoveDelay_, tableMaxRows_ );
         clientMap_ = getClientMap();
         callAllMap_ = new HashMap();  // access only from EDT
@@ -180,7 +179,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                         return new StringBuffer()
                             .append( trans.getMessage().getMType() )
                             .append( " <- " )
-                            .append( SampUtils.toString( trans.getSender() ) )
+                            .append( trans.getSender().toString() )
                             .toString();
                     }
                     else {
@@ -221,7 +220,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                         return new StringBuffer()
                             .append( trans.getMessage().getMType() )
                             .append( " -> " )
-                            .append( SampUtils.toString( trans.getSender() ) )
+                            .append( trans.getSender().toString() )
                             .toString();
                     }
                     else {
@@ -370,6 +369,9 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                 }
                 public Subscriptions getSubscriptions() {
                     return selfSubscriptions_;
+                }
+                public String toString() {
+                    return "<self>";
                 }
             };
         }

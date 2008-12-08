@@ -12,7 +12,6 @@ import javax.swing.Action;
 import javax.swing.JMenu;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
-import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 
@@ -84,8 +83,7 @@ public abstract class UniformCallActionManager
     public Action getSendAction( Client client ) {
         Action action = super.getSendAction( client );
         action.putValue( Action.SHORT_DESCRIPTION,
-                         "Transmit to " + SampUtils.toString( client )
-                       + " using SAMP " + mtype_ );
+                         "Transmit to " + client + " using SAMP " + mtype_ );
         return action;
     }
 

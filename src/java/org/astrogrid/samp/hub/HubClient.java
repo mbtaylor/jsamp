@@ -6,6 +6,7 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 
 /**
@@ -127,7 +128,7 @@ public class HubClient implements Client {
     }
 
     public String toString() {
-        return getId();
+        return SampUtils.toString( this );
     }
 
     /**
@@ -149,7 +150,7 @@ public class HubClient implements Client {
             refuse();
         }
         private void refuse() throws HubServiceException {
-            throw new HubServiceException( "Client " + HubClient.this.toString()
+            throw new HubServiceException( "Client " + getId()
                                          + " is not callable" );
         }
     }

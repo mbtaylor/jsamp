@@ -227,7 +227,7 @@ public class PopupResultHandler extends JFrame implements ResultHandler {
          * @param   client  client
          */
         ClientHandler( Client client ) {
-            final String cName = SampUtils.toString( client );
+            final String cName = client.toString();
             nameLabel_ = new JLabel( cName );
             statusLabel_ = new JLabel( "... Waiting ..." );
             statusLabel_.setForeground( new Color( 0x40, 0x40, 0x40 ) );

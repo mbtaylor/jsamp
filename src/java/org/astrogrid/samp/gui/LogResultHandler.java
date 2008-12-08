@@ -32,12 +32,10 @@ public class LogResultHandler implements ResultHandler {
 
     public void result( Client client, Response response ) {
         if ( response.isOK() ) {
-            logger_.info( mtype_ + ": successful send to "
-                        + SampUtils.toString( client ) );
+            logger_.info( mtype_ + ": successful send to " + client );
         }
         else {
-            logger_.warning( mtype_ + ": error sending to "
-                           + SampUtils.toString( client ) );
+            logger_.warning( mtype_ + ": error sending to " + client );
             ErrInfo errInfo = response.getErrInfo();
             if ( errInfo != null ) {
                 String errortxt = errInfo.getErrortxt();

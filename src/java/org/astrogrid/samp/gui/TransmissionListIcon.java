@@ -15,7 +15,6 @@ import javax.swing.ListModel;
 import javax.swing.ToolTipManager;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
-import org.astrogrid.samp.SampUtils;
 
 /**
  * Icon which paints a graphical representation of a list of Transmissions.
@@ -220,9 +219,9 @@ public class TransmissionListIcon implements Icon {
                 return new StringBuffer()
                     .append( trans.getMessage().getMType() )
                     .append( ": " )
-                    .append( SampUtils.toString( trans.getSender() ) )
+                    .append( trans.getSender().toString() )
                     .append( " -> " )
-                    .append( SampUtils.toString( trans.getReceiver() ) )
+                    .append( trans.getReceiver().toString() )
                     .toString();
             }
             else {

@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 
 /**
@@ -284,16 +285,7 @@ class ClientTracker extends AbstractMessageHandler {
         }
 
         public String toString() {
-            StringBuffer sbuf = new StringBuffer();
-            sbuf.append( id_ );
-            String name = metadata_ == null ? null
-                                            : metadata_.getName();
-            if ( name != null ) {
-                sbuf.append( '(' )
-                    .append( name )
-                    .append( ')' );
-            }
-            return sbuf.toString();
+            return SampUtils.toString( this );
         }
     }
 

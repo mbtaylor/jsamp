@@ -34,7 +34,6 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
-import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
@@ -283,7 +282,7 @@ public class GuiHubConnector extends HubConnector {
             }
             public String getToolTipText( IconBox iconBox, Object value,
                                           int index ) {
-                return SampUtils.toString( (Client) value );
+                return ((Client) value).toString();
             }
         } );
         Dimension boxSize = box.getPreferredSize();

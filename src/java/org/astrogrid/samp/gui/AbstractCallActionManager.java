@@ -15,7 +15,6 @@ import javax.swing.event.ChangeListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
-import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.ResponseHandler;
 
@@ -150,7 +149,7 @@ public abstract class AbstractCallActionManager extends SendActionManager {
          */
         SendAction( Client client ) {
             client_ = client;
-            cName_ = SampUtils.toString( client );
+            cName_ = client.toString();
             putValue( NAME, cName_ );
             putValue( SHORT_DESCRIPTION,
                       "Transmit to " + cName_ + " using SAMP protocol" );

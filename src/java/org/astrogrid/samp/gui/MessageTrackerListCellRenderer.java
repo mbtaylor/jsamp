@@ -17,7 +17,6 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
-import org.astrogrid.samp.SampUtils;
 
 /**
  * ListCellRenderer which draws a representation of incoming and outgoing
@@ -58,12 +57,10 @@ class MessageTrackerListCellRenderer extends ClientListCellRenderer {
                     String mtype = trans.getMessage().getMType();
                     Client client = iconListModel_.client_;
                     if ( client == trans.getSender() ) {
-                        return mtype + " -> "
-                             + SampUtils.toString( trans.getReceiver() );
+                        return mtype + " -> " + trans.getReceiver();
                     }
                     else if ( client == trans.getReceiver() ) {
-                        return mtype + " <- "
-                             + SampUtils.toString( trans.getSender() );
+                        return mtype + " <- " + trans.getSender();
                     }
                     else {
                         assert false;

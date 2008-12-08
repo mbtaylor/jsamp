@@ -13,7 +13,6 @@ import javax.swing.JMenu;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
-import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 
@@ -73,7 +72,7 @@ public abstract class NotifyActionManager extends SendActionManager {
                                 Client[] recipients ) {
         for ( int i = 0; i < recipients.length; i++ ) {
             logger_.info( "Message " + msg.getMType() + " sent to "
-                                     + SampUtils.toString( recipients[ i ] ) );
+                                     + recipients[ i ] );
         }
     }
 
@@ -153,7 +152,7 @@ public abstract class NotifyActionManager extends SendActionManager {
          */
         SendAction( Client client ) {
             client_ = client;
-            cName_ = SampUtils.toString( client );
+            cName_ = client.toString();
             putValue( NAME, cName_ );
             putValue( SHORT_DESCRIPTION,
                       "Transmit " + sendType_ + " to " + cName_
