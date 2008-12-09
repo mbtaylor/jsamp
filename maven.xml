@@ -65,7 +65,7 @@
     <echo message="Do this:"/>
     <echo message="    scp target/jsamp-${pom.currentVersion}.jar target/jsamp_src-${pom.currentVersion}.zip maven.astrogrid.org:/maven/org.astrogrid/jars/"/>
     <echo message="and make sure you do a matching maven site:deploy too"/>
-    <echo message="and ln -s jsamp-${pom.currentVersion}/ jsamp/ in terror:software_docs/"/>
+    <echo message="and rm jsamp; ln -s jsamp-${pom.currentVersion}/ jsamp in terror:software_docs/"/>
   </goal>
 
   <goal name="command-usage"
