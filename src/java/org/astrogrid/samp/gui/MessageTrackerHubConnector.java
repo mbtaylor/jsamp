@@ -54,8 +54,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
     private final Map callAllMap_;
     private final Map txModelMap_;
     private final Map rxModelMap_;
-    private final ListDataListener txListListener_;
-    private final ListDataListener rxListListener_;
+    private final ListDataListener transListListener_;
     private final int listRemoveDelay_ = 500;
     private final int tableRemoveDelay_ = 60000;
     private final int tableMaxRows_ = 100;
@@ -69,8 +68,11 @@ public class MessageTrackerHubConnector extends GuiHubConnector
      */
     public MessageTrackerHubConnector( ClientProfile profile ) {
         super( profile );
+        transListListener_ = new ClientTransmissionListListener();
         txListModel_ = new TransmissionListModel( listRemoveDelay_ );
         rxListModel_ = new TransmissionListModel( listRemoveDelay_ );
+        txListModel_.addListDataListener( transListListener_ );
+        rxListModel_.addListDataListener( transListListener_ );
         txTableModel_ =
             new TransmissionTableModel( false, true,
                                         tableRemoveDelay_, tableMaxRows_ );
@@ -81,8 +83,6 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         callAllMap_ = new HashMap();  // access only from EDT
         txModelMap_ = new WeakHashMap();
         rxModelMap_ = new WeakHashMap();
-        txListListener_ = new ClientTransmissionListListener( true );
-        rxListListener_ = new ClientTransmissionListListener( false );
     }
 
     /**
@@ -111,7 +111,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         if ( ! txModelMap_.containsKey( client ) ) {
             TransmissionListModel listModel =
                 new TransmissionListModel( listRemoveDelay_ );
-            listModel.addListDataListener( txListListener_ );
+            listModel.addListDataListener( transListListener_ );
             txModelMap_.put( client, listModel );
         }
         return (ListModel) txModelMap_.get( client );
@@ -121,7 +121,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         if ( ! rxModelMap_.containsKey( client ) ) {
             TransmissionListModel listModel =
                 new TransmissionListModel( listRemoveDelay_ );
-            listModel.addListDataListener( rxListListener_ );
+            listModel.addListDataListener( transListListener_ );
             rxModelMap_.put( client, listModel );
         }
         return (ListModel) rxModelMap_.get( client );
@@ -294,14 +294,12 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                                           final boolean tx ) {
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                ( tx ? txListModel_
-                     : rxListModel_ ).addTransmission( trans );
                 ( tx ? txTableModel_
                      : rxTableModel_ ).addTransmission( trans );
-                ((TransmissionListModel)
-                 ( tx ? getTxListModel( trans.getReceiver() )
-                      : getRxListModel( trans.getSender() ) ))
-                          .addTransmission( trans );
+                ((TransmissionListModel) getTxListModel( trans.getSender() ))
+                                        .addTransmission( trans );
+                ((TransmissionListModel) getRxListModel( trans.getReceiver() ))
+                                        .addTransmission( trans );
             }
         } );
     }
@@ -345,9 +343,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
      * outgoing and incoming messages.
      */
     private class MessageTrackerHubConnection extends WrapperHubConnection {
-        private final Client selfClient_;
-        private Metadata selfMetadata_;
-        private Subscriptions selfSubscriptions_;
+        private Client selfClient_;
 
         /**
          * Constructor.
@@ -356,24 +352,27 @@ public class MessageTrackerHubConnector extends GuiHubConnector
          */
         MessageTrackerHubConnection( HubConnection base ) {
             super( base );
-            
-            // Prepare a Client object for use in Transmission objects 
-            // which represents this client.
-            final String selfId = base.getRegInfo().getSelfId();
-            selfClient_ = new Client() {
-                public String getId() {
-                    return selfId;
-                }
-                public Metadata getMetadata() {
-                    return selfMetadata_;
-                }
-                public Subscriptions getSubscriptions() {
-                    return selfSubscriptions_;
-                }
-                public String toString() {
-                    return "<self>";
-                }
-            };
+        }
+
+        /**
+         * Returns a Client object for use in Transmission objects
+         * which represents this connection's owner.
+         * This has to be the same object as is used in the client set,
+         * otherwise the various models don't get updated correctly.
+         * For this reason, it has to be obtained lazily, after the client set
+         * has been initialised.
+         *
+         * @return   self client object
+         */
+        Client getSelfClient() {
+            if ( selfClient_ == null ) {
+                selfClient_ =
+                    (Client) getClientMap().get( getRegInfo().getSelfId() );
+                assert selfClient_ != null;
+                txModelMap_.put( selfClient_, txListModel_ );
+                rxModelMap_.put( selfClient_, rxListModel_ );
+            }
+            return selfClient_;
         }
 
         public void notify( final String recipientId, final Map msg )
@@ -382,11 +381,11 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             // Construct a transmission corresponding to this notify and
             // add it to the send list.
             Client recipient = (Client) clientMap_.get( recipientId );
-            Transmission trans =
-                recipient == null ? null
-                                  : new Transmission( selfClient_, recipient,
-                                                      Message.asMessage( msg ),
-                                                      null, null );
+            Transmission trans = recipient == null
+                               ? null
+                               : new Transmission( getSelfClient(), recipient,
+                                                   Message.asMessage( msg ),
+                                                   null, null );
             if ( trans != null ) {
                 scheduleAddTransmission( trans, true );
             }
@@ -419,12 +418,13 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             // and add them to the send list.
             final List transList = new ArrayList();
             Message message = Message.asMessage( msg );
+            Client sender = getSelfClient();
             for ( Iterator it = recipientIdList.iterator(); it.hasNext(); ) {
                 Client recipient =
                     (Client) clientMap_.get( (String) it.next() );
                 if ( recipient != null ) {
                     Transmission trans =
-                        new Transmission( selfClient_, recipient, message,
+                        new Transmission( sender, recipient, message,
                                           null, null );
                     scheduleAddTransmission( trans, true );
 
@@ -441,11 +441,11 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             // Construct a transmission corresponding to this call
             // and add it to the send list.
             Client recipient = (Client) clientMap_.get( recipientId );
-            Transmission trans =
-                recipient == null ? null
-                                  : new Transmission( selfClient_, recipient,
-                                                      Message.asMessage( msg ),
-                                                      msgTag, null );
+            Transmission trans = recipient == null
+                               ? null
+                               : new Transmission( getSelfClient(), recipient,
+                                                   Message.asMessage( msg ),
+                                                   msgTag, null );
             if ( trans != null ) {
                 scheduleAddTransmission( trans, true );
             }
@@ -490,11 +490,12 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             for ( Iterator it = callMap.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry entry = (Map.Entry) it.next();
                 String recipientId = (String) entry.getKey();
+                Client sender = getSelfClient();
                 Client recipient = (Client) clientMap_.get( recipientId );
                 if ( recipient != null ) {
                     String msgId = (String) entry.getValue();
                     Transmission trans =
-                        new Transmission( selfClient_, recipient, message,
+                        new Transmission( sender, recipient, message,
                                           msgTag, msgId );
                     scheduleAddTransmission( trans, true );
                     transList.add( trans );
@@ -522,7 +523,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             Transmission trans =
                 recipient == null
                           ? null
-                          : new Transmission( selfClient_, recipient,
+                          : new Transmission( getSelfClient(), recipient,
                                               Message.asMessage( msg ),
                                               "<synchronous>",
                                               "<synchronous>" );
@@ -583,19 +584,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             // Install a wrapper-like callable client which can intercept
             // the calls to keep track of send/received messages.
             CallableClient mtCallable =
-                new MessageTrackerCallableClient( callable, selfClient_ );
+                new MessageTrackerCallableClient( callable, this );
             super.setCallable( mtCallable );
-        }
-
-        public void declareMetadata( Map meta ) throws SampException {
-            super.declareMetadata( meta );
-            selfMetadata_ = Metadata.asMetadata( meta );
-        }
-
-        public void declareSubscriptions( Subscriptions subs )
-                throws SampException {
-            super.declareSubscriptions( subs );
-            selfSubscriptions_ = Subscriptions.asSubscriptions( subs );
         }
     }
 
@@ -605,18 +595,28 @@ public class MessageTrackerHubConnector extends GuiHubConnector
      */
     private class MessageTrackerCallableClient implements CallableClient {
         private final CallableClient base_;
-        private final Client selfClient_;
+        private final MessageTrackerHubConnection connection_;
 
         /**
          * Constructor.
          *
          * @param   base  base callable
-         * @param   selfClient  client object representing the current
-         *          connection
+         * @param   connection  hub connection
          */
-        MessageTrackerCallableClient( CallableClient base, Client selfClient ) {
+        MessageTrackerCallableClient( CallableClient base,
+                                      MessageTrackerHubConnection connection ) {
             base_ = base;
-            selfClient_ = selfClient;
+            connection_ = connection;
+        }
+
+        /**
+         * Returns a Client object for use in Transmission objects
+         * which represents this connection's owner.
+         *
+         * @return  self client object
+         */
+        private Client getSelfClient() {
+            return connection_.getSelfClient();
         }
 
         public void receiveCall( String senderId, String msgId, Message msg )
@@ -627,7 +627,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             Client sender = (Client) clientMap_.get( senderId );
             Transmission trans =
                 sender == null ? null
-                               : new Transmission( sender, selfClient_, msg,
+                               : new Transmission( sender, getSelfClient(), msg,
                                                    null, msgId );
             if ( trans != null ) {
                 scheduleAddTransmission( trans, false );
@@ -658,7 +658,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             // it won't get another one.
             if ( sender != null ) {
                 final Transmission trans =
-                    new Transmission( sender, selfClient_, msg, null, null );
+                    new Transmission( sender, getSelfClient(), msg,
+                                      null, null );
                 scheduleAddTransmission( trans, false );
                 scheduleSetResponse( trans, null );
             }
@@ -821,16 +822,6 @@ public class MessageTrackerHubConnector extends GuiHubConnector
      * in the JList.
      */
     private class ClientTransmissionListListener implements ListDataListener {
-        private final boolean tx_;
-
-        /**
-         * Constructor.
-         *
-         * @param  tx  true for send, false for receive
-         */
-        ClientTransmissionListListener( boolean tx ) {
-            tx_ = tx;
-        }
 
         public void contentsChanged( ListDataEvent evt ) {
             transmissionChanged( evt );
@@ -852,8 +843,8 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             assert src instanceof Transmission;
             if ( src instanceof Transmission ) {
                 Transmission trans = (Transmission) src;
-                getClientSet().updateClient( tx_ ? trans.getReceiver()
-                                                 : trans.getSender() );
+                getClientSet().updateClient( trans.getReceiver() );
+                getClientSet().updateClient( trans.getSender() );
             }
         }
     }
