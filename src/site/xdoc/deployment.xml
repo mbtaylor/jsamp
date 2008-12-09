@@ -20,16 +20,16 @@ This means that you can choose which XML-RPC library is used.
 Currently, there are the following possibilities:
 </p>
 <dl>
+<dt>Internal</dt>
+<dd>A standalone library implementation is provided within JSAMP,
+    so if you wish to use this, no external dependencies are required.
+    This is currently a bit slower than the Apache implementation.
+    </dd>
 <dt>Apache XML-RPC 1.2</dt>
 <dd>To use the Apache XML-RPC library, the Apache classes must be on the
     class path.  They can be found in the jar file
     <a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
                                                        >xmlrpc-1.2-b1.jar</a>.
-    </dd>
-<dt>Internal</dt>
-<dd>A standalone library implementation is provided within JSAMP,
-    so if you wish to use this, no external dependencies are required.
-    This is currently a bit slower than the Apache implementation.
     </dd>
 <dt>Roll your own</dt>
 <dd>By implementing the class
