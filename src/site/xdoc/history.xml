@@ -99,8 +99,72 @@
     </dl>
     </dd>
 
-<dt>Next version</dt>
+<dt><a href="../jsamp-0.3/index.html">Version 0.3</a>
+    (December 2008)</dt>
 <dd><dl>
+    <dt>Major New Features:</dt>
+    <dd><ul>
+        <li>There is now an option for both hub and client GUI to keep track
+            of and display messages which have been sent.
+            HubRunner and HubMonitor GUIs by default now have tabs
+            showing messages sent/received and their current status -
+            see <a href="gui.html">GUI Features</a> section for some
+            screenshots.
+            To see this in action, start the <code>HubRunner</code> in
+            (default) <code>msg-gui</code> mode and then run 
+            <code>HubTester</code>.  Or just use the hub with your own
+            SAMP clients.
+            Note that this functionality incurs some overhead - if not used
+            no such overhead is incurred.
+            </li>
+        <li>Facilities have been added for full logging of all XML or RPC 
+            communications in the hub or clients.
+            See new <code>xml-log</code> and <code>rpc-log</code> options
+            to <code>-xmlrpc</code> flags of command-line tools, and classes
+            <code>org.astrogrid.samp.xmlrpc.internal.*LoggingInternal*</code>.
+            </li>
+        <li>Replace <code>DefaultSendActionManager</code> with other,
+            more capable, <code>SendActionManager</code> subclasses.
+            This makes it easy to handle the results from messages which 
+            have been sent, for instance by passing the information to the
+            user graphically or in other ways.
+            </li>
+        <li>HubMonitor tool can now subscribe to messages other than 
+            administrative ones, like Snooper.
+            </li>
+        <li>MessageSender tool now pretty-prints response(s).
+            </li>
+        </ul>
+        </dd>
+
+    <dt>Backwards Compatibility:</dt>
+    <dd>There have been a number of changes since release 0.2 which are 
+        backwardly incompatible, so that source code using earlier versions
+        of JSAMP will need to be adjusted.  GUI-related functionality is
+        most affected.  This is because I'm still 
+        designing it, and some changes were required to accommodate new
+        features etc; sorry. I hope that there will be fewer backwardly 
+        incompatible changes in the future as the library matures - but I'm
+        not offering any guarantees just yet.
+        Some of the more obvious changes are as follows:
+        <ul>
+        <li>New class <code>gui.GuiHubConnector</code> now contains the
+            Swing-related functionality which was previously in 
+            (its superclass) <code>client.HubConnector</code>, and also
+            all the functionality from the now removed class
+            <code>gui.ConnectorGui</code>.
+            </li>
+        <li><code>HubRunner</code> and <code>ConnectorGui</code> APIs modified 
+            to permit use of various different hub implementations
+            (with different graphical characteristics -
+            see <code>HubMode</code>).
+            </li>
+        </ul> 
+        If there are things which used to work in a previous version and you
+        can't see how to do it now, please contact me and I'll advise how
+        to update.
+        </dd>
+
     <dt>Bugfixes:</dt>
     <dd><ul>
         <li>Fixed server error which sometimes resulted in failed reads,
@@ -108,50 +172,26 @@
         <li>Fixed error in handling CalcStorm <code>-xmlrpc</code> flag.</li>
         </ul>
         </dd>
+
     <dt>Other:</dt>
     <dd><ul>
-        <li>Improved performance of internal client when sending long 
-            messages.</li>
-        <li>Added test for long messages in HubTester.</li>
-        <li>HubTester now tests nearly all <code>string</code> characters.</li>
         <li>Change return values of <code>callAll</code> and
-            <code>notifyAll</code> hub methods as per modifications to 
-            standard.  Affects hub and client API, implementation and 
-            test suite.</li>
-        <li>HubConnector now subscribes to <code>samp.hub.disconnect</code>
-            MType.</li>
-        <li>Add <code>SampUtils.isSampChar()</code> convenience method.</li>
-        <li>MessageSender now pretty-prints response(s).</li>
+            <code>notifyAll</code> hub methods as per agreed modifications to 
+            the standard at version 1.1.  
+            Affects hub and client API, implementation and test suite.</li>
         <li>Default XML-RPC implementation is now Internal rather than
             Apache.</li>
+        <li>HubConnector now subscribes to <code>samp.hub.disconnect</code>
+            MType.</li>
+        <li>Improved performance of internal client when sending long 
+            messages.</li>
+        <li>Add <code>SampUtils.isSampChar()</code> convenience method.</li>
         <li>Add public <code>createTag</code> method to 
             <code>HubConnector</code>.</li>
-        <li>Replace <code>DefaultSendActionManager</code> class with
-            <code>NotifyActionManager</code> and <code>CallActionManager</code>.
-            The latter makes it easy to inform the user of responses to 
-            messages which have been sent, graphically or in other ways.</li>
-        <li><code>HubRunner</code> and <code>ConnectorGui</code> APIs modified 
-            to permit use of various different hub implementations
-            (with different graphical characteristics -
-            see <code>HubMode</code>).</li>
-        <li>Added the option to see what messages are in progress to the
-            hub view and the hub monitor.</li>
-        <li>New class <code>gui.GuiHubConnector</code> now contains the
-            Swing-related functionality which was previously in 
-            (its superclass) <code>client.HubConnector</code>, and also
-            all the functionality from the now removed class
-            <code>gui.ConnectorGui</code>.  This is a backwardly-incompatible
-            change which may well be visible to client code, but
-            the changes required are not difficult to make.</li>
-        <li><code>HubConnector</code> class moved from <code>samp.client</code>
-            into <code>samp.gui</code> package.</li>
-        <li>Added facilities for full logging of all XML or RPC communications.
-            See new <code>xml-log</code> and <code>rpc-log</code> options
-            to <code>-xmlrpc</code> flags of command-line tools,
-            and classes
-            <code>org.astrogrid.samp.xmlrpc.internal.*LoggingInternal*</code>.
-            </li>
-        <li>Add GUI message tracking facilities in hub and client.</li>
+        <li>Added test for long messages in HubTester.</li>
+        <li>HubTester now tests nearly all legal SAMP 
+            <code>string</code> characters.</li>
+        <li>...And some other things not mentioned here.</li>
         </ul>
         </dd>
     </dl>
