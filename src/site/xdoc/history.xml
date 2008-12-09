@@ -135,6 +135,10 @@
         Note that this functionality incurs some overhead - if not used
         no such overhead is incurred.
         </li>
+    <li>A new small GUI component is available which just shows the icons for
+        all registered clients (like what used to appear in the bottom right
+        corner of VODesktop windows).
+        </li>
     <li>Facilities have been added for full logging of all XML or RPC 
         communications in the hub or clients.
         See new <code>xml-log</code> and <code>rpc-log</code> options
