@@ -46,26 +46,6 @@ class TransmissionListModel extends AbstractListModel {
     }
 
     /**
-     * Sets the delay between a transmission becoming resolved and 
-     * it getting removed from this model.
-     *
-     * @param   removeDelay  delay in milliseconds
-     */
-    public void setRemoveDelay( int removeDelay ) {
-        removeDelay_ = removeDelay;
-    }
-
-    /**
-     * Returns the delay between a transmission becoming resolved and
-     * it getting removed from this model.
-     *
-     * @return   delay in milliseconds
-     */
-    public int getRemoveDelay() {
-        return removeDelay_;
-    }
-
-    /**
      * Called whenever a transmission which is in this list has changed
      * state.
      *

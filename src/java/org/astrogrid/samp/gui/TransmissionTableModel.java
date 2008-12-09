@@ -30,12 +30,12 @@ import org.astrogrid.samp.Client;
  */
 class TransmissionTableModel implements TableModel {
 
-    private final int removeDelay_;
-    private final int maxRows_;
     private final List transList_;
     private final List tableListenerList_;
     private final ChangeListener changeListener_;
     private final Column[] columns_;
+    private int maxRows_;
+    private int removeDelay_;
 
     /** Cell renderer for Transmission.Status objects. */
     public static final TableCellRenderer STATUS_RENDERER =
