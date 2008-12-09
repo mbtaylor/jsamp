@@ -278,6 +278,7 @@ public class Transmission {
         private final static Color OK_COLOR = new Color( 0x00c000 );
         private final static Color ERROR_COLOR = new Color( 0xc00000 );
         private final static Color WARNING_COLOR = new Color( 0x806030 );
+        private final static Color NOTIFY_COLOR = new Color( 0x808080 );
 
         private final static Status OK =
             new Status( "Success", OK_COLOR, true );
@@ -288,7 +289,7 @@ public class Transmission {
         private final static Status NONE =
             new Status( "Completed (??)", WARNING_COLOR, true );
         private final static Status NOTIFIED =
-            new Status( "Notified", OK_COLOR, true );
+            new Status( "Notified", NOTIFY_COLOR, true );
         private final static Status EXCEPTION =
             new Status( "Exception", ERROR_COLOR, true );
         private final static Status ORPHANED =
