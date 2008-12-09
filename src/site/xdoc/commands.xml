@@ -100,9 +100,10 @@ but most share the following common flags:
 <p>
 The GUI window, which is used by several of these tools to display 
 the clients currently registered with the hub along with their
-metadata and subscriptions, looks something like this:
+metadata and subscriptions, looks something like the screenshot below -
+though see the <a href="gui.html">GUI Features</a> section for more detail.
 </p>
-<img src="HubMonitor.gif" alt="HubMonitor screenshot"/>
+<img src="HubMonitor.png" alt="HubMonitor screenshot"/>
 
 
 <subsection name="HubRunner">
@@ -187,6 +188,16 @@ See the source code for details.
     and received by the monitor itself.  If the <code>-nomsg</code>
     flag is given, these will not be shown.
     </dd>
+<dt><code>-mtype &lt;pattern&gt;</code></dt>
+<dd>Gives an MType or wildcarded MType pattern to subscribe to.
+    This flag may be repeated to subscribe to several different 
+    MType patterns.
+    Like the <a href="#Snooper">Snooper</a> command, it does not
+    actually understand MTypes subscribed to in this way, so it sends
+    a response with <code>samp.status</code>=<code>samp.warning</code>.
+    If omitted, only the administrative MTypes 
+    (required for the monitor to keep track of clients) are subscribed to.
+    </dd>
 </dl>
 
 </subsection>
@@ -203,12 +214,17 @@ sent, it sends a Response with
 <code>samp.status</code>=<code>samp.warning</code>.
 </p>
 
+<p>Note that the <a href="#HubMonitor">HubMonitor</a> command can also
+be used in this way; Snooper is useful if you would rather have information
+presented on standard output than in a GUI.
+</p>
+
 <p>Snooper usage is:
 </p>
 <source>&snooper-usage;</source>
 <dl>
-<dt><code>-mtypes &lt;pattern&gt;</code></dt>
-<dd>Gives an MType or wildcarded MType to subscribe to.
+<dt><code>-mtype &lt;pattern&gt;</code></dt>
+<dd>Gives an MType or wildcarded MType pattern to subscribe to.
     This flag may be repeated to subscribe to several different MType patterns.
     If omitted, a value of "<code>*</code>", i.e. subscription to all MTypes,
     will be assumed.
