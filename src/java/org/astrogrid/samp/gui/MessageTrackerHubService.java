@@ -39,18 +39,42 @@ public class MessageTrackerHubService extends GuiHubService
 
     private final Map callMap_;
     private final TransmissionTableModel transTableModel_;
-    private final int listRemoveDelay_ = 0;
-    private final int tableRemoveDelay_ = 20000;
-    private final int tableMaxRows_ = 100;
+    private final int listRemoveDelay_; 
+    private final int tableRemoveDelay_;
+    private final int tableMaxRows_;
     private MessageTrackerClientSet clientSet_;
 
+   
     /**
-     * Constructor.
+     * Constructs a hub service with default message tracker GUI expiry times.
      *
      * @param   random  random number generator
      */
     public MessageTrackerHubService( Random random ) {
+        this( random, 0, 20000, 100 );
+    }
+
+    /**
+     * Constructs a hub service with specified message tracker GUI expiry times.
+     * The delay times are times in milliseconds after message resolution
+     * before message representations expire and hence remove themselves
+     * from gui components.
+     *
+     * @param   random  random number generator
+     * @param   listRemoveDelay   expiry delay for summary icons in client
+     *                            list display
+     * @param   tableRemoveDelay  expiry delay for rows in message 
+     *                            table display
+     * @param   tableMaxRows   maximum number of rows in message table
+     *                         (beyond this limit resolved messages may be
+     *                         removed early)
+     */
+    public MessageTrackerHubService( Random random, int listRemoveDelay,
+                                     int tableRemoveDelay, int tableMaxRows ) {
         super( random );
+        listRemoveDelay_ = listRemoveDelay;
+        tableRemoveDelay_ = tableRemoveDelay;
+        tableMaxRows_ = tableMaxRows;
         callMap_ = new HashMap();  // access only from EDT;
         transTableModel_ =
             new TransmissionTableModel( true, true, tableRemoveDelay_,

@@ -55,19 +55,41 @@ public class MessageTrackerHubConnector extends GuiHubConnector
     private final Map txModelMap_;
     private final Map rxModelMap_;
     private final ListDataListener transListListener_;
-    private final int listRemoveDelay_ = 500;
-    private final int tableRemoveDelay_ = 60000;
-    private final int tableMaxRows_ = 100;
+    private final int listRemoveDelay_;
     private static final Logger logger_ =
         Logger.getLogger( MessageTrackerHubConnector.class.getName() );
 
     /**
-     * Constructor.
+     * Constructs a hub connector with default message tracker GUI expiry times.
      *
      * @param   profile  profile implementation
      */
     public MessageTrackerHubConnector( ClientProfile profile ) {
+        this( profile, 500, 20000, 100 );
+    }
+
+    /**
+     * Constructs a hub connector with specified message tracker GUI 
+     * expiry times.
+     * The delay times are times in milliseconds after message resolution
+     * before message representations expire and hence remove themselves
+     * from gui components.
+     *
+     * @param   profile  profile implementation
+     * @param   listRemoveDelay   expiry delay for summary icons in client
+     *                            list display
+     * @param   tableRemoveDelay  expiry delay for rows in message
+     *                            table display
+     * @param   tableMaxRows   maximum number of rows in message table
+     *                         (beyond this limit resolved messages may be
+     *                         removed early)
+     */
+    public MessageTrackerHubConnector( ClientProfile profile,
+                                       int listRemoveDelay,
+                                       int tableRemoveDelay,
+                                       int tableMaxRows ) {
         super( profile );
+        listRemoveDelay_ = listRemoveDelay;
         transListListener_ = new ClientTransmissionListListener();
         txListModel_ = new TransmissionListModel( listRemoveDelay_ );
         rxListModel_ = new TransmissionListModel( listRemoveDelay_ );
@@ -75,10 +97,10 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         rxListModel_.addListDataListener( transListListener_ );
         txTableModel_ =
             new TransmissionTableModel( false, true,
-                                        tableRemoveDelay_, tableMaxRows_ );
+                                        tableRemoveDelay, tableMaxRows );
         rxTableModel_ =
             new TransmissionTableModel( true, false,
-                                        tableRemoveDelay_, tableMaxRows_ );
+                                        tableRemoveDelay, tableMaxRows );
         clientMap_ = getClientMap();
         callAllMap_ = new HashMap();  // access only from EDT
         txModelMap_ = new WeakHashMap();
@@ -556,7 +578,15 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                 throws SampException {
 
             // Do the actual reply.
-            super.reply( msgId, response );
+            Throwable err;
+            try {
+                super.reply( msgId, response );
+                err = null;
+            }
+            catch ( Throwable e ) {
+                err = e;
+            }
+            final Throwable error = err;
 
             // Inform the existing transmission on the receive list 
             // that the reply has been made.
@@ -569,6 +599,9 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                         if ( msgId.equals( trans.getMessageId() ) ) {
                             trans.setResponse( Response
                                               .asResponse( response ) );
+                            if ( error != null ) {
+                                trans.setError( error );
+                            }
                             return;
                         }
                     }
