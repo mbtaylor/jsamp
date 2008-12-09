@@ -11,12 +11,12 @@
 <section name="Downloads">
 <dl>
 <dt>Jar file:</dt>
-<dd><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.2-1.jar"
-       >jsamp-0.2-1.jar</a>
+<dd><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.3.jar"
+       >jsamp-0.3.jar</a>
     </dd>
 <dt>Sources:</dt>
-<dd><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.2-1.zip"
-       >jsamp_src-0.2-1.zip</a>
+<dd><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.3.zip"
+       >jsamp_src-0.3.zip</a>
     </dd>
 <dt>Dependencies:</dt>
 <dd><a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
