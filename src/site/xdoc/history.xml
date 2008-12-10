@@ -219,6 +219,20 @@
 </dl>
 </subsection>
 
+<subsection name="Next Version">
+<p>
+<strong>Date:</strong> ??<br/>
+<strong>Archive:</strong> ??
+</p>
+
+<ul>
+<li>Add <code>GuiHubConnector.createRegisterOrHubAction</code> method,
+    which registers if it can, else offers the user to start a hub.
+    This may be the only button you need.
+    </li>
+</ul>
+</subsection>
+
 </section>
 
 </body>
