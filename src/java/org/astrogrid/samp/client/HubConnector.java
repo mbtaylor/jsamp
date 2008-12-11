@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.astrogrid.samp.Client;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -54,6 +57,12 @@ import org.astrogrid.samp.Subscriptions;
  *     asynchronously and fakes the synchrony at the client end.
  *     This is more robust and almost certainly a better idea.
  *     </dd>
+ * <dt>{@link #call call}
+ * <dt>{@link #callAll callAll}
+ * <dd>Convenience methods to make asynchronous calls without having to 
+ *     worry about registering handlers which match up message tags.
+ *     </dd>
+ *
  * </dl>
  *
  * <p>It is good practice to call {@link #setActive setActive(false)}
@@ -112,6 +121,7 @@ public class HubConnector {
     private final ConnectorCallableClient callable_;
     private final Map responseMap_;
     private final ClientTracker clientTracker_;
+    private final CallHandler callHandler_;
     private boolean isActive_;
     private HubConnection connection_;
     private Metadata metadata_;
@@ -227,6 +237,11 @@ public class HubConnector {
                 }
             }
         } );
+
+        // Listen out for responses to calls for which we have agreed to
+        // pass results to user-supplied ResultHandler objects.
+        callHandler_ = new CallHandler();
+        addResponseHandler( callHandler_ );
     }
 
     /**
@@ -518,6 +533,74 @@ public class HubConnector {
     }
 
     /**
+     * Sends a message asynchronously to a single client, making a callback 
+     * on a supplied ResultHandler object when the result arrives.
+     * The {@link org.astrogrid.samp.client.ResultHandler#done} method will
+     * be called after the result has arrived or the timeout elapses,
+     * than are given in the <code>timeout</code> parameter, whichever 
+     * happens first.
+     *
+     * <p>This convenience method allows the user to make an asynchronous
+     * call without having to worry registering message handlers and
+     * matching message tags.
+     *
+     * @param  recipientId  public-id of client to receive message
+     * @param  msg {@link org.astrogrid.samp.Message}-like map
+     * @param  resultHandler  object called back when response arrives or 
+     *                        timeout is exceeded
+     * @param  timeout  timeout in seconds, or &lt;0 for no timeout
+     */
+    public void call( String recipientId, Map msg, ResultHandler resultHandler,
+                      int timeout ) throws SampException {
+        HubConnection connection = getConnection();
+        String tag = createTag( this );
+        callHandler_.registerHandler( tag, resultHandler, timeout );
+        try {
+            connection.call( recipientId, tag, msg );
+            callHandler_.setRecipients( tag, new String[] { recipientId, } );
+        }
+        catch ( SampException e ) {
+            callHandler_.unregisterHandler( tag );
+            throw e;
+        }
+    }
+
+    /**
+     * Sends a message asynchronously to all subscribed clients, 
+     * making callbacks on a supplied ResultHandler object when the
+     * results arrive.
+     * The {@link org.astrogrid.samp.client.ResultHandler#done} method will
+     * be called after all the results have arrived or the timeout elapses,
+     * whichever happens first.
+     *
+     * <p>This convenience method allows the user to make an asynchronous
+     * call without having to worry registering message handlers and
+     * matching message tags.
+     *
+     * @param  msg {@link org.astrogrid.samp.Message}-like map
+     * @param  resultHandler  object called back when response arrives or 
+     *                        timeout is exceeded
+     * @param  timeout  timeout in seconds, or &lt;0 for no timeout
+     */
+    public void callAll( Map msg, ResultHandler resultHandler, int timeout )
+            throws SampException {
+        HubConnection connection = getConnection();
+        String tag = createTag( this );
+        callHandler_.registerHandler( tag, resultHandler, timeout );
+        try {
+            Map callMap = connection.callAll( tag, msg );
+            callHandler_.setRecipients( tag,
+                                        (String[])
+                                        callMap.keySet()
+                                               .toArray( new String[ 0 ] ) );
+        }
+        catch ( SampException e ) {
+            callHandler_.unregisterHandler( tag );
+            throw e;
+        }
+    }
+
+    /**
      * Indicates whether this connector is currently registered with a
      * running hub.
      * If true, the result of {@link #getConnection} will be non-null.
@@ -770,6 +853,303 @@ public class HubConnector {
                 logger_.warning( "Multiple (" + handleCount + ")"
                                + " handlers handled message "
                                + msgTag + " respose" );
+            }
+        }
+    }
+
+    /**
+     * ResponseHandler which looks after responses made by calls using the 
+     * call() and callAll() convenience methods.
+     */
+    private class CallHandler implements ResponseHandler {
+        private final SortedMap tagMap_;
+        private final Thread timeouter_;
+
+        /**
+         * Constructor.
+         */
+        CallHandler() {
+
+            // Set up a structure to contain tag->CallItem entries for
+            // responses we are expecting.  They are arranged in order of
+            // which is going to time out soonest.
+            tagMap_ = new TreeMap();
+
+            // Set up a thread to wake up when the next timeout has 
+            // (or at least might have) happened.
+            timeouter_ = new Thread( "ResultHandler timeout watcher" ) {
+                public void run() {
+                    watchTimeouts();
+                }
+            };
+            timeouter_.setDaemon( true );
+            timeouter_.start();
+        }
+
+        /**
+         * Runs in a daemon thread to watch out for timeouts that might
+         * have occurred.
+         */
+        private void watchTimeouts() {
+            while ( true ) {
+                synchronized ( tagMap_ ) {
+
+                    // Wait until the next scheduled timeout is expected.
+                    long nextFinish =
+                        tagMap_.isEmpty() ? Long.MAX_VALUE
+                                          : ((CallItem)
+                                             tagMap_.get( tagMap_.firstKey() ))
+                                            .finish_;
+                    final long delay = nextFinish - System.currentTimeMillis();
+                    if ( delay > 0 ) {
+                        try {
+                            tagMap_.wait( delay );
+                        }
+                        catch ( InterruptedException e ) {
+                        }
+                    }
+
+                    // Then process any timeouts that are pending.
+                    long now = System.currentTimeMillis();
+                    for ( Iterator it = tagMap_.entrySet().iterator();
+                          it.hasNext(); ) {
+                        Map.Entry entry = (Map.Entry) it.next();
+                        CallItem item = (CallItem) entry.getValue();
+                        if ( now >= item.finish_ ) {
+                            item.handler_.done();
+                            it.remove();
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * Stores a ResultHandler object which will take delivery of the
+         * responses tagged with a given tag.
+         *
+         * @param  tag  message tag identifying send/response
+         * @param  handler  callback object
+         * @param  timeout  milliseconds before forcing completion
+         */
+        public void registerHandler( String tag, ResultHandler handler,
+                                     int timeout ) {
+            long finish = timeout > 0
+                        ? System.currentTimeMillis() + timeout * 1000
+                        : Long.MAX_VALUE;  // 3e8 years
+            CallItem item = new CallItem( handler, finish );
+            if ( ! item.isDone() ) {
+                synchronized ( tagMap_ ) {
+                    tagMap_.put( tag, item );
+                    tagMap_.notifyAll();
+                }
+            }
+            else {
+                handler.done();
+            }
+        }
+
+        /**
+         * Set the recipients from which we are expecting responses.
+         * Once all are in, the handler can be disposed of.
+         *
+         * @param  tag  message tag identifying send/response
+         * @param  recipients   clients expected to reply
+         */
+        public void setRecipients( String tag, String[] recipients ) {
+            CallItem item;
+            synchronized ( tagMap_ ) {
+                item = (CallItem) tagMap_.get( tag );
+            }
+            item.setRecipients( recipients );
+            retireIfDone( tag, item );
+        }
+
+        /**
+         * Unregister a handler for which no responses are expected.
+         *
+         * @param  tag  message tag identifying send/response
+         */
+        public void unregisterHandler( String tag ) {
+            synchronized ( tagMap_ ) {
+                tagMap_.remove( tag );
+            }
+        }
+
+        public boolean ownsTag( String tag ) {
+            synchronized ( tagMap_ ) {
+                return tagMap_.containsKey( tag );
+            }
+        }
+
+        public void receiveResponse( HubConnection connection,
+                                     String responderId, String msgTag,
+                                     Response response ) {
+            final CallItem item;
+            synchronized ( tagMap_ ) {
+                item = (CallItem) tagMap_.get( msgTag );
+            }
+            if ( item != null ) {
+                item.addResponse( responderId, response );
+                retireIfDone( msgTag, item );
+            }
+        }
+
+        /**
+         * Called when a tag/handler entry might be ready to finish with.
+         */
+        private void retireIfDone( String tag, CallItem item ) {
+            if ( item.isDone() ) {
+                synchronized ( tagMap_ ) {
+                    item.handler_.done();
+                    tagMap_.remove( tag );
+                }
+            }
+        }
+    }
+
+    /**
+     * Stores state about a particular set of responses expected by the
+     * CallHandler class.
+     */
+    private class CallItem implements Comparable {
+        final ResultHandler handler_;
+        final long finish_;
+        Map responseMap_;  // responderId -> Response
+        Map recipientMap_; // responderId -> Client
+ 
+        /**
+         * Constructor.
+         *
+         * @param  handler  callback object
+         * @param  finish   epoch at which timeout should be called
+         */
+        CallItem( ResultHandler handler, long finish ) {
+            handler_ = handler;
+            finish_ = finish;
+        }
+
+        /**
+         * Sets the recipient Ids for which responses are expected.
+         *
+         * @param   recipientIds  recipient client ids
+         */
+        public synchronized void setRecipients( String[] recipientIds ) {
+            recipientMap_ = new HashMap();
+
+            // Store client objects for each recipient ID.  Note however 
+            // because of various synchrony issues we can't guarantee that
+            // all these client objects can be determined - some may be null.
+            // Store the ids as keys in any case.
+            Map clientMap = getClientMap();
+            for ( int ir = 0; ir < recipientIds.length; ir++ ) {
+                String id = recipientIds[ ir ];
+                Client client = (Client) clientMap.get( id );
+                recipientMap_.put( id, client );
+            }
+
+            // If we have pending responses (couldn't be processed earlier
+            // because no recipients), take care of them now.
+            if ( responseMap_ != null ) {
+                for ( Iterator it = responseMap_.entrySet().iterator();
+                      it.hasNext(); ) {
+                    Map.Entry entry = (Map.Entry) it.next();
+                    String responderId = (String) entry.getKey();
+                    Response response = (Response) entry.getValue();
+                    processResponse( responderId, response );
+                }
+                responseMap_ = null;
+            }
+        }
+
+        /**
+         * Take delivery of a response object.
+         *
+         * @param  responderId  client ID of responder
+         * @param  response   response object
+         */
+        public synchronized void addResponse( String responderId,
+                                              Response response ) {
+
+            // If we know the recipients, deal with it now.
+            if ( recipientMap_ != null ) {
+                processResponse( responderId, response );
+            }
+
+            // Otherwise, defer until we do know the recipients.
+            else {
+                if ( responseMap_ == null ) {
+                    responseMap_ = new HashMap();
+                }
+                responseMap_.put( responderId, response );
+            }
+        }
+
+        /**
+         * Process a response when we have both the list of recipients
+         * and the response itself.
+         *
+         * @param   responderId  client ID of responder
+         * @param   response   response object
+         */
+        private synchronized void processResponse( final String responderId,
+                                                   Response response ) {
+            if ( recipientMap_.containsKey( responderId ) ) {
+
+                // Get a client object.  We have to try belt and braces.
+                Client client = (Client) recipientMap_.get( responderId );
+                if ( client == null ) {
+                    client = (Client) getClientMap().get( responderId );
+                }
+                if ( client == null ) {
+                    client = new Client() {
+                        public String getId() {
+                            return responderId;
+                        }
+                        public Metadata getMetadata() {
+                            return null;
+                        }
+                        public Subscriptions getSubscriptions() {
+                            return null;
+                        }
+                    };
+                }
+
+                // Make the callback to the supplied handler.
+                handler_.result( client, response );
+
+                // Note that we've done this one.
+                recipientMap_.remove( responderId );
+            }
+        }
+
+        /**
+         * Indicate whether this call item has received all the responses it's
+         * going to.
+         *
+         * @return  iff no further activity is expected
+         */
+        public synchronized boolean isDone() {
+            return recipientMap_ != null
+                && recipientMap_.isEmpty();
+        }
+
+        /**
+         * Compares on timeout epochs.  
+         * Implementation is <em>consistent with equals</em>,
+         * which means it's OK to use them in a SortedMap.
+         */
+        public int compareTo( Object o ) {
+            CallItem other = (CallItem) o;
+            if ( this.finish_ < other.finish_ ) {
+                return -1;
+            }
+            else if ( this.finish_ > other.finish_ ) {
+                return +1;
+            }
+            else {
+                return System.identityHashCode( this )
+                     - System.identityHashCode( other );
             }
         }
     }
