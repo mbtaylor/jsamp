@@ -2,6 +2,7 @@ package org.astrogrid.samp;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -14,6 +15,7 @@ import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
+import org.astrogrid.samp.client.ResultHandler;
 import org.astrogrid.samp.client.SampException;
 
 public class HubConnectorTest extends TestCase {
@@ -149,12 +151,14 @@ public class HubConnectorTest extends TestCase {
         TestMessageHandler echo = new TestMessageHandler();
 
         HubConnector c1 = new HubConnector( profile );
+        String id1 = c1.getConnection().getRegInfo().getSelfId();
         c1.addMessageHandler( echo );
         Subscriptions subs1 = new Subscriptions();
         subs1.addMType( ECHO_MTYPE );
         c1.declareSubscriptions( subs1 );
 
         HubConnector c2 = new HubConnector( profile );
+        String id2 = c2.getConnection().getRegInfo().getSelfId();
         c2.addMessageHandler( echo );
         c2.declareSubscriptions( c2.computeSubscriptions() );
 
@@ -164,15 +168,32 @@ public class HubConnectorTest extends TestCase {
         Message msg = new Message( ECHO_MTYPE, params );
         msg.check();
         Response r1 =
-            c1.callAndWait( c2.getConnection().getRegInfo().getSelfId(),
-                            msg, 0 );
+            c1.callAndWait( id2, msg, 0 );
         Response r2 =
-            c2.callAndWait( c1.getConnection().getRegInfo().getSelfId(),
-                            msg, 0 );
+            c2.callAndWait( id1, msg, 0 );
         assertEquals( Response.OK_STATUS, r1.getStatus() );
         assertEquals( Response.OK_STATUS, r2.getStatus() );
         assertEquals( params, r1.getResult() );
         assertEquals( params, r2.getResult() );
+
+        TestResultHandler tHandler = new TestResultHandler();
+        c1.call( id2, msg, tHandler, 0 );
+        int millis = tHandler.waitTillDone();
+        assert tHandler.getResponse( id2 ).isOK();
+
+        msg.addParam( "waitMillis", "5000" );
+        TestResultHandler th2 = new TestResultHandler();
+        TestResultHandler th3 = new TestResultHandler();
+        c1.call( id2, msg, th2, 1 );
+        c1.callAll( msg, th3, 1 );
+        assertTrue( ! th2.isDone_ );
+        assertTrue( ! th3.isDone_ );
+        int delay = th2.waitTillDone() + th3.waitTillDone();
+        assertTrue( delay > 400 );
+        assertTrue( th2.isDone_ );
+        assertTrue( th3.isDone_ );
+        assertTrue( th2.getResponse( id2 ) == null );
+        assertTrue( th3.getResponse( id2 ) == null );
 
         profile.stopHub();
     }
@@ -188,7 +209,7 @@ public class HubConnectorTest extends TestCase {
         return connection.getMetadata( connection.getRegInfo().getSelfId() );
     }
 
-    private void delay( int millis ) {
+    static void delay( int millis ) {
         Object o = new Object();
         synchronized ( o ) {
             try {
@@ -206,7 +227,49 @@ public class HubConnectorTest extends TestCase {
         }
         public Map processCall( HubConnection conn, String senderId,
                                 Message msg ) {
+            String waitParam = (String) msg.getParam( "waitMillis" );
+            if ( waitParam != null ) {
+                int delay = SampUtils.decodeInt( waitParam );
+                delay( delay );
+            }
             return msg.getParams();
+        }
+    }
+
+    private static class TestResultHandler implements ResultHandler {
+        boolean isDone_;
+        final Map resultMap_ = Collections.synchronizedMap( new HashMap() );
+
+        public synchronized void result( Client client, Response response ) {
+            resultMap_.put( client.getId(), response );
+            notifyAll();
+        }
+
+        public synchronized void done() {
+            isDone_ = true;
+            notifyAll();
+        }
+
+        public Response getResponse( String clientId ) {
+            return (Response) resultMap_.get( clientId );
+        }
+
+        public synchronized int waitTillDone() {
+            long start = System.currentTimeMillis();
+            while ( ! isDone_ ) {
+                try {
+                    wait();
+                }
+                catch ( InterruptedException e ) {
+                    fail();
+                }
+            }
+            return (int) ( System.currentTimeMillis() - start );
+        }
+
+        public void reset() {
+            isDone_ = false;
+            resultMap_.clear();
         }
     }
 }

@@ -230,6 +230,14 @@
     which registers if it can, else offers the user to start a hub.
     This may be the only button you need.
     </li>
+<li><code>ResultHandler</code> and <code>LogResultHandler</code> classes
+    moved from package <code>gui</code> to <code>client</code>.
+    </li>
+<li>Add convenience methods <code>call</code> and <code>callAll</code>
+    to <code>HubConnector</code> - these allow you to make asynchronous calls
+    so that the results are delivered as callbacks to supplied objects
+    without having to worry about registering handlers and matching tags.
+    </li>
 </ul>
 </subsection>
 
