@@ -1,4 +1,4 @@
-package org.astrogrid.samp.gui;
+package org.astrogrid.samp.client;
 
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Response;
@@ -16,10 +16,10 @@ public interface ResultHandler {
      * Called when a response is received from a client to which the message
      * was sent.
      *
-     * @param   client  responder client
+     * @param   responder  responder client
      * @return  response  content of response
      */
-    public void result( Client client, Response response );
+    public void result( Client responder, Response response );
 
     /**
      * Called when no more {@link #result} invocations will be made,

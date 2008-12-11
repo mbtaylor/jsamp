@@ -14,6 +14,7 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
+import org.astrogrid.samp.client.ResultHandler;
 
 /**
  * SendActionManager which uses the Asynchronous Call/Response delivery

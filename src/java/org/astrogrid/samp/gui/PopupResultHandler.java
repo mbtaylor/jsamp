@@ -33,6 +33,7 @@ import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.ResultHandler;
 
 /**
  * ResultHandler which pops up a window displaying progress and success

@@ -16,7 +16,9 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.LogResultHandler;
 import org.astrogrid.samp.client.ResponseHandler;
+import org.astrogrid.samp.client.ResultHandler;
 
 /**
  * Partial SendActionManager implementation which 
@@ -69,7 +71,7 @@ public abstract class AbstractCallActionManager extends SendActionManager {
      * This method will be called from the event dispatch thread.
      *
      * <p>The default implementation returns an instance of
-     * {@link LogResultHandler}.
+     * {@link org.astrogrid.samp.client.LogResultHandler}.
      *
      * @param  connection  connection object
      * @param  msg  the message which was sent

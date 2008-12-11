@@ -1,4 +1,4 @@
-package org.astrogrid.samp.gui;
+package org.astrogrid.samp.client;
 
 import java.util.logging.Logger;
 import org.astrogrid.samp.Client;
