@@ -21,7 +21,8 @@ import java.util.Map;
  */
 public class URLMapperHandler implements HttpServer.Handler {
     private final String basePath_;
-    private final URL sourceURL_;
+    private final URL baseUrl_;
+    private final URL sourceUrl_;
     private final boolean includeRelatives_;
 
     /** Buffer size for copying data to response. */
@@ -30,22 +31,42 @@ public class URLMapperHandler implements HttpServer.Handler {
     /**
      * Constructor.
      *
+     * @param   server     server within which this handler will be used
      * @param   basePath   path of served resources relative to the base path
      *                     of the server itself
-     * @param   sourceURL  URL of the resource which is to be made available
+     * @param   sourceUrl  URL of the resource which is to be made available
      *                     at the basePath by this handler
      * @param   includeRelatives  if true, relative URLs based at 
      *                     <code>basePath</code>
      *                     may be requested (potentially giving access to 
      *                     for instance the entire tree of classpath resources);
      *                     if false, only the exact resource named by 
-     *                     <code>sourceURL</code> is served
+     *                     <code>sourceUrl</code> is served
      */
-    public URLMapperHandler( String basePath, URL sourceURL,
-                             boolean includeRelatives ) {
+    public URLMapperHandler( HttpServer server, String basePath, URL sourceUrl,
+                             boolean includeRelatives )
+            throws MalformedURLException {
+        if ( ! basePath.startsWith( "/" ) ) {
+            basePath = "/" + basePath;
+        }
+        if ( ! basePath.endsWith( "/" ) ) {
+            basePath = basePath + "/";
+        }
         basePath_ = basePath;
-        sourceURL_ = sourceURL;
+        baseUrl_ = new URL( server.getBaseUrl(), basePath );
+        sourceUrl_ = sourceUrl;
         includeRelatives_ = includeRelatives;
+    }
+
+    /**
+     * Returns the base URL for this handler.
+     * If not including relatives, this will be the only URL served.
+     *
+     * @param  server   server giving the context in which this handler is used
+     * @return  URL
+     */
+    public URL getBaseUrl() {
+        return baseUrl_;
     }
 
     public HttpServer.Response serveRequest( HttpServer.Request request ) {
@@ -59,7 +80,7 @@ public class URLMapperHandler implements HttpServer.Handler {
         final URL srcUrl;
         if ( includeRelatives_ ) {
             try {
-                srcUrl = new URL( sourceURL_, relPath );
+                srcUrl = new URL( sourceUrl_, relPath );
             }
             catch ( MalformedURLException e ) {
                 return HttpServer
@@ -68,7 +89,7 @@ public class URLMapperHandler implements HttpServer.Handler {
         }
         else {
             if ( relPath.length() == 0 ) {
-                srcUrl = sourceURL_;
+                srcUrl = sourceUrl_;
             }
             else {
                 return HttpServer.createErrorResponse( 403, "Forbidden" );
