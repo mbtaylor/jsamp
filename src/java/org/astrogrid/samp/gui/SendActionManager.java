@@ -1,11 +1,16 @@
 package org.astrogrid.samp.gui;
 
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractListModel;
 import javax.swing.Action;
+import javax.swing.ComboBoxModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JMenu;
@@ -45,6 +50,9 @@ public abstract class SendActionManager {
     private static Icon BROADCAST_ICON;
     private static final Logger logger_ =
         Logger.getLogger( SendActionManager.class.getName() );
+
+    /** ComboBox element indicating broadcast to all clients. */
+    public static final String BROADCAST_TARGET = "All Clients";
 
     /**
      * Constructor.
@@ -216,6 +224,48 @@ public abstract class SendActionManager {
     }
 
     /**
+     * Returns a new ComboBoxModel containing selections for each suitable
+     * client and an additional selection for broadcast to all clients.
+     * Elements are {@link org.astrogrid.samp.Client} objects, or 
+     * {@link #BROADCAST_TARGET} to indicate broadcast.
+     * The result of this is suitable for use with {@link #createTargetAction}.
+     *
+     * @return  new client combo box model
+     */
+    public ComboBoxModel createTargetSelector() {
+        return new TargetComboBoxModel( subscribedClientModel_ );
+    }
+
+    /**
+     * Returns an action suitable for sending the message represented by
+     * this manager to a target selected by a supplied ComboBoxModel.
+     * This model is typically the result of calling
+     * {@link #createTargetSelector}.
+     *
+     * @param   targetSelector   combo box model in which the elements are
+     *          {@link org.astrogrid.samp.Client} objects,
+     *          or {@link #BROADCAST_TARGET} null to indicate broadcast
+     */
+    public Action createTargetAction( final ComboBoxModel targetSelector ) {
+        return new AbstractAction( "Send to selected target" ) {
+            public void actionPerformed( ActionEvent evt ) {
+                Object target = targetSelector.getSelectedItem();
+                if ( target instanceof Client ) {
+                    getSendAction( (Client) target );
+                }
+                else if ( BROADCAST_TARGET.equals( target ) ) {
+                    getBroadcastAction().actionPerformed( evt );
+                }
+                else {
+                    Toolkit.getDefaultToolkit().beep();
+                    logger_.warning( "Unknown send target: " + target
+                                   + " - no action" );
+                }
+            }
+        };
+    }
+
+    /**
      * Returns this manager's hub connector.
      *
      * @return  connector
@@ -262,5 +312,67 @@ public abstract class SendActionManager {
             BROADCAST_ICON = IconStore.createResourceIcon( "tx3.gif" );
         }
         return BROADCAST_ICON;
+    }
+
+    /**
+     * ComboBoxModel implementation used for selecting a target client.
+     * It essentiall mirrors an existing client model but prepends a
+     * broadcast option.
+     */
+    private static class TargetComboBoxModel extends AbstractListModel
+                                             implements ComboBoxModel {
+        private final ListModel clientListModel_;
+        private Object selectedItem_ = BROADCAST_TARGET;
+
+        /**
+         * Constructor.
+         *
+         * @param  clientListModel  list model containing suitable
+         *                          {@link org.astrogrid.samp.Client}s
+         */
+        TargetComboBoxModel( ListModel clientListModel ) {
+            clientListModel_ = clientListModel;
+
+            /* Watch the underlying client model for changes and
+             * update this one accordingly. */
+            clientListModel_.addListDataListener( new ListDataListener() {
+                public void contentsChanged( ListDataEvent evt ) {
+                    fireContentsChanged( evt.getSource(),
+                                         adjustIndex( evt.getIndex0() ),
+                                         adjustIndex( evt.getIndex1() ) );
+                }
+                public void intervalAdded( ListDataEvent evt ) {
+                    fireIntervalAdded( evt.getSource(),
+                                       adjustIndex( evt.getIndex0() ),
+                                       adjustIndex( evt.getIndex1() ) );
+                }
+                public void intervalRemoved( ListDataEvent evt ) {
+                    fireIntervalRemoved( evt.getSource(),
+                                         adjustIndex( evt.getIndex0() ),
+                                         adjustIndex( evt.getIndex1() ) );
+                }
+                private int adjustIndex( int index ) {
+                    return index >= 0 ? index + 1
+                                      : index;
+                }
+            } );
+        }
+
+        public int getSize() {
+            return clientListModel_.getSize() + 1;
+        }
+
+        public Object getElementAt( int index ) {
+            return index == 0 ? BROADCAST_TARGET
+                              : clientListModel_.getElementAt( index - 1 );
+        }
+
+        public Object getSelectedItem() {
+            return selectedItem_;
+        }
+
+        public void setSelectedItem( Object item ) {
+            selectedItem_ = item;
+        }
     }
 }
