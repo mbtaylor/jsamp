@@ -226,6 +226,14 @@
 </p>
 
 <ul>
+<li>Moved HTTP server implementation used by internal XML-RPC implementation
+    into its own package, <code>samp.httpd</code>.  Also added some utility
+    classes in that package to facilitate serving dynamic resources and 
+    resources from the classpath. 
+    This is because having a simple self-contained HTTP server 
+    may be useful for client implementations doing SAMP-like things 
+    other than strictly communicating with the hub.
+    </li>
 <li>Add <code>GuiHubConnector.createRegisterOrHubAction</code> method,
     which registers if it can, else offers the user to start a hub.
     This may be the only button you need.
@@ -237,6 +245,11 @@
     to <code>HubConnector</code> - these allow you to make asynchronous calls
     so that the results are delivered as callbacks to supplied objects
     without having to worry about registering handlers and matching tags.
+    </li>
+<li>Add <code>createTargetSelector</code>/<code>createTargetAction</code>
+    methods to <code>SendActionManager</code> class.
+    These give another way (button plus combo box) go allow users to trigger 
+    a send.
     </li>
 </ul>
 </subsection>
