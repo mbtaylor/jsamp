@@ -49,7 +49,7 @@ public class URLMapperHandler implements HttpServer.Handler {
         if ( ! basePath.startsWith( "/" ) ) {
             basePath = "/" + basePath;
         }
-        if ( ! basePath.endsWith( "/" ) ) {
+        if ( ! basePath.endsWith( "/" ) && includeRelatives ) {
             basePath = basePath + "/";
         }
         basePath_ = basePath;
