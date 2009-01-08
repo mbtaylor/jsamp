@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import org.astrogrid.samp.httpd.HttpServer;
 
 /**
  * Freestanding InternalServer implementation which logs all incoming
@@ -62,7 +63,7 @@ public class XmlLoggingInternalServer extends InternalServer {
                    base.getHeaderMap() );
             base_ = base;
         }
-        protected void writeBody( OutputStream out ) throws IOException {
+        public void writeBody( OutputStream out ) throws IOException {
             ByteArrayOutputStream bout = new ByteArrayOutputStream();
             base_.writeBody( bout );
             byte[] bbuf = bout.toByteArray();

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcHandler;
 
 /**

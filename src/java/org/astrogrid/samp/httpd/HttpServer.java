@@ -1,4 +1,4 @@
-package org.astrogrid.samp.xmlrpc.internal;
+package org.astrogrid.samp.httpd;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -28,8 +28,11 @@ import org.astrogrid.samp.SampUtils;
  * requests.  
  * Suitable for very large response bodies, but not for very large 
  * request bodies.
- * Concrete subclasses need to implement the {@link #serve} method.
+ * Add one or more {@link HttpServer.Handler}s to serve actual requests.
  * The protocol version served is HTTP/1.0.
+ *
+ * <p>This class is completely self-contained, so that it can easily be 
+ * lifted out and used in other packages if required.
  *
  * @author   Mark Taylor
  * @since    21 Aug 2008
@@ -468,7 +471,7 @@ public class HttpServer {
      */
     public static Response createErrorResponse( int code, String phrase ) {
         return new Response( code, phrase, null ) {
-            protected void writeBody( OutputStream out ) {
+            public void writeBody( OutputStream out ) {
             }
         };
     }
@@ -486,7 +489,7 @@ public class HttpServer {
         Map hdrMap = new HashMap();
         hdrMap.put( HDR_CONTENT_TYPE, "text/plain" );
         return new Response( code, phrase, hdrMap ) {
-            protected void writeBody( OutputStream out ) {
+            public void writeBody( OutputStream out ) {
                 PrintStream pout = new PrintStream( out );
                 e.printStackTrace( pout );
                 pout.flush();
@@ -635,8 +638,7 @@ public class HttpServer {
          *
          * @param  out  destination stream for body bytes
          */
-        protected abstract void writeBody( OutputStream out )
-                throws IOException;
+        public abstract void writeBody( OutputStream out ) throws IOException;
 
         /**
          * Writes this response to an output stream in a way suitable for

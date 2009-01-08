@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcHandler;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
 import org.w3c.dom.Document;
@@ -115,7 +116,7 @@ public class InternalServer implements SampXmlRpcServer {
         hdrMap.put( "Content-Length", Integer.toString( replyBuf.length ) );
         hdrMap.put( "Content-Type", "text/xml" );
         return new HttpServer.Response( 200, "OK", hdrMap ) {
-            protected void writeBody( OutputStream out ) throws IOException {
+            public void writeBody( OutputStream out ) throws IOException {
                 out.write( replyBuf );
             }
         };
