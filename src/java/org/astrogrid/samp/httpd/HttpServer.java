@@ -427,8 +427,8 @@ public class HttpServer {
         StringBuffer sbuf = new StringBuffer();
         for ( int c; ( c = is.read() ) >= 0; ) {
             switch ( c ) {
-                case '\n':
-                   throw new HttpException( 400, "LF w/o CR" );
+
+                // CRLF is the correct HTTP line terminator.
                 case '\r':
                     if ( is.read() == '\n' ) {
                         if ( sbuf.length() == 0 ) {
@@ -444,6 +444,20 @@ public class HttpServer {
                         throw new HttpException( 400, "CR w/o LF" );
                     }
                     break;
+
+                // HTTP 1.1 recommends that a lone LF is also tolerated as a
+                // line terminator.
+                case '\n':
+                    if ( sbuf.length() == 0 ) {
+                        return (String[])
+                               lineList.toArray( new String[ 0 ] );
+                    }
+                    else {
+                        lineList.add( sbuf.toString() );
+                        sbuf.setLength( 0 );
+                    }
+                    break;
+
                 default:
                    sbuf.append( (char) c );
             }

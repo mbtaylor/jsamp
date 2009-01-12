@@ -234,6 +234,9 @@
     may be useful for client implementations doing SAMP-like things 
     other than strictly communicating with the hub.
     </li>
+<li>Internal HTTP server now tolerates LF as well as the correct CRLF as
+    HTTP request header line terminators, as recommended by HTTP 1.1 (RFC2616).
+    </li>
 <li>Add <code>GuiHubConnector.createRegisterOrHubAction</code> method,
     which registers if it can, else offers the user to start a hub.
     This may be the only button you need.
