@@ -254,6 +254,9 @@
     These give another way (button plus combo box) go allow users to trigger 
     a send.
     </li>
+<li>Add comment to <code>.samp</code> lockfile noting that contact XML-RPC
+    URL hostname is configurable.
+    </li>
 </ul>
 </subsection>
 

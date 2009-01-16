@@ -121,6 +121,9 @@ public class HubRunner {
             try {
                 writer.writeComment( "SAMP Standard Profile lockfile written "
                                    + new Date() );
+                writer.writeComment( "Note contact URL hostname may be "
+                                   + "configured using "
+                                   + SampUtils.LOCALHOST_PROP + " property" );
                 out.flush();
                 try {
                     LockWriter.setLockPermissions( lockfile_ );
