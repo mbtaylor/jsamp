@@ -62,7 +62,6 @@ public class URLMapperHandler implements HttpServer.Handler {
      * Returns the base URL for this handler.
      * If not including relatives, this will be the only URL served.
      *
-     * @param  server   server giving the context in which this handler is used
      * @return  URL
      */
     public URL getBaseUrl() {
