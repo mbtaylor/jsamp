@@ -268,7 +268,8 @@ public abstract class Platform {
             catch ( Throwable e ) {
                 try {
                     String[] argv = { "cmd", "/c", "echo", "%USERPROFILE%", };
-                    return new File( exec( argv ) );
+                    String cmdout = exec( argv );
+                    return new File( cmdout.trim() );
                 }
                 catch ( Throwable e2 ) {
                     userprofile = null;
