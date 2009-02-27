@@ -257,6 +257,10 @@
 <li>Add comment to <code>.samp</code> lockfile noting that contact XML-RPC
     URL hostname is configurable.
     </li>
+<li>Fixed hub lockfile location bug for Windows at Java 1.4.
+    </li>
+<li>Changed SAMP protocol version to 1.11.
+    </li>
 </ul>
 </subsection>
 
