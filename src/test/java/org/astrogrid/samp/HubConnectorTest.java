@@ -17,6 +17,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.ResultHandler;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 
 public class HubConnectorTest extends TestCase {
 
@@ -25,6 +26,8 @@ public class HubConnectorTest extends TestCase {
 
     protected void setUp() {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
+        Logger.getLogger( InternalServer.class.getName() )
+              .setLevel( Level.SEVERE );
     }
 
     public void testConnector() throws IOException {
