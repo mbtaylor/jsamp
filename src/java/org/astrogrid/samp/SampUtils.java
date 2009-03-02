@@ -30,6 +30,7 @@ public class SampUtils {
         Logger.getLogger( SampUtils.class.getName() );
     private static String sampVersion_;
     private static String softwareVersion_;
+    private static File lockFile_;
     private static final String NEWLINE = getLineSeparator();
 
     /**
@@ -367,8 +368,11 @@ public class SampUtils {
      * @return  SAMP Standard Profile lockfile
      */
     public static File getLockFile() {
-        return new File( Platform.getPlatform().getHomeDirectory(),
-                         LOCKFILE_NAME );
+        if ( lockFile_ == null ) {
+            lockFile_ = new File( Platform.getPlatform().getHomeDirectory(),
+                                  LOCKFILE_NAME );
+        }
+        return lockFile_;
     }
 
     /**

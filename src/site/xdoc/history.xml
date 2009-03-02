@@ -261,6 +261,8 @@
     </li>
 <li>Changed SAMP protocol version to 1.11.
     </li>
+<li>Cache home directory when first determined in <code>SampUtil</code>.
+    </li>
 </ul>
 </subsection>
 
