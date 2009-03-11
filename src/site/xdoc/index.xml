@@ -10,7 +10,7 @@
 <section name="JSAMP">
 
 <p>JSAMP is a Java toolkit for use with the
-<a href="http://www.ivoa.net/Documents/latest/SAMP.html"
+<a href="http://www.ivoa.net/samp/"
    >Simple Applications Messaging Protocol</a>.
 It provides the following components:
 </p>
@@ -42,9 +42,9 @@ It provides the following components:
 </ul>
 
 <p>The current version targets the SAMP 
-<a href="http://www.ivoa.net/Documents/cover/SAMP-20080625.html"
-   >1.1 Proposed Recommendation</a> document
-(21 November 2008).
+<a href="http://www.ivoa.net/Documents/cover/SAMP-20090209.html"
+   >1.11 Proposed Recommendation (soon Recommendation)</a> document
+(9 February 2009).
 </p>
 
 <p>JSAMP is currently developed by 
@@ -52,7 +52,8 @@ It provides the following components:
 (m.b.taylor@bristol.ac.uk), 
 working for 
 <a href="http://www.astrogrid.org/">AstroGrid</a> in the
-<a href="http://www.star.bristol.ac.uk/">astronomy group</a> at
+<a href="http://www.phy.bris.ac.uk/groups/astrophysics/">Astrophysics Group</a>
+at
 <a href="http://www.bristol.ac.uk/">Bristol University</a>.
 Please contact me with queries, bug reports, suggestions etc.
 </p>
