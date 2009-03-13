@@ -263,6 +263,9 @@
     </li>
 <li>Cache home directory when first determined in <code>SampUtil</code>.
     </li>
+<li>Fix process handling bug which caused Windows XP external hub start
+    to write incomplete lock file.
+    </li>
 </ul>
 </subsection>
 
