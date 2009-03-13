@@ -138,9 +138,15 @@ public abstract class Platform {
     private static String exec( String[] args ) throws IOException {
         String argv = Arrays.asList( args ).toString();
         logger_.info( "System exec: " + argv );
-        Process process;
+        final Process process;
+        final StreamReader outReader;
+        final StreamReader errReader;
         try {
             process = Runtime.getRuntime().exec( args );
+            outReader = new StreamReader( process.getInputStream() );
+            errReader = new StreamReader( process.getErrorStream() );
+            outReader.start();
+            errReader.start();
             process.waitFor();
         }
         catch ( InterruptedException e ) {
@@ -150,43 +156,8 @@ public abstract class Platform {
             throw (IOException)
                   new IOException( "Exec failed: " + argv ).initCause( e );
         }
-        if ( process.exitValue() == 0 ) {
-            return readStream( process.getInputStream() );
-        }
-        else {
-            String err;
-            try {
-                err = readStream( process.getErrorStream() );
-            }
-            catch ( IOException e ) {
-                err = "??";
-            }
-            throw new IOException( "Exec failed: " + argv + " - " + err );
-        }
-    }
-
-    /**
-     * Slurps the contents of an input stream into a string.
-     * The stream is closed.
-     *
-     * @param  in  input stream
-     * @return  contents of <code>in</code>
-     */
-    private static String readStream( InputStream in ) throws IOException {
-        try {
-            StringBuffer sbuf = new StringBuffer();
-            for ( int c; ( c = in.read() ) >= 0; ) {
-                sbuf.append( (char) c );
-            }
-            return sbuf.toString();
-        }
-        finally {
-            try {
-                in.close();
-            }
-            catch ( IOException e ) {
-            }
-        }
+        return process.exitValue() == 0 ? outReader.getContent()
+                                        : errReader.getContent();
     }
 
     /**
@@ -216,6 +187,46 @@ public abstract class Platform {
         }
         else {
             return new UnixPlatform();
+        }
+    }
+
+    /**
+     * Thread which reads the contents of a stream into a string buffer.
+     */
+    private static class StreamReader extends Thread {
+        private final InputStream in_;
+        private final StringBuffer sbuf_;
+
+        /**
+         * Constructor.
+         *
+         * @param  in  input stream
+         */
+        StreamReader( InputStream in ) {
+            super( "StreamReader" );
+            in_ = in;
+            sbuf_ = new StringBuffer();
+            setDaemon( true );
+        }
+
+        public void run() {
+            try {
+                for ( int c; ( c = in_.read() ) >= 0; ) {
+                    sbuf_.append( (char) c );
+                }
+                in_.close();
+            }
+            catch ( IOException e ) {
+            }
+        }
+
+        /**
+         * Returns the content of the stream.
+         *
+         * @return content
+         */
+        public String getContent() {
+            return sbuf_.toString();
         }
     }
 
