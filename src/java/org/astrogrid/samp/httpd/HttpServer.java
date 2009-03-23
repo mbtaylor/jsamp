@@ -203,6 +203,7 @@ public class HttpServer {
             server.setDaemon( isDaemon_ );
             logger_.info( "Server " + getBaseUrl() + " starting" );
             server.start();
+            logger_.config( "Server " + getBaseUrl() + " started" );
         }
     }
 
