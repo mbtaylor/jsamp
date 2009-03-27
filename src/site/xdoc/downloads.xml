@@ -11,12 +11,22 @@
 <section name="Downloads">
 <dl>
 <dt>Jar file:</dt>
-<dd><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.3-1.jar"
-       >jsamp-0.3-1.jar</a>
+<dd><ul>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.3-1.jar">jsamp-0.3-1.jar</a></li>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.3.jar">jsamp-0.3.jar</a></li>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.2-1.jar">jsamp-0.2-1.jar</a></li>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.2.jar">jsamp-0.2.jar</a></li>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.1.jar">jsamp-0.1.jar</a></li>
+    </ul>
     </dd>
 <dt>Sources:</dt>
-<dd><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.3-1.zip"
-       >jsamp_src-0.3-1.zip</a>
+<dd><ul>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.3-1.zip">jsamp_src-0.3-1.zip</a></li>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.3.zip">jsamp_src-0.3.zip</a></li>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.2-1.zip">jsamp_src-0.2-1.zip</a></li>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.2.zip">jsamp_src-0.2.zip</a></li>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.1.zip">jsamp_src-0.1.zip</a></li>
+    </ul>
     </dd>
 <dt>Dependencies:</dt>
 <dd><a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
