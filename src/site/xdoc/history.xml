@@ -219,54 +219,69 @@
 </dl>
 </subsection>
 
-<subsection name="Next Version">
+<subsection name="Version 0.3-1">
 <p>
-<strong>Date:</strong> ??<br/>
-<strong>Archive:</strong> ??
+<strong>Date:</strong> 27 March 2009<br/>
+<strong>Archive:</strong> <a href="../jsamp-0.3-1/index.html">Version 0.3-1</a>
 </p>
 
-<ul>
-<li>Moved HTTP server implementation used by internal XML-RPC implementation
-    into its own package, <code>samp.httpd</code>.  Also added some utility
-    classes in that package to facilitate serving dynamic resources and 
-    resources from the classpath. 
-    This is because having a simple self-contained HTTP server 
-    may be useful for client implementations doing SAMP-like things 
-    other than strictly communicating with the hub.
-    </li>
-<li>Internal HTTP server now tolerates LF as well as the correct CRLF as
-    HTTP request header line terminators, as recommended by HTTP 1.1 (RFC2616).
-    </li>
-<li>Add <code>GuiHubConnector.createRegisterOrHubAction</code> method,
-    which registers if it can, else offers the user to start a hub.
-    This may be the only button you need.
-    </li>
-<li><code>ResultHandler</code> and <code>LogResultHandler</code> classes
-    moved from package <code>gui</code> to <code>client</code>.
-    </li>
-<li>Add convenience methods <code>call</code> and <code>callAll</code>
-    to <code>HubConnector</code> - these allow you to make asynchronous calls
-    so that the results are delivered as callbacks to supplied objects
-    without having to worry about registering handlers and matching tags.
-    </li>
-<li>Add <code>createTargetSelector</code>/<code>createTargetAction</code>
-    methods to <code>SendActionManager</code> class.
-    These give another way (button plus combo box) go allow users to trigger 
-    a send.
-    </li>
-<li>Add comment to <code>.samp</code> lockfile noting that contact XML-RPC
-    URL hostname is configurable.
-    </li>
-<li>Fixed hub lockfile location bug for Windows at Java 1.4.
-    </li>
-<li>Changed SAMP protocol version to 1.11.
-    </li>
-<li>Cache home directory when first determined in <code>SampUtil</code>.
-    </li>
-<li>Fix process handling bug which caused Windows XP external hub start
-    to write incomplete lock file.
-    </li>
-</ul>
+<dl>
+<dt>Minor Enhancements:</dt>
+<dd><ul>
+    <li>Add <code>GuiHubConnector.createRegisterOrHubAction</code> method,
+        which registers if it can, else offers the user to start a hub.
+        This may be the only button you need.
+        </li>
+    <li>Internal HTTP server now tolerates LF as well as the correct CRLF as
+        HTTP request header line terminators, as recommended by HTTP 1.1 
+        (RFC2616).
+        </li>
+    <li>Add convenience methods <code>call</code> and <code>callAll</code>
+        to <code>HubConnector</code> - these allow you to make asynchronous 
+        calls so that the results are delivered as callbacks to 
+        supplied objects without having to worry about registering
+        handlers and matching tags.
+        </li>
+    <li>Add <code>createTargetSelector</code>/<code>createTargetAction</code>
+        methods to <code>SendActionManager</code> class.
+        These give another way (button plus combo box) go allow users 
+        to trigger a send.
+        </li>
+    <li>Add comment to <code>.samp</code> lockfile noting that contact XML-RPC
+        URL hostname is configurable.
+        </li>
+    <li>Cache home directory when first determined in <code>SampUtil</code>.
+        </li>
+    </ul>
+    </dd>
+<dt>Backward Compatibility:</dt>
+<dd><ul>
+    <li>Moved HTTP server implementation used by internal XML-RPC 
+        implementation into its own package, <code>samp.httpd</code>.
+        Also added some utility classes in that package to facilitate
+        serving dynamic resources and resources from the classpath. 
+        This is because having a simple self-contained HTTP server 
+        may be useful for client implementations doing SAMP-like things 
+        other than strictly communicating with the hub.
+        </li>
+    <li><code>ResultHandler</code> and <code>LogResultHandler</code> classes
+        moved from package <code>gui</code> to <code>client</code>.
+        </li>
+    <li>Changed SAMP protocol version to 1.11.
+        </li>
+    </ul>
+    </dd>
+<dt>Bug Fixes:</dt>
+<dd><ul>
+    <li>Fixed hub lockfile location bug for Windows at Java 1.4.
+        </li>
+    <li>Fix process handling bug which caused Windows XP external hub start
+        to write incomplete lock file.
+        </li>
+    </ul>
+    </dd>
+</dl>
+
 </subsection>
 
 </section>
