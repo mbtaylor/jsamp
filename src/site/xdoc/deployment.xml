@@ -97,6 +97,13 @@ They are organised as follows:
     itself, which are not present in the distributed jar file.
     </dd>
 <dt><a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/httpd/package-summary.html"
+                    >org.astrogrid.samp.httpd</a></dt>
+<dd>Simple HTTP server implementation.  This is required by the internal
+    XML-RPC implementation.  It may also provide useful utility functionality
+    for client applications who wish to serve resources over HTTP.
+    </dd>
+<dt><a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/xmlrpc/package-summary.html"
                     >org.astrogrid.samp.xmlrpc</a></dt>
 <dd>Classes which deal with implementing the Standard Profile of SAMP,
