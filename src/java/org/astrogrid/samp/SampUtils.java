@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -379,14 +380,25 @@ public class SampUtils {
      * Returns a string denoting the local host to be used for communicating
      * local server endpoints and so on.
      *
-     * <p>This is normally obtained by calling
+     * <p>The value returned by default is the loopback address, "127.0.0.1".
+     * However this behaviour can be overridden by setting the
+     * {@link #LOCALHOST_PROP} system property to the string which should
+     * be returned instead.
+     * This may be necessary if the loopback address is not appropriate,
+     * for instance in the case of multiple configured loopback interfaces(?)
+     * or where SAMP communication is required across different machines.
+     * If the LOCALHOST_PROP has the special value "[hostname]", then
+     * the return value will be the result of calling
      * <pre>
      *    java.net.InetAddress.getLocalHost().getCanonicalHostName()
      * </pre>
-     * but this behaviour can be overridden by setting the
-     * {@link #LOCALHOST_PROP} system property to the string which should
-     * be returned instead.  Sometimes local network issues make it 
-     * advantageous to use some non-standard string such as "127.0.0.1".
+     * unless that fails, in which case 127.0.0.1 will be used.
+     *
+     * <p>In JSAMP version 0.3-1 and prior versions, the [hostname]
+     * behaviour was the default.
+     * Although this might be seen as more correct, in practice it could cause
+     * a lot of problems with DNS configurations which are incorrect or
+     * unstable (common in laptops outside their usual networks).
      * See, for instance, AstroGrid bugzilla tickets
      * <a href="http://www.astrogrid.org/bugzilla/show_bug.cgi?id=1799"
      *    >1799</a>,
@@ -396,15 +408,23 @@ public class SampUtils {
      * @return  local host name
      */
     public static String getLocalhost() {
+        final String defaultHost = "127.0.0.1";
         String hostname = System.getProperty( LOCALHOST_PROP, "" );
         if ( hostname.length() == 0 ) {
+            hostname = defaultHost;
+        }
+        else if ( "[hostname]".equals( hostname ) ) {
             try {
                 hostname = InetAddress.getLocalHost().getCanonicalHostName();
             }
             catch ( UnknownHostException e ) {
-                hostname = "127.0.0.1";
+                logger_.log( Level.WARNING,
+                             "Local host determination failed - fall back to "
+                           + defaultHost, e );
+                hostname = defaultHost;
             }
         }
+        logger_.config( "Local host is " + hostname );
         return hostname;
     }
 

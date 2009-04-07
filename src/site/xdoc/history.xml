@@ -284,6 +284,18 @@
 
 </subsection>
 
+<subsection name="Next version">
+<p>
+<strong>Date:</strong> ??<br/>
+<strong>Archive:</strong> ??
+</p>
+
+<ul>
+<li>Default hostname for HTTP server etc (<code>SampUtils.getLocalHost()</code>)
+    is now "127.0.0.1", not DNS name.</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>

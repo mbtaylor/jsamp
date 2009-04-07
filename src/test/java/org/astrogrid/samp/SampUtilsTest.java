@@ -1,10 +1,13 @@
 package org.astrogrid.samp;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 
 import junit.framework.TestCase;
@@ -64,6 +67,25 @@ public class SampUtilsTest extends TestCase {
         goodObject( xmap );
         xmap.put( abclist, "xx" );
         badObject( xmap );
+    }
+
+    public void testHostname() throws UnknownHostException {
+        String hprop = SampUtils.LOCALHOST_PROP;
+        Properties sysprops = System.getProperties();
+        String prop = sysprops.getProperty( hprop );
+        sysprops.remove( hprop );
+        assertEquals( "127.0.0.1", SampUtils.getLocalhost() );
+        sysprops.setProperty( hprop, "host-with-the-most" );
+        assertEquals( "host-with-the-most", SampUtils.getLocalhost() );
+        sysprops.setProperty( hprop, "[hostname]" );
+        assertEquals( InetAddress.getLocalHost().getCanonicalHostName(),
+                      SampUtils.getLocalhost() );
+        if ( prop == null ) {
+            sysprops.remove( hprop );
+        }
+        else {
+            sysprops.setProperty( hprop, prop );
+        }
     }
 
     private void goodObject( Object obj ) {
