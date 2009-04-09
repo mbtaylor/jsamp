@@ -25,7 +25,7 @@
   <!-- New goal to generate a sources export file. -->
   <goal name="source-zip"
         description="Build zip file containing buildable(?) sources for export"
-        prereqs="ant:generate-build">
+        prereqs="ant:generate-build,java:jar-resources">
     <ant:mkdir dir="target"/>
     <ant:zip destfile="target/jsamp_src-${pom.currentVersion}.zip">
       <ant:fileset dir="target">
@@ -35,6 +35,9 @@
         <include name="src/java/**"/>
         <include name="src/resources/**"/>
       </ant:fileset>
+      <ant:zipfileset dir="target/classes" prefix="src/resources">
+        <include name="org/astrogrid/samp/jsamp.version"/>
+      </ant:zipfileset>
     </ant:zip>
   </goal>
 
