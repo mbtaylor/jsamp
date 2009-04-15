@@ -295,6 +295,9 @@
     is now "127.0.0.1", not DNS name.</li>
 <li>Missing <code>jsamp.version</code> file now included in source 
     zip archive.</li>
+<li>Added <code>parseValue</code> utility method to SampUtils class.</li>
+<li>Added <code>-clientname</code> and <code>-clientmeta</code> flags to
+    <code>Snooper</code> command-line tool.</li>
 </ul>
 </subsection>
 
