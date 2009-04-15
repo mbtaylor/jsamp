@@ -156,7 +156,7 @@ public abstract class MessageSender {
                     System.err.println( usage );
                     return 1;
                 }
-                paramMap.put( pName, parseValue( pValue ) );
+                paramMap.put( pName, SampUtils.parseValue( pValue ) );
             }
             else if ( arg.equals( "-mode" ) && it.hasNext() ) {
                 it.remove();
@@ -181,7 +181,7 @@ public abstract class MessageSender {
                     System.err.println( usage );
                     return 1;
                 }
-                meta.put( mName, parseValue( mValue ) );
+                meta.put( mName, SampUtils.parseValue( mValue ) );
             }
             else if ( arg.equals( "-timeout" ) && it.hasNext() ) {
                 it.remove();
@@ -284,20 +284,6 @@ public abstract class MessageSender {
         // Tidy up and exit.
         connection.unregister();
         return 0;
-    }
-
-    /**
-     * Parses a command-line string as a SAMP object.
-     * Currently, this just returns the same string, but it ought to have
-     * some method of decoding (nested) list and maps as well (JSON?).
-     *
-     * @param   str   command-line argument
-     * @return  SAMP object
-     */
-    private static Object parseValue( String str ) {
-        Object sampObj = str;
-        SampUtils.checkObject( sampObj );
-        return sampObj;
     }
 
     /**
