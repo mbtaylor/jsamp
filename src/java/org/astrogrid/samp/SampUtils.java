@@ -377,6 +377,26 @@ public class SampUtils {
     }
 
     /**
+     * Parses a command-line string as a SAMP object.
+     * Currently, this just returns the same string, or null for a
+     * zero-length string, but it ought to have some method of decoding 
+     * (nested) list and maps as well (JSON?).
+     *
+     * @param   str   command-line argument
+     * @return  SAMP object
+     */
+    public static Object parseValue( String str ) {
+        if ( str == null || str.length() == 0 ) {
+            return null;
+        }
+        else {
+            Object sval = str;
+            checkObject( sval );
+            return sval;
+        }
+    }
+
+    /**
      * Returns a string denoting the local host to be used for communicating
      * local server endpoints and so on.
      *
