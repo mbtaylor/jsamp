@@ -53,7 +53,7 @@ public class Snooper {
         Logger.getLogger( Snooper.class.getName() );
 
     /**
-     * Constructor.
+     * Constructor using default metadata.
      *
      * @param   profile   profile
      * @param   subs    subscriptions defining which messages are received
@@ -61,21 +61,27 @@ public class Snooper {
      * @param   out     destination stream for logging info
      * @param   autoSec   number of seconds between auto connection attempts
      */
-    public Snooper( ClientProfile profile, final Subscriptions subs,
+    public Snooper( ClientProfile profile, Subscriptions subs,
                     OutputStream out, int autoSec ) {
+        this( profile, subs, createDefaultMetadata(), out, autoSec );
+    }
+
+    /**
+     * Constructor using custom metadata.
+     *
+     * @param   profile   profile
+     * @param   subs    subscriptions defining which messages are received
+     *                  and logged
+     * @param   meta    client metadata
+     * @param   out     destination stream for logging info
+     * @param   autoSec   number of seconds between auto connection attempts
+     */
+    public Snooper( ClientProfile profile, final Subscriptions subs,
+                    Metadata meta, OutputStream out, int autoSec ) {
         HubConnector connector = new HubConnector( profile );
+        connector.declareMetadata( meta );
         out_ = out;
         clientMap_ = connector.getClientMap();
-
-        // Declare metadata.
-        Metadata meta = new Metadata();
-        meta.setName( "Snooper" );
-        meta.setDescriptionText( "Listens in to messages"
-                               + " for logging purposes" );
-        meta.setIconUrl( "http://www.star.bristol.ac.uk/~mbt/"
-                       + "plastic/images/ears.png" );
-        meta.put( "Author", "Mark Taylor" );
-        connector.declareMetadata( meta );
 
         // Prepare all-purpose response to logged messages.
         final Response response = new Response();
@@ -151,6 +157,22 @@ public class Snooper {
     }
 
     /**
+     * Returns the default metadata for the Snooper client.
+     *
+     * @return  meta
+     */
+    public static Metadata createDefaultMetadata() {
+        Metadata meta = new Metadata();
+        meta.setName( "Snooper" );
+        meta.setDescriptionText( "Listens in to messages"
+                               + " for logging purposes" );
+        meta.setIconUrl( "http://www.star.bristol.ac.uk/~mbt/"
+                       + "plastic/images/ears.png" );
+        meta.put( "Author", "Mark Taylor" );
+        return meta;
+    }
+
+    /**
      * Main method.  Runs a snooper.
      */
     public static void main( String[] args ) throws IOException {
@@ -174,6 +196,9 @@ public class Snooper {
             .append( " [-/+verbose]" )
             .append( " [-xmlrpc internal|apache|xml-log|rpc-log]" )
             .append( "\n         " )
+            .append( " [-clientname <appname>]" )
+            .append( " [-clientmeta <metaname> <metavalue>]" )
+            .append( "\n         " )
             .append( " [-mtype <pattern>]" )
             .append( "\n" )
             .toString();
@@ -181,6 +206,7 @@ public class Snooper {
         int verbAdjust = 0;
         XmlRpcKit xmlrpc = null;
         Subscriptions subs = new Subscriptions();
+        Metadata meta = createDefaultMetadata();
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-mtype" ) && it.hasNext() ) {
@@ -201,6 +227,32 @@ public class Snooper {
                                  e );
                     System.err.println( usage );
                     return 1;
+                }
+            }
+            else if ( arg.equals( "-clientname" ) && it.hasNext() ) {
+                it.remove();
+                meta.setName( (String) it.next() );
+                it.remove();
+            }
+            else if ( arg.equals( "-clientmeta" ) && it.hasNext() ) {
+                it.remove();
+                String mName = (String) it.next();
+                it.remove();
+                String mValue;
+                if ( it.hasNext() ) {
+                    mValue = (String) it.next();
+                    it.remove();
+                }
+                else {
+                    System.err.println( usage );
+                    return 1;
+                }
+                Object mVal = SampUtils.parseValue( mValue );
+                if ( mVal == null ) {
+                    meta.remove( mName );
+                }
+                else {
+                    meta.put( mName, mVal );
                 }
             }
             else if ( arg.startsWith( "-v" ) ) {
@@ -241,7 +293,7 @@ public class Snooper {
                            : new StandardClientProfile( xmlrpc );
 
         // Start and run snooper.
-        new Snooper( profile, subs, System.out, 2 );
+        new Snooper( profile, subs, meta, System.out, 2 );
 
         // Wait indefinitely.
         Object lock = new String( "Forever" );
