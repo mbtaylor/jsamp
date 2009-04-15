@@ -229,6 +229,14 @@ presented on standard output than in a GUI.
     If omitted, a value of "<code>*</code>", i.e. subscription to all MTypes,
     will be assumed.
     </dd>
+<dt><code>-clientname &lt;appname&gt;</code></dt>
+<dd>Specifies the <code>samp.name</code> metadata item which the sending
+    aplication should give for its application name following registration.
+    </dd>
+<dt><code>-clientmeta &lt;metaname&gt; &lt;metavalue&gt;</code></dt>
+<dd>Specifies additional items of metadata for the sending application to
+    give following registration.
+    </dd>
 </dl>
 
 </subsection>
