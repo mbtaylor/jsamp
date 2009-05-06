@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>jsamp</artifactId>
+  <version>0.3-1</version>
+  <name>JSAMP</name>
+  <parent>
+      <artifactId>astrogrid-base</artifactId>
+      <groupId>org.astrogrid</groupId>
+      <version>2009.1-SNAPSHOT</version>
+  </parent>
+  <description>Various components used for developing and deploying
+    Simple Applications Messaging Protocol-compliant 
+    applications and middleware.</description>
+  <inceptionYear>2008</inceptionYear>
+   <developers>
+    <developer>
+      <id>mbt</id>
+      <name>Mark Taylor</name>
+      <email>m.b.taylor@bristol.ac.uk</email>
+      <url>http://www.star.bristol.ac.uk/~mbt/</url>
+      <organization>Bristol University</organization>
+    </developer>
+  </developers>
+  <build>
+    <sourceDirectory>src/java</sourceDirectory>
+    <testSourceDirectory>src/test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>src/resources</directory>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <argLine>-ea</argLine>
+          <testFailureIgnore>true</testFailureIgnore>
+          <useFile>false;</useFile>
+          <includes>
+            <include>org/astrogrid/samp/**/*Test.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <isOffline>true</isOffline>
+          <links>http://java.sun.com/j2se/1.4.2/docs/api/,http://ws.apache.org/xmlrpc/xmlrpc2/apidocs/</links>
+          <offlineLinks>http://java.sun.com/j2se/1.4.2/docs/api/#src/docs/packagelists/j2se,http://ws.apache.org/xmlrpc/xmlrpc2/apidocs/#docs/packagelists/xmlrpc</offlineLinks>
+          <source>1.4</source>
+        </configuration>
+      </plugin>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.4</source>
+          <target>1.4</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>xmlrpc</groupId>
+      <artifactId>xmlrpc</artifactId>
+      <version>1.2-b1</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8</version>
+    </dependency>
+  </dependencies>
+     <url>${astrogrid_doc_URL_root}/p/samp/${project.version}/</url> 
+   <distributionManagement>
+    <site>
+      <id>agsite</id>   <!-- this is the desired layout of the site and - will have to be repeated in the  projects unfortunately until fixes to http://jira.codehaus.org/browse/MNG-2915 are available  -->
+      <name>Default Site</name>
+      <url>${astrogrid_doc_server_root}/p/samp/${project.version}/</url>
+      <!-- terror.star.le.ac.uk/ -->
+    </site>
+ </distributionManagement>
+  
+ </project>
