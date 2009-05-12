@@ -298,6 +298,7 @@
 <li>Added <code>parseValue</code> utility method to SampUtils class.</li>
 <li>Added <code>-clientname</code> and <code>-clientmeta</code> flags to
     <code>Snooper</code> command-line tool.</li>
+<li>Version now reported as v1.11 REC 2009-04-21.</li>
 </ul>
 </subsection>
 
