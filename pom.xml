@@ -1,86 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>jsamp</artifactId>
-  <version>0.3-1</version>
-  <name>JSAMP</name>
-  <parent>
+<project
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+   xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+>
+   <modelVersion>4.0.0</modelVersion>
+   <artifactId>jsamp</artifactId>
+   <version>0.3-1</version>
+   <name>JSAMP</name>
+   <parent>
       <artifactId>astrogrid-base</artifactId>
       <groupId>org.astrogrid</groupId>
-      <version>2009.1-SNAPSHOT</version>
-  </parent>
-  <description>Various components used for developing and deploying
+      <version>2009.1</version>
+   </parent>
+   <description>Various components used for developing and deploying
     Simple Applications Messaging Protocol-compliant 
     applications and middleware.</description>
-  <inceptionYear>2008</inceptionYear>
+   <inceptionYear>2008</inceptionYear>
    <developers>
-    <developer>
-      <id>mbt</id>
-      <name>Mark Taylor</name>
-      <email>m.b.taylor@bristol.ac.uk</email>
-      <url>http://www.star.bristol.ac.uk/~mbt/</url>
-      <organization>Bristol University</organization>
-    </developer>
-  </developers>
-  <build>
-    <sourceDirectory>src/java</sourceDirectory>
-    <testSourceDirectory>src/test/java</testSourceDirectory>
-    <resources>
-      <resource>
-        <directory>src/resources</directory>
-      </resource>
-    </resources>
-    <plugins>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <argLine>-ea</argLine>
-          <testFailureIgnore>true</testFailureIgnore>
-          <useFile>false;</useFile>
-          <includes>
-            <include>org/astrogrid/samp/**/*Test.java</include>
-          </includes>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-          <isOffline>true</isOffline>
-          <links>http://java.sun.com/j2se/1.4.2/docs/api/,http://ws.apache.org/xmlrpc/xmlrpc2/apidocs/</links>
-          <offlineLinks>http://java.sun.com/j2se/1.4.2/docs/api/#src/docs/packagelists/j2se,http://ws.apache.org/xmlrpc/xmlrpc2/apidocs/#docs/packagelists/xmlrpc</offlineLinks>
-          <source>1.4</source>
-        </configuration>
-      </plugin>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <configuration>
-          <source>1.4</source>
-          <target>1.4</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-  <dependencies>
-    <dependency>
-      <groupId>xmlrpc</groupId>
-      <artifactId>xmlrpc</artifactId>
-      <version>1.2-b1</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8</version>
-    </dependency>
-  </dependencies>
-     <url>${astrogrid_doc_URL_root}/p/samp/${project.version}/</url> 
+      <developer>
+         <id>mbt</id>
+         <name>Mark Taylor</name>
+         <email>m.b.taylor@bristol.ac.uk</email>
+         <url>http://www.star.bristol.ac.uk/~mbt/</url>
+         <organization>Bristol University</organization>
+      </developer>
+   </developers>
+   <build>
+      <sourceDirectory>src/java</sourceDirectory>
+      <testSourceDirectory>src/test/java</testSourceDirectory>
+      <resources>
+         <resource>
+            <directory>src/resources</directory>
+         </resource>
+      </resources>
+      <plugins>
+         <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+               <argLine>-ea</argLine>
+               <testFailureIgnore>true</testFailureIgnore>
+               <useFile>false;</useFile>
+               <includes>
+                  <include>org/astrogrid/samp/**/*Test.java</include>
+               </includes>
+            </configuration>
+         </plugin>
+         <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+               <isOffline>true</isOffline>
+               <links>http://java.sun.com/j2se/1.4.2/docs/api/,http://ws.apache.org/xmlrpc/xmlrpc2/apidocs/</links>
+               <offlineLinks>http://java.sun.com/j2se/1.4.2/docs/api/#src/docs/packagelists/j2se,http://ws.apache.org/xmlrpc/xmlrpc2/apidocs/#docs/packagelists/xmlrpc</offlineLinks>
+               <source>1.4</source>
+            </configuration>
+         </plugin>
+         <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+               <source>1.4</source>
+               <target>1.4</target>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId> org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>doit</id>
+                  <phase>pre-site</phase>
+                  <goals>
+                     <goal>run</goal>
+                  </goals>
+                  <configuration>
+                     <tasks>
+                        <taskdef resource="net/sf/antcontrib/antlib.xml"
+                           classpathref="maven.plugin.classpath" />
+                        <echo message="The values are:" />
+                        <mkdir dir="target/docs/" />
+                        <for
+                           list="org.astrogrid.samp.JSamp,org.astrogrid.samp.xmlrpc.HubRunner,org.astrogrid.samp.gui.HubMonitor,org.astrogrid.samp.test.Snooper,org.astrogrid.samp.test.MessageSender,org.astrogrid.samp.test.CalcStorm,org.astrogrid.samp.test.HubTester"
+                           param="cmd">
+                           <sequential>
+                              <java classname="@{cmd}"
+                                 output="target/docs/@{cmd}.usage" fork="true">
+                                 <classpath>
+                                    <path refid="maven.dependency.classpath" />
+                                    <pathelement location="target/classes" />
+                                 </classpath>
+                                 <arg value="-help" />
+                              </java>
+                              <replace file="target/docs/@{cmd}.usage">
+                                 <replaceFilter token="&amp;"
+                                    value="&amp;amp;" />
+                                 <replaceFilter token="&lt;"
+                                    value="&amp;lt;" />
+                                 <replaceFilter token="&gt;"
+                                    value="&amp;gt;" />
+                              </replace>
+                           </sequential>
+                        </for>
+                     </tasks>
+                  </configuration>
+               </execution>
+            </executions>
+            <dependencies>
+               <dependency>
+                  <groupId>ant</groupId>
+                  <artifactId>ant</artifactId>
+                  <version>1.6.5</version>
+               </dependency>
+               <dependency>
+                  <groupId>ant-contrib</groupId>
+                  <artifactId>ant-contrib</artifactId>
+                  <version>1.0b2</version>
+               </dependency>
+            </dependencies>
+         </plugin>
+      </plugins>
+   </build>
+   <dependencies>
+      <dependency>
+         <groupId>xmlrpc</groupId>
+         <artifactId>xmlrpc</artifactId>
+         <version>1.2-b1</version>
+      </dependency>
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+         <version>3.8</version>
+      </dependency>
+   </dependencies>
+   <url>${astrogrid_doc_URL_root}/p/samp/${project.version}/</url>
    <distributionManagement>
-    <site>
-      <id>agsite</id>   <!-- this is the desired layout of the site and - will have to be repeated in the  projects unfortunately until fixes to http://jira.codehaus.org/browse/MNG-2915 are available  -->
-      <name>Default Site</name>
-      <url>${astrogrid_doc_server_root}/p/samp/${project.version}/</url>
-      <!-- terror.star.le.ac.uk/ -->
-    </site>
- </distributionManagement>
-  
- </project>
+      <site>
+         <id>agsite</id>
+         <!--
+            this is the desired layout of the site and - will have to be
+            repeated in the projects unfortunately until fixes to
+            http://jira.codehaus.org/browse/MNG-2915 are available
+         -->
+         <name>Default Site</name>
+         <url>${astrogrid_doc_server_root}/p/samp/${project.version}/</url>
+         <!-- terror.star.le.ac.uk/ -->
+      </site>
+   </distributionManagement>
+</project>
