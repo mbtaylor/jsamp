@@ -1,3 +1,46 @@
+JSAMP builds using maven 1.  I attempted a maven 2 conversion 
+(with considerable help from Paul Harrison), but I couldn't 
+get it working as well as the maven 1 build.  Problems included:
+
+   - I couldn't get the xdoc documents to include automatically generated
+     documentation fragments, because entity inclusion doesn't seem to
+     work (see http://jira.codehaus.org/browse/DOXIA-250)
+
+   - The build took much longer than it used to (Paul believes this is
+     down to the dependencies report checking on repositories which time
+     out, could be avoided by running mvn -o).
+
+   - Ant file generation doesn't work which means it's hard for third
+     parties to do the build from the source distribution.
+
+Additionally, JSAMP has very few dependencies and so doesn't really 
+benefit from Maven 2's improved dependency management.
+
+Apart from that the build did actually work.
+
+The changes are recorded here, in case another attempt at mvn2ising
+JSAMP is made.  Changes are:
+
+  - New file pom.xml included at top level (text below)
+
+  - Replace src/site/xdoc/navigation.xml with src/site/site.xml (text below)
+
+  - New file src/resources/org/astrogrid/samp/jsamp.version - one line
+    file containing the text "${pom.version}".
+
+  - Some changes in file src/site/xdoc/commands.xml; entity locations
+    changed from "../../../target/docs/org.astrogrid.samp.foo"
+              to       "${builddocdir}/org.astrogrid.samp.foo"
+    However, this didn't actually work, as noted above.  If the Doxia
+    fix is ever made to maven, it might to though.
+
+Mark Taylor 7 July 2009.
+
+Text of files required for maven 2 build:
+
+========================================================================
+pom.xml
+========================================================================
 <?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -180,3 +223,36 @@
  </distributionManagement>
   
  </project>
+
+
+========================================================================
+src/site/site.xml
+========================================================================
+<?xml version="1.0"?>
+<project name="SAMP"  xmlns="http://maven.apache.org/DECORATION/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.0 http://maven.apache.org/xsd/decoration-1.0.0.xsd">
+   
+
+  <body>
+    <links>
+      <item name="SAMP Information"
+            href="http://www.ivoa.net/samp/"/>
+      <item name="SAMP Standard"
+            href="http://www.ivoa.net/Documents/latest/SAMP.html"/>
+    </links>
+
+    <menu name="Documentation">
+      <item name="Introduction" href="index.html"/>
+      <item name="Command-line tools" href="commands.html"/>
+      <item name="API Overview" href="api.html"/>
+      <item name="GUI Features" href="gui.html"/>
+      <item name="Deployment" href="deployment.html"/>
+      <item name="Javadocs" href="apidocs/index.html"/>
+      <item name="Downloads" href="downloads.html"/>
+      <item name="Change Log" href="history.html"/>
+      <item name="Project Info" href="project-info.html"/>
+    </menu>
+  </body>
+</project>
+
+
