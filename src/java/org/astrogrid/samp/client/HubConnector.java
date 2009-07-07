@@ -801,7 +801,8 @@ public class HubConnector {
                     }
                     catch ( Exception e ) {
                         errInfo = new ErrInfo( e );
-                        logger_.log( Level.WARNING, "Call handler failed", e );
+                        logger_.log( Level.WARNING,
+                                     "Call handler failed: " + mtype );
                     }
                 }
             }
