@@ -73,6 +73,9 @@
     <echo message="and make sure you do a matching maven site:deploy too"/>
     <echo message="and rm jsamp; ln -s jsamp-${pom.currentVersion}/ jsamp in terror:software_docs/"/>
     <echo message="and edit TRAC page at http://deployer.astrogrid.org/"/>
+    <!-- The following reminder is for something that would get done 
+     !   automatically by maven 2, but needs to be done by hand for maven 1. -->
+    <echo message="and update files on maven.astrogrid.org: /software/doc/p/samp/${pom.currentVersion}, /software/doc/latest/samp/.htaccess"/>
   </goal>
 
   <goal name="command-usage"
