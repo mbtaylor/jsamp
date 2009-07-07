@@ -169,8 +169,8 @@ public class InternalServer implements SampXmlRpcServer {
             }
         }
         if ( handler == null ) {
-            return new XmlRpcFormatException( "Unknown XML-RPC method "
-                                            + methodName );
+            throw new XmlRpcFormatException( "Unknown XML-RPC method "
+                                           + methodName );
         }
 
         // Extract parameter values from DOM.
@@ -182,7 +182,7 @@ public class InternalServer implements SampXmlRpcServer {
         for ( int i = 0; i < np; i++ ) {
             Element paramEl = paramEls[ i ];
             if ( ! "param".equals( paramEl.getTagName() ) ) {
-                return new XmlRpcFormatException( "Non-param child of params" );
+                throw new XmlRpcFormatException( "Non-param child of params" );
             }
             else {
                 Element valueEl = XmlUtils.getChild( paramEl, "value" );
