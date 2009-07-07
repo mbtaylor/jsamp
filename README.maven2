@@ -11,7 +11,7 @@ get it working as well as the maven 1 build.  Problems included:
      out, could be avoided by running mvn -o).
 
    - Ant file generation doesn't work which means it's hard for third
-     parties to do the build from the source distribution.
+     parties to do the build from the source distribution (see http://jira.codehaus.org/browse/MANT-52).
 
 Additionally, JSAMP has very few dependencies and so doesn't really 
 benefit from Maven 2's improved dependency management.
@@ -19,7 +19,7 @@ benefit from Maven 2's improved dependency management.
 Apart from that the build did actually work.
 
 The changes are recorded here, in case another attempt at mvn2ising
-JSAMP is made.  Changes are:
+JSAMP is made (this might well be worth it at the next release of maven 2 if the fixes to the bugs above are made).  Changes are:
 
   - New file pom.xml included at top level (text below)
 
