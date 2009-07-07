@@ -25,9 +25,7 @@ public class HubConnectorTest extends TestCase {
     private static final String ECHO_MTYPE = "test.echo";
 
     protected void setUp() {
-        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
-        Logger.getLogger( InternalServer.class.getName() )
-              .setLevel( Level.SEVERE );
+        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.SEVERE );
     }
 
     public void testConnector() throws IOException {

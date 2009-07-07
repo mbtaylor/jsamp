@@ -31,7 +31,7 @@ public class HubTest extends TestCase {
         TestClientProfile.getTestProfiles( random_ );
 
     protected void setUp() throws IOException {
-        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
+        Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.SEVERE );
     }
 
     public void testHubTester() throws Exception {
