@@ -55,6 +55,9 @@
       <replaceFilter token="  font-size: small;"
                    replace="  font-size: normal;"/>
     </ant:replace>
+    <ant:copy todir="target/docs">
+      <fileset dir="${maven.docs.src}/../resources"/>
+    </ant:copy>
   </postGoal>
 
   <postGoal name="java:jar-resources">

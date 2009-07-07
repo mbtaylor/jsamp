@@ -82,7 +82,7 @@ Some ready-to-use components which display this information are
 available; the following <a href="commands.html#HubMonitor">HubMonitor</a>
 screenshot shows these:
 </p>
-<img src="HubMonitor.png" alt="HubMonitor screenshot"/>
+<img src="images/HubMonitor.png" alt="HubMonitor screenshot"/>
 
 <p>The upper left part is a JList of clients with a panel showing the 
 metadata and subscriptions for a selected client on the right.
@@ -125,7 +125,8 @@ You can also obtain a small standalone component which contains just this
 graphical panel giving message status.
 This is what the message tracker hub GUI client tab looks like:
 </p>
-<img src="MessageTrackerHub-list.png" alt="Message tracker hub client list"/>
+<img src="images/MessageTrackerHub-list.png"
+     alt="Message tracker hub client list"/>
 
 <p>Another tab shows a window which gives more detail on messages
 sent/received.  For each message, a summary row is given in a table,
@@ -135,7 +136,8 @@ for a little while after they have completed to allow them to be
 examined, and then disappear automatically.
 The message detail tab for the hub looks like this:
 </p>
-<img src="MessageTrackerHub-table.png" alt="Message tracker hub message list"/>
+<img src="images/MessageTrackerHub-table.png"
+     alt="Message tracker hub message list"/>
 
 <p>You can also obtain the various <code>ListModel</code>s containing
 message Transmission information if you want to construct your own
