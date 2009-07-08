@@ -193,6 +193,7 @@ public class HubConnector {
                                    + ( reason == null ? " [no reason given]"
                                                       : " (" + reason + ")" ) );
                     disconnect();
+                    isActive_ = false;
                     return null;
                 }
                 else {
