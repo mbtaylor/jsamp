@@ -177,7 +177,7 @@ class HubClientPopupListener implements MouseListener {
                     hub_.call( senderKey, recipientId, name_ + "-tag", msg_ );
                 }
                 else {
-                    hub_.notify( senderKy, recipientId, msg_ );
+                    hub_.notify( senderKey, recipientId, msg_ );
                 }
             }
             catch ( Exception e ) {
