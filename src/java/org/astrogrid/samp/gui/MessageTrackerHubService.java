@@ -11,6 +11,7 @@ import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.ListModel;
 import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -100,8 +101,9 @@ public class MessageTrackerHubService extends GuiHubService
         // Add client view tab.
         HubView hubView = new HubView();
         hubView.setClientListModel( getClientListModel() );
-        hubView.getClientList()
-               .setCellRenderer( new MessageTrackerListCellRenderer( this ) );
+        JList jlist = hubView.getClientList();
+        jlist.setCellRenderer( new MessageTrackerListCellRenderer( this ) );
+        jlist.addMouseListener( new HubClientPopupListener( this ) );
         tabber.add( "Clients", hubView );
 
         // Add messages tab.

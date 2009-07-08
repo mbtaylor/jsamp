@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.JFrame;
 import javax.swing.ListModel;
 import org.astrogrid.samp.Client;
@@ -50,7 +51,9 @@ public class GuiHubService extends BasicHubService {
     public JComponent createHubPanel() {
         HubView hubView = new HubView();
         hubView.setClientListModel( getClientListModel() );
-        hubView.getClientList().setCellRenderer( new ClientListCellRenderer() );
+        JList jlist = hubView.getClientList();
+        jlist.setCellRenderer( new ClientListCellRenderer() );
+        jlist.addMouseListener( new HubClientPopupListener( this ) );
         return hubView;
     }
 
