@@ -154,19 +154,29 @@ public class TransmissionPanel extends JPanel {
             statusField_.setCaretPosition( 0 );
             messageField_.setText( SampUtils.formatObject( msg, 2 ) );
             messageField_.setCaretPosition( 0 );
-            final String responseText;
-            if ( response != null ) {
-                responseText = SampUtils.formatObject( response, 2 );
-            }
-            else if ( error != null ) {
-                StringWriter traceWriter = new StringWriter();
-                error.printStackTrace( new PrintWriter( traceWriter ) );
-                responseText = traceWriter.toString();
+            String responseText = response == null
+                                ? null
+                                : SampUtils.formatObject( response, 2 );
+            final String errorText;
+            if ( error == null ) {
+                errorText = null;
             }
             else {
-                responseText = null;
+                StringWriter traceWriter = new StringWriter();
+                error.printStackTrace( new PrintWriter( traceWriter ) );
+                errorText = traceWriter.toString();
             }
-            responseField_.setText( responseText );
+            StringBuffer rbuf = new StringBuffer();
+            if ( responseText != null ) {
+                rbuf.append( responseText );
+            }
+            if ( errorText != null ) {
+                if ( rbuf.length() > 0 ) {
+                    rbuf.append( "\n\n" );
+                }
+                rbuf.append( errorText );
+            }
+            responseField_.setText( rbuf.toString() );
             responseField_.setCaretPosition( 0 );
         }
     }
