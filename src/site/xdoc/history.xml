@@ -299,6 +299,13 @@
 <li>Added <code>-clientname</code> and <code>-clientmeta</code> flags to
     <code>Snooper</code> command-line tool.</li>
 <li>Version now reported as v1.11 REC 2009-04-21.</li>
+<li>Clients forcibly disconnected by <tt>samp.hub.disconnect</tt> now 
+    don't try to re-autoconnect themselves.</li>
+<li>Added <tt>getHubClient</tt> and <tt>disconnect</tt> methods to 
+    BasicHubService; you can now use the hub object to forcibly
+    disconnect clients.</li>
+<li>Added popup menus to GUI hub views which allow you to send a ping to or 
+    forcibly disconnect registered clients.</li>
 </ul>
 </subsection>
 
