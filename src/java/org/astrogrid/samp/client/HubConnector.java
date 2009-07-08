@@ -537,8 +537,7 @@ public class HubConnector {
      * on a supplied ResultHandler object when the result arrives.
      * The {@link org.astrogrid.samp.client.ResultHandler#done} method will
      * be called after the result has arrived or the timeout elapses,
-     * than are given in the <code>timeout</code> parameter, whichever 
-     * happens first.
+     * whichever happens first.
      *
      * <p>This convenience method allows the user to make an asynchronous
      * call without having to worry registering message handlers and
