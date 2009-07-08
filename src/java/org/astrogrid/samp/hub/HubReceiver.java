@@ -87,7 +87,6 @@ class HubReceiver implements Receiver {
 
     public void receiveResponse( String responderId, String msgTag,
                                  Map response ) throws HubServiceException {
-        throw new HubServiceException( "Not expecting any responses" );
     }
 
     /**
