@@ -476,6 +476,48 @@ public class BasicHubService implements HubService {
         }
     }
 
+    /**
+     * Returns the HubClient object which represents the hub itself.
+     * This is the one which apparently sends samp.hub.event.shutdown messages
+     * etc.
+     *
+     * @return  hub client object
+     */
+    public HubClient getHubClient() {
+        return hubClient_;
+    }
+
+    /**
+     * Forcibly disconnects a given client.
+     * This call does two things: firstly it sends a 
+     * <code>samp.hub.disconnect</code> message to the client which is
+     * about to be ejected, if the client is subscribed to that MType, 
+     * and then it removes that client from this hub's client set, 
+     * so that any further communication attempts to or from it will fail.
+     *
+     * @param  clientId  public-id of client to eject
+     * @param  reason    short text string indicating reason for ejection
+     */
+    public void disconnect( String clientId, String reason )
+            throws HubServiceException {
+        HubClient client = clientSet_.getFromPublicId( clientId );
+        String mtype = "samp.hub.disconnect";
+        if ( client.isSubscribed( mtype ) ) {
+            Message msg = new Message( mtype );
+            if ( reason != null && reason.length() > 0 ) {
+                msg.addParam( "reason", reason );
+            }
+            try {
+                notify( hubClient_.getPrivateKey(), clientId, msg );
+            }
+            catch ( HubServiceException e ) {
+                logger_.log( Level.INFO,
+                             mtype + " to " + client + " failed", e );
+            }
+        }
+        clientSet_.remove( client );
+    }
+
     public synchronized void shutdown() {
         if ( ! shutdown_ ) {
             shutdown_ = true;
