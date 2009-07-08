@@ -306,6 +306,10 @@
     disconnect clients.</li>
 <li>Added popup menus to GUI hub views which allow you to send a ping to or 
     forcibly disconnect registered clients.</li>
+<li>Remove warning if permission change on .samp file to owner-only read fails.
+    This permission change is probably not possible on Windows-like OSes
+    (unless anyone can tell me different), 
+    and the warning causes confusion.</li>
 </ul>
 </subsection>
 
