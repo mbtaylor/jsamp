@@ -500,6 +500,10 @@ public class BasicHubService implements HubService {
      */
     public void disconnect( String clientId, String reason )
             throws HubServiceException {
+        if ( clientId.equals( hubClient_.getId() ) ) {
+            throw new HubServiceException( "Refuse to disconnect "
+                                         + "the hub client itself" );
+        }
         HubClient client = clientSet_.getFromPublicId( clientId );
         String mtype = "samp.hub.disconnect";
         if ( client.isSubscribed( mtype ) ) {
