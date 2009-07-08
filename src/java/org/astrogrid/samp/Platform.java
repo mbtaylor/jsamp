@@ -49,7 +49,15 @@ public abstract class Platform {
             return;
         }
         else {
-            exec( getPrivateReadArgs( file ) );
+            String[] privateReadArgs = getPrivateReadArgs( file );
+            if ( privateReadArgs != null ) {
+                exec( privateReadArgs );
+            }
+            else {
+                logger_.info( "No known way to set user-only read permissions"
+                            + "; possible security implications"
+                            + " on multi-user systems" );
+            }
         }
     }
 
@@ -58,6 +66,7 @@ public abstract class Platform {
      * {@link java.lang.Runtime#exec(java.lang.String[])} in order
      * to set permissions on a given file so that it cannot be read by
      * anyone other than its owner.
+     * If null is returned, no way is known to do this with a system command.
      *
      * @param  file  file to alter
      * @return   exec args
@@ -91,12 +100,7 @@ public abstract class Platform {
                                             new Object[] { Boolean.TRUE,
                                                            Boolean.TRUE } )
                       .equals( Boolean.TRUE ) );
-            if ( success ) {
-                return true;
-            }
-            else {
-                throw new IOException( "Operation disallowed" );
-            }
+            return success;
         }
         catch ( InvocationTargetException e1 ) {
             Throwable e2 = e1.getCause();
@@ -265,8 +269,16 @@ public abstract class Platform {
 
         protected String[] getPrivateReadArgs( File file ) throws IOException {
 
-            // Thanks to Bruno Rino for this.
-            return new String[] { "attrib", "-R", file.toString(), };
+            // No good way known.  For a while I was using "attrib -R file", 
+            // but this wasn't doing what was wanted.  Bruno Rino has
+            // suggested "CALCS file /G %USERNAME%:F".  Sounds kind of
+            // sensible, but requires user input (doable, but fiddly), 
+            // and from my experiments on NTFS doesn't seem to have any 
+            // discernable effect.  As I understand it, it's unlikely to do
+            // anything on FAT (no ACLs).  Given my general ignorance of 
+            // MS OSes and file systems, I'm inclined to leave this for 
+            // fear of inadvertently doing something bad.
+            return null;
         }
 
         public File getHomeDirectory() {
