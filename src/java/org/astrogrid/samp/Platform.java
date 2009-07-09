@@ -38,6 +38,36 @@ public abstract class Platform {
     public abstract File getHomeDirectory(); 
 
     /**
+     * Returns the value of an environment variable.
+     * If it can't be done, null is returned.
+     *
+     * @param  varname  name of environment variable
+     * @return value of environment variable
+     */
+    public String getEnv( String varname ) {
+        try {
+            return System.getenv( varname );
+        }
+
+        // System.getenv is unimplemented at 1.4, and throws an Error.
+        catch ( Throwable e ) {
+            String[] argv = getGetenvArgs( varname );
+            if ( argv == null ) {
+                return null;
+            }
+            else {
+                try {
+                    String cmdout = exec( argv );
+                    return cmdout.trim();
+                }
+                catch ( Throwable e2 ) {
+                    return null;
+                }
+            }
+        }
+    }
+
+    /**
      * Sets file permissions on a given file so that it cannot be read by
      * anyone other than its owner.
      * 
@@ -62,7 +92,18 @@ public abstract class Platform {
     }
 
     /**
-     * Returns an array of words to 
+     * Returns an array of words to pass to
+     * {@link java.lang.Runtime#exec(java.lang.String[])} in order
+     * to read an environment variable name.
+     * If null is returned, no way is known to do this with a system command.
+     *
+     * @param  varname  environment variable name to read
+     * @return  exec args
+     */
+    protected abstract String[] getGetenvArgs( String varname );
+
+    /**
+     * Returns an array of words to pass to
      * {@link java.lang.Runtime#exec(java.lang.String[])} in order
      * to set permissions on a given file so that it cannot be read by
      * anyone other than its owner.
@@ -250,6 +291,10 @@ public abstract class Platform {
             return new File( System.getProperty( "user.home" ) );
         }
 
+        protected String[] getGetenvArgs( String varname ) {
+            return new String[] { "printenv", varname, };
+        }
+
         protected String[] getPrivateReadArgs( File file ) {
             return new String[] { "chmod", "600", file.toString(), };
         }
@@ -282,28 +327,17 @@ public abstract class Platform {
         }
 
         public File getHomeDirectory() {
-            String userprofile = null;
-            try {
-                userprofile = System.getenv( "USERPROFILE" );
-            }
-
-            // System.getenv is unimplemented at 1.4, and throws an Error.
-            catch ( Throwable e ) {
-                try {
-                    String[] argv = { "cmd", "/c", "echo", "%USERPROFILE%", };
-                    String cmdout = exec( argv );
-                    return new File( cmdout.trim() );
-                }
-                catch ( Throwable e2 ) {
-                    userprofile = null;
-                }
-            }
+            String userprofile = getEnv( "USERPROFILE" );
             if ( userprofile != null && userprofile.trim().length() > 0 ) {
                 return new File( userprofile );
             }
             else {
                 return new File( System.getProperty( "user.home" ) );
             }
+        }
+
+        public String[] getGetenvArgs( String varname ) {
+            return new String[] { "cmd", "/c", "echo", "%" + varname + "%", };
         }
     }
 }
