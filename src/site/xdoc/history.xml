@@ -310,6 +310,8 @@
     This permission change is probably not possible on Windows-like OSes
     (unless anyone can tell me different), 
     and the warning causes confusion.</li>
+<li>HubConnector now subscribes by default to <tt>client.env.get</tt>
+    MType.</li>
 </ul>
 </subsection>
 

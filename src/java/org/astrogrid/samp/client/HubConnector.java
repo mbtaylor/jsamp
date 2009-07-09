@@ -16,6 +16,7 @@ import org.astrogrid.samp.Client;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
+import org.astrogrid.samp.Platform;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
@@ -135,6 +136,7 @@ public class HubConnector {
     private static final String SHUTDOWN_MTYPE = "samp.hub.event.shutdown";
     private static final String DISCONNECT_MTYPE = "samp.hub.disconnect";
     private static final String PING_MTYPE = "samp.app.ping";
+    private static final String GETENV_MTYPE = "client.env.get";
 
     /**
      * Constructs a HubConnector based on a given profile instance.
@@ -218,6 +220,18 @@ public class HubConnector {
                 }
                 return null;
             }
+        } );
+
+        // Implement client.env.get MType.
+        addMessageHandler( new AbstractMessageHandler( GETENV_MTYPE ) {
+            public Map processCall( HubConnection connection,
+                                    String senderId, Message message ) {
+                String name = (String) message.getParam( "name" );
+                String value = Platform.getPlatform().getEnv( name );
+                Map result = new HashMap();
+                result.put( "value", value );
+                return result;
+            };
         } );
 
         // Listen out for responses to calls for which we are providing
