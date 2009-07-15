@@ -47,7 +47,7 @@ public class StandardClientProfile implements ClientProfile {
     public HubConnection register() throws SampException {
         LockInfo lockInfo;
         try {
-            lockInfo = LockInfo.readLockFile();
+            lockInfo = getLockInfo();
         }
         catch ( SampException e ) {
             throw (SampException) e;
@@ -76,6 +76,18 @@ public class StandardClientProfile implements ClientProfile {
             return new XmlRpcHubConnection( xClient, xServerFactory_,
                                             lockInfo.getSecret() );
         }
+    }
+
+    /**
+     * Returns the LockInfo which indicates how to locate the hub.
+     * The default implementation returns 
+     * {@link org.astrogrid.samp.LockInfo#readLockFile};
+     * it may be overridden to provide a non-standard client profiles.
+     *
+     * @return   hub location information
+     */
+    public LockInfo getLockInfo() throws IOException {
+        return LockInfo.readLockFile();
     }
 
     /**

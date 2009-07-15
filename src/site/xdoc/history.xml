@@ -312,6 +312,8 @@
     and the warning causes confusion.</li>
 <li>HubConnector now subscribes by default to <tt>client.env.get</tt>
     MType.</li>
+<li><tt>StandardClientProfile</tt> now has overridable <tt>getLockInfo</tt>
+    method for better customisability.</li>
 </ul>
 </subsection>
 
