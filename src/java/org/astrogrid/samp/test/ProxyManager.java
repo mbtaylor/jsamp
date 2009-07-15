@@ -414,45 +414,6 @@ class ProxyManager {
     }
 
     /**
-     * Stores the message ID associated with a message Tag sent by a given
-     * client on the local hub.
-     *
-     * @param   clientId  local client ID for message sender
-     * @param   msgTag    message tag used by sender
-     * @param   msgId     message ID associated with the message
-     */
-    private void storeTagId( String clientId, String msgTag, String msgId ) {
-        tagMap_.put( getTagKey( clientId, msgTag ), msgId );
-    } 
-
-    /**
-     * Retrieves the message ID for a given message tag sent by a given client
-     * on the local hub.  Retrieval is destructive; if it's called again
-     * the answer won't be there.
-     *
-     * @param  clientId  local client ID for message sender
-     * @param  msgTag    message tag used by sender
-     * @return  message ID associated with the message,
-     *          or null if it is not known
-     */
-    private String tagToId( String clientId, String msgTag ) {
-        return (String) tagMap_.remove( getTagKey( clientId, msgTag ) );
-    }
-
-    /**
-     * Returns an object suitable for use in a Map which combines
-     * a client ID and message tag.
-     *
-     * @param clientId  client ID
-     * @param   msgTag  message tag
-     * @param  object which is only equal to another object with the same
-     *         inputs
-     */
-    private static Object getTagKey( String clientId, String msgTag ) {
-        return Arrays.asList( new String[] { clientId, msgTag } );
-    }
-
-    /**
      * CallableClient implementation used by remote proxy connections on
      * behalf of local clients.  * This is the core of the proxy manager.
      * Callbacks received by the remote proxy client are tunnelled back 
@@ -495,12 +456,12 @@ class ProxyManager {
                                  Message msg )
                 throws SampException {
 
-            // Generate an arbitrary (but unique) tag for the call,
-            // and store the incoming msgId so that we can retrieve 
-            // and reuse it when that tag shows up labelling a reply.
-            String localMsgTag = localManager_.pmConnector_.createTag( null );
-            localManager_.storeTagId( localClientId_, localMsgTag,
-                                      remoteMsgId );
+            // Choose a tag; use the message ID as its value.  
+            // These things are different, but we are free to choose any
+            // form for the tag, and we need something which will allow 
+            // us to recover the message ID from it later.  
+            // Making them identical is the easiest way to do that.
+            String localMsgTag = remoteMsgId;
 
             // Forward the call.
             getLocalProxy( remoteSenderId ).call( localClientId_,
@@ -511,24 +472,12 @@ class ProxyManager {
                                      String remoteMsgTag, Response response )
                 throws SampException {
 
-            // Retrieve the msgId corresponding to the earlier call which
-            // was labelled by the current tag.
-            String localMsgId =
-                remoteManager_.tagToId( remoteResponderId, remoteMsgTag );
+            // The message ID we need for forwarding is the one we encoded
+            // (by identity) earlier in the tag.
+            String localMsgId = remoteMsgTag;
 
             // Forward the reply appropriately.
-            if ( localMsgId != null ) {
-                getLocalProxy( remoteResponderId ).reply( localMsgId,
-                                                          response );
-            }
-            else {
-                throw new SampException( "Orphaned reply over bridge "
-                                       + remoteManager_ + ":"
-                                       + remoteResponderId + " -> " 
-                                       + localManager_ + localClientId_
-                                       + " (tag " + remoteMsgTag + ")"
-                                       + " - reply sent twice?" );
-            }
+            getLocalProxy( remoteResponderId ).reply( localMsgId, response );
         }
 
         /**
