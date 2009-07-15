@@ -753,7 +753,9 @@ public class HubConnector {
      * @return  unique tag for this connector
      */
     public synchronized String createTag( Object owner ) {
-        return String.valueOf( owner ) + ":" + ++iCall_;
+        return ( owner == null ? "tag"
+                               : ( String.valueOf( owner ) + ":" ) )
+             + ++iCall_;
     }
 
     /**
