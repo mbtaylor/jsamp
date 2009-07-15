@@ -155,8 +155,7 @@ public class HubConnector {
      * @param  profile  profile implementation
      * @param  clientSet  object to keep track of registered clients
      */
-    protected HubConnector( ClientProfile profile,
-                            TrackedClientSet clientSet ) {
+    public HubConnector( ClientProfile profile, TrackedClientSet clientSet ) {
         profile_ = profile;
         clientSet_ = clientSet;
         isActive_ = true;
