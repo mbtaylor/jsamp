@@ -19,10 +19,28 @@ import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
+/**
+ * Runs a bridging service between two or more hubs.
+ * For each client on one hub, a proxy client appears on all other 
+ * participating hubs.  These proxies can be treated in exactly the
+ * same way as normal clients by other registered clients; any
+ * messages sent to/from them will be marshalled over the bridge 
+ * in a transparent way.  One application for this is to allow 
+ * collaboration between users who each have their own hub running.
+ *
+ * @author   Mark Taylor
+ * @since    15 Jul 2009
+ */
 public class Bridge {
 
     private final ProxyManager[] proxyManagers_;
 
+    /**
+     * Constructor.
+     *
+     * @param   profiles   array of SAMP profile objects, one for each
+     *          hub which is to participate in the bridge
+     */
     public Bridge( ClientProfile[] profiles ) {
         int nhub = profiles.length;
         proxyManagers_ = new ProxyManager[ nhub ];
@@ -37,22 +55,68 @@ public class Bridge {
         }
     }
 
+    /**
+     * Returns the client profiles which define the hubs this brige links.
+     *
+     * @return  profile array, one for each connected hub
+     */
+    public ClientProfile[] getProfiles() {
+        int nhub = proxyManagers_.length;
+        ClientProfile[] profiles = new ClientProfile[ nhub ];
+        for ( int ih = 0; ih < nhub; ih++ ) {
+            profiles[ ih ] = proxyManagers_[ ih ].getProfile();
+        }
+        return profiles;
+    }
+
+    /**
+     * Returns the hub connectors representing the bridge client running
+     * on each linked hub.  Note this does not include any proxy clients,
+     * only the one-per-hub manager clients.
+     *
+     * @return   array of bridge manager clients, one for each hub
+     *           (in corresponding positions to the profiles)
+     */
+    public HubConnector[] getBridgeClients() {
+        int nhub = proxyManagers_.length;
+        HubConnector[] connectors = new HubConnector[ nhub ];
+        for ( int ih = 0; ih < nhub; ih++ ) {
+            connectors[ ih ] = proxyManagers_[ ih ].getManagerConnector();
+        }
+        return connectors;
+    }
+
+    /**
+     * Starts this bridge running.
+     * 
+     * @return  true iff all the participating hubs have been contacted
+     *          successfully
+     */
     public boolean start() {
-        setActive( true );
-        for ( int ih = 0; ih < proxyManagers_.length; ih++ ) {
-            if ( ! proxyManagers_[ ih ].getManagerConnector().isConnected() ) {
-                return false;
-            }
+        HubConnector[] connectors = getBridgeClients();
+        boolean allConnected = true;
+        for ( int ih = 0; ih < connectors.length; ih++ ) {
+            HubConnector connector = connectors[ ih ];
+            connector.setActive( true );
+            allConnected = allConnected && connector.isConnected();
         }
-        return true;
+        return allConnected;
     }
 
-    public void setActive( boolean active ) {
-        for ( int ih = 0; ih < proxyManagers_.length; ih++ ) {
-            proxyManagers_[ ih ].getManagerConnector().setActive( active );
+    /**
+     * Stops this bridge running.
+     * All associated manager and proxy clients are unregistered.
+     */
+    public void stop() {
+        HubConnector[] connectors = getBridgeClients();
+        for ( int ih = 0; ih < connectors.length; ih++ ) {
+            connectors[ ih ].setActive( false );
         }
     }
 
+    /**
+     * Main method.  Runs a bridge.
+     */
     public static void main( String[] args ) {
         int status = runMain( args );
         if ( status != 0 ) {
@@ -60,6 +124,10 @@ public class Bridge {
         }
     }
 
+    /**
+     * Does the work for the main method.
+     * Use -help flag.
+     */
     public static int runMain( String[] args ) {
         String usage = new StringBuffer()
             .append( "\n   Usage:" )
@@ -99,7 +167,7 @@ public class Bridge {
             }
         }
 
-        // Adjust logging in accordance with verboseness flags.
+        // Adjust logging in accordance with verbosity flags.
         int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
