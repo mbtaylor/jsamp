@@ -21,9 +21,26 @@ import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.client.TrackedClientSet;
 
- // local means the target hub for this manager.
- // remote is the hub this proxy is connected to.
-
+/**
+ * Takes care of client connections for the SAMP Bridge.
+ * An instance of this class is associated with a given 'local' hub 
+ * participating in the bridge, and makes the following connections:
+ * <ol>
+ * <li>On the local hub, one connection which is there to monitor 
+ *     client changes</li>
+ * <li>On each remote hub participating in the bridge, one 'proxy' connection 
+ *     for every client on this manager's local hub.</li>
+ * </ol>
+ * Callbacks from the hub to the proxy clients can be tunnelled by this
+ * proxy manager to their true destination on the local hub.
+ * Note that each proxy manager needs the cooperation of all the other
+ * proxy managers (the ones associated with the other bridged hubs) to
+ * make this work, so each instance of this class must be made aware of
+ * the other ProxyMangers before use (see {@link #init}).
+ * 
+ * @author   Mark Taylor
+ * @since    15 Jul 2009
+ */
 class ProxyManager {
 
     private final ClientProfile localProfile_;
@@ -36,13 +53,17 @@ class ProxyManager {
     private static final Logger logger_ =
         Logger.getLogger( ProxyManager.class.getName() );
 
+    /**
+     * Constructor.
+     *
+     * @param  localProfile  profile for connection to this manager's local hub
+     */
     public ProxyManager( ClientProfile localProfile ) {
         localProfile_ = localProfile;
+
+        // Set up the local hub connection to monitor client list changes.
         pmConnector_ =
             new HubConnector( localProfile, new ProxyManagerClientSet() );
-        connectionMap_ = Collections.synchronizedMap( new HashMap() );
-        tagMap_ = Collections.synchronizedMap( new HashMap() );
-
         Metadata meta = new Metadata();
         meta.setName( "bridge" );
         meta.setDescriptionText( "Bridge between hubs" );
@@ -51,17 +72,42 @@ class ProxyManager {
         pmConnector_.declareMetadata( meta );
         Subscriptions subs = pmConnector_.computeSubscriptions();
         pmConnector_.declareSubscriptions( subs );
+
+        // Set up other required data structures.
+        connectionMap_ = Collections.synchronizedMap( new HashMap() );
+        tagMap_ = Collections.synchronizedMap( new HashMap() );
     }
 
+    /**
+     * Returns the profile for this manager's local hub.
+     *
+     * @return  profile
+     */
     public ClientProfile getProfile() {
         return localProfile_;
     }
 
+    /**
+     * Returns the hub connector used by this manager for client monitoring
+     * on the local hub.
+     *
+     * @return   hub connector 
+     */
     public HubConnector getManagerConnector() {
         return pmConnector_;
     }
 
+    /**
+     * Prepares this manager for use by informing it about all its sibling
+     * managers.  This must be done before the bridge can start operations.
+     *
+     * @param  allManagers  array of ProxyManagers including this one,
+     *         one for each hub participating in the bridge
+     */
     public void init( ProxyManager[] allManagers ) {
+
+        // Store an array of all the other managers, excluding this one,
+        // for later use.
         List remoteList = new ArrayList();
         int selfCount = 0;
         for ( int im = 0; im < allManagers.length; im++ ) {
@@ -82,25 +128,49 @@ class ProxyManager {
         assert nRemote_ == allManagers.length - 1;
     }
 
-    public HubConnection getProxyConnection( ProxyManager manager,
-                                             String clientId ) {
-        HubConnection[] proxyConnections =
-            (HubConnection[]) connectionMap_.get( clientId );
-        return proxyConnections == null
-             ? null
-             : proxyConnections[ getManagerIndex( manager ) ];
-    }
-
     public String toString() {
         return localProfile_.toString();
     }
 
-    private int getManagerIndex( ProxyManager manager ) {
-        return Arrays.asList( remoteManagers_ ).indexOf( manager );
+    /**
+     * Returns the connection on the hub associated with a remote 
+     * proxy manager which is the proxy for a given local client.
+     *
+     * @param  remoteManager  proxy manager for a remote bridged hub
+     * @param  localClientId  client ID of a client registered with
+     *         this manager's local hub
+     * @return   proxy connection
+     */
+    private HubConnection getProxyConnection( ProxyManager remoteManager,
+                                              String localClientId ) {
+        HubConnection[] proxyConnections =
+            (HubConnection[]) connectionMap_.get( localClientId );
+        return proxyConnections == null
+             ? null
+             : proxyConnections[ getManagerIndex( remoteManager ) ];
     }
 
-    private Metadata getProxyMetadata( Client client ) {
-        Metadata meta = client.getMetadata();
+    /**
+     * Returns the index by which this manager labels a given remote 
+     * proxy manager.
+     *
+     * @param  remoteManager  manager to locate
+     * @return   index of <code>remoteManager</code> in the list
+     */
+    private int getManagerIndex( ProxyManager remoteManager ) {
+        return Arrays.asList( remoteManagers_ ).indexOf( remoteManager );
+    }
+
+    /**
+     * Returns the metadata to use for the remote proxy of a local client.
+     * This resembles the metadata of the local client itself, but may 
+     * have some adjustments.
+     *
+     * @param  localClient   local client
+     * @return   metadata to use for client's remote proxy
+     */
+    private Metadata getProxyMetadata( Client localClient ) {
+        Metadata meta = localClient.getMetadata();
         if ( meta == null ) {
             return null;
         }
@@ -112,12 +182,30 @@ class ProxyManager {
         return meta;
     }
 
+    /**
+     * Returns the subscriptions to use for the remote proxy of a local client.
+     * This resembles the subscriptions of the local client itself, but may
+     * have some adjustments.
+     * 
+     * @param   localClient  local client
+     * @return   subscriptions to use for client's remote proxy
+     */
     private Subscriptions getProxySubscriptions( Client client ) {
         Subscriptions subs = client.getSubscriptions();
         if ( subs == null ) {
             return null;
         }
         else {
+
+            // Remove subscriptions to most hub administrative MTypes.
+            // These should not be delivered from the remote hub to the
+            // local client, since the local client should only receive
+            // such messages from its own hub.  Note this does not mean
+            // that the local client will not be informed about changes
+            // to clients on the remote hubs; this information will be
+            // relayed by the local hub as a consequence of proxies from
+            // other ProxyManagers making register/declare/etc calls
+            // on thie manager's local hub.
             subs = new Subscriptions( subs );
             subs.remove( "samp.hub.event.shutdown" );
             subs.remove( "samp.hub.event.register" );
@@ -128,10 +216,18 @@ class ProxyManager {
         }
     }
 
+    /**
+     * Invoked when a client is added to the local hub.
+     *
+     * @param  client  newly added client
+     */
     private void localClientAdded( Client client ) {
-        if ( ignoreLocalClient( client ) ) {
+        if ( ! isProxiedClient( client ) ) {
             return;
         }
+
+        // Register a proxy for the new local client on all the remote hubs
+        // in the bridge.
         Metadata meta = getProxyMetadata( client );
         Subscriptions subs = getProxySubscriptions( client );
         HubConnection[] proxyConnections = new HubConnection[ nRemote_ ];
@@ -182,10 +278,18 @@ class ProxyManager {
         }
     }
 
+    /**
+     * Invoked when a client is removed from the local hub.
+     *
+     * @param  client  recently removed client
+     */
     private void localClientRemoved( Client client ) {
-        if ( ignoreLocalClient( client ) ) {
+        if ( ! isProxiedClient( client ) ) {
             return;
         }
+
+        // Remove all the proxies which were registered on remote hubs
+        // on behalf of the removed client.
         HubConnection[] proxyConnections =
             (HubConnection[]) connectionMap_.remove( client.getId() );
         if ( proxyConnections != null ) {
@@ -204,10 +308,19 @@ class ProxyManager {
         }
     }
 
+    /**
+     * Invoked when information (metadata or subscriptions) have been 
+     * updated for a client on the local hub.
+     *
+     * @param  client  updated client
+     */
     private void localClientUpdated( Client client ) {
-        if ( ignoreLocalClient( client ) ) {
+        if ( ! isProxiedClient( client ) ) {
             return;
         }
+
+        // Cause each of the local client's proxies on remote hubs to
+        // declare subscription/metadata updates appropriately.
         HubConnection[] proxyConnections =
             (HubConnection[]) connectionMap_.get( client.getId() );
         Metadata meta = getProxyMetadata( client );
@@ -239,30 +352,50 @@ class ProxyManager {
         }
     }
 
-    private boolean ignoreLocalClient( Client client ) {
+    /**
+     * Determines whether a local client is a genuine third party client
+     * which requires a remote proxy.  Will return false for clients which
+     * are operating on behalf of this bridge, including the ProxyManager's
+     * client tracking connection and any proxies controlled by remote
+     * ProxyManagers.
+     *
+     * @param   client  local client
+     * @param   true if <code>client</code> has or should have a proxy;
+     *          false if it's an organ of the bridge administration
+     */
+    private boolean isProxiedClient( Client client ) {
 
-        // Is it the ProxyManager's connection on the local hub?
+        // Is it this ProxyManager's connection on the local hub?
         try {
             if ( pmConnector_.isConnected() &&
                  pmConnector_.getConnection().getRegInfo().getSelfId()
                              .equals( client.getId() ) ) {
-                return true;
+                return false;
             }
         }
         catch ( SampException e ) {
         }
 
-        // Is it a proxy working for one of the remote managers?
+        // Is it a proxy controlled by one of the remote managers?
         for ( int ir = 0; ir < nRemote_; ir++ ) {
             if ( remoteManagers_[ ir ].isProxy( client, ProxyManager.this ) ) {
-                return true;
+                return false;
             }
         }
 
-        // No, then it's a genuine local client.
-        return false;
+        // No, then it's a genuine local client requiring a proxy.
+        return true;
     }
 
+    /**
+     * Determines whether a given local client is a proxy controlled by
+     * a given remote ProxyManager.
+     *
+     * @param   client  local client
+     * @param   remoteManager  remote proxy manager
+     * @return   true iff <code>client</code> is one of 
+     *           <code>remoteManager</code>'s proxies
+     */
     private boolean isProxy( Client client, ProxyManager remoteManager ) {
         int ir = getManagerIndex( remoteManager );
         synchronized ( connectionMap_ ) {
@@ -280,27 +413,69 @@ class ProxyManager {
         return false;
     }
 
+    /**
+     * Stores the message ID associated with a message Tag sent by a given
+     * client on the local hub.
+     *
+     * @param   clientId  local client ID for message sender
+     * @param   msgTag    message tag used by sender
+     * @param   msgId     message ID associated with the message
+     */
     private void storeTagId( String clientId, String msgTag, String msgId ) {
         tagMap_.put( getTagKey( clientId, msgTag ), msgId );
     } 
 
+    /**
+     * Retrieves the message ID for a given message tag sent by a given client
+     * on the local hub.  Retrieval is destructive; if it's called again
+     * the answer won't be there.
+     *
+     * @param  clientId  local client ID for message sender
+     * @param  msgTag    message tag used by sender
+     * @return  message ID associated with the message,
+     *          or null if it is not known
+     */
     private String tagToId( String clientId, String msgTag ) {
         return (String) tagMap_.remove( getTagKey( clientId, msgTag ) );
     }
 
-    private Object getTagKey( String clientId, String msgTag ) {
-        return clientId + "\n" + msgTag;
+    /**
+     * Returns an object suitable for use in a Map which combines
+     * a client ID and message tag.
+     *
+     * @param clientId  client ID
+     * @param   msgTag  message tag
+     * @param  object which is only equal to another object with the same
+     *         inputs
+     */
+    private static Object getTagKey( String clientId, String msgTag ) {
+        return Arrays.asList( new String[] { clientId, msgTag } );
     }
 
- // local means the target hub for this manager.
- // remote is the hub this proxy is connected to.
-
+    /**
+     * CallableClient implementation used by remote proxy connections on
+     * behalf of local clients.  * This is the core of the proxy manager.
+     * Callbacks received by the remote proxy client are tunnelled back 
+     * to the local hub and forwarded by the local proxy of the remote 
+     * sender client to the appropriate local non-proxy client.
+     * Since local proxies are managed by other proxy managers 
+     * (this one manages remote proxies of local clients)
+     * this means getting the other proxy managers to do some of the work.
+     */
     private class ProxyCallableClient implements CallableClient {
         private final String localClientId_;
         private final HubConnection remoteProxy_;
         private final ProxyManager remoteManager_;
         private final ProxyManager localManager_;
 
+        /**
+         * Constructor.
+         *
+         * @param   localClient  local client
+         * @param   remoteProxy   hub connection to the remote hub for the proxy
+         * @param   remoteManager  remote ProxyManager associated with the
+         *          hub where this proxy is connected
+         */
         ProxyCallableClient( Client localClient, HubConnection remoteProxy,
                              ProxyManager remoteManager ) {
             localClientId_ = localClient.getId();
@@ -309,42 +484,77 @@ class ProxyManager {
             localManager_ = ProxyManager.this;
         }
 
+        public void receiveNotification( String remoteSenderId, Message msg )
+                throws SampException {
+
+            // Forward the notification.
+            getLocalProxy( remoteSenderId ).notify( localClientId_, msg );
+        }
+
         public void receiveCall( String remoteSenderId, String remoteMsgId,
                                  Message msg )
                 throws SampException {
+
+            // Generate an arbitrary (but unique) tag for the call,
+            // and store the incoming msgId so that we can retrieve 
+            // and reuse it when that tag shows up labelling a reply.
             String localMsgTag = localManager_.pmConnector_.createTag( null );
-            HubConnection localSenderConnection =
-                getLocalProxy( remoteSenderId );
-            localSenderConnection.call( localClientId_, localMsgTag, msg );
             localManager_.storeTagId( localClientId_, localMsgTag,
                                       remoteMsgId );
-        }
 
-        public void receiveNotification( String remoteSenderId, Message msg )
-                throws SampException {
-            HubConnection localSenderConnection =
-                getLocalProxy( remoteSenderId );
-            localSenderConnection.notify( localClientId_, msg );
+            // Forward the call.
+            getLocalProxy( remoteSenderId ).call( localClientId_,
+                                                  localMsgTag, msg );
         }
 
         public void receiveResponse( String remoteResponderId,
                                      String remoteMsgTag, Response response )
                 throws SampException {
-            HubConnection localResponderConnection =
-                getLocalProxy( remoteResponderId );
+
+            // Retrieve the msgId corresponding to the earlier call which
+            // was labelled by the current tag.
             String localMsgId =
                 remoteManager_.tagToId( remoteResponderId, remoteMsgTag );
-            localResponderConnection.reply( localMsgId, response );
+
+            // Forward the reply appropriately.
+            if ( localMsgId != null ) {
+                getLocalProxy( remoteResponderId ).reply( localMsgId,
+                                                          response );
+            }
+            else {
+                throw new SampException( "Orphaned reply over bridge "
+                                       + remoteManager_ + ":"
+                                       + remoteResponderId + " -> " 
+                                       + localManager_ + localClientId_
+                                       + " (tag " + remoteMsgTag + ")"
+                                       + " - reply sent twice?" );
+            }
         }
 
+        /**
+         * Returns the hub connection for the proxy on the local hub
+         * which corresponds to a given remote client.
+         *
+         * @param  remoteClientId  client ID of remote client
+         * @return   hub connection for local proxy
+         */
         private HubConnection getLocalProxy( String remoteClientId ) {
             return remoteManager_
                   .getProxyConnection( localManager_, remoteClientId );
         }
     }
 
+    /**
+     * TrackedClientSet implementation used by a Proxy Manager.
+     * Apart from inheriting default behaviour, this triggers
+     * calls to ProxyManager methods when there are status changes
+     * to local clients.
+     */
     private class ProxyManagerClientSet extends TrackedClientSet {
 
+        /**
+         * Constructor.
+         */
         private ProxyManagerClientSet() {
             super();
         }
@@ -376,44 +586,6 @@ class ProxyManager {
                 Client client = clients[ i ];
                 localClientAdded( client );
             }
-        }
-    }
-
-    private class ProxyManagerClient implements Client {
-        private final Client base_;
-
-        ProxyManagerClient( Client base ) {
-            base_ = base;
-        }
-
-        public String getId() {
-            return base_.getId();
-        }
-
-        public Metadata getMetadata() {
-            return base_.getMetadata();
-        }
-
-        public Subscriptions getSubscriptions() {
-            return base_.getSubscriptions();
-        }
-
-        public int hashCode() {
-            return base_.hashCode();
-        }
-
-        public boolean equals( Object o ) {
-            if ( o instanceof ProxyManagerClient ) {
-                ProxyManagerClient other = (ProxyManagerClient) o;
-                return this.base_.equals( other.base_ );
-            }
-            else {
-                return false;
-            }
-        }
-
-        public String toString() {
-            return localProfile_ + ":" + base_.toString();
         }
     }
 }
