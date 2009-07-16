@@ -75,7 +75,12 @@ public abstract class MessageSender {
             Object response = entry.getValue();
             out.println();
             out.println( responder );
-            out.println( SampUtils.formatObject( response, 3 ) );
+            if ( response instanceof Throwable ) {
+                ((Throwable) response).printStackTrace( out );
+            }
+            else {
+                out.println( SampUtils.formatObject( response, 3 ) );
+            }
         }
     }
 

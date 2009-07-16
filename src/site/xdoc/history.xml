@@ -314,6 +314,7 @@
     MType.</li>
 <li><tt>StandardClientProfile</tt> now has overridable <tt>getLockInfo</tt>
     method for better customisability.</li>
+<li>Fixed error reporting bug in <code>messagesender</code> tool.</li>
 </ul>
 </subsection>
 
