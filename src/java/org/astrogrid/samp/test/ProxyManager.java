@@ -1,5 +1,6 @@
 package org.astrogrid.samp.test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,6 +21,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.client.TrackedClientSet;
+import org.astrogrid.samp.httpd.DefaultServer;
 
 /**
  * Takes care of client connections for the SAMP Bridge.
@@ -67,6 +69,15 @@ class ProxyManager {
         Metadata meta = new Metadata();
         meta.setName( "bridge" );
         meta.setDescriptionText( "Bridge between hubs" );
+        try {
+            meta.setIconUrl( DefaultServer
+                            .exportResource( "/org/astrogrid/samp/images/"
+                                           + "bridge.png" )
+                            .toString() );
+        }
+        catch ( IOException e ) {
+            logger_.warning( "Couldn't set icon" );
+        }
         meta.put( "author.name", "Mark Taylor" );
         meta.put( "author.email", "m.b.taylor@bristol.ac.uk" );
         pmConnector_.declareMetadata( meta );
@@ -178,6 +189,7 @@ class ProxyManager {
             meta = new Metadata( meta );
             meta.setName( meta.getName() + " (proxy)" );
             meta.put( "bridge.proxy.source", ProxyManager.this.toString() );
+            
         }
         return meta;
     }

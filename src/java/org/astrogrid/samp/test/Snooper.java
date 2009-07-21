@@ -22,6 +22,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
+import org.astrogrid.samp.httpd.DefaultServer;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
@@ -166,8 +167,15 @@ public class Snooper {
         meta.setName( "Snooper" );
         meta.setDescriptionText( "Listens in to messages"
                                + " for logging purposes" );
-        meta.setIconUrl( "http://www.star.bristol.ac.uk/~mbt/"
-                       + "plastic/images/ears.png" );
+        try {
+            meta.setIconUrl( DefaultServer
+                            .exportResource( "/org/astrogrid/samp/images/"
+                                           + "ears.png" )
+                            .toString() );
+        }
+        catch ( IOException e ) {
+            logger_.warning( "Can't export icon" );
+        }
         meta.put( "Author", "Mark Taylor" );
         return meta;
     }

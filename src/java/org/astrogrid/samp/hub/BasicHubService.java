@@ -1,5 +1,6 @@
 package org.astrogrid.samp.hub;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -18,6 +19,7 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampMap;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.httpd.DefaultServer;
 
 /**
  * HubService implementation.
@@ -74,8 +76,15 @@ public class BasicHubService implements HubService {
         hubClient_ = createClient( keyGen_.next(), "hub" );
         Metadata meta = new Metadata();
         meta.setName( "Hub" );
-        meta.setIconUrl( "http://www.star.bristol.ac.uk/"
-                       + "~mbt/plastic/images/hub.png" );
+        try {
+            meta.setIconUrl( DefaultServer
+                            .exportResource( "/org/astrogrid/samp/images/"
+                                           + "hub.png" )
+                            .toString() );
+        }
+        catch ( Throwable e ) {
+            logger_.warning( "Can't set icon" );
+        }
         meta.put( "author.name", "Mark Taylor" );
         meta.put( "author.mail", "m.b.taylor@bristol.ac.uk" );
         meta.setDescriptionText( getClass().getName() );

@@ -1,10 +1,12 @@
 package org.astrogrid.samp.test;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Logger;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
@@ -14,6 +16,7 @@ import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.httpd.DefaultServer;
 
 /**
  * Test client.  Performs simple integer arithmetic.
@@ -32,6 +35,9 @@ public class Calculator extends Tester implements CallableClient {
     private static final String SUB_MTYPE = "calc.int.sub";
     private static final String MUL_MTYPE = "calc.int.mul";
     private static final String DIV_MTYPE = "calc.int.div";
+    private static final Logger logger_ =
+        Logger.getLogger( Calculator.class.getName() );
+    private static String iconUrl_;
 
     /** Sends messages using the Notify delivery pattern. */
     public static final SendMode NOTIFY_MODE = new SendMode( "notify" ) {
@@ -95,8 +101,10 @@ public class Calculator extends Tester implements CallableClient {
         Metadata meta = new Metadata();
         meta.setName( "Calculator" );
         meta.setDescriptionText( "Rudimentary integer arithmetic application" );
-        meta.setIconUrl( "http://www.star.bris.ac.uk/~mbt/plastic/images/"
-                       + "tinycalc.gif" );
+        String iconUrl = getIconUrl();
+        if ( iconUrl != null ) {
+            meta.setIconUrl( iconUrl );
+        }
         connection_.declareMetadata( meta );
         Subscriptions subs = new Subscriptions();
         subs.addMType( ADD_MTYPE );
@@ -258,6 +266,22 @@ public class Calculator extends Tester implements CallableClient {
         return new CalcRequest( mtype,
                                 random_.nextInt( 1000 ),
                                 500 + random_.nextInt( 500 ) );
+    }
+
+    private static String getIconUrl() {
+        if ( iconUrl_ == null ) {
+            String resource = "/org/astrogrid/samp/images/tinycalc.gif";
+            URL url;
+            try {
+                url = DefaultServer.exportResource( resource );
+            }
+            catch ( IOException e ) {
+                url = null;
+                logger_.warning( "Can't locate icon: " + resource );
+            }
+            iconUrl_ = url == null ? "" : url.toString();
+        }
+        return iconUrl_.length() > 0 ? iconUrl_ : null;
     }
 
     /**

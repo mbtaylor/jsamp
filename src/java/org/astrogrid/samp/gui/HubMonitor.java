@@ -1,6 +1,7 @@
 package org.astrogrid.samp.gui;
 
 import java.awt.BorderLayout;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.httpd.DefaultServer;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
@@ -69,8 +71,15 @@ public class HubMonitor extends JPanel {
         Metadata meta = new Metadata();
         meta.setName( "HubMonitor" );
         meta.setDescriptionText( "GUI hub monitor utility" );
-        meta.setIconUrl( "http://www.star.bristol.ac.uk/~mbt/"
-                       + "plastic/images/eye.gif" );
+        try {
+            meta.setIconUrl( DefaultServer
+                            .exportResource( "/org/astrogrid/samp/images/"
+                                           + "eye.gif" )
+                            .toString() );
+        }
+        catch ( IOException e ) {
+            logger_.warning( "Can't set icon" );
+        }
         meta.put( "author", "Mark Taylor" );
         connector_.declareMetadata( meta );
 
