@@ -27,7 +27,7 @@ import java.util.Set;
  * @author   Mark Taylor
  * @since    21 Jul 2009
  */
-public class ServerUtils {
+public class DefaultServer {
 
     private static HttpServer server_;
     private static MultiURLMapperHandler mapperHandler_;
@@ -39,7 +39,7 @@ public class ServerUtils {
     /**
      * Private constructor prevents instantiation.
      */
-    private ServerUtils() {
+    private DefaultServer() {
     }
 
     /**
@@ -85,8 +85,7 @@ public class ServerUtils {
      * @return  URL for external reference to the resource
      */
     public static URL exportResource( String resource ) throws IOException {
-        URL localUrl =
-            ServerUtils.class.getResource( resource );
+        URL localUrl = DefaultServer.class.getResource( resource );
         if ( localUrl != null ) {
             return getMapperHandler().addLocalUrl( localUrl );
         }
