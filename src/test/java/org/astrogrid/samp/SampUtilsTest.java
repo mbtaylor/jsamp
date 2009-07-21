@@ -16,10 +16,6 @@ public class SampUtilsTest extends TestCase {
 
     private final Random random_ = new Random( 232323L );
 
-    public SampUtilsTest( String name ) {
-        super( name );
-    }
-
     public void testCodecs() {
         for ( int k = 0; k < 100; k++ ) {
             boolean b = random_.nextBoolean();
