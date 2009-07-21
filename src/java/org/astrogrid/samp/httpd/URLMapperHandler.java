@@ -25,9 +25,6 @@ public class URLMapperHandler implements HttpServer.Handler {
     private final URL sourceUrl_;
     private final boolean includeRelatives_;
 
-    /** Buffer size for copying data to response. */
-    public static int BUFSIZ = 16 * 1024;
-
     /**
      * Constructor.
      *
@@ -124,17 +121,7 @@ public class URLMapperHandler implements HttpServer.Handler {
                 return new HttpServer.Response( 200, "OK", hdrMap ) {
                     public void writeBody( OutputStream out )
                             throws IOException {
-                        InputStream in = conn.getInputStream();
-                        byte[] buf = new byte[ BUFSIZ ];
-                        try {
-                            for ( int nb; ( nb = in.read( buf ) ) >= 0; ) {
-                                out.write( buf, 0, nb );
-                            }
-                            out.flush();
-                        }
-                        finally {
-                            in.close();
-                        }
+                        ServerUtils.copy( conn.getInputStream(), out );
                     }
                 };
             }
