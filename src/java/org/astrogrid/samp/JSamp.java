@@ -197,7 +197,7 @@ public class JSamp {
            .append( "\n   " )
            .append( "WWW:" )
            .append( "\n      " )
-           .append( "http://deployer.astrogrid.org/software/jsamp/index.html" )
+           .append( "http://software.astrogrid.org/doc/jsamp/" )
            .toString();
     }
 
