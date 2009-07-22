@@ -21,7 +21,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.client.TrackedClientSet;
-import org.astrogrid.samp.httpd.DefaultServer;
+import org.astrogrid.samp.httpd.UtilServer;
 
 /**
  * Takes care of client connections for the SAMP Bridge.
@@ -70,7 +70,7 @@ class ProxyManager {
         meta.setName( "bridge" );
         meta.setDescriptionText( "Bridge between hubs" );
         try {
-            meta.setIconUrl( DefaultServer
+            meta.setIconUrl( UtilServer.getInstance()
                             .exportResource( "/org/astrogrid/samp/images/"
                                            + "bridge.png" )
                             .toString() );

@@ -163,7 +163,7 @@ public class MultiURLMapperHandler implements HttpServer.Handler {
                 return new HttpServer.Response( 200, "OK", hdrMap ) {
                     public void writeBody( OutputStream out )
                             throws IOException {
-                        DefaultServer.copy( conn.getInputStream(), out );
+                        UtilServer.copy( conn.getInputStream(), out );
                     }
                 };
             }

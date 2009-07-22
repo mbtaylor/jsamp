@@ -19,7 +19,7 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampMap;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
-import org.astrogrid.samp.httpd.DefaultServer;
+import org.astrogrid.samp.httpd.UtilServer;
 
 /**
  * HubService implementation.
@@ -77,7 +77,7 @@ public class BasicHubService implements HubService {
         Metadata meta = new Metadata();
         meta.setName( "Hub" );
         try {
-            meta.setIconUrl( DefaultServer
+            meta.setIconUrl( UtilServer.getInstance()
                             .exportResource( "/org/astrogrid/samp/images/"
                                            + "hub.png" )
                             .toString() );
