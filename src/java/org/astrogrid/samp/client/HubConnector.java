@@ -647,6 +647,7 @@ public class HubConnector {
                 connection_ = connection;
                 configureConnection( connection );
                 clientTracker_.initialise( connection );
+                connectionChanged( true );
             }
         }
         return connection;
@@ -718,12 +719,28 @@ public class HubConnector {
      * Performs any associated required cleanup.
      */
     protected void disconnect() {
+        boolean wasConnected = connection_ != null;
         connection_ = null;
         clientTracker_.clear();
         synchronized ( responseMap_ ) {
             responseMap_.clear();
             responseMap_.notifyAll();
         }
+        if ( wasConnected ) {
+            connectionChanged( false );
+        }
+    }
+
+    /**
+     * Method which is called every time this connector changes its connection
+     * status (from disconnected to connected, or vice versa).
+     * The default implementation does nothing, but it may be overridden
+     * by subclasses wishing to be informed of these events.
+     *
+     * @param  isConnected  true if we've just registered;
+     *                      false if we've just unregistered
+     */
+    protected void connectionChanged( boolean isConnected ) {
     }
 
     /**

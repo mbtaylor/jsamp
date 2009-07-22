@@ -108,15 +108,17 @@ public class GuiHubConnector extends HubConnector {
         updateConnectionState();
     }
 
-    public HubConnection getConnection() throws SampException {
-        HubConnection connection = super.getConnection();
-        scheduleConnectionChange();
-        return connection;
-    }
-
-    protected void disconnect() {
-        super.disconnect();
-        scheduleConnectionChange();
+    protected void connectionChanged( boolean isConnected ) {
+        super.connectionChanged( isConnected );
+        SwingUtilities.invokeLater( new Runnable() {
+            public void run() {
+                ChangeEvent evt = new ChangeEvent( GuiHubConnector.this );
+                for ( Iterator it = connectionListenerList_.iterator();
+                      it.hasNext(); ) {
+                    ((ChangeListener) it.next()).stateChanged( evt );
+                }
+            }
+        } );
     }
 
     /**

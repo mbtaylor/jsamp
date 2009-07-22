@@ -320,6 +320,7 @@
     local (e.g. file: or classpath) URLs.</li>
 <li>Icon URLs declared by test clients etc now use internal server references
     rather than links to external static resources.</li>
+<li>Added new method <code>HubConnector.connectionChanged</code>.</li>
 </ul>
 </subsection>
 
