@@ -22,7 +22,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
-import org.astrogrid.samp.httpd.DefaultServer;
+import org.astrogrid.samp.httpd.UtilServer;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
@@ -168,7 +168,7 @@ public class Snooper {
         meta.setDescriptionText( "Listens in to messages"
                                + " for logging purposes" );
         try {
-            meta.setIconUrl( DefaultServer
+            meta.setIconUrl( UtilServer.getInstance()
                             .exportResource( "/org/astrogrid/samp/images/"
                                            + "ears.png" )
                             .toString() );

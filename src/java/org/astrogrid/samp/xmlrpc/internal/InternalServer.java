@@ -16,8 +16,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.astrogrid.samp.SampUtils;
-import org.astrogrid.samp.httpd.DefaultServer;
 import org.astrogrid.samp.httpd.HttpServer;
+import org.astrogrid.samp.httpd.UtilServer;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcHandler;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
 import org.w3c.dom.Document;
@@ -66,11 +66,11 @@ public class InternalServer implements SampXmlRpcServer {
     /**
      * Constructs a server running with default characteristics.
      * Currently, the default server 
-     * {@link org.astrogrid.samp.httpd.DefaultServer#getServer} is used.
+     * {@link org.astrogrid.samp.httpd.UtilServer#getInstance} is used.
      */
     public InternalServer() throws IOException {
-        this( DefaultServer.getServer(),
-              DefaultServer.getBasePath( "/xmlrpc" ) );
+        this( UtilServer.getInstance().getServer(),
+              UtilServer.getInstance().getBasePath( "/xmlrpc" ) );
     }
 
     public URL getEndpoint() {

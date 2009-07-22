@@ -16,7 +16,7 @@ import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
-import org.astrogrid.samp.httpd.DefaultServer;
+import org.astrogrid.samp.httpd.UtilServer;
 
 /**
  * Test client.  Performs simple integer arithmetic.
@@ -273,7 +273,7 @@ public class Calculator extends Tester implements CallableClient {
             String resource = "/org/astrogrid/samp/images/tinycalc.gif";
             URL url;
             try {
-                url = DefaultServer.exportResource( resource );
+                url = UtilServer.getInstance().exportResource( resource );
             }
             catch ( IOException e ) {
                 url = null;
