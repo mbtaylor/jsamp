@@ -120,6 +120,17 @@ public class Bridge {
      * Main method.  Runs a bridge.
      */
     public static void main( String[] args ) throws IOException {
+
+        // Unless specially requested, make sure that the local host 
+        // is referred to by something publicly useful, not the loopback
+        // address, which would be no good if there will be communications
+        // to/from an external host.
+        String hostspec = System.getProperty( SampUtils.LOCALHOST_PROP );
+        if ( hostspec == null ) {
+            System.setProperty( SampUtils.LOCALHOST_PROP, "[hostname]" );
+        }
+
+        // Run the application.
         int status = runMain( args );
         if ( status != 0 ) {
             System.exit( status );
