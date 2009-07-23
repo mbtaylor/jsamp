@@ -16,6 +16,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.httpd.UtilServer;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
@@ -41,11 +42,12 @@ public class Bridge {
      * @param   profiles   array of SAMP profile objects, one for each
      *          hub which is to participate in the bridge
      */
-    public Bridge( ClientProfile[] profiles ) {
+    public Bridge( ClientProfile[] profiles ) throws IOException {
         int nhub = profiles.length;
         proxyManagers_ = new ProxyManager[ nhub ];
+        UtilServer server = UtilServer.getInstance();
         for ( int ih = 0; ih < nhub; ih++ ) {
-            proxyManagers_[ ih ] = new ProxyManager( profiles[ ih ] );
+            proxyManagers_[ ih ] = new ProxyManager( profiles[ ih ], server );
         }
         for ( int ih = 0; ih < nhub; ih++ ) {
             proxyManagers_[ ih ].init( proxyManagers_ );
@@ -117,7 +119,7 @@ public class Bridge {
     /**
      * Main method.  Runs a bridge.
      */
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws IOException {
         int status = runMain( args );
         if ( status != 0 ) {
             System.exit( status );
@@ -128,7 +130,7 @@ public class Bridge {
      * Does the work for the main method.
      * Use -help flag.
      */
-    public static int runMain( String[] args ) {
+    public static int runMain( String[] args ) throws IOException {
         String usage = new StringBuffer()
             .append( "\n   Usage:" )
             .append( "\n      " )

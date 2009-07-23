@@ -1,6 +1,13 @@
 package org.astrogrid.samp.test;
 
+import java.awt.Image;
+import java.awt.AlphaComposite;
+import java.awt.Composite;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,6 +28,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.client.TrackedClientSet;
+import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.httpd.UtilServer;
 
 /**
@@ -46,9 +54,11 @@ import org.astrogrid.samp.httpd.UtilServer;
 class ProxyManager {
 
     private final ClientProfile localProfile_;
+    private final UtilServer server_;
     private final HubConnector pmConnector_;
     private final Map connectionMap_;  // local client ID -> HubConnection[]
     private final Map tagMap_;
+    private final IconAdjuster iconAdjuster_;
     private ProxyManager[] remoteManagers_;
     private int nRemote_;
 
@@ -60,8 +70,9 @@ class ProxyManager {
      *
      * @param  localProfile  profile for connection to this manager's local hub
      */
-    public ProxyManager( ClientProfile localProfile ) {
+    public ProxyManager( ClientProfile localProfile, UtilServer server ) {
         localProfile_ = localProfile;
+        server_ = server;
 
         // Set up the local hub connection to monitor client list changes.
         pmConnector_ =
@@ -70,7 +81,7 @@ class ProxyManager {
         meta.setName( "bridge" );
         meta.setDescriptionText( "Bridge between hubs" );
         try {
-            meta.setIconUrl( UtilServer.getInstance()
+            meta.setIconUrl( server_
                             .exportResource( "/org/astrogrid/samp/images/"
                                            + "bridge.png" )
                             .toString() );
@@ -87,6 +98,8 @@ class ProxyManager {
         // Set up other required data structures.
         connectionMap_ = Collections.synchronizedMap( new HashMap() );
         tagMap_ = Collections.synchronizedMap( new HashMap() );
+        iconAdjuster_ = new ProxyIconAdjuster();
+        server_.getServer().addHandler( iconAdjuster_ );
     }
 
     /**
@@ -187,11 +200,35 @@ class ProxyManager {
         }
         else {
             meta = new Metadata( meta );
-            meta.setName( meta.getName() + " (proxy)" );
+            meta.setName( proxyName( meta.getName() ) );
+            URL iconUrl = proxyIconUrl( meta.getIconUrl() );
+            meta.setIconUrl( iconUrl == null ? null : iconUrl.toString() );
             meta.put( "bridge.proxy.source", ProxyManager.this.toString() );
-            
         }
         return meta;
+    }
+
+    /**
+     * Returns the name to be used for a proxy client given its local name.
+     *
+     * @param   localName  local name
+     * @return  proxy name
+     */
+    private String proxyName( String localName ) {
+        return localName == null ? "(proxy)"
+                                 : localName + " (proxy)";
+    }
+
+    /**
+     * Returns the icon to be used for a proxy client given its local icon.
+     *  
+     * @param   localIconUrl  URL for local icon
+     * @return  URL for proxy icon
+     */
+    private URL proxyIconUrl( URL localIconUrl ) {
+        return localIconUrl != null
+             ? iconAdjuster_.exportAdjustedIcon( localIconUrl )
+             : localIconUrl;
     }
 
     /**
@@ -547,6 +584,47 @@ class ProxyManager {
                 Client client = clients[ i ];
                 localClientAdded( client );
             }
+        }
+    }
+
+    /**
+     * Class which can turn a client's icon into the icon for the proxy of
+     * the same client.  Some visually distinctive adjustment is made to
+     * make it obvious from the icon that it's a proxy.
+     */
+    private class ProxyIconAdjuster extends IconAdjuster {
+
+        /**
+         * Constructor.
+         */
+        ProxyIconAdjuster() {
+            super( server_.getServer(),
+                   server_.getBasePath( "proxy" + "-" + localProfile_ ) );
+        }
+
+        public RenderedImage adjustImage( BufferedImage inImage ) {
+            int w = inImage.getWidth();
+            int h = inImage.getHeight();
+
+            // Copy the image to a new image.  It would be possible to write
+            // directly into the input BufferedImage, but this might not
+            // have the correct image type, so could end up getting the
+            // transparency wrong or something.
+            BufferedImage outImage =
+                new BufferedImage( w, h, BufferedImage.TYPE_4BYTE_ABGR );
+            Graphics2D g2 = outImage.createGraphics();
+            g2.drawImage( inImage, null, 0, 0 );
+
+            // Slice off half of the image diagonally.
+            int[] xs = new int[] { 0, w, w, };
+            int[] ys = new int[] { h, h, 0, };
+            Composite compos = g2.getComposite();
+            g2.setComposite( AlphaComposite.Clear );
+            g2.fillPolygon( xs, ys, 3 );
+            g2.setComposite( compos );
+
+            // Return the result.
+            return outImage;
         }
     }
 }
