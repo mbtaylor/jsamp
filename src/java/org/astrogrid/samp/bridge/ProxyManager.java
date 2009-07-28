@@ -1,4 +1,4 @@
-package org.astrogrid.samp.test;
+package org.astrogrid.samp.bridge;
 
 import java.awt.Image;
 import java.awt.AlphaComposite;

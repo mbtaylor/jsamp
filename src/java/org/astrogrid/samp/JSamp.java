@@ -19,12 +19,12 @@ public class JSamp {
     /** Known command class names. */
     static final String[] COMMAND_CLASSES = new String[] {
         "org.astrogrid.samp.gui.HubMonitor",
-        "org.astrogrid.samp.test.Bridge",
         "org.astrogrid.samp.test.HubTester",
         "org.astrogrid.samp.test.CalcStorm",
         "org.astrogrid.samp.test.MessageSender",
         "org.astrogrid.samp.test.Snooper",
         "org.astrogrid.samp.xmlrpc.HubRunner",
+        "org.astrogrid.samp.bridge.Bridge",
     };
 
     /**
