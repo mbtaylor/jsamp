@@ -16,6 +16,8 @@
            "../../../target/docs/org.astrogrid.samp.test.HubTester.usage">
   <!ENTITY calcstorm-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.test.CalcStorm.usage">
+  <!ENTITY bridge-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.bridge.Bridge.usage">
 ]>
 <document>
 
@@ -24,8 +26,21 @@
   <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
 </properties>
 
+
 <body>
+
 <section name="Command-line Tools">
+
+<!-- doesn't work at this version of xdoc <macro name="toc"/> -->
+<ul>
+<li><a href="#HubRunner">HubRunner</a></li>
+<li><a href="#HubMonitor">HubMonitor</a></li>
+<li><a href="#Snooper">Snooper</a></li>
+<li><a href="#MessageSender">MessageSender</a></li>
+<li><a href="#HubTester">HubTester</a></li>
+<li><a href="#CalcStorm">CalcStorm</a></li>
+<li><a href="#Bridge">Bridge</a></li>
+</ul>
 
 <p>JSAMP provides a number of command-line applications for standalone use
 in various contexts.
@@ -44,7 +59,10 @@ flag on the command line will print a usage message.
 </p>
 <source>&jsamp-usage;</source>
 
-<p>The individual command-line applications are described below.
+<p>The individual command-line applications are described below:
+
+
+
 They have their own specific command-line flags to control use,
 but most share the following common flags:
 </p>
@@ -360,6 +378,84 @@ for a given hub implementation.
 <dd>If supplied, a HubMonitor window will be shown for the duration of the test.
     </dd>
 </dl>
+
+</subsection>
+
+<subsection name="Bridge">
+
+<p>The <code>org.astrogrid.samp.bridge.Bridge</code> class provides a 
+connection between two or more different hubs.
+If run between two hubs, A and B, every client on A also appears as
+a 'proxy' client on B, and vice versa.  A bridge client also runs on
+both hubs A and B to keep track of which clients are currently registered,
+so that it can generate new proxies as required.
+The effect of this is that clients registered with one hub can send
+and receive messages to and from clients registered on a different hub,
+just as if they were local.
+This can be used to facilitate collaborative working, though you may
+be able to think of other uses.
+</p>
+
+<p>To run it, you must specify which hubs to bridge between.
+In most cases you'll want one to be the default (standard profile)
+hub, so this is assumed by default.  You therefore only need to
+specify how to connect to the non-default hub.  You can do this
+by using one or more of the command-line options described below.
+</p>
+
+<p>Bridge usage is:
+</p>
+<source>&bridge-usage;</source>
+<dl>
+<dt><code>-noexporturls</code></dt>
+<dd>Prevents URLs which refer to the localhost using a loopback address
+    like "127.0.0.1" from being tranlated to a form suitable for remote use.
+    </dd>
+<dt><code>-nostandard</code></dt>
+<dd>Indicates that the standard profile hub 
+    (the one described in the <code>~/.samp</code> file) 
+    is <em>not</em> to be used.  Unless this flag is given, it is assumed
+    that the bridge will be between that hub and one or more others
+    specified by other flags.
+    </dd>
+<dt><code>-sampfile &lt;lockfile&gt;</code></dt>
+<dd>Names a file in standard-profile format which describes the location
+    of a hub.
+    This flag may be given more than once to specify multiple 
+    non-standard hubs.
+    </dd>
+<dt><code>-keys &lt;xmlrpc-url&gt; &lt;secret&gt;</code></dt>
+<dd>Gives the XML-RPC endpoint and "samp-secret" string required for
+    communicating with a running hub.  These correspond to the
+    <code>samp.hub.xmlrpc.url</code> and <code>samp.secret</code>
+    values from the standard profile lockfile.
+    This flag may be given more than once to specify multiple 
+    non-standard hubs.
+    </dd>
+<dt><code>-sampdir &lt;lockfile-dir&gt;</code></dt>
+<dd>Names a directory containing a file "<code>.samp</code>" in 
+    standard-profile format which describes the location of a hub.
+    This flag may be given more than once to specify multiple 
+    non-standard hubs.
+    </dd>
+<dt><code>-profile &lt;clientprofile-class&gt;</code></dt>
+<dd>Gives the fully-qualified classname of a java class which 
+    implements the
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/client/ClientProfile.html"
+                                              >ClientProfile</a>
+    class and which has a no-arg constructor.
+    A newly-constructed instance of this class will be used to 
+    contact a hub.
+    This flag may be given more than once to specify multiple 
+    non-standard hubs.
+    </dd>
+</dl>
+
+<p>The bridge is a bit experimental, and there are a few subtleties
+concerning its use.  Some more discussion can be found on the
+<a href="bridge.html">bridge</a> page.
+</p>
 
 </subsection>
 
