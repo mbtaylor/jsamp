@@ -1,0 +1,142 @@
+<?xml version="1.0"?>
+<!DOCTYPE document PUBLIC
+          "-//Apache Software Foundation//DTD XDOC 1.0//EN"
+          "http://maven.apache.org/dtd/xdoc_1_0.dtd">
+<document>
+
+<properties>
+  <title>Bridge</title>
+  <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
+</properties>
+
+<body>
+
+<section name="Bridge">
+
+<p>JSAMP provides a special client called the Bridge.
+Its purpose is to link up two or more hubs, so that clients registered 
+with one of the linked hubs can communicate with clients registered with 
+any of the other hubs as if they were registered on the same one.
+Usage instructions are given in the
+<a href="commands.html#Bridge">commands reference</a>.
+</p>
+
+<p>The bridge works by registering a proxy client on all the remote hubs
+for each client on a local hub.
+These proxy clients can be communicated with just like non-proxy ones,
+but the client metadata is adjusted so that a user can see that they
+are proxies; the icons are mangled, the names have "(proxy)" appended,
+and a metadata entry with the key "<code>bridge.proxy.source</code>"
+is added to indicate which hub the client is proxied from.
+</p>
+
+<p>In order to set it up, you need to specify which hubs will be connected.
+There are various ways you can do this, as explained in the usage
+documentation.  In most cases, you will want to bridge the local
+'standard' hub with a remote one.
+If you can see a .samp file (for instance from another user's home
+directory) you can specify it by name like this:
+</p>
+<pre>
+   jsamp bridge -sampfile /home/foo/.samp
+</pre>
+<p>
+or by directory like this:
+</p>
+<pre>
+   jsamp bridge -sampdir /home/foo
+</pre>
+<p>If you can't see the SAMP lockfile (for instance if it is on a 
+remote machine), you can specify the XML-RPC endpoint and samp.secret
+string directly.  You might exchange this information with a collaborator
+by email or instant messaging if you want to set up a collaboration.
+In this case, one (not both) parties would execute a command like:
+</p>
+<pre>
+   jsamp bridge -keys http://foo.star.com:46557/xmlrpc 3c3135435de76ef5
+</pre>
+<p>
+The keys here are obtained by looking in the remote user's .samp lockfile
+(the <code>samp.hub.xmlrpc.url</code> and <code>samp.secret</code>
+entries respectively).  Note that if the URL uses a loopback hostname
+like "localhost" or "127.0.0.1" you may need to replace it with the
+fully qualified domain name.
+</p>
+
+<p>By default the local standard-profile hub is used in addition to any 
+others specified on the command line, but you can inhibit this
+with the "<code>-nostandard</code>" flag;
+for instance the following sets up a three-way bridge between the standard
+profile hubs running in the home directories of users foo, bar and baz:
+</p>
+<pre>
+   jsamp bridge -nostandard
+                -sampdir /home/foo -sampdir /home/bar -sampdir /home/baz
+</pre>
+<p>
+without the <code>-nostandard</code> flag it would have been a four-way
+bridge between the hubs of foo, bar, baz, and the user running the
+command.
+</p>
+
+<p>By use of the <code>-profile</code> flag, non-standard profiles
+can be used as well.  The bridge can thus enable two communities
+of SAMP clients using different profiles to communicate together,
+with no other changes to the client source code or configurations.
+</p>
+
+<p>In principle, once set up it should work with no further 
+intervention.  However, in the case of a bridge between different
+machines, there may be some communications issues related to URLs.
+Although URLs are formally intended for locating a resource 
+regardless of where you are, in practice there may be problems
+accessing a URL from a machine other than the one it was constructed on.
+These problems fall into two categories.
+</p>
+<ol>
+<li>SAMP clients and the hub usually use HTTP over high-numbered ports
+    for communications.  If either machine is behind a firewall which
+    blocks such ports, the bridge won't work.  There's not much you 
+    can do about this.
+    </li>
+<li>Several SAMP MTypes rely on passing the locations of data with URLs.
+    If the URL in question uses the <code>file:</code> protocol
+    (e.g. <code>file://localhost/tmp/data.fits</code>) the URL will only
+    be readable on the machine which generated it, or at least, one which 
+    can see the same filesystem (perhaps NFS-mounted).
+    Messages using URLs like this are unlikely to work over a multi-host
+    bridge.
+    A possibility for the future might be for hubs to provide a service
+    translating such host-private URLs into more widely accessible ones,
+    but this isn't available at the moment.
+    </li>
+<li>In some cases, the URLs used for XML-RPC callbacks and for data location
+    may be specified in a way which can only be read on the machine which
+    generated them.  This is true for URLs which use a loopback address
+    such as "127.0.0.1" or "localhost" for the hostname rather than 
+    the actual network-public host name or IP number.  
+    By default the bridge tries to translate such hostnames in URLs to
+    fully qualified domain names, which ought to work for remote use,
+    though this isn't foolproof.  This behaviour is not always necessary,
+    and could itself cause problems by making unwanted changes to message text;
+    it can be prevented by using the <code>-noexporturls</code> 
+    command-line flag.
+    </li>
+</ol>
+
+<p>The bridge can be run programmatically using the 
+<a target="samp-javadoc"
+   href="apidocs/org/astrogrid/samp/bridge/Bridge.html"
+                >org.astrogrid.samp.bridge.Bridge</a>
+class as well - see the javadocs.
+</p>
+
+<p>The bridge is somewhat experimental; what (if anything) it's useful
+for and whether it needs adjustment or new features are still under
+consideration.  Please contact the author or discuss it on the apps-samp 
+list if you've got any comments or queries.
+</p>
+
+</section>
+</body>
+</document>

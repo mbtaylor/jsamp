@@ -97,6 +97,12 @@ They are organised as follows:
     itself, which are not present in the distributed jar file.
     </dd>
 <dt><a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/bridge/package-summary.html"
+                    >org.astrogrid.samp.bridge</a></dt>
+<dd>Classes for the Bridge application, which can connect two or more hubs
+    together.
+    </dd>
+<dt><a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/httpd/package-summary.html"
                     >org.astrogrid.samp.httpd</a></dt>
 <dd>Simple HTTP server implementation.  This is required by the internal

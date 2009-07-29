@@ -15,6 +15,7 @@
       <item name="Command-line tools" href="commands.html"/>
       <item name="API Overview" href="api.html"/>
       <item name="GUI Features" href="gui.html"/>
+      <item name="Bridge" href="bridge.html"/>
       <item name="Deployment" href="deployment.html"/>
       <item name="Javadocs" href="apidocs/index.html"/>
       <item name="Downloads" href="downloads.html"/>

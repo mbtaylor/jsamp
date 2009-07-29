@@ -89,7 +89,8 @@
                   org.astrogrid.samp.test.Snooper
                   org.astrogrid.samp.test.MessageSender
                   org.astrogrid.samp.test.CalcStorm
-                  org.astrogrid.samp.test.HubTester"/>
+                  org.astrogrid.samp.test.HubTester
+                  org.astrogrid.samp.bridge.Bridge"/>
     <u:tokenize var="commands" delim=" ">${commands}</u:tokenize>
     <j:forEach items="${commands}" var="cmd">
       <ant:echo message="Usage for ${cmd}"/>
