@@ -2,6 +2,7 @@ package org.astrogrid.samp.bridge;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class Bridge {
     }
 
     /**
-     * Returns the client profiles which define the hubs this brige links.
+     * Returns the client profiles which define the hubs this bridge links.
      *
      * @return  profile array, one for each connected hub
      */
@@ -86,6 +87,22 @@ public class Bridge {
             connectors[ ih ] = proxyManagers_[ ih ].getManagerConnector();
         }
         return connectors;
+    }
+
+    /**
+     * Sets up a URL exporter for one of the hubs.  This will attempt to 
+     * edit transmitted data contents for use in remote contexts;
+     * the main job is to adjust loopback host references in URLs
+     * (127.0.0.1 or localhost) to become fully qualified domain names
+     * for non-local use.  It's not an exact science, but a best effort
+     * is made.
+     *
+     * @param  index  index of the profile for which to export URLs
+     * @param  host   the name substitute for loopback host identifiers
+     *                on the host on which that profile's hub is running
+     */
+    public void exportUrls( int index, String host ) {
+        proxyManagers_[ index ].setExporter( new UrlExporter( host ) );
     }
 
     /**
@@ -149,6 +166,7 @@ public class Bridge {
             .append( "\n         " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
+            .append( " [-noexporturls]" )
             .append( "\n         " )
             .append( " [-nostandard]" )
             .append( " [-sampdir <lockfile-dir>]" )
@@ -197,9 +215,20 @@ public class Bridge {
             }
         };
         profileList.add( standardProfile );
+        boolean exporturls = true;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
-            if ( arg.equals( "-standard" ) ) {
+
+            // Determine whether to export localhost-type URLs.
+            if ( arg.equals( "-exporturls" ) ) {
+                exporturls = true;
+            }
+            else if ( arg.equals( "-noexporturls" ) ) {
+                exporturls = false;
+            }
+
+            // Accumulate various profiles.
+            else if ( arg.equals( "-standard" ) ) {
                 it.remove();
                 profileList.remove( standardProfile );
                 profileList.add( standardProfile );
@@ -302,8 +331,37 @@ public class Bridge {
             return 1;
         }
 
-        // Create and start a bridge.
+        // Create a bridge.
         Bridge bridge = new Bridge( profiles );
+
+        // Arrange to export URLs if requested.
+        if ( exporturls ) {
+            for ( int ip = 0; ip < profiles.length; ip++ ) {
+                ClientProfile profile = profiles[ ip ];
+                String host = null;
+                if ( profile == standardProfile ) {
+                    host = SampUtils.getLocalhost();
+                }
+                else if ( profile instanceof StandardClientProfile ) {
+                    URL xurl = ((StandardClientProfile) profile).getLockInfo()
+                                                                .getXmlrpcUrl();
+                    if ( xurl != null ) {
+                        host = xurl.getHost();
+                    }
+                }
+                if ( host != null ) {
+                    InetAddress addr = InetAddress.getByName( host );
+                    if ( addr.isLoopbackAddress() ) {
+                        addr = InetAddress
+                              .getByName( SampUtils.getLocalhost() );
+                    }
+                    String ehost = addr.getCanonicalHostName();
+                    bridge.exportUrls( ip, ehost );
+                }
+            }
+        }
+
+        // Start the bridge.
         if ( ! bridge.start() ) {
             System.err.println( "Couldn't contact all hubs" );
             return 1;

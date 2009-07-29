@@ -60,6 +60,7 @@ class ProxyManager {
     private final Map tagMap_;
     private final IconAdjuster iconAdjuster_;
     private ProxyManager[] remoteManagers_;
+    private UrlExporter exporter_;
     private int nRemote_;
 
     private static final Logger logger_ =
@@ -69,6 +70,7 @@ class ProxyManager {
      * Constructor.
      *
      * @param  localProfile  profile for connection to this manager's local hub
+     * @param  server        server instance
      */
     public ProxyManager( ClientProfile localProfile, UtilServer server ) {
         localProfile_ = localProfile;
@@ -119,6 +121,16 @@ class ProxyManager {
      */
     public HubConnector getManagerConnector() {
         return pmConnector_;
+    }
+
+    /**
+     * Sets an object which is used to export SAMP data contents for use
+     * in remote contexts.
+     *
+     * @param   exporter  new exporter; may be null
+     */
+    public void setExporter( UrlExporter exporter ) {
+        exporter_ = exporter;
     }
 
     /**
@@ -200,6 +212,9 @@ class ProxyManager {
         }
         else {
             meta = new Metadata( meta );
+            if ( exporter_ != null ) {
+                exporter_.exportMap( meta );
+            }
             meta.setName( proxyName( meta.getName() ) );
             URL iconUrl = proxyIconUrl( meta.getIconUrl() );
             meta.setIconUrl( iconUrl == null ? null : iconUrl.toString() );
@@ -261,6 +276,9 @@ class ProxyManager {
             subs.remove( "samp.hub.event.unregister" );
             subs.remove( "samp.hub.event.metadata" );
             subs.remove( "samp.hub.event.subscriptions" );
+            if ( exporter_ != null ) {
+                exporter_.exportMap( subs );
+            }
             return subs;
         }
     }
@@ -498,6 +516,10 @@ class ProxyManager {
                 throws SampException {
 
             // Forward the notification.
+            if ( remoteManager_.exporter_ != null ) {
+                msg = new Message( msg );
+                remoteManager_.exporter_.exportMap( msg );
+            }
             getLocalProxy( remoteSenderId ).notify( localClientId_, msg );
         }
 
@@ -513,6 +535,10 @@ class ProxyManager {
             String localMsgTag = remoteMsgId;
 
             // Forward the call.
+            if ( remoteManager_.exporter_ != null ) {
+                msg = new Message( msg );
+                remoteManager_.exporter_.exportMap( msg );
+            }
             getLocalProxy( remoteSenderId ).call( localClientId_,
                                                   localMsgTag, msg );
         }
@@ -526,6 +552,10 @@ class ProxyManager {
             String localMsgId = remoteMsgTag;
 
             // Forward the reply appropriately.
+            if ( remoteManager_.exporter_ != null ) {
+                response = new Response( response );
+                remoteManager_.exporter_.exportMap( response );
+            }
             getLocalProxy( remoteResponderId ).reply( localMsgId, response );
         }
 
