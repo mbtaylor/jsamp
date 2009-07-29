@@ -407,12 +407,15 @@ public class SampUtils {
      * This may be necessary if the loopback address is not appropriate,
      * for instance in the case of multiple configured loopback interfaces(?)
      * or where SAMP communication is required across different machines.
-     * If the LOCALHOST_PROP has the special value "[hostname]", then
-     * the return value will be the result of calling
-     * <pre>
-     *    java.net.InetAddress.getLocalHost().getCanonicalHostName()
-     * </pre>
-     * unless that fails, in which case 127.0.0.1 will be used.
+     * There are two special values which may be used for this property:
+     * <ul>
+     * <li><code>[hostname]</code>:
+     *     uses the fully qualified domain name of the host</li>
+     * <li><code>[hostnumber]</code>:
+     *     uses the IP number of the host</li>
+     * </ul>
+     * If these determinations fail for some reason, a fallback value of
+     * 127.0.0.1 will be used.
      *
      * <p>In JSAMP version 0.3-1 and prior versions, the [hostname]
      * behaviour was the default.
@@ -436,6 +439,17 @@ public class SampUtils {
         else if ( "[hostname]".equals( hostname ) ) {
             try {
                 hostname = InetAddress.getLocalHost().getCanonicalHostName();
+            }
+            catch ( UnknownHostException e ) {
+                logger_.log( Level.WARNING,
+                             "Local host determination failed - fall back to "
+                           + defaultHost, e );
+                hostname = defaultHost;
+            }
+        }
+        else if ( "[hostnumber]".equals( hostname ) ) {
+            try {
+                hostname = InetAddress.getLocalHost().getHostAddress();
             }
             catch ( UnknownHostException e ) {
                 logger_.log( Level.WARNING,
