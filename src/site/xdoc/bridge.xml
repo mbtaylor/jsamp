@@ -13,6 +13,8 @@
 
 <section name="Bridge">
 
+<subsection name="Introduction">
+
 <p>JSAMP provides a special client called the Bridge.
 Its purpose is to link up two or more hubs, so that clients registered 
 with one of the linked hubs can communicate with clients registered with 
@@ -29,6 +31,10 @@ are proxies; the icons are mangled, the names have "(proxy)" appended,
 and a metadata entry with the key "<code>bridge.proxy.source</code>"
 is added to indicate which hub the client is proxied from.
 </p>
+
+</subsection>
+
+<subsection name="Usage">
 
 <p>In order to set it up, you need to specify which hubs will be connected.
 There are various ways you can do this, as explained in the usage
@@ -85,6 +91,17 @@ of SAMP clients using different profiles to communicate together,
 with no other changes to the client source code or configurations.
 </p>
 
+<p>The bridge can be run programmatically using the 
+<a target="samp-javadoc"
+   href="apidocs/org/astrogrid/samp/bridge/Bridge.html"
+                >org.astrogrid.samp.bridge.Bridge</a>
+class as well - see the javadocs.
+</p>
+
+</subsection>
+
+<subsection name="Issues">
+
 <p>In principle, once set up it should work with no further 
 intervention.  However, in the case of a bridge between different
 machines, there may be some communications issues related to URLs.
@@ -124,18 +141,53 @@ These problems fall into two categories.
     </li>
 </ol>
 
-<p>The bridge can be run programmatically using the 
-<a target="samp-javadoc"
-   href="apidocs/org/astrogrid/samp/bridge/Bridge.html"
-                >org.astrogrid.samp.bridge.Bridge</a>
-class as well - see the javadocs.
-</p>
-
 <p>The bridge is somewhat experimental; what (if anything) it's useful
 for and whether it needs adjustment or new features are still under
 consideration.  Please contact the author or discuss it on the apps-samp 
 list if you've got any comments or queries.
 </p>
+
+</subsection>
+
+<subsection name="Example">
+
+<p>Here is an illustration of how it looks when two hubs have been
+connected together using a bridge.
+</p>
+
+<p>Prior to the bridge we have two separate hubs, as shown in the 
+images below.  The left hand one shows the state of a SAMPy hub 
+(displayed using the JSAMP hubmonitor), with registered
+clients HubMonitor and SPLAT.
+The right hand one shows a JSAMP hub running on a different machine
+(displayed using the JSAMP graphical hub view) with TOPCAT registered.
+</p>
+<table>
+<tr align="center">
+  <td><img src="images/bridge1pre.png" /></td>
+  <td><img src="images/bridge2pre.png" /></td></tr>
+</table>
+<p>Following a suitable bridge command, they look like this:
+</p>
+<table>
+<tr align="center">
+  <td><img src="images/bridge1post.png" /></td>
+  <td><img src="images/bridge2post.png" /></td></tr>
+</table>
+<p>As well as the original, directly registered clients, 
+each hub now has the bridge client itself, and a proxy copy 
+of each client registered on the other hub.
+The proxy ones are easy to identify because their names
+(<code>samp.name</code> metadata) have "(proxy)" appended,
+and their icons (<code>samp.icon.url</code> metadata) 
+have been adjusted (currently the bottom right corner is cut
+off, though some other visual idiom may be used in future releases).
+In other respects these proxy clients appear to other clients on their
+remote hubs just the same as any other client, and can be treated
+accordingly.
+</p>
+
+</subsection>
 
 </section>
 </body>
