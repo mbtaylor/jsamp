@@ -292,7 +292,10 @@
 
 <ul>
 <li>Default hostname for HTTP server etc (<code>SampUtils.getLocalHost()</code>)
-    is now "127.0.0.1", not DNS name.</li>
+    is now "127.0.0.1", not DNS name. 
+    This can be altered by setting the <code>samp.hostname</code> system
+    property; it has two new special values "[hostname]" and "[hostnumber]".
+    </li>
 <li>Missing <code>jsamp.version</code> file now included in source 
     zip archive.</li>
 <li>Added <code>parseValue</code> utility method to SampUtils class.</li>
