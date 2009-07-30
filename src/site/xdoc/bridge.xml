@@ -156,11 +156,12 @@ connected together using a bridge.
 </p>
 
 <p>Prior to the bridge we have two separate hubs, as shown in the 
-images below.  The left hand one shows the state of a SAMPy hub 
-(displayed using the JSAMP hubmonitor), with registered
-clients HubMonitor and SPLAT.
-The right hand one shows a JSAMP hub running on a different machine
+images below.  
+The left hand one shows a JSAMP hub
 (displayed using the JSAMP graphical hub view) with TOPCAT registered.
+The right hand one shows the state of a SAMPy hub 
+(displayed using the JSAMP hubmonitor), running on a different machine, 
+with registered clients HubMonitor and SPLAT.
 </p>
 <table>
 <tr align="center">
