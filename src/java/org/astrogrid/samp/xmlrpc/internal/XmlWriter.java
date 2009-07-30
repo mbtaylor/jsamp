@@ -154,6 +154,9 @@ class XmlWriter {
             end( "struct" );
             end( "value" );
         }
+        else if ( value == null ) {
+            throw new XmlRpcFormatException( "Null value not permitted" );
+        }
         else {
             throw new XmlRpcFormatException( "Unsupported object type "
                                            + value.getClass().getName() );
