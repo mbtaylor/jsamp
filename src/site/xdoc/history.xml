@@ -325,6 +325,8 @@
     rather than links to external static resources.</li>
 <li>Added new method <code>HubConnector.connectionChanged</code>.</li>
 <li>New <a href="bridge.html">Bridge</a> functionality.</li>
+<li>InternalServerFactory now returns a server which can be safely 
+    reused.</li>
 </ul>
 </subsection>
 
