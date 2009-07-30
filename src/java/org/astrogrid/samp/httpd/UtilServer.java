@@ -9,6 +9,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Utility class for use with HttpServer.
@@ -41,6 +43,9 @@ public class UtilServer {
 
     /** Default instance of this class. */
     private static UtilServer instance_;
+
+    private static Pattern SLASH_REGEX = Pattern.compile( "(/*)(.*?)(/*)" );
+    private static Pattern NUMBER_REGEX = Pattern.compile( "(.*?)([0-9]+)" );
 
     /**
      * Constructor.  The server uses a daemon process and is started 
@@ -128,11 +133,31 @@ public class UtilServer {
      *           <code>txt</code>, but may be adjusted to ensure uniqueness
      */
     public synchronized String getBasePath( String txt ) {
-        while ( baseSet_.contains( txt ) ) {
-            txt += "X";
-            baseSet_.add( txt );
+        Matcher slashMatcher = SLASH_REGEX.matcher( txt );
+        String pre;
+        String body;
+        String post;
+        if ( slashMatcher.matches() ) {
+            pre = slashMatcher.group( 1 );
+            body = slashMatcher.group( 2 );
+            post = slashMatcher.group( 3 );
         }
-        return txt;
+        else {
+            assert false;
+            pre = "";
+            body = txt;
+            post = "";
+        }
+        if ( baseSet_.contains( body ) ) {
+            String stem = body;
+            int i = 1;
+            while ( baseSet_.contains( stem + "-" + i ) ) {
+                i++;
+            }
+            body = stem + "-" + i;
+        }
+        baseSet_.add( body );
+        return pre + body + post;
     }
 
     /**
