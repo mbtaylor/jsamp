@@ -15,7 +15,6 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.LockWriter;

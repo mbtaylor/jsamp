@@ -1,4 +1,4 @@
-package org.astrogrid.samp;
+package org.astrogrid.samp.xmlrpc;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -11,6 +11,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Logger;
+import org.astrogrid.samp.DataException;
+import org.astrogrid.samp.SampMap;
+import org.astrogrid.samp.SampUtils;
 
 /**
  * Represents the information read from a SAMP Standard Profile Lockfile.

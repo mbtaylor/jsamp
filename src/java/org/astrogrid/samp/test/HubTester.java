@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.ErrInfo;
-import org.astrogrid.samp.LockInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
@@ -28,6 +27,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.gui.HubMonitor;
+import org.astrogrid.samp.xmlrpc.LockInfo;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
