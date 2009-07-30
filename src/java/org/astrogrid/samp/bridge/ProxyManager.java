@@ -216,8 +216,10 @@ class ProxyManager {
                 exporter_.exportMap( meta );
             }
             meta.setName( proxyName( meta.getName() ) );
-            URL iconUrl = proxyIconUrl( meta.getIconUrl() );
-            meta.setIconUrl( iconUrl == null ? null : iconUrl.toString() );
+            if ( meta.getIconUrl() != null ) {
+                URL iconUrl = proxyIconUrl( meta.getIconUrl() );
+                meta.setIconUrl( iconUrl == null ? null : iconUrl.toString() );
+            }
             meta.put( "bridge.proxy.source", ProxyManager.this.toString() );
         }
         return meta;
