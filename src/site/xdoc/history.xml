@@ -327,6 +327,8 @@
 <li>New <a href="bridge.html">Bridge</a> functionality.</li>
 <li>InternalServerFactory now returns a server which can be safely 
     reused.</li>
+<li>Class <code>LockInfo</code> moved from org.astrogrid.samp package
+    to org.astrogrid.samp.xmlrpc, which is where it should have been.</li>
 </ul>
 </subsection>
 

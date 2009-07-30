@@ -79,8 +79,7 @@ public class StandardClientProfile implements ClientProfile {
 
     /**
      * Returns the LockInfo which indicates how to locate the hub.
-     * The default implementation returns 
-     * {@link org.astrogrid.samp.LockInfo#readLockFile};
+     * The default implementation returns {@link LockInfo#readLockFile};
      * it may be overridden to provide a non-standard client profiles.
      *
      * @return   hub location information
