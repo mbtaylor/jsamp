@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
@@ -61,6 +62,7 @@ class ProxyManager {
     private final IconAdjuster iconAdjuster_;
     private ProxyManager[] remoteManagers_;
     private UrlExporter exporter_;
+    private boolean useProxyHub_;
     private int nRemote_;
 
     private static final Logger logger_ =
@@ -134,6 +136,18 @@ class ProxyManager {
     }
 
     /**
+     * Sets whether remote proxy should be generated for the local client
+     * representing the local hub.
+     * Default is not, since they are not very interesting to talk to.
+     *
+     * @param  useProxyHub  true iff the client representing the local hub 
+     *         should be proxied remotely
+     */
+    public void setUseProxyHub( boolean useProxyHub ) {
+        useProxyHub_ = useProxyHub;
+    }
+
+    /**
      * Prepares this manager for use by informing it about all its sibling
      * managers.  This must be done before the bridge can start operations.
      *
@@ -184,6 +198,24 @@ class ProxyManager {
         return proxyConnections == null
              ? null
              : proxyConnections[ getManagerIndex( remoteManager ) ];
+    }
+
+    /**
+     * Deletes the record of the connection on the hub associated with
+     * a remote proxy manager which is the proxy for a given local client.
+     * This proxy can no longer be used.
+     *
+     * @param  remoteManager  proxy manager for a remote bridged hub
+     * @param  localClientId  client ID of a client registered with
+     *         this manager's local hub
+     */
+    private void removeProxyConnection( ProxyManager remoteManager,
+                                        String localClientId ) {
+        HubConnection[] proxyConnections =
+            (HubConnection[]) connectionMap_.get( localClientId );
+        if ( proxyConnections != null ) {
+            proxyConnections[ getManagerIndex( remoteManager ) ] = null;
+        }
     }
 
     /**
@@ -271,7 +303,7 @@ class ProxyManager {
             // to clients on the remote hubs; this information will be
             // relayed by the local hub as a consequence of proxies from
             // other ProxyManagers making register/declare/etc calls
-            // on thie manager's local hub.
+            // on this manager's local hub.
             subs = new Subscriptions( subs );
             subs.remove( "samp.hub.event.shutdown" );
             subs.remove( "samp.hub.event.register" );
@@ -426,7 +458,9 @@ class ProxyManager {
      * which requires a remote proxy.  Will return false for clients which
      * are operating on behalf of this bridge, including the ProxyManager's
      * client tracking connection and any proxies controlled by remote
-     * ProxyManagers.
+     * ProxyManagers.  Unless useProxyHub is true, will also return false 
+     * for the hub client on remote hubs, since these are not very 
+     * interesting to talk to.
      *
      * @param   client  local client
      * @param   true if <code>client</code> has or should have a proxy;
@@ -434,12 +468,19 @@ class ProxyManager {
      */
     private boolean isProxiedClient( Client client ) {
 
-        // Is it this ProxyManager's connection on the local hub?
+        // Is it a client on the local hub that we want to exclude?
         try {
-            if ( pmConnector_.isConnected() &&
-                 pmConnector_.getConnection().getRegInfo().getSelfId()
-                             .equals( client.getId() ) ) {
-                return false;
+            if ( pmConnector_.isConnected() ) {
+                HubConnection connection = pmConnector_.getConnection();
+                if ( connection != null ) {
+                    String clientId = client.getId();
+                    RegInfo regInfo = connection.getRegInfo();
+                    if ( clientId.equals( regInfo.getSelfId() ) ||
+                         ( ! useProxyHub_ &&
+                           clientId.equals( regInfo.getHubId() ) ) ) {
+                        return false;
+                    }
+                }
             }
         }
         catch ( SampException e ) {
@@ -472,9 +513,12 @@ class ProxyManager {
                   it.hasNext(); ) {
                 HubConnection[] proxyConnections = (HubConnection[]) it.next();
                 if ( proxyConnections != null ) {
-                    RegInfo proxyReg = proxyConnections[ ir ].getRegInfo();
-                    if ( proxyReg.getSelfId().equals( client.getId() ) ) {
-                        return true;
+                    HubConnection proxyConnection = proxyConnections[ ir ];
+                    if ( proxyConnection != null ) {
+                        RegInfo proxyReg = proxyConnection.getRegInfo();
+                        if ( proxyReg.getSelfId().equals( client.getId() ) ) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -484,7 +528,7 @@ class ProxyManager {
 
     /**
      * CallableClient implementation used by remote proxy connections on
-     * behalf of local clients.  * This is the core of the proxy manager.
+     * behalf of local clients.  This is the core of the proxy manager.
      * Callbacks received by the remote proxy client are tunnelled back 
      * to the local hub and forwarded by the local proxy of the remote 
      * sender client to the appropriate local non-proxy client.
@@ -522,7 +566,11 @@ class ProxyManager {
                 msg = new Message( msg );
                 remoteManager_.exporter_.exportMap( msg );
             }
-            getLocalProxy( remoteSenderId ).notify( localClientId_, msg );
+            HubConnection localProxy = getLocalProxy( remoteSenderId );
+            if ( localProxy != null ) {
+                localProxy.notify( localClientId_, msg );
+            }
+            proxyProcessMessage( remoteSenderId, msg );
         }
 
         public void receiveCall( String remoteSenderId, String remoteMsgId,
@@ -541,8 +589,29 @@ class ProxyManager {
                 msg = new Message( msg );
                 remoteManager_.exporter_.exportMap( msg );
             }
-            getLocalProxy( remoteSenderId ).call( localClientId_,
-                                                  localMsgTag, msg );
+            HubConnection localProxy = getLocalProxy( remoteSenderId );
+            if ( localProxy != null ) {
+                localProxy.call( localClientId_, localMsgTag, msg );
+            }
+            else {
+                ErrInfo errInfo = new ErrInfo();
+                errInfo.setErrortxt( "Bridge can't forward message" );
+                Client senderClient = 
+                    (Client) remoteManager_.getManagerConnector()
+                            .getClientMap().get( remoteSenderId );
+                String usertxt = new StringBuffer()
+                    .append( "Bridge can't forward message to recipient;\n" )
+                    .append( "sender client " )
+                    .append( senderClient )
+                    .append( " has no proxy on remote hub" )
+                    .toString();
+                errInfo.setUsertxt( usertxt );
+                    new ErrInfo( "Client " + remoteSenderId + " not present"
+                               + " on other side of bridge" );
+                remoteProxy_.reply( remoteMsgId,
+                                    Response.createErrorResponse( errInfo ) );
+            }
+            proxyProcessMessage( remoteSenderId, msg );
         }
 
         public void receiveResponse( String remoteResponderId,
@@ -558,7 +627,17 @@ class ProxyManager {
                 response = new Response( response );
                 remoteManager_.exporter_.exportMap( response );
             }
-            getLocalProxy( remoteResponderId ).reply( localMsgId, response );
+            HubConnection localProxy = getLocalProxy( remoteResponderId );
+            if ( localProxy != null ) {
+                localProxy.reply( localMsgId, response );
+            }
+            else {
+
+                // Should only happen if the proxy has been disconnected
+                // between send and receive.
+                logger_.warning( "Bridge can't forward response: "
+                               + " missing proxy" );
+            }
         }
 
         /**
@@ -571,6 +650,29 @@ class ProxyManager {
         private HubConnection getLocalProxy( String remoteClientId ) {
             return remoteManager_
                   .getProxyConnection( localManager_, remoteClientId );
+        }
+
+        /**
+         * Performs housekeeping tasks for an incoming message if any.
+         * This is in addition to forwarding the message to the client
+         * for which we are proxying.
+         *
+         * @param   remoteSenderId  id of sending client on remote hub
+         * @param   msg   message
+         */
+        private void proxyProcessMessage( String remoteSenderId, Message msg ) {
+            String mtype = msg.getMType();
+            boolean fromHub =
+                remoteSenderId.equals( remoteProxy_.getRegInfo().getHubId() );
+            if ( "samp.hub.disconnect".equals( mtype ) ) {
+                if ( fromHub ) {
+                    removeProxyConnection( remoteManager_, localClientId_ );
+                }
+                else {
+                    logger_.warning( mtype + " from non-hub client "
+                                   + remoteSenderId + " - ignored" );
+                }
+            }
         }
     }
 
