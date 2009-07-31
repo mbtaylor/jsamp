@@ -498,11 +498,16 @@ public class BasicHubService implements HubService {
 
     /**
      * Forcibly disconnects a given client.
-     * This call does two things: firstly it sends a 
-     * <code>samp.hub.disconnect</code> message to the client which is
-     * about to be ejected, if the client is subscribed to that MType, 
-     * and then it removes that client from this hub's client set, 
-     * so that any further communication attempts to or from it will fail.
+     * This call does three things:
+     * <ol>
+     * <li>sends a <code>samp.hub.disconnect</code> message to the
+     *     client which is * about to be ejected, if the client is 
+     *     subscribed to that MType</li>
+     * <li>removes that client from this hub's client set so that any 
+     *     further communication attempts to or from it will fail</li>
+     * <li>broadcasts a <code>samp.hub.unregister</code> message to all
+     *     remaining clients indicating that the client has disappeared</li>
+     * </ol>
      *
      * @param  clientId  public-id of client to eject
      * @param  reason    short text string indicating reason for ejection
@@ -529,6 +534,8 @@ public class BasicHubService implements HubService {
             }
         }
         clientSet_.remove( client );
+        hubEvent( new Message( "samp.hub.event.unregister" )
+                 .addParam( "id", clientId ) );
     }
 
     public synchronized void shutdown() {
