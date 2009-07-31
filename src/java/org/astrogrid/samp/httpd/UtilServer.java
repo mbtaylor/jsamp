@@ -5,10 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.BindException;
 import java.net.MalformedURLException;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,25 +41,33 @@ public class UtilServer {
     private final Set baseSet_;
     private MultiURLMapperHandler mapperHandler_;
 
+    /** System Property key giving a preferred port number for the server.
+     *  If unset, or 0, or the chosen port is occupied, a system-chosen
+     *  value will be used. */
+    public static final String PORT_PROP = "jsamp.server.port";
+
     /** Buffer size for copy data from input to output stream. */
     private static int BUFSIZ = 16 * 1024;
 
     /** Default instance of this class. */
     private static UtilServer instance_;
 
-    private static Pattern SLASH_REGEX = Pattern.compile( "(/*)(.*?)(/*)" );
-    private static Pattern NUMBER_REGEX = Pattern.compile( "(.*?)([0-9]+)" );
+    private static final Pattern SLASH_REGEX =
+        Pattern.compile( "(/*)(.*?)(/*)" );
+    private static final Pattern NUMBER_REGEX =
+        Pattern.compile( "(.*?)([0-9]+)" );
+    private static final Logger logger_ =
+        Logger.getLogger( UtilServer.class.getName() );
 
     /**
-     * Constructor.  The server uses a daemon process and is started 
-     * automatically.
+     * Constructor.
      * Note, it may be more appropriate to use the {@link #getInstance} method.
+     *
+     * @param   server  HTTP server providing base services
      */
-    public UtilServer() throws IOException {
+    public UtilServer( HttpServer server ) throws IOException {
+        server_ = server;
         baseSet_ = new HashSet();
-        server_ = new HttpServer();
-        server_.setDaemon( true );
-        server_.start();
     }
 
     /**
@@ -162,16 +173,44 @@ public class UtilServer {
 
     /**
      * Returns the default instance of this class.
-     * The first time this method is called a new UtilServer is (lazily)
-     * created.  Any subsequent calls will return the same object.
+     * The first time this method is called a new daemon UtilServer 
+     * is (lazily) created, and started.  Any subsequent calls will 
+     * return the same object, unless {@link #getInstance} is called.
      *
      * @return   default instance of this class
      */
     public static synchronized UtilServer getInstance() throws IOException {
         if ( instance_ == null ) {
-            instance_ = new UtilServer();
+            ServerSocket sock = null;
+            String sPort = System.getProperty( PORT_PROP );
+            if ( sPort != null && sPort.length() > 0 ) {
+                int port = Integer.parseInt( sPort );
+                try {
+                    sock = new ServerSocket( port );
+                }
+                catch ( BindException e ) {
+                    logger_.warning( "Can't open socket on port " + port + "(" 
+                                   + e + ") - use another one" );
+                }
+            }
+            if ( sock == null ) {
+                sock = new ServerSocket( 0 );
+            }
+            HttpServer server = new HttpServer( sock );
+            server.setDaemon( true );
+            server.start();
+            instance_ = new UtilServer( server );
         }
         return instance_;
+    }
+
+    /**
+     * Sets the default instance of this class.
+     *
+     * @param  server  default instance to be returned by {@link #getInstance}
+     */
+    public static synchronized void setInstance( UtilServer server ) {
+        instance_ = server;
     }
 
     /**

@@ -331,6 +331,9 @@
     to org.astrogrid.samp.xmlrpc, which is where it should have been.</li>
 <li>You can now set the samp.secret string for HubRunner if you don't
     want it chosen randomly.</li>
+<li>System property <code>jsamp.server.port</code> provided to select 
+    default server port.
+    </li>
 </ul>
 </subsection>
 
