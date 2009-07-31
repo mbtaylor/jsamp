@@ -159,6 +159,11 @@ MTypes) may optionally be displayed.
     In the case of the GUI options, they pop up a window when the hub starts;
     if the window is closed, the hub will shut down.
     </dd>
+<dt><code>-secret &lt;secret&gt;</code></dt>
+<dd>Optional flag to supply the samp.secret string which will be written
+    to the lockfile and which clients must present on registration.
+    If not supplied, a random string will be chosen.
+    </dd>
 </dl>
 
 </subsection>

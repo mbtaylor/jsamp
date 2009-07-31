@@ -329,6 +329,8 @@
     reused.</li>
 <li>Class <code>LockInfo</code> moved from org.astrogrid.samp package
     to org.astrogrid.samp.xmlrpc, which is where it should have been.</li>
+<li>You can now set the samp.secret string for HubRunner if you don't
+    want it chosen randomly.</li>
 </ul>
 </subsection>
 

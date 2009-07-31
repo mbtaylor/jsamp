@@ -337,8 +337,9 @@ public class HubRunner {
             }
             ubuf.append( modes[ im ].getName() );
         }
-        ubuf.append( ']' );
-        ubuf.append( "\n" );
+        ubuf.append( ']' )
+            .append( " [-secret <secret>]" )
+            .append( "\n" );
         String usage = ubuf.toString();
         List argList = new ArrayList( Arrays.asList( args ) );
         HubMode hubMode = HubMode.MESSAGE_GUI;
@@ -348,6 +349,7 @@ public class HubRunner {
         }
         int verbAdjust = 0;
         XmlRpcKit xmlrpc = null;
+        String secret = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-mode" ) && it.hasNext() ) {
@@ -373,6 +375,10 @@ public class HubRunner {
                     System.err.println( usage );
                     return 1;
                 }
+            }
+            else if ( arg.equals( "-secret" ) && it.hasNext() ) {
+                it.remove();
+                secret = (String) it.next();
             }
             else if ( arg.startsWith( "-v" ) ) {
                 it.remove();
@@ -400,7 +406,7 @@ public class HubRunner {
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Start the hub.
-        runHub( hubMode, xmlrpc );
+        runHub( hubMode, xmlrpc, secret );
 
         // For non-GUI case block indefinitely otherwise the hub (which uses
         // a daemon thread) will not just exit immediately.
@@ -431,6 +437,25 @@ public class HubRunner {
      */
     public static void runHub( HubMode hubMode, XmlRpcKit xmlrpc )
             throws IOException {
+        runHub( hubMode, xmlrpc, null );
+    }
+
+    /**
+     * Static method which may be used to start a SAMP hub programmatically,
+     * with a supplied samp.secret string.
+     * If the hub mode corresponds to one of the GUI options,
+     * a window will be posted which displays the current status of the hub.
+     * When this window is disposed, the hub will stop.
+     *
+     * @param   hubMode  hub mode
+     * @param   xmlrpc  XML-RPC implementation;
+     *                  automatically determined if null
+     * @param   secret   samp.secret string to be used for hub connection;
+     *                   chosen at random if null
+     */
+    public static void runHub( HubMode hubMode, XmlRpcKit xmlrpc,
+                               final String secret )
+            throws IOException {
         if ( xmlrpc == null ) {
             xmlrpc = XmlRpcKit.getInstance();
         }
@@ -438,7 +463,12 @@ public class HubRunner {
         HubRunner runner =
             new HubRunner( xmlrpc.getClientFactory(), xmlrpc.getServerFactory(),
                            hubMode.createHubService( random_, hubRunners ),
-                           SampUtils.getLockFile() );
+                           SampUtils.getLockFile() ) {
+                public String createSecret() {
+                    return secret == null ? super.createSecret()
+                                          : secret;
+                }
+            };
         hubRunners[ 0 ] = runner;
         runner.start();
     }
