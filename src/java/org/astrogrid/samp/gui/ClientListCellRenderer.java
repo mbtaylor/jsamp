@@ -4,6 +4,9 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
 import javax.swing.JLabel;
@@ -21,12 +24,18 @@ class ClientListCellRenderer extends DefaultListCellRenderer {
 
     private Font[] labelFonts_;
     private IconStore iconStore_;
+    private final Map addHints_;
 
     /**
      * Constructor.
      */
     public ClientListCellRenderer() {
         iconStore_ = new IconStore( IconStore.createEmptyIcon( 16 ) );
+        addHints_ = new HashMap();
+        addHints_.put( RenderingHints.KEY_RENDERING,
+                       RenderingHints.VALUE_RENDER_QUALITY );
+        addHints_.put( RenderingHints.KEY_INTERPOLATION,
+                       RenderingHints.VALUE_INTERPOLATION_BICUBIC );
     }
 
     /**
@@ -40,6 +49,18 @@ class ClientListCellRenderer extends DefaultListCellRenderer {
         Metadata meta = client.getMetadata();
         return meta != null ? meta.getName()
                             : null;
+    }
+
+    protected void paintComponent( Graphics g ) {
+
+        // Improve the rendering as much as possible, since we are typically
+        // rendering some very small graphics that can look ugly if 
+        // the resampling puts pixels out of place.
+        Graphics2D g2 = (Graphics2D) g;
+        RenderingHints oldHints = g2.getRenderingHints();
+        g2.addRenderingHints( addHints_ );
+        super.paintComponent( g );
+        g2.setRenderingHints( oldHints );
     }
 
     public Component getListCellRendererComponent( JList list, Object value,
