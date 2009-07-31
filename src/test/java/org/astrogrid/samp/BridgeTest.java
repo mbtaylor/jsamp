@@ -108,10 +108,10 @@ public class BridgeTest extends TestCase {
             assertEquals( nhub - 1,
                           connection.getSubscribedClients( ECHO_MTYPE )
                                     .size() );
-            assertEquals( ( nhub - 1 ) * 2 + 2,
+            assertEquals( ( nhub - 1 ) + 2,
                           connection.getRegisteredClients().length );
 
-            assertEquals( ( nhub - 1 ) * 2, getProxyCount( clientMap ) );
+            assertEquals( ( nhub - 1 ), getProxyCount( clientMap ) );
             assertTrue( hasBridge( clientMap ) );
 
             Set srcSet = new HashSet();

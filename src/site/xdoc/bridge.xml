@@ -177,7 +177,7 @@ with registered clients HubMonitor and SPLAT.
 </table>
 <p>As well as the original, directly registered clients, 
 each hub now has the bridge client itself, and a proxy copy 
-of each client registered on the other hub.
+of each (non-hub) client registered on the other hub.
 The proxy ones are easy to identify because their names
 (<code>samp.name</code> metadata) have "(proxy)" appended,
 and their icons (<code>samp.icon.url</code> metadata) 
