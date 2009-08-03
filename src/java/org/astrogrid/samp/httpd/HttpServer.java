@@ -264,7 +264,7 @@ public class HttpServer {
                 response = serve( request );
             }
             catch ( Throwable e ) {
-                response = createErrorResponse( 500, e.getMessage(), e );
+                response = createErrorResponse( 500, e.toString(), e );
             }
         }
         Level level = response.getStatusCode() == 200 ? Level.CONFIG
