@@ -80,7 +80,12 @@ class ProxyManager {
 
         // Set up the local hub connection to monitor client list changes.
         pmConnector_ =
-            new HubConnector( localProfile, new ProxyManagerClientSet() );
+            new HubConnector( localProfile, new ProxyManagerClientSet() ) {
+                protected void connectionChanged( boolean isConnected ) {
+                    super.connectionChanged( isConnected );
+                    managerConnectionChanged( isConnected );
+                }
+            };
         Metadata meta = new Metadata();
         meta.setName( "bridge" );
         meta.setDescriptionText( "Bridge between hubs" );
@@ -314,6 +319,45 @@ class ProxyManager {
                 exporter_.exportMap( subs );
             }
             return subs;
+        }
+    }
+
+    /**
+     * Called when this ProxyManager's connector has been disconnected 
+     * (for whatever reason) from its local hub.
+     * It makes sure that any proxies from other ProxyManagers to the local
+     * hub are unregistered, so that no further bridge activity takes
+     * place on the local hub.
+     *
+     * @param   isConnected  true for a connection; false for a disconnection
+     */
+    private void managerConnectionChanged( boolean isConnected ) {
+        if ( ! isConnected ) {
+            for ( int ir = 0; ir < nRemote_; ir++ ) {
+                ProxyManager remoteManager = remoteManagers_[ ir ];
+                int im = remoteManager.getManagerIndex( this );
+                for ( Iterator it = remoteManager.connectionMap_.values()
+                                                 .iterator();
+                      it.hasNext(); ) {
+                    HubConnection[] connections = (HubConnection[]) it.next();
+                    if ( connections != null ) {
+                        HubConnection connection = connections[ im ];
+                        if ( connection != null ) {
+                            connections[ im ] = null;
+                            try {
+                                connection.unregister();
+                            }
+                            catch ( SampException e ) {
+                                logger_.info( "Unregister failed" );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            // not expected
+            assert false;
         }
     }
 
