@@ -25,6 +25,8 @@ public class BridgeTest extends TestCase {
 
     public void setUp() {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
+        Logger.getLogger( "org.astrogrid.samp.xmlrpc.internal" )
+              .setLevel( Level.SEVERE );
     }
 
     public void testBridge()
