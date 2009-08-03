@@ -461,8 +461,13 @@ class ProxyManager {
      * updated for a client on the local hub.
      *
      * @param  client  updated client
+     * @param  metaChanged  true if metadata may have changed
+     *                      (false if known unchanged)
+     * @param  subsChanged  true if subscriptions may have changed
+     *                      (false if known unchanged)
      */
-    private void localClientUpdated( Client client ) {
+    private void localClientUpdated( Client client, boolean metaChanged,
+                                     boolean subsChanged ) {
         if ( ! isProxiedClient( client ) ) {
             return;
         }
@@ -471,8 +476,10 @@ class ProxyManager {
         // declare subscription/metadata updates appropriately.
         HubConnection[] proxyConnections =
             (HubConnection[]) connectionMap_.get( client.getId() );
-        Metadata meta = getProxyMetadata( client );
-        Subscriptions subs = getProxySubscriptions( client );
+        Metadata meta =
+            metaChanged ? getProxyMetadata( client ) : null;
+        Subscriptions subs =
+            subsChanged ? getProxySubscriptions( client ) : null;
         if ( proxyConnections != null ) {
             for ( int ir = 0; ir < nRemote_; ir++ ) {
                 HubConnection connection = proxyConnections[ ir ];
@@ -748,9 +755,10 @@ class ProxyManager {
             super.removeClient( client );
         }
 
-        public void updateClient( Client client ) {
-            super.updateClient( client );
-            localClientUpdated( client );
+        public void updateClient( Client client,
+                                  boolean metaChanged, boolean subsChanged ) {
+            super.updateClient( client, metaChanged, subsChanged );
+            localClientUpdated( client, metaChanged, subsChanged );
         }
 
         public void setClients( Client[] clients ) {

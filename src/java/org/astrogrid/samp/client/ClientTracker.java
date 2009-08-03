@@ -111,7 +111,7 @@ class ClientTracker extends AbstractMessageHandler {
             String id = client.getId();
             client.setMetadata( connection.getMetadata( id ) );
             client.setSubscriptions( connection.getSubscriptions( id ) );
-            clientSet_.updateClient( client );
+            clientSet_.updateClient( client, true, true );
             opQueue_.apply( client );
         }
     }
@@ -147,7 +147,7 @@ class ClientTracker extends AbstractMessageHandler {
             performClientOperation( new ClientOperation( id, mtype ) {
                 public void perform( TrackedClient client ) {
                     client.setMetadata( meta );
-                    clientSet_.updateClient( client );
+                    clientSet_.updateClient( client, true, false );
                 }
             }, connection );
         }
@@ -156,7 +156,7 @@ class ClientTracker extends AbstractMessageHandler {
             performClientOperation( new ClientOperation( id, mtype ) {
                 public void perform( TrackedClient client ) {
                     client.setSubscriptions( subs );
-                    clientSet_.updateClient( client );
+                    clientSet_.updateClient( client, false, true );
                 }
             }, connection );
         }

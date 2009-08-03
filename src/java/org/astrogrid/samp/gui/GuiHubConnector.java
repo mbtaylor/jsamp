@@ -547,8 +547,9 @@ public class GuiHubConnector extends HubConnector {
             } );
         }
 
-        public void updateClient( final Client client ) {
-            super.updateClient( client );
+        public void updateClient( final Client client,
+                                  boolean metaChanged, boolean subsChanged ) {
+            super.updateClient( client, metaChanged, subsChanged );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
                     int index = clientList_.indexOf( client );

@@ -35,6 +35,7 @@ import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.client.TrackedClientSet;
 
 /**
  * HubConnector implementation which provides facilities for keeping track
@@ -876,8 +877,9 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             assert src instanceof Transmission;
             if ( src instanceof Transmission ) {
                 Transmission trans = (Transmission) src;
-                getClientSet().updateClient( trans.getReceiver() );
-                getClientSet().updateClient( trans.getSender() );
+                TrackedClientSet clientSet = getClientSet();
+                clientSet.updateClient( trans.getReceiver(), false, false );
+                clientSet.updateClient( trans.getSender(), false, false );
             }
         }
     }

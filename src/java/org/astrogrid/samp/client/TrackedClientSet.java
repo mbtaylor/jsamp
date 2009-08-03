@@ -82,8 +82,13 @@ public class TrackedClientSet {
      * changed.  May be called from any thread.
      *
      * @param  client  modified client
+     * @param  metaChanged  true if metadata may have changed
+     *                      (false if known unchanged)
+     * @param  subsChanged  true if subscriptions may have changed
+     *                      (false if known unchanged)
      */
-    public void updateClient( Client client ) {
+    public void updateClient( Client client, 
+                              boolean metaChanged, boolean subsChanged  ) {
         synchronized ( clientMapView_ ) {
             clientMapView_.notifyAll();
         }
