@@ -30,6 +30,10 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
  * in a transparent way.  One application for this is to allow 
  * collaboration between users who each have their own hub running.
  *
+ * <p>A {@link java.lang.Object#notifyAll notifyAll} call is made on
+ * the Bridge object whenever the number of live hubs connected by
+ * the bridge changes.
+ *
  * @author   Mark Taylor
  * @since    15 Jul 2009
  */
@@ -48,7 +52,14 @@ public class Bridge {
         proxyManagers_ = new ProxyManager[ nhub ];
         UtilServer server = UtilServer.getInstance();
         for ( int ih = 0; ih < nhub; ih++ ) {
-            proxyManagers_[ ih ] = new ProxyManager( profiles[ ih ], server );
+            proxyManagers_[ ih ] = new ProxyManager( profiles[ ih ], server ) {
+                protected void managerConnectionChanged( boolean isConnected ) {
+                    super.managerConnectionChanged( isConnected );
+                    synchronized ( Bridge.this ) {
+                        Bridge.this.notifyAll();
+                    }
+                }
+            };
         }
         for ( int ih = 0; ih < nhub; ih++ ) {
             proxyManagers_[ ih ].init( proxyManagers_ );
@@ -131,6 +142,23 @@ public class Bridge {
         for ( int ih = 0; ih < connectors.length; ih++ ) {
             connectors[ ih ].setActive( false );
         }
+    }
+
+    /**
+     * Returns the number of hubs currently connected by this bridge.
+     * Only connections which are currently live are counted.
+     *
+     * @return   number of live hubs
+     */
+    private int getConnectionCount() {
+        HubConnector[] connectors = getBridgeClients();
+        int nc = 0;
+        for ( int ih = 0; ih < connectors.length; ih++ ) {
+            if ( connectors[ ih ].isConnected() ) {
+                nc++;
+            }
+        }
+        return nc;
     }
 
     /**
@@ -367,14 +395,15 @@ public class Bridge {
             return 1;
         }
 
-        // Wait indefinitely.
-        Object lock = new String( "Forever" );
-        synchronized ( lock ) {
-            try {
-                lock.wait();
+        // Wait until there's only one hub connected.
+        try {
+            synchronized ( bridge ) {
+                while ( bridge.getConnectionCount() > 1 ) {
+                    bridge.wait();
+                }
             }
-            catch ( InterruptedException e ) {
-            }
+        }
+        catch ( InterruptedException e ) {
         }
         return 0;
     }
