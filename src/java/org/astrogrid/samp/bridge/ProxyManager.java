@@ -331,7 +331,7 @@ class ProxyManager {
      *
      * @param   isConnected  true for a connection; false for a disconnection
      */
-    private void managerConnectionChanged( boolean isConnected ) {
+    protected void managerConnectionChanged( boolean isConnected ) {
         if ( ! isConnected ) {
             for ( int ir = 0; ir < nRemote_; ir++ ) {
                 ProxyManager remoteManager = remoteManagers_[ ir ];
@@ -391,28 +391,32 @@ class ProxyManager {
                 final HubConnection proxyConnection;
                 synchronized ( connectionMap_ ) {
                     proxyConnection = remoteManager.getProfile().register();
-                    CallableClient callable = 
-                        new ProxyCallableClient( client, proxyConnection,
-                                                 remoteManager );
-                    proxyConnection.setCallable( callable );
-                    proxyConnections[ ir ] = proxyConnection;
-                }
-                if ( meta != null ) {
-                    try {
-                        proxyConnection.declareMetadata( meta );
-                    }
-                    catch ( SampException e ) {
-                        logger_.warning( "proxy declareMetadata failed for "
-                                       + client );
+                    if ( proxyConnection != null ) {
+                        CallableClient callable = 
+                            new ProxyCallableClient( client, proxyConnection,
+                                                     remoteManager );
+                        proxyConnection.setCallable( callable );
+                        proxyConnections[ ir ] = proxyConnection;
                     }
                 }
-                if ( subs != null ) {
-                    try {
-                        proxyConnection.declareSubscriptions( subs );
+                if ( proxyConnection != null ) {
+                    if ( meta != null ) {
+                        try {
+                            proxyConnection.declareMetadata( meta );
+                        }
+                        catch ( SampException e ) {
+                            logger_.warning( "proxy declareMetadata failed for "
+                                           + client );
+                        }
                     }
-                    catch ( SampException e ) {
-                        logger_.warning( "proxy declareSubscriptions failed "
-                                       + "for " + client );
+                    if ( subs != null ) {
+                        try {
+                            proxyConnection.declareSubscriptions( subs );
+                        }
+                        catch ( SampException e ) {
+                            logger_.warning( "proxy declareSubscriptions failed"
+                                           + " for " + client );
+                        }
                     }
                 }
             }
