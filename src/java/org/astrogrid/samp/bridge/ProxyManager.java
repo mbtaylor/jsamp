@@ -356,8 +356,7 @@ class ProxyManager {
             }
         }
         else {
-            // not expected
-            assert false;
+            // not expected except for initial connection
         }
     }
 
