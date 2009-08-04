@@ -25,8 +25,27 @@ import java.util.logging.Logger;
  */
 public class SampUtils {
 
+    /**
+     * Standard profile name of the lockfile in the user's home directory.
+     * Value is "<code>{@value}</code>".
+     */
     public static final String LOCKFILE_NAME = ".samp";
-    public static final String LOCALHOST_PROP = "samp.localhost";
+
+    /**
+     * Property which can be used to override the location of the standard
+     * profile lockfile.
+     * Value is "<code>{@value}</code>.
+     */
+    public static final String LOCKFILE_PROP = "jsamp.lockfile";
+
+    /**
+     * Property which can be used to set name used for localhost in server
+     * endpoints.
+     * Value is "<code>{@value}</code>".
+     * @see  #getLocalhost
+     */
+    public static final String LOCALHOST_PROP = "jsamp.localhost";
+
     private static final Logger logger_ =
         Logger.getLogger( SampUtils.class.getName() );
     private static String sampVersion_;
@@ -370,7 +389,10 @@ public class SampUtils {
      */
     public static File getLockFile() {
         if ( lockFile_ == null ) {
-            lockFile_ = new File( Platform.getPlatform().getHomeDirectory(),
+            String lockname = System.getProperty( LOCKFILE_PROP );
+            lockFile_ = lockname != null
+                      ? new File( lockname )
+                      : new File( Platform.getPlatform().getHomeDirectory(),
                                   LOCKFILE_NAME );
         }
         return lockFile_;
@@ -428,11 +450,18 @@ public class SampUtils {
      * <a href="http://www.astrogrid.org/bugzilla/show_bug.cgi?id=2151"
      *    >2151</a>.
      *
+     * <p>In JSAMP version 0.3-1 and prior versions, the property was
+     * named <code>samp.localhost</code> rather than 
+     * <code>jsamp.localhost</code>.  This name is still accepted for
+     * backwards compatibility.
+     *
      * @return  local host name
      */
     public static String getLocalhost() {
         final String defaultHost = "127.0.0.1";
-        String hostname = System.getProperty( LOCALHOST_PROP, "" );
+        String hostname = 
+            System.getProperty( LOCALHOST_PROP,
+                                System.getProperty( "samp.localhost", "" ) );
         if ( hostname.length() == 0 ) {
             hostname = defaultHost;
         }
