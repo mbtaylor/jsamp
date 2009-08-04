@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<document>
+
+<properties>
+<title>Debugging with JSAMP</title>
+<author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
+</properties>
+
+<body>
+<section name="Debugging with JSAMP">
+
+<p>JSAMP provides many facilities which are useful for the application
+author when adding SAMP capabilities to new or existing applications,
+or when testing SAMP communications between tools and trying to see
+what is or isn't working.  In many cases this applies whether or not
+you are using JSAMP for your own SAMP implementation.
+</p>
+
+<p>Here is a short summary of some of the most useful of these facilities.
+It is not exhaustive.
+</p>
+
+<subsection name="Hub GUI">
+
+<p>JSAMP's GUI hub view represents pretty much the entire state of the
+hub in graphical terms, including all the messages which are 
+passing through and their responses.  If you start the JSAMP hub
+</p>
+<pre>
+   java -jar jsamp.jar hubrunner -mode msg-gui
+</pre>
+<p>
+then you can see all the messages, including their text and 
+any errors and so on in the responses.
+See the <a href="gui.html#Message_Tracker">GUI</a> section for examples.
+</p>
+
+<p>You can get a similar view from a client's-eye view using the
+<a href="commands.html#HubMonitor">HubMonitor</a> in GUI/message tracker mode
+to view a third party hub, though it doesn't have access to as much 
+information as the Hub GUI itself (it can only see the messages it
+participates in itself).
+</p>
+
+</subsection>
+
+<subsection name="Low level message logging">
+
+<p>You can see all the details of of the XML-RPC exchanges between 
+SAMP clients if you set the 
+<a href="sysprops.html#jsamp_xmlrpc_impl">jsamp.xmlrpc.impl</a> system
+property appropriately on one of the clients or the hub or both
+(but note the output can get quite verbose).
+This is good for diagnosing bad XML-RPC sends/receives, and also for
+getting concrete examples of what the POSTed XML text looks like 
+if you are constructing your own messages by hand.
+</p>
+
+</subsection>
+
+<subsection name="Custom message sends">
+
+<p>If your application is waiting for messages with a given MType,
+but you don't have another one to hand which can generate such
+messages, you can use the
+<a href="commands.html#MessageSender">MessageSender</a> tool
+to generate messages to order and send them from the command line.
+Note MessageSender cannot currently generate list and map parameters
+properly - if this is something you need, get in touch and I can 
+maybe add it.
+</p>
+
+</subsection>
+
+<subsection name="Custom message receives">
+
+<p>Conversely, if your client is sending messages but you don't have
+a recipient for them, you can run 
+<a href="commands.html#Snooper">Snooper</a> subscribed to the
+MType(s) in question to receive the messages and see what they look
+like.
+</p>
+
+</subsection>
+
+</section>
+</body>
+
+</document>
