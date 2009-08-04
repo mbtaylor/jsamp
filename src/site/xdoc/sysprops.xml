@@ -132,6 +132,22 @@ behaviour.
     </dd>
 </dl>
 
+<dt><strong>
+    <code>jsamp.profile</code>
+    (<a target="samp-javadoc"
+        href="apidocs/org/astrogrid/samp/client/DefaultClientProfile.html#PROFILE_PROP"
+                                  >DefaultClientProfile.PROFILE_PROP</a>):
+    </strong></dt>
+<dd>Determines the default profile used by SAMP clients.
+    Currently, if the value is not defined or is "<code>standard</code>"
+    the SAMP Standard Profile will be used, and any other value
+    will be interpreted as the name of a class which implements the
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/client/ClientProfile.html"
+                                              >ClientProfile</a>
+    interface.
+    </dd>
+
 </subsection>
 
 </section>

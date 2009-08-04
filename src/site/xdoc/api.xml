@@ -66,13 +66,13 @@ interface directly.
    href="apidocs/org/astrogrid/samp/client/ClientProfile.html"
                                           >ClientProfile</a> class
 is used to initiate communication with the hub.
-Currently, a single implementation of this,
+The usual way for a client to obtain a profile for communication is
+to call
 <a target="samp-javadoc"
-   href="apidocs/org/astrogrid/samp/xmlrpc/StandardClientProfile.html"
-                                          >StandardClientProfile</a>,
-is provided, corresponding to the SAMP Standard Profile.
-However, other profiles could be implemented and used with the rest of
-the API.
+  href="apidocs/org/astrogrid/samp/client/DefaultClientProfile.html#getProfile"
+                                         >DefaultClientProfile.getProfile</a>.
+By default this returns an object conforming to SAMP's Standard Profile,
+but other profiles could be implemented and used with the rest of the API.
 </p>
 
 </subsection>

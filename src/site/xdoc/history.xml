@@ -343,6 +343,10 @@
     non-standard lockfile location.</li>
 <li>Add documentation page about <a href="sysprops.html">System Properties</a>.
     </li>
+<li>Add <code>DefaultClientProfile</code> class;
+    this is now the recommended way of getting a general purpose ClientProfile
+    object (rather than using <code>StandardClientProfile.getInstance()</code>.
+    </li>
 </ul>
 </subsection>
 

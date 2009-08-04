@@ -23,6 +23,7 @@ import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
@@ -230,7 +231,7 @@ public class HubMonitor extends JPanel {
 
         // Get profile.
         final ClientProfile profile =
-            xmlrpc == null ? StandardClientProfile.getInstance()
+            xmlrpc == null ? DefaultClientProfile.getProfile()
                            : new StandardClientProfile( xmlrpc );
 
         // Create the HubMonitor.

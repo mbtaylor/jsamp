@@ -2,6 +2,8 @@ package org.astrogrid.samp.client;
 
 /**
  * Defines Profile-specific aspects of the SAMP client implementation.
+ * The usual way for clients to obtain an instance of this class is by 
+ * using {@link DefaultClientProfile#getProfile}.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008

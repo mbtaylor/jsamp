@@ -93,6 +93,7 @@ public class StandardClientProfile implements ClientProfile {
      * This can be configured using system properties.
      *
      * @see   XmlRpcKit#getInstance
+     * @see   org.astrogrid.samp.client.DefaultClientProfile#getProfile
      * @return  a client profile instance
      */
     public static StandardClientProfile getInstance() {

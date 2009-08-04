@@ -76,7 +76,7 @@ import org.astrogrid.samp.Subscriptions;
  * Here is an example of what use of this class might look like:
  * <pre>
  *   // Construct a connector
- *   ClientProfile profile = StandardClientProfile.getInstance();
+ *   ClientProfile profile = DefaultClientProfile.getProfile();
  *   HubConnector conn = new HubConnector(profile)
  *
  *   // Configure it with metadata about this application
