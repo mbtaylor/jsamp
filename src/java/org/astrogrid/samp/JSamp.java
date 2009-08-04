@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Convenience class for invoking JSAMP command-line applications.
@@ -66,7 +68,26 @@ public class JSamp {
                 .append( className )
                 .append( ")" );
         }
-        ubuf.append( "\n" );
+        ubuf.append( "\n" )
+            .append( "\n   " )
+            .append( "System Properties:" )
+            .append( "\n      " )
+            .append( "jsamp.localhost   = " )
+            .append( "[hostname]|[hostnumber]|<value>" )
+            .append( "\n      " )
+            .append( "jsamp.server.port = " )
+            .append( "<port-number>" )
+            .append( "\n      " )
+            .append( "jsamp.xmlrpc.impl = " )
+            .append( formatImpls( XmlRpcKit.KNOWN_IMPLS, XmlRpcKit.class ) )
+            .append( "\n      " )
+            .append( "jsamp.lockfile    = " )
+            .append( "<filename>" )
+            .append( "\n      " )
+            .append( "jsamp.profile     = " )
+            .append( formatImpls( new String[] { "standard" },
+                                  ClientProfile.class ) )
+            .append( "\n" );
         String usage = ubuf.toString();
 
         // Process command line arguments.
@@ -172,6 +193,29 @@ public class JSamp {
     private static String abbrev( String className ) {
         return className.substring( className.lastIndexOf( "." ) + 1 )
                         .toLowerCase();
+    }
+
+    private static String formatImpls( Object[] options, Class clazz ) {
+        StringBuffer sbuf = new StringBuffer();
+        if ( options != null ) {
+            for ( int i = 0; i < options.length; i++ ) {
+                if ( sbuf.length() > 0 ) {
+                    sbuf.append( '|' );
+                }
+                sbuf.append( options[ i ] );
+            }
+        }
+        if ( clazz != null ) {
+            if ( sbuf.length() > 0 ) {
+                sbuf.append( '|' );
+            }
+            sbuf.append( '<' )
+                .append( clazz.getName().replaceFirst( "^.*\\.", "" )
+                                        .toLowerCase() )
+                .append( "-class" )
+                .append( '>' );
+        }
+        return sbuf.toString();
     }
 
     /**

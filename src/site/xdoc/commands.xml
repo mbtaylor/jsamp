@@ -59,10 +59,7 @@ flag on the command line will print a usage message.
 </p>
 <source>&jsamp-usage;</source>
 
-<p>The individual command-line applications are described below:
-
-
-
+<p>The individual command-line applications are described below.
 They have their own specific command-line flags to control use,
 but most share the following common flags:
 </p>
@@ -80,17 +77,20 @@ but most share the following common flags:
     it by one level.  These flags may be supplied more than once.
     May be abbreviated to <code>-v</code> or <code>+v</code>.
     </dd>
-<dt><code>-gui/-nogui</code></dt>
-<dd>Shows/hides a window which shows which clients are currently registered
-    with the hub and their metadata and subscriptions.
-    </dd>
 </dl>
-<p>
-The GUI window, which is used by several of these tools to display 
+
+<p>The various system properties listed affect communications for 
+these applications in the same way as for JSAMP applications in general; 
+see the section on <a href="sysprops.html">System Properties</a>
+for more detail.
+</p>
+
+<p>The GUI window, which is used by several of these tools to display 
 the clients currently registered with the hub along with their
 metadata and subscriptions, looks something like the screenshot below -
 though see the <a href="gui.html">GUI Features</a> section for more detail.
 </p>
+
 <img src="images/HubMonitor.png" alt="HubMonitor screenshot"/>
 
 
