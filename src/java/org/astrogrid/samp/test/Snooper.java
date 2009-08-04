@@ -214,7 +214,7 @@ public class Snooper {
         int verbAdjust = 0;
         XmlRpcKit xmlrpc = null;
         Subscriptions subs = new Subscriptions();
-        Metadata meta = createDefaultMetadata();
+        Metadata meta = new Metadata();
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.startsWith( "-mtype" ) && it.hasNext() ) {
@@ -283,6 +283,11 @@ public class Snooper {
             }
         }
         assert argList.isEmpty();
+
+        // Combine custom and default metadata.
+        Metadata m2 = createDefaultMetadata();
+        m2.putAll( meta );
+        meta = m2;
 
         // Set default subscriptions (everything) if none has been specified
         // explicitly.
