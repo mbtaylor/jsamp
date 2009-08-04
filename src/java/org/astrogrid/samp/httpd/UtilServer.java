@@ -45,7 +45,7 @@ public class UtilServer {
      * System Property key giving a preferred port number for the server.
      * If unset, or 0, or the chosen port is occupied, a system-chosen
      * value will be used.
-     * The property name is "<code>{@value}</code>".
+     * The property name is {@value}.
      */
     public static final String PORT_PROP = "jsamp.server.port";
 

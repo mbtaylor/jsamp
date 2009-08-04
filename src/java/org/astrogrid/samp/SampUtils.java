@@ -27,21 +27,21 @@ public class SampUtils {
 
     /**
      * Standard profile name of the lockfile in the user's home directory.
-     * Value is "<code>{@value}</code>".
+     * Value is {@value}.
      */
     public static final String LOCKFILE_NAME = ".samp";
 
     /**
      * Property which can be used to override the location of the standard
      * profile lockfile.
-     * Value is "<code>{@value}</code>.
+     * Value is {@value}.
      */
     public static final String LOCKFILE_PROP = "jsamp.lockfile";
 
     /**
      * Property which can be used to set name used for localhost in server
      * endpoints.
-     * Value is "<code>{@value}</code>".
+     * Value is {@value}.
      * @see  #getLocalhost
      */
     public static final String LOCALHOST_PROP = "jsamp.localhost";

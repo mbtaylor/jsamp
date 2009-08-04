@@ -60,7 +60,7 @@ public abstract class XmlRpcKit {
      * Alternatively, it may be the classname of a class which implements
      * {@link org.astrogrid.samp.xmlrpc.XmlRpcKit} 
      * and has a no-arg constructor.
-     * The property name is "<code>{@value}</code>".
+     * The property name is {@value}.
      */
     public static final String IMPL_PROP = "jsamp.xmlrpc.impl";
 
