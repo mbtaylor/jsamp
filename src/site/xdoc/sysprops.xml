@@ -100,7 +100,7 @@ behaviour.
         to standard output</li>
     <li><code>apache</code>:
         implementation using Apache's XML-RPC library version 1.2;
-        this requires the Apache classes to be on the classpath</li>
+        this requires the apache-xmlrpc-1.2b classes to be on the classpath</li>
     </ul>
     The members of this list are given as the contents of the
     <a target="samp-javadoc"
@@ -114,6 +114,9 @@ behaviour.
     and which has a no-arg constructor may be given.
     The default is currently <code>internal</code> if this property
     is not specified.
+    The implementations ought to behave the same as far as communications go,
+    though there may be performance differences (the logging ones will be
+    slower for sure).
     </dd>
 
 <dt><strong>
