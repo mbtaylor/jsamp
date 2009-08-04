@@ -121,7 +121,7 @@ the clients currently registered with the hub along with their
 metadata and subscriptions, looks something like the screenshot below -
 though see the <a href="gui.html">GUI Features</a> section for more detail.
 </p>
-<img src="HubMonitor.png" alt="HubMonitor screenshot"/>
+<img src="images/HubMonitor.png" alt="HubMonitor screenshot"/>
 
 
 <subsection name="HubRunner">
