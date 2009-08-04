@@ -100,6 +100,35 @@ class as well - see the javadocs.
 
 </subsection>
 
+<subsection name="Experimenting">
+
+<p>If you want to experiment with the bridge without having multiple
+accounts or multiple hosts you can do so by using some of JSAMP's
+<a href="sysprops.html">system properties</a> to set up different 
+hubs and communities of clients for connection with bridges.  
+</p>
+<pre>
+   // Start up a hub and a client using the standard profile.
+   java -jar jsamp.jar hubrunner
+   java -jar jsamp.jar hubmonitor
+
+   // Start a hub and client using a non-standard lockfile location.
+   java -Djsamp.lockfile=/tmp/samp1 -jar jsamp.jar hubrunner
+   java -Djsamp.lockfile=/tmp/samp1 -jar topcat.jar
+
+   // Bridge them together.
+   java -jar jsamp.jar bridge -sampfile /tmp/samp1
+</pre>
+<p>Of course setting the JSAMP properties will only work on applications
+which use JSAMP (of a suitable version, probably at least v1.0) 
+for their SAMP communications.  For other/older applications,
+setting the <code>HOME</code> environment variable or 
+<code>user.home</code> java system property to influence the directory
+into which the <code>.samp</code> lockfile is written may do the trick.
+</p>
+
+</subsection>
+
 <subsection name="Issues">
 
 <p>In principle, once set up it should work with no further 
