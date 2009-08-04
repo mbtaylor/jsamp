@@ -107,7 +107,6 @@ public abstract class MessageSender {
             .append( "\n           " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
-            .append( " [-xmlrpc internal|apache|xml-log|rpc-log]" )
             .append( "\n           " )
             .append( " -mtype <mtype>" )
             .append( " [-param <name> <value> ...]" )
@@ -197,20 +196,6 @@ public abstract class MessageSender {
                 }
                 catch ( NumberFormatException e ) {
                     System.err.println( "Not numeric: " + stimeout );
-                    System.err.println( usage );
-                    return 1;
-                }
-            }
-            else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
-                it.remove(); 
-                String impl = (String) it.next();
-                it.remove();
-                try { 
-                    xmlrpc = XmlRpcKit.getInstanceByName( impl );
-                }
-                catch ( Exception e ) { 
-                    logger_.log( Level.INFO, "No XMLRPC implementation " + impl,
-                                 e );
                     System.err.println( usage );
                     return 1;
                 }

@@ -138,7 +138,6 @@ public class HubMonitor extends JPanel {
             .append( "\n           " )
             .append( " [-help]" )
             .append( " [+/-verbose]" )
-            .append( " [-xmlrpc internal|apache|xml-log|rpc-log]" )
             .append( "\n           " )
             .append( " [-auto <secs>]" )
             .append( " [-nomsg]" )
@@ -183,20 +182,6 @@ public class HubMonitor extends JPanel {
                 String mpat = (String) it.next();
                 it.remove();
                 subs.addMType( mpat );
-            }
-            else if ( arg.equals( "-xmlrpc" ) && it.hasNext() ) {
-                it.remove();
-                String impl = (String) it.next();
-                it.remove();
-                try {
-                    xmlrpc = XmlRpcKit.getInstanceByName( impl );
-                }
-                catch ( Exception e ) {
-                    logger_.log( Level.INFO, "No XMLRPC implementation " + impl,
-                                 e );
-                    System.err.println( usage );
-                    return 1;
-                }
             }
             else if ( arg.startsWith( "-v" ) ) {
                 it.remove();

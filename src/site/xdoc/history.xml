@@ -347,6 +347,8 @@
     this is now the recommended way of getting a general purpose ClientProfile
     object (rather than using <code>StandardClientProfile.getInstance()</code>.
     </li>
+<li>Withdraw <code>-xmlrpc</code> flag from command-line tools;
+    use <code>jsamp.xmlrpc.impl</code> system property instead.</li>
 </ul>
 </subsection>
 
