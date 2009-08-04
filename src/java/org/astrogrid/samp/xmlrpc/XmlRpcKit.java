@@ -49,11 +49,18 @@ public abstract class XmlRpcKit {
 
     /**
      * Property which is examined to determine which implementation to use
-     * by default.  For the supplied implementations should be one of
-     * "<code>internal</code>" or "<code>apache</code>".
+     * by default.  Property values may be one of the elements of 
+     * {@link #KNOWN_IMPLS}, currently:
+     * <ul>
+     * <li>internal</li>
+     * <li>xml-log</li>
+     * <li>rpc-log</li>
+     * <li>apache</li>
+     * </ul>
      * Alternatively, it may be the classname of a class which implements
      * {@link org.astrogrid.samp.xmlrpc.XmlRpcKit} 
      * and has a no-arg constructor.
+     * The property name is "<code>{@value}</code>".
      */
     public static final String IMPL_PROP = "jsamp.xmlrpc.impl";
 

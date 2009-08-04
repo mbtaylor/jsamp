@@ -41,9 +41,12 @@ public class UtilServer {
     private final Set baseSet_;
     private MultiURLMapperHandler mapperHandler_;
 
-    /** System Property key giving a preferred port number for the server.
-     *  If unset, or 0, or the chosen port is occupied, a system-chosen
-     *  value will be used. */
+    /**
+     * System Property key giving a preferred port number for the server.
+     * If unset, or 0, or the chosen port is occupied, a system-chosen
+     * value will be used.
+     * The property name is "<code>{@value}</code>".
+     */
     public static final String PORT_PROP = "jsamp.server.port";
 
     /** Buffer size for copy data from input to output stream. */
