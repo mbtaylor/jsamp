@@ -329,10 +329,19 @@
     reused.</li>
 <li>Class <code>LockInfo</code> moved from org.astrogrid.samp package
     to org.astrogrid.samp.xmlrpc, which is where it should have been.</li>
-<li>You can now set the samp.secret string for HubRunner if you don't
+<li>You can now set the <code>samp.secret</code> 
+    string for HubRunner if you don't
     want it chosen randomly.</li>
 <li>System property <code>jsamp.server.port</code> provided to select 
     default server port.
+    </li>
+<li>System property <code>samp.localhost</code> renamed to
+    <code>jsamp.localhost</code> 
+    (old value still recognised for backward compatibility).
+    </li>
+<li>System property <code>jsamp.lockfile</code> provided to support 
+    non-standard lockfile location.</li>
+<li>Add documentation page about <a href="sysprops.html">System Properties</a>.
     </li>
 </ul>
 </subsection>

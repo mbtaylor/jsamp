@@ -12,7 +12,8 @@
 
     <menu name="Documentation">
       <item name="Introduction" href="index.html"/>
-      <item name="Command-line tools" href="commands.html"/>
+      <item name="Command-line Tools" href="commands.html"/>
+      <item name="System Properties" href="sysprops.html"/>
       <item name="Bridge" href="bridge.html"/>
       <item name="API Overview" href="api.html"/>
       <item name="GUI Features" href="gui.html"/>

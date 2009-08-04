@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+
+<document>
+<properties>
+<title>System Properties</title>
+<author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
+</properties>
+
+<body>
+
+<section name="System Properties">
+
+<subsection name="Introduction">
+
+<p>System properties are a way of communicating values from the 
+runtime environment to Java; they are effectively Java's answer
+to environment variables.
+JSAMP defines some system properties which you can set to alter
+the way that it behaves.
+</p>
+
+<p>If you are starting java from the command line, you can specify
+these using java's <code>-D</code> flag with the syntax
+<code>-Dname=value</code>.  Note that any such flags must occur
+before a <code>-jar</code> flag on the command line.
+For example, to request that JSAMP opens its default HTTP server
+to listen on port 2112, you could invoke a JSAMP-using application
+like this:
+</p>
+<pre>
+   java -Djsamp.server.port=2112 -jar foo.jar
+</pre>
+
+<p>System properties can also be set programmatically from within Java
+code.  Note that in this case you may need to set these property values
+near the start of the application; in most cases they are only read once.
+</p>
+
+</subsection>
+
+<subsection name="JSAMP's System Properties">
+
+<p>The following system properties may be used to affect JSAMP's
+behaviour.
+</p>
+<dl>
+<dt><strong>
+    <code>jsamp.localhost</code>
+    (<a target="samp-javadoc"
+        href="apidocs/org/astrogrid/samp/SampUtils.html#LOCALHOST_PROP"
+                                        >SampUtils.LOCALHOST_PROP</a>):
+    </strong></dt>
+<dd>Sets the hostname by which the local host is to be identified in
+    URLs, for instance server endpoints.
+    If unset, the default is currently the loopback address 127.0.0.1.
+    However, if this property is set (presumably to the local host's 
+    fully- or partly-qualified domain name) its value will be used instead.
+    There are two special values:
+    <ul>
+    <li><code>[hostname]</code>:
+        uses the host's fully qualified domain name
+        </li>
+    <li><code>[hostnumber]</code>:
+        uses the host's IP number
+        </li>
+    </ul>
+    </dd>
+
+<dt><strong>
+    <code>jsamp.server.port</code>
+    (<a target="samp-javadoc"
+        href="apidocs/org/astrogrid/samp/httpd/UtilServer.html#PORT_PROP"
+                                              >UtilServer.PORT_PROP</a>):
+    </strong></dt>
+<dd>Gives a preferred port number on which to open the default server.
+    In most cases the default server is the only HTTP server used by
+    an application using JSAMP, though they can have more than one.
+    If this property is undefined or set to zero, or if the specified
+    port number is already occupied, an unused port is chosen by the
+    system.
+    </dd>
+
+<dt><strong>
+    <code>jsamp.xmlrpc.impl</code>
+    (<a target="samp-javadoc"
+        href="apidocs/org/astrogrid/samp/xmlrpc/XmlRpcKit.html#IMPL_PROP"
+                                               >XmlRpcKit.IMPL_PROP</a>):
+    </strong></dt>
+<dd>Indicates which pluggable XML-RPC implementation should be used.
+    If defined, this may be one of the following strings:
+    <ul>
+    <li><code>internal</code>:
+        normal internal implementation</li>
+    <li><code>xml-log</code>:
+        internal implementation which logs all incoming and outgoing
+        XML-RPC messages by writing their full XML form to standard output</li>
+    <li><code>rpc-log</code>:
+        internal implementation which logs all incoming and outgoing
+        XML-RPC messages by writing an abbreviated form of their content
+        to standard output</li>
+    <li><code>apache</code>:
+        implementation using Apache's XML-RPC library version 1.2;
+        this requires the Apache classes to be on the classpath</li>
+    </ul>
+    The members of this list are given as the contents of the
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/xmlrpc/XmlRpcKit.html#KNOWN_IMPLS"
+                                              >XmlRpcKit.KNOWN_IMPLS</a>
+    array.
+    Alternatively the full classname of a class which implements
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/xmlrpc/XmlRpcKit.html"
+                    >org.astrogrid.samp.xmlrpc.XmlRpcKit</a>
+    and which has a no-arg constructor may be given.
+    The default is currently <code>internal</code> if this property
+    is not specified.
+    </dd>
+
+<dt><strong>
+    <code>jsamp.lockfile</code>
+    (<a target="samp-javadoc"
+        href="apidocs/org/astrogrid/samp/SampUtils.html#LOCKFILE_PROP"
+                                        >SampUtils.LOCKFILE_PROP</a>):
+    </strong></dt>
+<dd>Permits overriding the location at which the Standard Profile
+    SAMP lockfile is written/read.
+    By default the lockfile is "<code>.samp</code>" in the user's home
+    directory, but if this property is set, it gives a different location
+    to use.  Note that any clients and hubs using a given non-standard
+    value of this parameter will only communicate with other clients/hubs
+    using the same value.
+    </dd>
+</dl>
+
+</subsection>
+
+</section>
+
+</body>
+
+</document>
