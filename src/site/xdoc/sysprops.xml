@@ -45,6 +45,7 @@ behaviour.
 </p>
 <dl>
 <dt><strong>
+    <a name="jsamp.localhost"/>
     <code>jsamp.localhost</code>
     (<a target="samp-javadoc"
         href="apidocs/org/astrogrid/samp/SampUtils.html#LOCALHOST_PROP"
@@ -67,6 +68,7 @@ behaviour.
     </dd>
 
 <dt><strong>
+    <a name="jsamp.server.port"/>
     <code>jsamp.server.port</code>
     (<a target="samp-javadoc"
         href="apidocs/org/astrogrid/samp/httpd/UtilServer.html#PORT_PROP"
@@ -81,6 +83,7 @@ behaviour.
     </dd>
 
 <dt><strong>
+    <a name="jsamp.xmlrpc.impl"/>
     <code>jsamp.xmlrpc.impl</code>
     (<a target="samp-javadoc"
         href="apidocs/org/astrogrid/samp/xmlrpc/XmlRpcKit.html#IMPL_PROP"
@@ -120,6 +123,7 @@ behaviour.
     </dd>
 
 <dt><strong>
+    <a name="jsamp.lockfile"/>
     <code>jsamp.lockfile</code>
     (<a target="samp-javadoc"
         href="apidocs/org/astrogrid/samp/SampUtils.html#LOCKFILE_PROP"
@@ -136,6 +140,7 @@ behaviour.
 </dl>
 
 <dt><strong>
+    <a name="jsamp.profile"/>
     <code>jsamp.profile</code>
     (<a target="samp-javadoc"
         href="apidocs/org/astrogrid/samp/client/DefaultClientProfile.html#PROFILE_PROP"
