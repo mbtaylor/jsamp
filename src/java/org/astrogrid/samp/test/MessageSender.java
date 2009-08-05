@@ -38,7 +38,7 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
  */
 public abstract class MessageSender {
 
-    public static Logger logger_ =
+    private static Logger logger_ =
         Logger.getLogger( MessageSender.class.getName() );
 
     /**
