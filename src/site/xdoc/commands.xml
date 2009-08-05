@@ -47,15 +47,21 @@ in various contexts.
 These come with their own <code>main()</code> methods so can be invoked
 directly.  A convenience class <code>org.astrogrid.samp.JSamp</code> is
 also provided (with its own <code>main()</code> method) which might save
-you a bit of typing when running these; if the dependencies are in the
-same directory as the jsamp jar file itself, then the JSamp class 
-can be invoked as 
-"<code>java -jar jsamp-</code><em>version</em><code>.jar</code>".  
+you a bit of typing when running these.
+So for instance to run the hubrunner, which is in class
+org.astrogrid.samp.xmlrpc.HubRunner, you can execute either:
+<pre>
+   java -classpath jsamp.jar org.astrogrid.samp.xmlrpc.HubRunner
+</pre>
+or, more simply:
+<pre>
+   java -jar jsamp.jar hubrunner
+</pre>
 In all cases, supplying the "<code>-h</code>" or "<code>-help</code>" 
 flag on the command line will print a usage message.
 </p>
 
-<p>The JSamp usage message says:
+<p>The JSamp usage message (<code>java -jar jsamp.jar -help</code>) says:
 </p>
 <source>&jsamp-usage;</source>
 
@@ -374,7 +380,7 @@ be able to think of other uses.
 <p>To run it, you must specify which hubs to bridge between.
 In most cases you'll want one to be the default (standard profile)
 hub, so this is assumed by default.  You therefore only need to
-specify how to connect to the non-default hub.  You can do this
+specify how to connect to the non-default hub(s).  You can do this
 by using one or more of the command-line options described below.
 </p>
 
@@ -382,16 +388,17 @@ by using one or more of the command-line options described below.
 </p>
 <source>&bridge-usage;</source>
 <dl>
-<dt><code>-noexporturls</code></dt>
-<dd>Prevents URLs which refer to the localhost using a loopback address
-    like "127.0.0.1" from being tranlated to a form suitable for remote use.
+<dt><code>-exporturls/-noexporturls</code></dt>
+<dd>With <code>-exporturls</code>, URLs which refer to the host using
+    a loopback address like "127.0.0.1" are translated to a form suitable
+    for remote use; if the bridge is between two machines this will probably
+    be necessary.  This is the default behaviour; <code>-noexporturls</code>
+    prevents it.
     </dd>
-<dt><code>-nostandard</code></dt>
-<dd>Indicates that the standard profile hub 
-    (the one described in the <code>~/.samp</code> file) 
-    is <em>not</em> to be used.  Unless this flag is given, it is assumed
-    that the bridge will be between that hub and one or more others
-    specified by other flags.
+<dt><code>-standard/-nostandard</code></dt>
+<dd><code>-standard</code> indicates that one of the hubs to bridge
+    is the Standard Profile hub.  This is default behaviour; 
+    <code>-nostandard</code> means do not include the standard profile hub.
     </dd>
 <dt><code>-sampfile &lt;lockfile&gt;</code></dt>
 <dd>Names a file in standard-profile format which describes the location
