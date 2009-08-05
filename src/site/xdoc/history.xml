@@ -10,6 +10,15 @@
 
 <section name="Version History">
 
+<ul>
+<li><a href="#Version_0_1"  >Version 0.1</a></li>
+<li><a href="#Version_0_2"  >Version 0.2</a></li>
+<li><a href="#Version_0_2-1">Version 0.2-1</a></li>
+<li><a href="#Version_0_3"  >Version 0.3</a></li>
+<li><a href="#Version_0_3-1">Version 0.3-1</a></li>
+<li><a href="#Version_1_0"  >Version 1.0</a></li>
+</ul>
+
 <subsection name="Version 0.1">
 <p>
 <strong>Date:</strong> 31 July 2008<br/>
@@ -284,72 +293,134 @@
 
 </subsection>
 
-<subsection name="Next version">
+<subsection name="Version 1.0">
 <p>
-<strong>Date:</strong> ??<br/>
-<strong>Archive:</strong> ??
+<strong>Date:</strong> 5 August 2009<br/>
+<strong>Archive:</strong> <a href="../1.0/">Version 1.0</a>
 </p>
 
+<p>Though this version is numbered 1.0, it's not a giant leap ahead
+of the previous one (0.3-1).  However, this is the first release 
+since SAMP became an IVOA Recommendation,
+and this toolkit is believed to be fully compliant with that standard.
+</p>
+
+<p>New functionality:
+</p>
 <ul>
-<li>Default hostname for HTTP server etc (<code>SampUtils.getLocalHost()</code>)
-    is now "127.0.0.1", not DNS name. 
-    This can be altered by setting the <code>samp.hostname</code> system
-    property; it has two new special values "[hostname]" and "[hostnumber]".
+<li>New <a href="bridge.html">Bridge</a> client added.
+    This is a significant bit of infrastructure which allows clients
+    on different hubs to interoperate.
     </li>
-<li>Missing <code>jsamp.version</code> file now included in source 
-    zip archive.</li>
-<li>Added <code>parseValue</code> utility method to SampUtils class.</li>
+<li>Added popup menus to GUI hub views which allow you to ping or 
+    forcibly disconnect registered clients.
+    </li>
+<li>System property <code>jsamp.server.port</code> provided to
+    allow selection of the default server port.
+    </li>
+<li>System property <code>jsamp.lockfile</code> provided to support 
+    non-standard lockfile location.
+    </li>
+<li>HubConnector now subscribes by default to new 
+    <tt>client.env.get</tt> MType.
+    </li>
 <li>Added <code>-clientname</code> and <code>-clientmeta</code> flags to
-    <code>Snooper</code> command-line tool.</li>
-<li>Version now reported as v1.11 REC 2009-04-21.</li>
+    <code>Snooper</code> command-line tool.
+    </li>
+<li>You can now set the <code>samp.secret</code> string for 
+    HubRunner if you don't want it chosen randomly.
+    </li>
+<li>Add some more documentation pages:
+    <a href="sysprops.html">System Properties</a>,
+    <a href="debug.html">Debugging Aids</a>
+    and
+    <a href="bridge.html">Bridge</a>.
+    </li>
+<li>The help message now reports relevant system properties as well as
+    other help info.
+    </li>
+</ul>
+
+<p>Changes to behaviour 
+(note some of these may have backward compatibility issues):
+</p>
+<ul>
+<li>The default hostname for HTTP server etc 
+    (<code>SampUtils.getLocalHost()</code>)
+    is now "127.0.0.1", not the DNS name; in certain network environments this
+    works better than the alternatives, though it's less good for
+    inter-machine communications.
+    This default can be altered by setting the <code>samp.hostname</code> 
+    system property; it has two new special values "[hostname]" and 
+    "[hostnumber]".
+    </li>
+<li>Icon URLs declared by test clients etc now use internal server references
+    rather than links to external static resources.  This means icons
+    are not dependent on network availability.
+    </li>
 <li>Clients forcibly disconnected by <tt>samp.hub.disconnect</tt> now 
-    don't try to re-autoconnect themselves.</li>
-<li>Added <tt>getHubClient</tt> and <tt>disconnect</tt> methods to 
-    BasicHubService; you can now use the hub object to forcibly
-    disconnect clients.</li>
-<li>Added popup menus to GUI hub views which allow you to send a ping to or 
-    forcibly disconnect registered clients.</li>
+    don't try to re-autoconnect themselves.
+    </li>
 <li>Remove warning if permission change on .samp file to owner-only read fails.
     This permission change is probably not possible on Windows-like OSes
     (unless anyone can tell me different), 
     and the warning causes confusion.</li>
-<li>HubConnector now subscribes by default to <tt>client.env.get</tt>
-    MType.</li>
-<li><tt>StandardClientProfile</tt> now has overridable <tt>getLockInfo</tt>
-    method for better customisability.</li>
-<li>Fixed error reporting bug in <code>messagesender</code> tool.</li>
-<li>Add <code>UtilServer</code> class; helps to reduce the number of
-    servers running and provide convenience methods for exporting 
-    local (e.g. file: or classpath) URLs.</li>
-<li>Icon URLs declared by test clients etc now use internal server references
-    rather than links to external static resources.</li>
-<li>Added new method <code>HubConnector.connectionChanged</code>.</li>
-<li>New <a href="bridge.html">Bridge</a> functionality.</li>
-<li>InternalServerFactory now returns a server which can be safely 
-    reused.</li>
-<li>Class <code>LockInfo</code> moved from org.astrogrid.samp package
-    to org.astrogrid.samp.xmlrpc, which is where it should have been.</li>
-<li>You can now set the <code>samp.secret</code> 
-    string for HubRunner if you don't
-    want it chosen randomly.</li>
-<li>System property <code>jsamp.server.port</code> provided to select 
-    default server port.
-    </li>
 <li>System property <code>samp.localhost</code> renamed to
     <code>jsamp.localhost</code> 
-    (old value still recognised for backward compatibility).
-    </li>
-<li>System property <code>jsamp.lockfile</code> provided to support 
-    non-standard lockfile location.</li>
-<li>Add documentation page about <a href="sysprops.html">System Properties</a>.
-    </li>
-<li>Add <code>DefaultClientProfile</code> class;
-    this is now the recommended way of getting a general purpose ClientProfile
-    object (rather than using <code>StandardClientProfile.getInstance()</code>.
+    (the old name is still recognised for backward compatibility).
     </li>
 <li>Withdraw <code>-xmlrpc</code> flag from command-line tools;
-    use <code>jsamp.xmlrpc.impl</code> system property instead.</li>
+    the <code>jsamp.xmlrpc.impl</code> system property should be used
+    instead.
+    </li>
+<li>Standard version is now reported as v1.11 REC 2009-04-21.
+    </li>
 </ul>
+
+<p>API Changes
+(note some of these may have backward compatibility issues):
+</p>
+<ul>
+<li>Added <code>DefaultClientProfile</code> class;
+    this is now the recommended way of getting a general purpose ClientProfile
+    object (rather than using <code>StandardClientProfile.getInstance()</code>.
+    Using this will aid pluggability (ability to use with non-standard
+    profiles in the future).
+    </li>
+<li>Added <code>UtilServer</code> class; this can help to reduce the number 
+    of HTTP servers run by a JSAMP application, 
+    and provides convenience methods for exporting 
+    local (e.g. file: or classpath) URLs.
+    </li>
+<li>Added <tt>getHubClient</tt> and <tt>disconnect</tt> methods to 
+    BasicHubService; you can now use the hub object to forcibly
+    disconnect clients.
+    </li>
+<li><tt>StandardClientProfile</tt> now has overridable <tt>getLockInfo</tt>
+    method for better customisability.
+    </li>
+<li>Added <code>parseValue</code> utility method to <code>SampUtils</code>
+    class.
+    </li>
+<li>Added new method <code>HubConnector.connectionChanged</code>.
+    </li>
+<li>InternalServerFactory now returns a server which can be safely 
+    reused.
+    </li>
+<li>Class <code>LockInfo</code> moved from <code>org.astrogrid.samp</code>
+    package to <code>org.astrogrid.samp.xmlrpc</code>,
+    which is where it should have been.
+    </li>
+</ul>
+
+<p>Bugfixes:
+</p>
+<ul>
+<li>Missing <code>jsamp.version</code> file now included in source 
+    zip archive.</li>
+<li>Fixed error reporting bug in <code>messagesender</code> tool.</li>
+</ul>
+
 </subsection>
 
 </section>
