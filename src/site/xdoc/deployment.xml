@@ -23,7 +23,6 @@ Currently, there are the following possibilities:
 <dt>Internal</dt>
 <dd>A standalone library implementation is provided within JSAMP,
     so if you wish to use this, no external dependencies are required.
-    This is currently a bit slower than the Apache implementation.
     </dd>
 <dt>Apache XML-RPC 1.2</dt>
 <dd>To use the Apache XML-RPC library, the Apache classes must be on the
@@ -44,14 +43,15 @@ Currently, there are the following possibilities:
 particular implementations of the classes in the <code>xmlrpc</code>
 package.  Mostly though, an implementation will be chosen without any 
 explicit choice in the application code.  In this case, you can control
-which implementation is used by setting the value of the system property
-<code>jsamp.xmlrpc.impl</code> to "apache", "internal" or the classname
-of an <code>XmlRpcKit</code> implementation which has a no-arg constructor.
-See <a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/xmlrpc/XmlRpcKit.html#IMPL_PROP"
-                                              >XmlRpcKit.IMPL_PROP</a>.
+which implementation is used by setting the value of the 
+<a href="sysprops.html#jsamp_xmlrpc_impl">jsamp.xmlrpc.impl</a>
+system property.
 </p>
 
+<p>The internal implementation was introduced as an experimental measure,
+but it seems to be quite reliable and of comparable speed to the Apache one.
+The internal implementation is therefore recommended for most purposes.
+</p>
 
 </section>
 
@@ -133,8 +133,8 @@ They are organised as follows:
        href="apidocs/org/astrogrid/samp/xmlrpc/internal/package-summary.html"
                     >org.astrogrid.samp.xmlrpc.internal</a></dt>
 <dd>Implementation of the pluggable XML-RPC layer which requires no 
-    external libraries.  If you are using the Apache library,
-    these classes are not required.
+    external libraries.  If you are using the Apache library
+    or a home-grown XML-RPC implementation, these classes are not required.
     </dd>
 </dl>
 
