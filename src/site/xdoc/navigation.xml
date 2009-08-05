@@ -14,12 +14,12 @@
       <item name="Introduction" href="index.html"/>
       <item name="Command-line Tools" href="commands.html"/>
       <item name="System Properties" href="sysprops.html"/>
-      <item name="Bridge" href="bridge.html"/>
-      <item name="API Overview" href="api.html"/>
       <item name="GUI Features" href="gui.html"/>
       <item name="Debugging Aids" href="debug.html"/>
-      <item name="Deployment" href="deployment.html"/>
+      <item name="Bridge" href="bridge.html"/>
+      <item name="API Overview" href="api.html"/>
       <item name="Javadocs" href="apidocs/index.html"/>
+      <item name="Deployment" href="deployment.html"/>
       <item name="Downloads" href="downloads.html"/>
       <item name="Change Log" href="history.html"/>
       <item name="Project Info" href="project-info.html"/>
