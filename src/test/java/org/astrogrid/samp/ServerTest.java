@@ -17,6 +17,7 @@ public class ServerTest extends TestCase {
             new MultiURLMapperHandler( server, "gur" );
         server.addHandler( mHandler );
         File f1 = new File( "a/b.fits" );
+        URL fileUrl1 = f1.toURL();
         URL url1 = mHandler.addLocalUrl( f1.toURL() );
         assertEquals( "http", url1.getProtocol() );
         assertTrue( url1.toString().endsWith( "b.fits" ) );
@@ -42,5 +43,11 @@ public class ServerTest extends TestCase {
         mHandler.removeServerUrl( url2 );
         resp2 = server.serve( req2 );
         assertEquals( 404, resp2.getStatusCode() );
+
+        assertNull( fileUrl1.getRef() );
+        String frag = "frag";
+        URL fragUrl1 = new URL( fileUrl1.toString() + "#" + frag ); 
+        assertEquals( frag, fragUrl1.getRef() );
+        assertEquals( frag, mHandler.addLocalUrl( fragUrl1 ).getRef() );
     }
 }
