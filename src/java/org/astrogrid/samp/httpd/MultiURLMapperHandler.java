@@ -98,6 +98,18 @@ public class MultiURLMapperHandler implements HttpServer.Handler {
             }
         }
 
+        // Add the fragment part to the mapped URL if there is one.
+        String frag = localUrl.getRef();
+        if ( frag != null ) {
+            try {
+                mappedUrl = new URL( mappedUrl.toString() + "#" + frag );
+            }
+            catch ( MalformedURLException e ) {
+                // shouldn't happen, but if it does, just use the non-frag one.
+                assert false;
+            }
+        }
+
         // Remember the mapping between the local URL and the public one.
         urlMap_.put( relPath, localUrl );
 
