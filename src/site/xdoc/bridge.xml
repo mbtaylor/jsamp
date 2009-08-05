@@ -131,19 +131,19 @@ into which the <code>.samp</code> lockfile is written may do the trick.
 
 <subsection name="Issues">
 
-<p>In principle, once set up it should work with no further 
+<p>In principle, once set up the bridge should work with no further 
 intervention.  However, in the case of a bridge between different
 machines, there may be some communications issues related to URLs.
 Although URLs are formally intended for locating a resource 
 regardless of where you are, in practice there may be problems
 accessing a URL from a machine other than the one it was constructed on.
-These problems fall into two categories.
+These problems fall into three categories.
 </p>
 <ol>
 <li>SAMP clients and the hub usually use HTTP over high-numbered ports
     for communications.  If either machine is behind a firewall which
     blocks such ports, the bridge won't work.  There's not much you 
-    can do about this.
+    can do about this, other than reconfiguring or disabling the firewall.
     </li>
 <li>Several SAMP MTypes rely on passing the locations of data with URLs.
     If the URL in question uses the <code>file:</code> protocol
