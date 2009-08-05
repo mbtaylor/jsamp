@@ -30,6 +30,10 @@ like this:
 <pre>
    java -Djsamp.server.port=2112 -jar foo.jar
 </pre>
+<p>They will work the same way for JSAMP's command line tools,
+and for third-party applications which use the JSAMP library for
+SAMP communications.
+</p>
 
 <p>System properties can also be set programmatically from within Java
 code.  Note that in this case you may need to set these property values
@@ -41,7 +45,10 @@ near the start of the application; in most cases they are only read once.
 <subsection name="JSAMP's System Properties">
 
 <p>The following system properties may be used to affect JSAMP's
-behaviour.
+behaviour.  Listed alongside the property name is a link to the
+static public class member which may be used to refer to this
+property name in code: the javadocs so linked may provide more
+detail on use.
 </p>
 <dl>
 <dt><strong>
@@ -103,7 +110,10 @@ behaviour.
         to standard output</li>
     <li><code>apache</code>:
         implementation using Apache's XML-RPC library version 1.2;
-        this requires the apache-xmlrpc-1.2b classes to be on the classpath</li>
+        this requires the
+        <a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
+           >Apache xmlrpc-1.2b</a>
+        classes to be on the classpath</li>
     </ul>
     The members of this list are given as the contents of the
     <a target="samp-javadoc"
@@ -119,7 +129,8 @@ behaviour.
     is not specified.
     The implementations ought to behave the same as far as communications go,
     though there may be performance differences (the logging ones will be
-    slower for sure).
+    slower for sure).  The logging implementations can be useful
+    for debugging.
     </dd>
 
 <dt><strong>
@@ -132,10 +143,11 @@ behaviour.
 <dd>Permits overriding the location at which the Standard Profile
     SAMP lockfile is written/read.
     By default the lockfile is "<code>.samp</code>" in the user's home
-    directory, but if this property is set, it gives a different location
-    to use.  Note that any clients and hubs using a given non-standard
-    value of this parameter will only communicate with other clients/hubs
-    using the same value.
+    directory, as defined by the SAMP Standard Profile,
+    but if this property is set, it gives a different location to use.
+    Note that any clients and hubs using a given non-standard value of 
+    this parameter will only be able to communicate with other clients/hubs
+    using the same non-standard value.
     </dd>
 </dl>
 

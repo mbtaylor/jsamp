@@ -18,12 +18,14 @@ It provides the following components:
 <li>A SAMP hub implementation, suitable for standalone or embedded use</li>
 <li>A set of classes which can be used to implement SAMP capabilities in
     client applications</li>
-<li>A hub test suite, which can test correctness of third-party hub
-    implementations</li>
+<li>A hub test and benchmarking suite, which can test correctness and
+    performance of third-party hub implementations</li>
 <li>Utilities which can be used by client and hub developers, or SAMP users,
     to analyse or debug SAMP sessions</li>
 <li>Graphical components built on top of the basic functionality suitable
     for use with the above</li>
+<li>A bridge component, which can allow clients on different hubs to
+    talk to each other</li>
 </ul>
 <p>For a given purpose, some or all of these components may be used at one time.
 </p>
@@ -42,16 +44,14 @@ It provides the following components:
 </ul>
 
 <p>The current version targets the SAMP 
-<a href="http://www.ivoa.net/Documents/cover/SAMP-20090209.html"
-   >1.11 Proposed Recommendation (soon Recommendation)</a> document
-(9 February 2009).
+<a href="http://www.ivoa.net/Documents/cover/SAMP-20090421.html"
+   >1.11 Recommendation</a> document (21 April 2009).
 </p>
 
 <p>JSAMP is currently developed by 
-<a href="http://www.star.bristol.ac.uk/~mbt">Mark Taylor</a>
+<a href="http://www.star.bristol.ac.uk/~mbt/">Mark Taylor</a>
 (m.b.taylor@bristol.ac.uk), 
-working for 
-<a href="http://www.astrogrid.org/">AstroGrid</a> in the
+working in the
 <a href="http://www.phy.bris.ac.uk/groups/astrophysics/">Astrophysics Group</a>
 at
 <a href="http://www.bristol.ac.uk/">Bristol University</a>.
