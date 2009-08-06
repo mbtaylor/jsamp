@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -40,6 +41,8 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 public class Bridge {
 
     private final ProxyManager[] proxyManagers_;
+    private static final Logger logger_ =
+        Logger.getLogger( Bridge.class.getName() );
 
     /**
      * Constructor.
@@ -113,7 +116,8 @@ public class Bridge {
      *                on the host on which that profile's hub is running
      */
     public void exportUrls( int index, String host ) {
-        proxyManagers_[ index ].setExporter( new UrlExporter( host ) );
+        proxyManagers_[ index ]
+            .setExporter( new UrlExporter( host, isLocalHost( host ) ) );
     }
 
     /**
@@ -162,6 +166,30 @@ public class Bridge {
     }
 
     /**
+     * Indicates whether a given hostname corresponds to the local host.
+     *
+     * @param  host  hostname to test
+     * @return   true if <code>host</code> is known to be the local host
+     */
+    private static boolean isLocalHost( String host ) {
+        if ( host == null ) {
+            return false;
+        }
+        if ( SampUtils.getLocalhost().equals( host ) ) {
+            return true;
+        }
+        try {
+            InetAddress hostAddr = InetAddress.getByName( host );
+            return hostAddr != null
+                && ( hostAddr.isLoopbackAddress() ||
+                     hostAddr.equals( InetAddress.getLocalHost() ) );
+        }
+        catch ( UnknownHostException e ) {
+            return false;
+        }
+    }
+
+    /**
      * Main method.  Runs a bridge.
      */
     public static void main( String[] args ) throws IOException {
@@ -194,7 +222,7 @@ public class Bridge {
             .append( "\n         " )
             .append( " [-help]" )
             .append( " [-/+verbose]" )
-            .append( " [-noexporturls]" )
+            .append( " [-[no]exporturls]" )
             .append( "\n         " )
             .append( " [-nostandard]" )
             .append( " [-sampdir <lockfile-dir>]" )
@@ -243,16 +271,16 @@ public class Bridge {
             }
         };
         profileList.add( standardProfile );
-        boolean exporturls = true;
+        Boolean reqExportUrls = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
 
             // Determine whether to export localhost-type URLs.
             if ( arg.equals( "-exporturls" ) ) {
-                exporturls = true;
+                reqExportUrls = Boolean.TRUE;
             }
             else if ( arg.equals( "-noexporturls" ) ) {
-                exporturls = false;
+                reqExportUrls = Boolean.FALSE;
             }
 
             // Accumulate various profiles.
@@ -359,32 +387,68 @@ public class Bridge {
             return 1;
         }
 
+        // Try to work out what hosts all the profiles are running on.
+        boolean allLocal = true;
+        String[] hosts = new String[ profiles.length ];
+        for ( int ip = 0; ip < profiles.length; ip++ ) {
+            ClientProfile profile = profiles[ ip ];
+            String host = null;
+            if ( profile == standardProfile ) {
+                host = SampUtils.getLocalhost();
+            }
+            else if ( profile instanceof StandardClientProfile ) {
+                URL xurl = ((StandardClientProfile) profile).getLockInfo()
+                                                            .getXmlrpcUrl();
+                if ( xurl != null ) {
+                    host = xurl.getHost();
+                }
+            }
+            allLocal = allLocal && isLocalHost( host );
+            hosts[ ip ] = host;
+        }
+
+        // Work out whether to export URLs.
+        final boolean exporturls;
+        if ( reqExportUrls == null ) {
+            if ( allLocal ) {
+                logger_.info( "All hubs apparently on local host; "
+                            + "no URL exporting will be attempted" );
+                exporturls = false;
+            }
+            else {
+                logger_.info( "Bridge apparently running between hosts; "
+                            + "URL exporting will be attempted" );
+                exporturls = true;
+            }
+        }
+        else {
+            exporturls = reqExportUrls.booleanValue();
+            logger_.info( "By request, URL exporting "
+                        + ( exporturls ? "will" : "will not" )
+                        + " be attempted" );
+        }
+
         // Create a bridge.
         Bridge bridge = new Bridge( profiles );
 
-        // Arrange to export URLs if requested.
+        // Arrange to export URLs if appropriate.
         if ( exporturls ) {
             for ( int ip = 0; ip < profiles.length; ip++ ) {
-                ClientProfile profile = profiles[ ip ];
-                String host = null;
-                if ( profile == standardProfile ) {
-                    host = SampUtils.getLocalhost();
-                }
-                else if ( profile instanceof StandardClientProfile ) {
-                    URL xurl = ((StandardClientProfile) profile).getLockInfo()
-                                                                .getXmlrpcUrl();
-                    if ( xurl != null ) {
-                        host = xurl.getHost();
-                    }
-                }
+                String host = hosts[ ip ];
                 if ( host != null ) {
-                    InetAddress addr = InetAddress.getByName( host );
-                    if ( addr.isLoopbackAddress() ) {
-                        addr = InetAddress
-                              .getByName( SampUtils.getLocalhost() );
+                    try {
+                        InetAddress addr = InetAddress.getByName( host );
+                        if ( addr.isLoopbackAddress() ) {
+                            addr = InetAddress
+                                  .getByName( SampUtils.getLocalhost() );
+                        }
+                        String ehost = addr.getCanonicalHostName();
+                        bridge.exportUrls( ip, ehost );
                     }
-                    String ehost = addr.getCanonicalHostName();
-                    bridge.exportUrls( ip, ehost );
+                    catch ( UnknownHostException e ) {
+                        logger_.log( Level.WARNING,
+                                     "Can't export URLs for host " + host, e );
+                    }
                 }
             }
         }
