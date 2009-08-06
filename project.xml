@@ -63,8 +63,8 @@
     <report>maven-javadoc-plugin</report>
   </reports>
 
-  <siteAddress>terror.star.le.ac.uk</siteAddress>
-  <siteDirectory>/software_docs/jsamp-${pom.currentVersion}</siteDirectory>
+  <siteAddress>maven.astrogrid.org</siteAddress>
+  <siteDirectory>/software/doc/p/jsamp/${pom.currentVersion}</siteDirectory>
 
   <developers>
     <developer>
