@@ -1,6 +1,12 @@
-package org.astrogrid.samp;
+package org.astrogrid.samp.bridge;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.URL;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -10,6 +16,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
+import org.astrogrid.samp.Client;
+import org.astrogrid.samp.Message;
+import org.astrogrid.samp.Metadata;
+import org.astrogrid.samp.Response;
+import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.TestClientProfile;
 import org.astrogrid.samp.bridge.Bridge;
 import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.ClientProfile;
@@ -17,6 +29,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.ResultHandler;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.httpd.UtilServer;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 public class BridgeTest extends TestCase {
@@ -33,6 +46,41 @@ public class BridgeTest extends TestCase {
             throws IOException, SampException, InterruptedException {
         bridgeTest( 2 );
         bridgeTest( 4 );
+    }
+
+    public void testExport() throws IOException {
+        File file = File.createTempFile( "test", ".txt" );
+        file.deleteOnExit();
+        OutputStream out = new FileOutputStream( file );
+        byte[] text = new byte[] { (byte) 'g', (byte) 'u', (byte) 'r', };
+        out.write( text );
+        out.close();
+
+        String hostname = InetAddress.getLocalHost().getCanonicalHostName();
+        UrlExporter exporter1 = new UrlExporter( hostname, true );
+        UrlExporter exporter2 = new UrlExporter( hostname, false );
+        assertEquals( "http://" + hostname + "/gur",
+                      exporter1.exportString( "http://127.0.0.1/gur" ) );
+
+        String rawUrl = file.toURL().toString()
+                            // fix broken file.toURL()
+                            .replaceFirst( "^file:/\\b", "file://localhost/" );
+        URL expUrl1 = new URL( exporter1.exportString( rawUrl ) );
+        URL expUrl2 = new URL( exporter2.exportString( rawUrl ) );
+        assertEquals( "http", expUrl1.getProtocol() );
+        assertEquals( "file", expUrl2.getProtocol() );
+        assertEquals( rawUrl, expUrl2.toString() );
+
+        InputStream expIn1 = expUrl1.openStream();
+        InputStream expIn2 = expUrl2.openStream();
+        for ( int i = 0; i < text.length; i++ ) {
+            assertEquals( expIn1.read(), text[ i ] );
+            assertEquals( expIn2.read(), text[ i ] );
+        }
+        expIn1.close();
+        expIn2.close();
+
+        file.delete();
     }
 
     private void bridgeTest( int nhub )
