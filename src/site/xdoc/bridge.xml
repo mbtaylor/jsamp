@@ -137,7 +137,7 @@ machines, there may be some communications issues related to URLs.
 Although URLs are formally intended for locating a resource 
 regardless of where you are, in practice there may be problems
 accessing a URL from a machine other than the one it was constructed on.
-These problems fall into three categories.
+These problems fall into two categories.
 </p>
 <ol>
 <li>SAMP clients and the hub usually use HTTP over high-numbered ports
@@ -145,28 +145,36 @@ These problems fall into three categories.
     blocks such ports, the bridge won't work.  There's not much you 
     can do about this, other than reconfiguring or disabling the firewall.
     </li>
-<li>Several SAMP MTypes rely on passing the locations of data with URLs.
-    If the URL in question uses the <code>file:</code> protocol
-    (e.g. <code>file://localhost/tmp/data.fits</code>) the URL will only
-    be readable on the machine which generated it, or at least, one which 
-    can see the same filesystem (perhaps NFS-mounted).
-    Messages using URLs like this are unlikely to work over a multi-host
-    bridge.
-    A possibility for the future might be for hubs to provide a service
-    translating such host-private URLs into more widely accessible ones,
-    but this isn't available at the moment.
-    </li>
-<li>In some cases, the URLs used for XML-RPC callbacks and for data location
-    may be specified in a way which can only be read on the machine which
-    generated them.  This is true for URLs which use a loopback address
-    such as "127.0.0.1" or "localhost" for the hostname rather than 
-    the actual network-public host name or IP number.  
-    By default the bridge tries to translate such hostnames in URLs to
-    fully qualified domain names, which ought to work for remote use,
-    though this isn't foolproof.  This behaviour is not always necessary,
-    and could itself cause problems by making unwanted changes to message text;
-    it can be prevented by using the <code>-noexporturls</code> 
-    command-line flag.
+<li>Many of SAMP's MTypes work by exchanging URLs between clients,
+    for instance <code>table.load.votable</code> messages pass the 
+    location of the table to load as a URL.
+    Although in general a URL is intended to specify the absolute location
+    of a resource, in some cases a URL can only be resolved on the machine
+    on which it was generated.  This is true in two main cases:
+    firstly if it is a "<code>file://...</code>"-type URL, which is 
+    specific to the current host's filesystem, and secondly if it 
+    names the host in some way other than with its fully-qualified
+    domain name, for instance using a loopback name such as
+    <code>localhost</code> or <code>127.0.0.1</code>.
+    Exchanging such URLs between bridged hubs on different hosts 
+    will not work.
+    The bridge can mitigate these problems to some extent,
+    by attempting to <em>export</em> problematic URLs.  In this mode,
+    strings in message bodies and responses which appear to be URLs
+    are examined, and if they appear to be host-specific
+    for a remote host, they are rephrased to make them remotely readable.
+    This involves replacing loopback hostnames with fully-qualified ones,
+    and where possible exporting <code>file</code>-protocol URLs with
+    HTTP ones.  File URL exporting can only work from the host that
+    the bridge is running on though, not in the other direction.
+    For this reason it may be a good idea to have the bridge running on the
+    machine providing most of the data rather than the one receiving
+    most of the data, if there's a choice.
+    This URL exporting is done by default if there appear to be multiple
+    hosts involved in the bridge, but may be controlled by 
+    supplying the <code>-[no]exporturls</code> flag on the bridge command line.
+    This kind of message manipulation necessarily involves a bit of
+    guesswork, so it is possible that it may cause problems.
     </li>
 </ol>
 
