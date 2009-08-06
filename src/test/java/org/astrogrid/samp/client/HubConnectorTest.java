@@ -1,4 +1,4 @@
-package org.astrogrid.samp;
+package org.astrogrid.samp.client;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -9,14 +9,14 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
+import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
+import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.RegInfo;
+import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
-import org.astrogrid.samp.client.AbstractMessageHandler;
-import org.astrogrid.samp.client.HubConnection;
-import org.astrogrid.samp.client.HubConnector;
-import org.astrogrid.samp.client.ResultHandler;
-import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.TestClientProfile;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 
 public class HubConnectorTest extends TestCase {
