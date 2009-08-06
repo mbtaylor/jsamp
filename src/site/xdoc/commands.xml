@@ -389,11 +389,13 @@ by using one or more of the command-line options described below.
 <source>&bridge-usage;</source>
 <dl>
 <dt><code>-exporturls/-noexporturls</code></dt>
-<dd>With <code>-exporturls</code>, URLs which refer to the host using
-    a loopback address like "127.0.0.1" are translated to a form suitable
-    for remote use; if the bridge is between two machines this will probably
-    be necessary.  This is the default behaviour; <code>-noexporturls</code>
-    prevents it.
+<dd>With <code>-exporturls</code>, an attempt is made to translate URLs
+    in message bodies and responses from localhost-specific forms to 
+    remotely accessible ones, for instance renaming loopback addresses
+    like "127.0.0.1" as the fully qualified domain name.
+    With <code>-noexporturls</code> this is not done.
+    The default is to export URLs if the bridge is apparently running
+    between hubs on different hosts.
     </dd>
 <dt><code>-standard/-nostandard</code></dt>
 <dd><code>-standard</code> indicates that one of the hubs to bridge
