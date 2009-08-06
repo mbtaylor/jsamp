@@ -1,4 +1,4 @@
-package org.astrogrid.samp;
+package org.astrogrid.samp.httpd;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import junit.framework.TestCase;
-import org.astrogrid.samp.httpd.HttpServer;
-import org.astrogrid.samp.httpd.MultiURLMapperHandler;
 
 public class ServerTest extends TestCase {
 
