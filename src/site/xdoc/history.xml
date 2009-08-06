@@ -303,6 +303,8 @@
 of the previous one (0.3-1).  However, this is the first release 
 since SAMP became an IVOA Recommendation,
 and this toolkit is believed to be fully compliant with that standard.
+The intention is that backwardly incompatible changes will be kept
+to a minimum following this release.
 </p>
 
 <p>New functionality:
