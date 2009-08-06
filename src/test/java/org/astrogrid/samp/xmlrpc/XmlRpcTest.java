@@ -1,7 +1,6 @@
-package org.astrogrid.samp;
+package org.astrogrid.samp.xmlrpc;
 
 import junit.framework.TestCase;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 public class XmlRpcTest extends TestCase {
 
