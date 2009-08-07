@@ -538,18 +538,24 @@ public class SampUtils {
      */
     private static String readResource( String rname ) {
         URL url = SampUtils.class.getResource( rname );
-        try {
-            InputStream in = url.openStream();
-            StringBuffer sbuf = new StringBuffer();
-            for ( int c; ( c = in.read() ) >= 0; ) {
-                sbuf.append( (char) c );
-            }
-            in.close();
-            return sbuf.toString().trim();
-        }
-        catch ( IOException e ) {
-            logger_.warning( "Failed to read resource " + url );
+        if ( url == null ) {
+            logger_.warning( "No such resource " + rname );
             return "??";
+        }
+        else {
+            try {
+                InputStream in = url.openStream();
+                StringBuffer sbuf = new StringBuffer();
+                for ( int c; ( c = in.read() ) >= 0; ) {
+                    sbuf.append( (char) c );
+                }
+                in.close();
+                return sbuf.toString().trim();
+            }
+            catch ( IOException e ) {
+                logger_.warning( "Failed to read resource " + url );
+                return "??";
+            }
         }
     }
 
