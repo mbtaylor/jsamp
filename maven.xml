@@ -70,8 +70,8 @@
         prereqs="jar:jar,source-zip">
     <echo message="Do this:"/>
     <echo message="    scp target/jsamp-${pom.currentVersion}.jar target/jsamp_src-${pom.currentVersion}.zip maven.astrogrid.org:/maven/org.astrogrid/jars/"/>
+    <echo message="edit maven.astrogrid.org:/software/doc/versions.html"/>
     <echo message="and make sure you do a matching maven site:deploy too"/>
-    <echo message="and edit TRAC page at http://deployer.astrogrid.org/ (/RELEASE/latest.html?)"/>
     <!-- The following reminder is for something that would get done 
      !   automatically by maven 2, but needs to be done by hand for maven 1. -->
     <echo message="and update file on maven.astrogrid.org: /software/doc/latest/samp/.htaccess"/>
