@@ -16,7 +16,7 @@ import org.w3c.dom.Text;
  * @author   Mark Taylor
  * @since    26 Aug 2008
  */
-class XmlUtils {
+public class XmlUtils {
 
     private static Logger logger_ =
         Logger.getLogger( XmlUtils.class.getName() );
