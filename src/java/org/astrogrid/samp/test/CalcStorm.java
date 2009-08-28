@@ -10,10 +10,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.gui.HubMonitor;
-import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Runs a load of Calculator clients at once all sending messages to each other.
@@ -187,7 +186,6 @@ public class CalcStorm {
         Calculator.SendMode sendMode = Calculator.RANDOM_MODE;
         int verbAdjust = 0;
         boolean gui = false;
-        XmlRpcKit xmlrpc = null;
 
         // Parse arguments, modifying test parameters as appropriate.
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -270,9 +268,7 @@ public class CalcStorm {
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Prepare profile.
-        ClientProfile profile =
-            xmlrpc == null ? StandardClientProfile.getInstance()
-                           : new StandardClientProfile( xmlrpc );
+        ClientProfile profile = DefaultClientProfile.getProfile();
 
         // Set up GUI monitor if required.
         JFrame frame;

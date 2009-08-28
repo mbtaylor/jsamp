@@ -24,12 +24,12 @@ import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.gui.HubMonitor;
 import org.astrogrid.samp.xmlrpc.LockInfo;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Tester for a running hub.
@@ -804,7 +804,6 @@ public class HubTester extends Tester {
         List argList = new ArrayList( Arrays.asList( args ) );
         boolean gui = false;
         int verbAdjust = 0;
-        XmlRpcKit xmlrpc = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-gui" ) ) {
@@ -842,9 +841,7 @@ public class HubTester extends Tester {
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Get profile.
-        ClientProfile profile =
-            xmlrpc == null ? StandardClientProfile.getInstance()
-                           : new StandardClientProfile( xmlrpc );
+        ClientProfile profile = DefaultClientProfile.getProfile();
 
         // Set up GUI monitor if required.
         JFrame frame;

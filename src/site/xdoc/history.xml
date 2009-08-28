@@ -425,6 +425,15 @@ to a minimum following this release.
 
 </subsection>
 
+<subsection name="Next version">
+<ul>
+<li>Command-line tools now use <code>DefaultClientProfile.getProfile()</code>
+    rather than <code>StandardClientProfile.getInstance()</code> as they should
+    (hence will be correctly influenced by <code>jsamp.profile</code>
+    system property).</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>

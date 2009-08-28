@@ -24,10 +24,9 @@ import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
-import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Sends a message to one or more other SAMP clients.
@@ -127,7 +126,6 @@ public abstract class MessageSender {
         Metadata meta = new Metadata();
         int timeout = 0;
         int verbAdjust = 0;
-        XmlRpcKit xmlrpc = null;
 
         // Parse the argument list.
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -234,9 +232,7 @@ public abstract class MessageSender {
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Get profile.
-        ClientProfile profile =
-            xmlrpc == null ? StandardClientProfile.getInstance()
-                           : new StandardClientProfile( xmlrpc );
+        ClientProfile profile = DefaultClientProfile.getProfile();
 
         // Create a message sender object.
         final MessageSender sender;

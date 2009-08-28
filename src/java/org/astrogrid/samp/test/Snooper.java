@@ -19,12 +19,11 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
 import org.astrogrid.samp.httpd.UtilServer;
-import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Subscribes to SAMP messages and logs any received to an output stream.
@@ -211,7 +210,6 @@ public class Snooper {
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
         int verbAdjust = 0;
-        XmlRpcKit xmlrpc = null;
         Subscriptions subs = new Subscriptions();
         Metadata meta = new Metadata();
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
@@ -286,9 +284,7 @@ public class Snooper {
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Get profile.
-        ClientProfile profile =
-            xmlrpc == null ? StandardClientProfile.getInstance()
-                           : new StandardClientProfile( xmlrpc );
+        ClientProfile profile = DefaultClientProfile.getProfile();
 
         // Start and run snooper.
         new Snooper( profile, subs, meta, System.out, 2 );
