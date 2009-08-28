@@ -49,7 +49,7 @@ public class XmlUtils {
     /**
      * Returns the single element child of a DOM node.
      *
-     * @param  node  parent node
+     * @param  parent  parent node
      * @return   sole child element
      * @throws  XmlRpcFormatException  if there is not exactly one child
      *             per element
@@ -73,7 +73,7 @@ public class XmlUtils {
      * Returns the single child element of a DOM node, which has a given
      * known name.
      *
-     * @param   node  parent node
+     * @param   parent  parent node
      * @param   tagName  child node name
      * @return  sole child element with name <code>tagName</code>
      * @throws  XmlRpcFormatException  if there is not exactly one child
