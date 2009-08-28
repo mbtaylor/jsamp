@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -76,7 +77,7 @@ public class HttpServer {
     public HttpServer( ServerSocket socket ) {
         serverSocket_ = socket;
         isDaemon_ = true;
-        handlerList_ = new ArrayList();
+        handlerList_ = Collections.synchronizedList( new ArrayList() );
         StringBuffer ubuf = new StringBuffer()
             .append( "http://" )
             .append( SampUtils.getLocalhost() );
@@ -145,8 +146,10 @@ public class HttpServer {
      * @return   represents the content of an HTTP response that should be sent
      */
     public Response serve( Request request ) {
-        for ( Iterator it = handlerList_.iterator(); it.hasNext(); ) {
-            Handler handler = (Handler) it.next();
+        Handler[] handlers =
+            (Handler[]) handlerList_.toArray( new Handler[ 0 ] );
+        for ( int ih = 0; ih < handlers.length; ih++ ) {
+            Handler handler = handlers[ ih ];
             Response response = handler.serveRequest( request );
             if ( response != null ) {
                 return response;

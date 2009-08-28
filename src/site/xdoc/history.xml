@@ -434,6 +434,7 @@ to a minimum following this release.
 <li>More tests added to HubTester for correctness of XML-RPC responses.</li>
 <li>Fixed error in XML-RPC fault responses
     (<code>faultCode</code> was string instead of int).</li>
+<li>Fix concurrency issue in HttpServer.</li>
 </ul>
 </subsection>
 
