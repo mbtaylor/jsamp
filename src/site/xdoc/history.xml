@@ -431,6 +431,7 @@ to a minimum following this release.
     rather than <code>StandardClientProfile.getInstance()</code> as they should
     (hence will be correctly influenced by <code>jsamp.profile</code>
     system property).</li>
+<li>More tests added to HubTester for correctness of XML-RPC responses.</li>
 </ul>
 </subsection>
 

@@ -1,6 +1,7 @@
 package org.astrogrid.samp.test;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -180,9 +181,16 @@ public class HubTester extends Tester {
      * Perform a wide variety of tests on a running hub.
      */
     public void run() throws IOException {
+
+        // Profile-specific tests.
         if ( profile_ == StandardClientProfile.getInstance() ) {
-            testLockfile();
+            testStandardLockfile();
         }
+        if ( profile_ instanceof StandardClientProfile ) {
+            testLockInfo( ((StandardClientProfile) profile_).getLockInfo() );
+        }
+
+        // General tests.
         testClients();
         testStress();
     }
@@ -192,12 +200,34 @@ public class HubTester extends Tester {
      * Does not currently test the permissions on it - that would be nice
      * but is hard to do from java since it's rather platform-specific.
      */
-    private void testLockfile() throws IOException {
+    private void testStandardLockfile() throws IOException {
         LockInfo lockInfo = LockInfo.readLockFile();
         if ( lockInfo == null ) {
             throw new TestException( "No lockfile (no hub)" );
         }
+    }
+
+    /**
+     * Does tests on a LockInfo object used by the profile.
+     * This is specific to a Standard-like (though not necessarily Standard)
+     * profile, and will simply be skipped for non-standard profiles.
+     *
+     * @param   lockInfo   lock info object describing a running hub
+     */
+    private void testLockInfo( LockInfo lockInfo ) throws IOException {
+        if ( lockInfo == null ) {
+            throw new TestException( "No LockInfo (no hub)" );
+        }
         lockInfo.check();
+        String secret = lockInfo.getSecret();
+        URL hubUrl = lockInfo.getXmlrpcUrl();
+        TestXmlrpcClient xclient = new TestXmlrpcClient( hubUrl );
+        xclient.checkSuccessCall( "samp.hub.ping", new ArrayList() );
+        xclient.checkFailureCall( "samp.hub.register",
+                                  Collections.singletonList( secret
+                                                           + "-NOT!" ) );
+        xclient.checkFailureCall( "samp.hub.not-a-method",
+                                  Collections.singletonList( secret ) );
     }
 
     /**
