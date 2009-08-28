@@ -239,15 +239,31 @@ public class InternalServer implements SampXmlRpcServer {
      * @return   XML methodResponse document as byte array
      */
     private byte[] getFaultBytes( Throwable error ) throws IOException {
+        int faultCode = 1;
+        String faultString = error.toString();
+
+        // Write the method response element.  We can't use the XmlWriter
+        // sampValue method to do the grunt-work here since the faultCode
+        // contains an <int>, which is not a known SAMP type.
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         BufferedOutputStream bout = new BufferedOutputStream( out );
         XmlWriter xout = new XmlWriter( bout, 2 );
-        Map faultMap = new HashMap();
-        faultMap.put( "faultCode", "1" );
-        faultMap.put( "faultString", error.toString() );
         xout.start( "methodResponse" );
         xout.start( "fault" );
-        xout.sampValue( faultMap );
+        xout.start( "value" );
+        xout.start( "struct" );
+        xout.start( "member" );
+        xout.inline( "name", "faultCode" );
+        xout.start( "value" );
+        xout.inline( "int", Integer.toString( faultCode ) );
+        xout.end( "value" );
+        xout.end( "member" );
+        xout.start( "member" );
+        xout.inline( "name", "faultString" );
+        xout.inline( "value", faultString );
+        xout.end( "member" );
+        xout.end( "struct" );
+        xout.end( "value" );
         xout.end( "fault" );
         xout.end( "methodResponse" );
         xout.close();

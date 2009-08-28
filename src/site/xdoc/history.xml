@@ -432,6 +432,8 @@ to a minimum following this release.
     (hence will be correctly influenced by <code>jsamp.profile</code>
     system property).</li>
 <li>More tests added to HubTester for correctness of XML-RPC responses.</li>
+<li>Fixed error in XML-RPC fault responses
+    (<code>faultCode</code> was string instead of int).</li>
 </ul>
 </subsection>
 
