@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.httpd.UtilServer;
@@ -137,8 +136,7 @@ public class InternalServer implements SampXmlRpcServer {
         if ( body == null || body.length == 0 ) {
             throw new XmlRpcFormatException( "No body in POSTed request" );
         }
-        Document doc = DocumentBuilderFactory.newInstance()
-                      .newDocumentBuilder()
+        Document doc = XmlUtils.createDocumentBuilder()
                       .parse( new ByteArrayInputStream( body ) );
 
         // Extract basic XML-RPC information from DOM.

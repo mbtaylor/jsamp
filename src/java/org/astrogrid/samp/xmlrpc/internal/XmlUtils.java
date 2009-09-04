@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -20,6 +23,7 @@ public class XmlUtils {
 
     private static Logger logger_ =
         Logger.getLogger( XmlUtils.class.getName() );
+    private static DocumentBuilderFactory dbFact_;
 
     /**
      * Private constructor prevents instantiation.
@@ -219,5 +223,18 @@ public class XmlUtils {
             throw new XmlRpcFormatException( "Unknown XML-RPC element "
                                            + "<" + name + ">" );
         }
+    }
+
+    /**
+     * Returns a new DocumentBuilder with default characteristics.
+     *
+     * @return   new document builder instance
+     */
+    static DocumentBuilder createDocumentBuilder()
+            throws ParserConfigurationException {
+        if ( dbFact_ == null ) {
+            dbFact_ = DocumentBuilderFactory.newInstance();
+        }
+        return dbFact_.newDocumentBuilder();
     }
 }

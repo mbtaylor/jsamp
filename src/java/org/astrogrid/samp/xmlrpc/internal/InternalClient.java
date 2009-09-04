@@ -11,7 +11,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -153,8 +152,7 @@ public class InternalClient implements SampXmlRpcClient {
     protected Object deserializeResponse( InputStream in )
             throws IOException {
         try {
-            Document doc = DocumentBuilderFactory.newInstance()
-                          .newDocumentBuilder().parse( in );
+            Document doc = XmlUtils.createDocumentBuilder().parse( in );
             Element top =
                 XmlUtils.getChild( XmlUtils.getChild( doc, "methodResponse" ) );
             String topName = top.getTagName();
