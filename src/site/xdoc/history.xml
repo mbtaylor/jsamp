@@ -435,6 +435,8 @@ to a minimum following this release.
 <li>Fixed error in XML-RPC fault responses
     (<code>faultCode</code> was string instead of int).</li>
 <li>Fix concurrency issue in HttpServer.</li>
+<li>Be more frugal with DocumentBuilderFactory instances to reduce some
+    unwanted logging.</li>
 </ul>
 </subsection>
 
