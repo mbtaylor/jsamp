@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.logging.Logger;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
@@ -29,6 +30,8 @@ public class XmlRpcHubConnection implements HubConnection {
     private final RegInfo regInfo_;
     private CallableClientServer callableServer_;
     private boolean unregistered_;
+    private static final Logger logger_ =
+        Logger.getLogger( XmlRpcHubConnection.class.getName() );
 
     /**
      * Constructor.
@@ -52,11 +55,16 @@ public class XmlRpcHubConnection implements HubConnection {
         else {
             throw new SampException( "Bad return value from hub register method"                                   + " - not a map" );
         }
-        Runtime.getRuntime().addShutdownHook( new Thread() {
-            public void run() {
-                finish();
-            }
-        } );
+        try {
+            Runtime.getRuntime().addShutdownHook( new Thread() {
+                public void run() {
+                    finish();
+                }
+            } );
+        }
+        catch ( SecurityException e ) {
+            logger_.warning( "Can't add unregister shutdown hook: " + e );
+        }
     }
 
     public RegInfo getRegInfo() {
