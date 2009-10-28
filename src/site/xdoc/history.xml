@@ -437,6 +437,9 @@ to a minimum following this release.
 <li>Fix concurrency issue in HttpServer.</li>
 <li>Be more frugal with DocumentBuilderFactory instances to reduce some
     unwanted logging.</li>
+<li>Catch security exceptions when calling <code>addShutdownHook</code> in
+    XmlRpcHubConnection.  It seems that signed applets may not have the 
+    appropiate permissions.</li>
 </ul>
 </subsection>
 
