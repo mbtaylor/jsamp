@@ -499,7 +499,7 @@ public class HubConnector {
      *
      * @param  recipientId  public-id of client to receive message
      * @param  msg {@link org.astrogrid.samp.Message}-like map
-     * @param  timeout  timeout in seconds, or &lt;0 for no timeout
+     * @param  timeout  timeout in seconds, or &lt;=0 for no timeout
      * @return  response
      */
     public Response callAndWait( String recipientId, Map msg, int timeout )
@@ -561,7 +561,7 @@ public class HubConnector {
      * @param  msg {@link org.astrogrid.samp.Message}-like map
      * @param  resultHandler  object called back when response arrives or 
      *                        timeout is exceeded
-     * @param  timeout  timeout in seconds, or &lt;0 for no timeout
+     * @param  timeout  timeout in seconds, or &lt;=0 for no timeout
      */
     public void call( String recipientId, Map msg, ResultHandler resultHandler,
                       int timeout ) throws SampException {
@@ -593,7 +593,7 @@ public class HubConnector {
      * @param  msg {@link org.astrogrid.samp.Message}-like map
      * @param  resultHandler  object called back when response arrives or 
      *                        timeout is exceeded
-     * @param  timeout  timeout in seconds, or &lt;0 for no timeout
+     * @param  timeout  timeout in seconds, or &lt;=0 for no timeout
      */
     public void callAll( Map msg, ResultHandler resultHandler, int timeout )
             throws SampException {
