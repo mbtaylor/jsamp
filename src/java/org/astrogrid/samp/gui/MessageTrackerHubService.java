@@ -38,7 +38,7 @@ import org.astrogrid.samp.hub.Receiver;
 public class MessageTrackerHubService extends GuiHubService
                                       implements ClientTransmissionHolder {
 
-    private final Map callMap_;
+    private final CallMap callMap_;
     private final TransmissionTableModel transTableModel_;
     private final int listRemoveDelay_; 
     private final int tableRemoveDelay_;
@@ -76,7 +76,7 @@ public class MessageTrackerHubService extends GuiHubService
         listRemoveDelay_ = listRemoveDelay;
         tableRemoveDelay_ = tableRemoveDelay;
         tableMaxRows_ = tableMaxRows;
-        callMap_ = new HashMap();  // access only from EDT;
+        callMap_ = new CallMap();  // access only from EDT;
         transTableModel_ =
             new TransmissionTableModel( true, true, tableRemoveDelay_,
                                         tableMaxRows_ );
@@ -151,7 +151,7 @@ public class MessageTrackerHubService extends GuiHubService
         final Object callKey = getCallKey( getCaller( callerKey ), msgId );
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
-                Transmission trans = (Transmission) callMap_.remove( callKey );
+                Transmission trans = callMap_.remove( callKey );
                 if ( trans != null ) {
                     trans.setResponse( Response.asResponse( response ) );
                 }
@@ -258,8 +258,7 @@ public class MessageTrackerHubService extends GuiHubService
             final Object callKey = getCallKey( recipient, msgId );
             SwingUtilities.invokeLater( new Runnable() {
                 public void run() {
-                    assert ! callMap_.containsKey( callKey );
-                    callMap_.put( callKey, trans );
+                    callMap_.add( callKey, trans );
                     addTransmission( trans );
                 }
             } );
@@ -414,6 +413,53 @@ public class MessageTrackerHubService extends GuiHubService
                     rxListModel.removeListDataListener( transListener_ );
                 }
             } );
+        }
+    }
+
+    /**
+     * Keeps track of transmissions by key.
+     * It works somewhat like a Map, but with the difference that multiple
+     * values may be stored under a single key.
+     */
+    private static class CallMap {
+        private final Map map_ = new HashMap();
+
+        /**
+         * Adds a new entry.
+         *
+         * @param  key  key 
+         * @param  trans   value
+         */
+        public void add( Object key, Transmission trans ) {
+            assert SwingUtilities.isEventDispatchThread();
+            if ( ! map_.containsKey( key ) ) {
+                map_.put( key, new ArrayList( 1 ) );
+            }
+            ((List) map_.get( key )).add( trans );
+        }
+
+        /**
+         * Reads and removes an entry.  If multiple values are stored under
+         * the given key, one of them (the first to have been stored)
+         * is returned, and any others are unaffected.
+         *
+         * @param  key  key
+         * @returh   a value correspondig to key
+         */
+        public Transmission remove( Object key ) {
+            assert SwingUtilities.isEventDispatchThread();
+            List transList = (List) map_.get( key );
+            if ( transList == null ) {
+                return null;
+            }
+            else {
+                assert ! transList.isEmpty();
+                Transmission trans = (Transmission) transList.remove( 0 );
+                if ( transList.isEmpty() ) {
+                    map_.remove( key );
+                }
+                return trans;
+            }
         }
     }
 }
