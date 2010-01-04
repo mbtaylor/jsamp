@@ -32,6 +32,10 @@ and a metadata entry with the key "<code>bridge.proxy.source</code>"
 is added to indicate which hub the client is proxied from.
 </p>
 
+<p>You can see some slides from October 2008 explaining how it works here:
+<a href="bridge.pdf">Bridge presentation</a>.
+</p>
+
 </subsection>
 
 <subsection name="Usage">
