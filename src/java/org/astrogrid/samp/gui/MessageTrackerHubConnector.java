@@ -243,7 +243,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                         return new StringBuffer()
                             .append( trans.getMessage().getMType() )
                             .append( " -> " )
-                            .append( trans.getSender().toString() )
+                            .append( trans.getReceiver().toString() )
                             .toString();
                     }
                     else {
