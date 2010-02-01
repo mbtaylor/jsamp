@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -52,12 +53,13 @@ public class IconStore {
     public Icon getIcon( String url ) {
         if ( ! urlIconMap_.containsKey( url ) ) {
             try {
-                Icon icon = new ImageIcon( new URL( url ) );
+                Icon icon = readIcon( url, 5 );
                 synchronized ( urlIconMap_ ) {
                     urlIconMap_.put( url, icon );
                 }
             }
-            catch ( MalformedURLException e ) {
+            catch ( IOException e ) {
+                logger_.warning( "Icon not found \"" + url + "\" " + e );
                 synchronized ( urlIconMap_ ) {
                     urlIconMap_.put( url, defaultIcon_ );
                 }
@@ -251,6 +253,42 @@ public class IconStore {
                 }
             }
         };
+    }
+
+    /**
+     * Reads an icon from a URL, with a maximum wait time.
+     * If the timeout is exceeded, an exception will be thrown.
+     *
+     * @param  url  icon URL
+     * @param  waitSecs  maximum time in seconds to wait
+     * @return   icon from url
+     * @throws   IOException  if timeout has been exceeded
+     */
+    private static Icon readIcon( String url, int waitSecs )
+            throws IOException {
+        final URL urlLoc = new URL( url );
+        final Icon[] icons = new Icon[ 1 ];
+        Thread loader = new Thread( "IconLoader " + url ) {
+            public void run() {
+                icons[ 0 ] = new ImageIcon( urlLoc );
+            }
+        };
+        loader.start();
+        try {
+            loader.join( waitSecs * 1000 );
+            Icon icon = icons[ 0 ];
+            if ( icon != null ) {
+                return icon;
+            }
+            else {
+                throw new IOException( "Icon load timeout ("
+                                     + waitSecs + "s)" );
+            }
+        }
+        catch ( InterruptedException e ) {
+            throw (IOException) new IOException( "Load interrupted" )
+                               .initCause( e );
+        }
     }
 
     /**
