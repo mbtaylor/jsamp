@@ -361,7 +361,7 @@ public class HubTester extends Tester {
         }
 
         // Spin-wait until all the replies are in.
-        while ( callable2.getReplyCount() < necho );
+        while ( callable2.getReplyCount() < necho ) delay( 100 );
         assertEquals( necho, callable2.getReplyCount() );
 
         // Check that the replies are as expected (returned samp.result has
@@ -524,7 +524,7 @@ public class HubTester extends Tester {
             while ( callable1.pingCount_ < np1 ||
                     callable2.pingCount_ < np2 ||
                     callable3.pingCount_ < np3 ||
-                    callable3.getReplyCount() < nr3 );
+                    callable3.getReplyCount() < nr3 ) delay( 100 );
 
             // And then wait a bit to see if any more come in (hopefully not).
             delay( 400 );
