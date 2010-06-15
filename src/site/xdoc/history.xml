@@ -445,6 +445,7 @@ to a minimum following this release.
 <li>Fix bug in outgoing message tooltips for MessageTracker message box.</li>
 <li>Fix issue which could cause GUI freeze while waiting for
     remote icons to load.</li>
+<li>Add delays in HubTester to avoid non-yield race conditions.</li>
 </ul>
 </subsection>
 
