@@ -16,7 +16,7 @@ public interface ResultHandler {
      * was sent.
      *
      * @param   responder  responder client
-     * @return  response  content of response
+     * @param   response  content of response
      */
     public void result( Client responder, Response response );
 
