@@ -329,10 +329,17 @@ public class HubTester extends Tester {
         catch ( SampException e ) {
         }
 
+        // New client which can re-use the same tag (not advisable, but legal).
+        HubConnection c4 = register();
+        TestCallableClient callable4 = new TestCallableClient( c4 );
+        callable4.setAllowTagReuse( true );
+        c4.setCallable( callable4 );
+
         // Send some concurrent ECHO messages via both notify and call.
         int necho = 5;
         Map[] echoParams = new Map[ necho ];
-        String[] msgIds = new String[ necho ];
+        String[] msgIds2 = new String[ necho ];
+        String[] msgIds4 = new String[ necho ];
         for ( int i = 0; i < necho; i++ ) {
             Message msg = new Message( ECHO_MTYPE );
             Object val1 = createRandomObject( 2, false );
@@ -345,7 +352,8 @@ public class HubTester extends Tester {
             msg.addParam( "val3", val3 );
             echoParams[ i ] = msg.getParams();
             c2.notify( id1, msg );
-            msgIds[ i ] = callable2.call( id1, "tag" + i, msg );
+            msgIds2[ i ] = callable2.call( id1, "tag" + i, msg );
+            msgIds4[ i ] = callable4.call( id1, "sametag", msg );
         }
 
         // The call messages should complete quickly, so all the sends
@@ -361,22 +369,32 @@ public class HubTester extends Tester {
         }
 
         // Spin-wait until all the replies are in.
-        while ( callable2.getReplyCount() < necho ) delay( 100 );
+        while ( callable2.getReplyCount() < necho ||
+                callable4.getReplyCount() < necho ) delay( 100 );
         assertEquals( necho, callable2.getReplyCount() );
+        assertEquals( necho, callable4.getReplyCount() );
 
         // Check that the replies are as expected (returned samp.result has
         // same content as sent samp.params).
         for ( int i = 0; i < necho; i++ ) {
             assertEquals( necho - i, callable2.getReplyCount() );
-            Response r = callable2.getReply( id1, "tag" + i );
-            assertEquals( Response.OK_STATUS, r.getStatus() );
-            assertEquals( echoParams[ i ], r.getResult() );
-            assertEquals( msgIds[ i ], r.get( MSGIDQUERY_KEY ) );
+            Response r2 = callable2.getReply( id1, "tag" + i );
+            assertEquals( Response.OK_STATUS, r2.getStatus() );
+            assertEquals( echoParams[ i ], r2.getResult() );
+            assertEquals( msgIds2[ i ], r2.get( MSGIDQUERY_KEY ) );
+
+            assertEquals( necho - i, callable4.getReplyCount() );
+            Response r4 = callable4.getReply( id1, "sametag" );
+            assertEquals( Response.OK_STATUS, r4.getStatus() );
         }
 
         // Check that no more replies have arrived apart from the ones we
         // were expecting.
         assertEquals( 0, callable2.getReplyCount() );
+        assertEquals( 0, callable4.getReplyCount() );
+
+        // c4 no longer needed.
+        c4.unregister();
 
         // Send echo messages synchronously (using callAndWait).
         // These have deliberate delays at the receiver end, but there is
@@ -392,7 +410,6 @@ public class HubTester extends Tester {
             msg.addParam( "val3", val3 );
             echoParams[ i ] = msg.getParams();
             Response syncR = c2.callAndWait( id1, msg, 0 );
-            assertEquals( Response.OK_STATUS, syncR.getStatus() );
             assertEquals( echoParams[ i ], syncR.getResult() );
         }
 
