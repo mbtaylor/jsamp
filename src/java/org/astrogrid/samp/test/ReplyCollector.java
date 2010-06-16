@@ -1,9 +1,12 @@
 package org.astrogrid.samp.test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.astrogrid.samp.Response;
@@ -29,16 +32,29 @@ abstract class ReplyCollector implements CallableClient {
     private final HubConnection connection_;
     private final Set sentSet_;
     private final Map replyMap_;
+    private boolean allowTagReuse_;
 
     /**
      * Constructor.
      *
      * @param  connection   hub connection 
+     * @param  allowTagReuse  if true clients may reuse tags;
+     *         if false any such attempt generates an exception
      */
     public ReplyCollector( HubConnection connection ) {
         connection_ = connection;
         sentSet_ = Collections.synchronizedSet( new HashSet() );
         replyMap_ = Collections.synchronizedMap( new HashMap() );
+    }
+
+    /**
+     * Determines whether clients are permitted to reuse tags for different
+     * messages.  If true, any such attempt generates an exception.
+     *
+     * @param  allow  whether to allow tag reuse
+     */
+    public void setAllowTagReuse( boolean allow ) {
+        allowTagReuse_ = allow;
     }
 
     /**
@@ -56,10 +72,10 @@ abstract class ReplyCollector implements CallableClient {
     public String call( String recipientId, String msgTag, Map msg )
             throws SampException {
         Object key = createKey( recipientId, msgTag );
-        if ( sentSet_.contains( key ) ) {
+        if ( ! allowTagReuse_ && sentSet_.contains( key ) ) {
             throw new IllegalArgumentException( "Key " + key + " reused" );
         }
-        sentSet_.add( createKey( recipientId, msgTag ) );
+        sentSet_.add( key );
         return connection_.call( recipientId, msgTag, msg );
     }
 
@@ -77,10 +93,10 @@ abstract class ReplyCollector implements CallableClient {
      */
     public Map callAll( String msgTag, Map msg ) throws SampException {
         Object key = createKey( null, msgTag );
-        if ( sentSet_.contains( key ) ) {
+        if ( ! allowTagReuse_ && sentSet_.contains( key ) ) {
             throw new IllegalArgumentException( "Key " + key + " reused" );
         }
-        sentSet_.add( createKey( null, msgTag ) );
+        sentSet_.add( key );
         return connection_.callAll( msgTag, msg );
     }
 
@@ -89,7 +105,7 @@ abstract class ReplyCollector implements CallableClient {
         Object key = createKey( responderId, msgTag );
         Object result;
         try {
-            if ( replyMap_.containsKey( key ) ) {
+            if ( ! allowTagReuse_ && replyMap_.containsKey( key ) ) {
                 throw new TestException( "Response for " + key
                                        + " already received" );
             }
@@ -103,7 +119,10 @@ abstract class ReplyCollector implements CallableClient {
             result = e;
         }
         synchronized ( replyMap_ ) {
-            replyMap_.put( key, result );
+            if ( ! replyMap_.containsKey( key ) ) {
+                replyMap_.put( key, new ArrayList() );
+            }
+            ((List) replyMap_.get( key )).add( result );
             replyMap_.notifyAll();
         }
     }
@@ -115,7 +134,13 @@ abstract class ReplyCollector implements CallableClient {
      * @return  reply count
      */
     public int getReplyCount() {
-        return replyMap_.size();
+        int count = 0;
+        synchronized ( replyMap_ ) {
+            for ( Iterator it = replyMap_.values().iterator(); it.hasNext(); ) {
+                count += ((List) it.next()).size();
+            }
+        }
+        return count;
     }
 
     /**
@@ -129,13 +154,12 @@ abstract class ReplyCollector implements CallableClient {
      */
     public Response waitForReply( String responderId, String msgTag ) {
         Object key = createKey( responderId, msgTag );
-        Object result;
         try {
             synchronized ( replyMap_ ) {
-                while ( ! replyMap_.containsKey( key ) ) {
+                while ( ! replyMap_.containsKey( key ) ||
+                        ((List) replyMap_.get( key )).isEmpty() ) {
                     replyMap_.wait();
                 }
-                result = replyMap_.get( key );
             }
         }
         catch ( InterruptedException e ) {
@@ -155,18 +179,24 @@ abstract class ReplyCollector implements CallableClient {
      * @return   response
      */
     public Response getReply( String responderId, String msgTag ) {
-        Object result = replyMap_.remove( createKey( responderId, msgTag ) );
-        if ( result == null ) {
-            return null;
-        }
-        else if ( result instanceof Response ) {
-            return (Response) result;
-        }
-        else if ( result instanceof Throwable ) {
-            throw new TestException( (Throwable) result );
-        }
-        else {
-            throw new AssertionError();
+        Object key = createKey( responderId, msgTag );
+        synchronized ( replyMap_ ) {
+            List list = (List) replyMap_.get( key );
+            Object result = list == null || list.isEmpty()
+                          ? null
+                          : list.remove( 0 );
+            if ( result == null ) {
+                return null;
+            }
+            else if ( result instanceof Response ) {
+                return (Response) result;
+            }
+            else if ( result instanceof Throwable ) {
+                throw new TestException( (Throwable) result );
+            }
+            else {
+                throw new AssertionError();
+            }
         }
     }
 
