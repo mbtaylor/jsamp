@@ -54,7 +54,7 @@ public class HubConnectorTest extends TestCase {
         HubConnection c0 = profile.register();
         assertNotNull( c0 );
         c0.unregister();
-        delay( 1500 );
+        while ( clientMap.size() != 2 ) delay( 100 );
         assertTrue( connector.isConnected() );
         assertNotNull( connector.getConnection() );
         assertEquals( 2, clientMap.size() );
