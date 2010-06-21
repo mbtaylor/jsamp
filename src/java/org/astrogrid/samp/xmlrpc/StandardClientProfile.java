@@ -1,8 +1,13 @@
 package org.astrogrid.samp.xmlrpc;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Logger;
 import org.astrogrid.samp.DataException;
+import org.astrogrid.samp.Platform;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
@@ -21,7 +26,19 @@ public class StandardClientProfile implements ClientProfile {
     private final SampXmlRpcServerFactory xServerFactory_;
 
     private static StandardClientProfile defaultInstance_;
-    
+    private static URL lockUrl_;
+    private static final Logger logger_ =
+        Logger.getLogger( StandardClientProfile.class.getName() );
+
+    /** Environment variable used for hub location ({@value}). */
+    public static final String HUBLOC_ENV = "SAMP_HUB";
+
+    /** Filename used for lockfile in home directory by default ({@value}). */
+    public static final String LOCKFILE_NAME = ".samp";
+
+    /** Prefix in SAMP_HUB value indicating lockfile URL ({@value}). */
+    public static final String STDPROFILE_HUB_PREFIX = "std-lockurl:";
+
     /**
      * Constructs a profile given client and server factory implementations.
      *
@@ -85,7 +102,39 @@ public class StandardClientProfile implements ClientProfile {
      * @return   hub location information
      */
     public LockInfo getLockInfo() throws IOException {
-        return LockInfo.readLockFile();
+        return LockInfo.readLockFile( getLockUrl() );
+    }
+
+    /**
+     * Returns the location of the Standard Profile lockfile.
+     * By default this is the file <code>.samp</code> in the user's "home"
+     * directory, unless overridden by a value of the SAMP_HUB environment
+     * variable starting with "std-lockurl".
+     *
+     * @return   lockfile URL
+     */
+    public static URL getLockUrl() throws IOException {
+        if ( lockUrl_ == null ) {
+            Platform platform = Platform.getPlatform();
+            String hubloc = platform.getEnv( HUBLOC_ENV );
+            final URL lockUrl;
+            if ( hubloc != null &&
+                 hubloc.startsWith( STDPROFILE_HUB_PREFIX ) ) {
+                lockUrl = new URL( hubloc.substring( STDPROFILE_HUB_PREFIX
+                                                    .length() ) );
+            }
+            else {
+                if ( hubloc != null ) {
+                    logger_.warning( "Ignoring non-standard $" + HUBLOC_ENV
+                                   + "=" + hubloc );
+                }
+                lockUrl =
+                    SampUtils.fileToUrl( new File( platform.getHomeDirectory(),
+                                                   LOCKFILE_NAME ) );
+            }
+            lockUrl_ = lockUrl;
+        }
+        return lockUrl_;
     }
 
     /**

@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.DefaultClientProfile;
+import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
@@ -81,12 +83,15 @@ public class JSamp {
             .append( "jsamp.xmlrpc.impl = " )
             .append( formatImpls( XmlRpcKit.KNOWN_IMPLS, XmlRpcKit.class ) )
             .append( "\n      " )
-            .append( "jsamp.lockfile    = " )
-            .append( "<filename>" )
+            .append( "\n   " )
+            .append( "Environment Variable:" )
             .append( "\n      " )
-            .append( "jsamp.profile     = " )
-            .append( formatImpls( new String[] { "standard" },
-                                  ClientProfile.class ) )
+            .append( "SAMP_HUB          = " )
+            .append( StandardClientProfile.STDPROFILE_HUB_PREFIX )
+            .append( "<url>" )
+            .append( "|" )
+            .append( DefaultClientProfile.HUBLOC_CLASS_PREFIX )
+            .append( "<clientprofile-class>" )
             .append( "\n" );
         String usage = ubuf.toString();
 

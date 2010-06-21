@@ -1,6 +1,7 @@
 package org.astrogrid.samp.xmlrpc;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -172,7 +173,7 @@ public class HubRunner {
         if ( lockfile_ != null ) {
             if ( lockfile_.exists() ) {
                 try {
-                    LockInfo lockInfo = LockInfo.readLockFile( lockfile_ );
+                    LockInfo lockInfo = readLockFile( lockfile_ );
                     if ( lockInfo.getSecret()
                         .equals( lockInfo_.getSecret() ) ) {
                         assert lockInfo.equals( lockInfo_ );
@@ -257,7 +258,7 @@ public class HubRunner {
                                        File lockfile ) {
         LockInfo info;
         try { 
-            info = LockInfo.readLockFile( lockfile );
+            info = readLockFile( lockfile );
         }
         catch ( Exception e ) {
             logger_.log( Level.WARNING, "Failed to read lockfile", e );
@@ -282,6 +283,16 @@ public class HubRunner {
             logger_.warning( "No XMLRPC URL in lockfile" );
             return false;
         }
+    }
+
+    /**
+     * Reads lockinfo from a file.
+     *
+     * @param  lockFile  file
+     * @return  info from file
+     */
+    private static LockInfo readLockFile( File lockFile ) throws IOException {
+        return LockInfo.readLockFile( new FileInputStream( lockFile ) );
     }
 
     /**
@@ -449,7 +460,8 @@ public class HubRunner {
         HubRunner runner =
             new HubRunner( xmlrpc.getClientFactory(), xmlrpc.getServerFactory(),
                            hubMode.createHubService( random_, hubRunners ),
-                           SampUtils.getLockFile() ) {
+                           SampUtils.urlToFile( StandardClientProfile
+                                               .getLockUrl() ) ) {
                 public String createSecret() {
                     return secret == null ? super.createSecret()
                                           : secret;

@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -24,19 +25,6 @@ import java.util.logging.Logger;
  * @since    15 Jul 2008
  */
 public class SampUtils {
-
-    /**
-     * Standard profile name of the lockfile in the user's home directory.
-     * Value is {@value}.
-     */
-    public static final String LOCKFILE_NAME = ".samp";
-
-    /**
-     * Property which can be used to override the location of the standard
-     * profile lockfile.
-     * Value is {@value}.
-     */
-    public static final String LOCKFILE_PROP = "jsamp.lockfile";
 
     /**
      * Property which can be used to set name used for localhost in server
@@ -382,23 +370,6 @@ public class SampUtils {
     }
 
     /**
-     * Returns the location of the Standard Profile lockfile.
-     * This is the file <code>.samp</code> in the user's "home" directory.
-     *
-     * @return  SAMP Standard Profile lockfile
-     */
-    public static File getLockFile() {
-        if ( lockFile_ == null ) {
-            String lockname = System.getProperty( LOCKFILE_PROP );
-            lockFile_ = lockname != null
-                      ? new File( lockname )
-                      : new File( Platform.getPlatform().getHomeDirectory(),
-                                  LOCKFILE_NAME );
-        }
-        return lockFile_;
-    }
-
-    /**
      * Parses a command-line string as a SAMP object.
      * Currently, this just returns the same string, or null for a
      * zero-length string, but it ought to have some method of decoding 
@@ -503,6 +474,56 @@ public class SampUtils {
         // findAnyPort.
         return true ? findAnyPort()
                     : scanForPort( startPort, 20 );
+    }
+
+    /**
+     * Turns a File into a URL.
+     * Unlike Sun's J2SE, this gives you a URL which conforms to RFC1738 and
+     * looks like "<code>file://localhost/abs-path</code>" rather than
+     * "<code>file:abs-or-rel-path</code>".
+     *
+     * @param   file   file
+     * @return   URL
+     * @see   "RFC 1738"
+     * @see   <a
+     *   href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6356783"
+     *   >Sun Java bug 6356783</a>
+     */
+    public static URL fileToUrl( File file ) {
+        try {
+            return new URL( "file", "localhost",
+                            file.toURI().toURL().getPath() );
+        }
+        catch ( MalformedURLException e ) {
+            throw new AssertionError();
+        }
+    }
+
+    /**
+     * Attempts to interpret a URL as a file.
+     * If the URL does not have the "file:" protocol, null is returned.
+     *
+     * @param  url  URL, may or may not be file: protocol
+     * @return  file, or null
+     */
+    public static File urlToFile( URL url ) {
+        if ( url.getProtocol().equals( "file" ) && url.getRef() == null
+                                                && url.getQuery() == null ) {
+            String path = url.getPath();
+            try {
+                path = URLDecoder.decode( path );
+            }
+            catch ( IllegalArgumentException e ) {
+                // probably a badly-formed URL - try with the undecoded form
+            }
+            String filename = File.separatorChar == '/'
+                            ? path
+                            : path.replace( '/', File.separatorChar );
+            return new File( filename );
+        }
+        else {
+            return null;
+        }
     }
 
     /**

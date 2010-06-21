@@ -201,7 +201,7 @@ public class HubTester extends Tester {
      * but is hard to do from java since it's rather platform-specific.
      */
     private void testStandardLockfile() throws IOException {
-        LockInfo lockInfo = LockInfo.readLockFile();
+        LockInfo lockInfo = StandardClientProfile.getInstance().getLockInfo();
         if ( lockInfo == null ) {
             throw new TestException( "No lockfile (no hub)" );
         }

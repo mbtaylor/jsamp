@@ -148,44 +148,33 @@ public class LockInfo extends SampMap {
     }
 
     /**
-     * Returns the LockInfo as read from the lockfile found in the usual place
-     * {@link SampUtils#getLockFile}.
-     * If the lockfile does not exist, null is returned.
-     * An exception may be thrown if it exists but is cannot be read.
-     *
-     * @return  lockfile contents, or null if it is absent
-     */
-    public static LockInfo readLockFile() throws IOException {
-        return readLockFile( SampUtils.getLockFile() );
-    }
-
-    /**
      * Returns a LockInfo as read from a lockfile at a given location.
      * If the lockfile does not exist, null is returned.
      * An exception may be thrown if it exists but is cannot be read.
      *
-     * @param   file  lockfile location
+     * @param   url  lockfile location
      * @return  lockfile contents, or null if it is absent
      */
-    public static LockInfo readLockFile( File file ) throws IOException {
-        if ( file.exists() ) {
-            InputStream in =
-                new BufferedInputStream( new FileInputStream( file ) );
-            try {
-                return readLockFile( in );
+    public static LockInfo readLockFile( URL url ) throws IOException {
+        final InputStream in;
+        File file = SampUtils.urlToFile( url );
+        if ( file != null ) {
+            if ( file.exists() ) {
+                in = new FileInputStream( file );
             }
-            catch ( IOException e ) {
-                try {
-                    in.close();
-                }
-                catch ( IOException e2 ) {
-                }
-                throw e;
+            else {
+                return null;
             }
         }
         else {
-            return null;
+            try {
+                in = url.openStream();
+            }
+            catch ( IOException e ) {
+                return null;
+            }
         }
+        return readLockFile( in );
     }
 
     /**
@@ -197,6 +186,7 @@ public class LockInfo extends SampMap {
      */
     public static LockInfo readLockFile( InputStream in ) throws IOException {
         LockInfo info = new LockInfo();
+        in = new BufferedInputStream( in );
         for ( String line; ( line = readLine( in ) ) != null; ) {
             Matcher assigner = ASSIGNMENT_REGEX.matcher( line );
             if ( assigner.matches() ) {

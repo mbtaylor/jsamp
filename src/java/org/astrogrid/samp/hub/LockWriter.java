@@ -1,7 +1,6 @@
 package org.astrogrid.samp.hub;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Iterator;
@@ -9,7 +8,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.astrogrid.samp.Platform;
-import org.astrogrid.samp.SampUtils;
 
 /**
  * Writes records to a SAMP Standard Profile hub lockfile.
@@ -23,14 +21,6 @@ public class LockWriter {
     private static final byte[] linesep_ = getLineSeparator();
     private static final String TOKEN_REGEX = "[a-zA-Z0-9\\-_\\.]+";
     private static final Pattern TOKEN_PATTERN = Pattern.compile( TOKEN_REGEX );
-
-    /**
-     * Constructs a writer for writing to the lockfile in the standard
-     * location ({@link org.astrogrid.samp.SampUtils#getLockFile}).
-     */
-    public LockWriter() throws IOException {
-        this( new FileOutputStream( SampUtils.getLockFile() ) );
-    }
 
     /**
      * Constructs a writer for writing to a given output stream.

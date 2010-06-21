@@ -227,6 +227,7 @@ public class Bridge {
             .append( " [-nostandard]" )
             .append( " [-sampdir <lockfile-dir>]" )
             .append( " [-sampfile <lockfile>]" )
+            .append( " [-sampurl <lockurl>]" )
             .append( "\n         " )
             .append( " [-keys <xmlrpc-url> <secret>]" )
             .append( " [-profile <clientprofile-class>]" )
@@ -300,7 +301,8 @@ public class Bridge {
                 final File lockfile = new File( fname );
                 profileList.add( new StandardClientProfile( xmlrpcKit ) {
                     public LockInfo getLockInfo() throws IOException {
-                        return LockInfo.readLockFile( lockfile );
+                        return LockInfo
+                              .readLockFile( SampUtils.fileToUrl( lockfile ) );
                     }
                     public String toString() {
                         return lockfile.toString();
@@ -312,13 +314,27 @@ public class Bridge {
                 final String dirname = (String) it.next();
                 it.remove();
                 final File lockfile =
-                    new File( dirname, SampUtils.LOCKFILE_NAME );
+                    new File( dirname, StandardClientProfile.LOCKFILE_NAME );
                 profileList.add( new StandardClientProfile( xmlrpcKit ) {
                     public LockInfo getLockInfo() throws IOException {
-                        return LockInfo.readLockFile( lockfile );
+                        return LockInfo
+                              .readLockFile( SampUtils.fileToUrl( lockfile ) );
                     }
                     public String toString() {
                         return dirname;
+                    }
+                } );
+            }
+            else if ( arg.equals( "-sampurl" ) && it.hasNext() ) {
+                it.remove();
+                final URL lockUrl = new URL( (String) it.next() );
+                it.remove();
+                profileList.add( new StandardClientProfile( xmlrpcKit ) {
+                    public LockInfo getLockInfo() throws IOException {
+                        return LockInfo.readLockFile( lockUrl );
+                    }
+                    public String toString() {
+                        return lockUrl.toString();
                     }
                 } );
             }

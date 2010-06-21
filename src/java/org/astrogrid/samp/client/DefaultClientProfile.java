@@ -1,5 +1,6 @@
 package org.astrogrid.samp.client;
 
+import org.astrogrid.samp.Platform;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 
 /**
@@ -8,67 +9,81 @@ import org.astrogrid.samp.xmlrpc.StandardClientProfile;
  * can be used with non-standard profiles supplied at runtime without
  * requiring any code changes.
  *
+ * <p>The profile returned by this class depends on the SAMP_HUB environment
+ * variable ({@link StandardClientProfile#HUBLOC_ENV}).
+ * If it consists of the prefix "<code>jsamp-class:</code>" 
+ * ({@link #HUBLOC_CLASS_PREFIX}) followed by the classname of a class
+ * which implements {@link ClientProfile} and has a no-arg constructor,
+ * then an instance of the named class is used.
+ * Otherwise, an instance of {@link StandardClientProfile} is returned.
+ *
  * @author   Mark Taylor
  * @since    4 Aug 2009
  */
 public class DefaultClientProfile {
 
-    /**
-     * Name of the property which determines the default client profile
-     * instance ({@value}).
-     * If it is undefined or has the value "<code>standard</code>"
-     * a standard profile is used, otherwise the value must be the
-     * full classname of a class which implements {@link ClientProfile}
-     * and has a no-arg constructor.
-     */
-    public static final String PROFILE_PROP = "jsamp.profile";
-
     private static ClientProfile profile_;
+
+    /**
+     * Prefix for SAMP_HUB env var indicating a supplied ClientProfile
+     * implementation.
+     */
+    public static final String HUBLOC_CLASS_PREFIX = "jsamp-class:";
+
+    /**
+     * No-arg constructor prevents instantiation.
+     */
+    private DefaultClientProfile() {
+    }
 
     /**
      * Returns a ClientProfile instance suitable for general purpose use.
      * By default this is currently the Standard Profile 
      * ({@link org.astrogrid.samp.xmlrpc.StandardClientProfile#getInstance
      *                                   StandardClientProfile.getInstance()}),
-     * but the instance may be modified programatically or using system 
-     * properties.  The instance is obtained lazily.
+     * but the instance may be modified programatically or by use of
+     * the SAMP_HUB environment variable.
+     *
+     * <p>If no instance has been set, the SAMP_HUB environment variable
+     * is examined.  If it consists of the prefix "<code>jsamp-class:</code>" 
+     * ({@link #HUBLOC_CLASS_PREFIX}) followed by the classname of a class
+     * which implements {@link ClientProfile} and has a no-arg constructor,
+     * then an instance of the named class is used.
+     * Otherwise, an instance of {@link StandardClientProfile} is returned.
+     *
+     * <p>The instance is obtained lazily.
      *
      * @return   client profile instance
      */
     public static ClientProfile getProfile() {
         if ( profile_ == null ) {
-            String profName = System.getProperty( PROFILE_PROP, "standard" );
-            if ( "standard".equals( profName ) ||
-                 profName.trim().length() == 0 ) {
-                profile_ = StandardClientProfile.getInstance();
-            }
-            else {
-                Class clazz;
+            final ClientProfile profile;
+            String hubloc = Platform.getPlatform()
+                           .getEnv( StandardClientProfile.HUBLOC_ENV );
+            if ( hubloc != null && hubloc.startsWith( HUBLOC_CLASS_PREFIX ) ) {
+                String cname = hubloc.substring( HUBLOC_CLASS_PREFIX.length() );
+                final Class clazz;
                 try {
-                    clazz = Class.forName( profName );
+                    clazz = Class.forName( cname );
                 }
                 catch ( ClassNotFoundException e ) {
-                    String msg = new StringBuffer()
-                        .append( PROFILE_PROP )
-                        .append( " value " )
-                        .append( '"' )
-                        .append( profName )
-                        .append( '"' )
-                        .append( " neither known value nor classname" )
-                        .toString();
-                    throw new IllegalArgumentException( msg );
+                    throw new IllegalArgumentException( "No profile class "
+                                                      + cname, e );
                 }
                 try {
-                    profile_ = (ClientProfile) clazz.newInstance();
+                    profile = (ClientProfile) clazz.newInstance();
                 }
                 catch ( Throwable e ) {
                     throw (RuntimeException)
                           new RuntimeException( "Error instantiating custom "
-                                              + "profile "
-                                              + clazz.getName() )
+                                              + "profile " + clazz.getName() )
                          .initCause( e );
                 }
             }
+            else {
+                profile = StandardClientProfile.getInstance();
+            }
+            profile_ = profile;
         }
         return profile_;
     }
@@ -78,7 +93,7 @@ public class DefaultClientProfile {
      *
      * @param  profile  default profile instance
      */
-    public void setProfile( ClientProfile profile ) {
+    public static void setProfile( ClientProfile profile ) {
         profile_ = profile;
     }
 }
