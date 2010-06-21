@@ -446,6 +446,32 @@ to a minimum following this release.
 <li>Fix issue which could cause GUI freeze while waiting for
     remote icons to load.</li>
 <li>Add delays in HubTester to avoid non-yield race conditions.</li>
+<li>Introduce new SAMP_HUB environment variable hub location extension
+    to the Standard Profile.  The non-standard <code>jsamp.lockfile</code> and 
+    <code>jsamp.profile</code> system properties which did the same
+    job in a non-standard way have been withdrawn.
+    This has some backwardly incompatible consequences:
+    <ul>
+    <li><code>jsamp.lockfile</code> and <code>jsamp.profile</code>
+        system properties withdrawn;
+        use <code>SAMP_HUB</code> environment variable instead.
+        </li>
+    <li><code>SampUtils.LOCKFILE_NAME</code> constant withdrawn;
+        use <code>StandardClientProfile.LOCKFILE_NAME</code> instead.
+        </li>
+    <li><code>SampUtils.getLockFile()</code> method withdrawn;
+        use <code>StandardClientProfile.getLockUrl()</code> instead.
+        </li>
+    <li><code>LockInfo.readLockFile(File)</code> method withdrawn;
+        use <code>LockInfo.readLockFile(URL)</code> instead.
+        </li>
+    <li><code>LockInfo.readLockFile()</code> method withdrawn;
+        use <code>StandardClientProfile.getLockInfo()</code> instead.
+        </li>
+    <li><code>LockWriter</code> no-arg constructor withdrawn.
+        </li>
+    </ul>
+</li>
 </ul>
 </subsection>
 

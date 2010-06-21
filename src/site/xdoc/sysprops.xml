@@ -132,41 +132,14 @@ detail on use.
     slower for sure).  The logging implementations can be useful
     for debugging.
     </dd>
-
-<dt><strong>
-    <a name="jsamp.lockfile"/>
-    <code>jsamp.lockfile</code>
-    (<a target="samp-javadoc"
-        href="apidocs/org/astrogrid/samp/SampUtils.html#LOCKFILE_PROP"
-                                        >SampUtils.LOCKFILE_PROP</a>):
-    </strong></dt>
-<dd>Permits overriding the location at which the Standard Profile
-    SAMP lockfile is written/read.
-    By default the lockfile is "<code>.samp</code>" in the user's home
-    directory, as defined by the SAMP Standard Profile,
-    but if this property is set, it gives a different location to use.
-    Note that any clients and hubs using a given non-standard value of 
-    this parameter will only be able to communicate with other clients/hubs
-    using the same non-standard value.
-    </dd>
 </dl>
 
-<dt><strong>
-    <a name="jsamp.profile"/>
-    <code>jsamp.profile</code>
-    (<a target="samp-javadoc"
-        href="apidocs/org/astrogrid/samp/client/DefaultClientProfile.html#PROFILE_PROP"
-                                  >DefaultClientProfile.PROFILE_PROP</a>):
-    </strong></dt>
-<dd>Determines the default profile used by SAMP clients.
-    Currently, if the value is not defined or is "<code>standard</code>"
-    the SAMP Standard Profile will be used, and any other value
-    will be interpreted as the name of a class which implements the
-    <a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/client/ClientProfile.html"
-                                              >ClientProfile</a>
-    interface.
-    </dd>
+<p>Note that the system properties <code>jsamp.lockfile</code> and
+<code>jsamp.profile</code>, which existed in JSAMP 1.0, have been 
+withdrawn in subsequent versions.
+Use the <code>SAMP_HUB</code> environment variable, in accordance
+with the standard profile extension, instead.
+</p>
 
 </subsection>
 

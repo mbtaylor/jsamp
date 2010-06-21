@@ -44,17 +44,23 @@ is added to indicate which hub the client is proxied from.
 There are various ways you can do this, as explained in the usage
 documentation.  In most cases, you will want to bridge the local
 'standard' hub with a remote one.
-If you can see a .samp file (for instance from another user's home
+If you can see a <code>.samp</code> file (for instance from another user's home
 directory) you can specify it by name like this:
 </p>
 <pre>
    jsamp bridge -sampfile /home/foo/.samp
 </pre>
 <p>
-or by directory like this:
+or by directory like this (the name "<code>.samp</code>" is assumed):
 </p>
 <pre>
    jsamp bridge -sampdir /home/foo
+</pre>
+<p>
+or by URL like this:
+</p>
+<pre>
+   jsamp bridge -sampurl file://localhost/home/foo/.samp
 </pre>
 <p>If you can't see the SAMP lockfile (for instance if it is on a 
 remote machine), you can specify the XML-RPC endpoint and samp.secret
@@ -107,8 +113,8 @@ class as well - see the javadocs.
 <subsection name="Experimenting">
 
 <p>If you want to experiment with the bridge without having multiple
-accounts or multiple hosts you can do so by using some of JSAMP's
-<a href="sysprops.html">system properties</a> to set up different 
+accounts or multiple hosts you can do so by using the <code>SAMP_HUB</code>
+environment variable to set up different 
 hubs and communities of clients for connection with bridges.  
 </p>
 <pre>
@@ -117,18 +123,16 @@ hubs and communities of clients for connection with bridges.
    java -jar jsamp.jar hubmonitor
 
    // Start a hub and client using a non-standard lockfile location.
-   java -Djsamp.lockfile=/tmp/samp1 -jar jsamp.jar hubrunner
-   java -Djsamp.lockfile=/tmp/samp1 -jar topcat.jar
+   setenv SAMP_HUB std-lockurl:file://localhost/tmp/samp1
+   java -jar jsamp.jar hubrunner &amp;
+   java -jar topcat.jar &amp;
+   unsetenv SAMP_HUB
 
    // Bridge them together.
    java -jar jsamp.jar bridge -sampfile /tmp/samp1
 </pre>
-<p>Of course setting the JSAMP properties will only work on applications
-which use JSAMP (of a suitable version, probably at least v1.0) 
-for their SAMP communications.  For other/older applications,
-setting the <code>HOME</code> environment variable or 
-<code>user.home</code> java system property to influence the directory
-into which the <code>.samp</code> lockfile is written may do the trick.
+<p>The syntax here is C-shell-like - something similar can be done in
+other environments.
 </p>
 
 </subsection>
