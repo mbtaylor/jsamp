@@ -93,7 +93,8 @@ public class TestClientProfile implements ClientProfile {
     public HubConnection register() throws SampException {
         LockInfo lockInfo;
         try {
-            lockInfo = LockInfo.readLockFile( lockFile_ );
+            lockInfo =
+                LockInfo.readLockFile( SampUtils.fileToUrl( lockFile_ ) );
             if ( lockInfo == null ) {
                 return null;
             }
