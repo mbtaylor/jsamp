@@ -57,7 +57,13 @@ or, more simply:
 <pre>
    java -jar jsamp.jar hubrunner
 </pre>
-In all cases, supplying the "<code>-h</code>" or "<code>-help</code>" 
+As a special case for convenience, 
+simply running "<code>java -jar jsamp.jar</code>",
+or clicking on the jar file in some OSes/graphical environments,
+will start the hub, along with a short usage message to standard error.
+</p>
+
+<p>In all cases, supplying the "<code>-h</code>" or "<code>-help</code>" 
 flag on the command line will print a usage message.
 </p>
 
@@ -141,6 +147,9 @@ MTypes) may optionally be displayed.
     If not supplied, a random string will be chosen.
     </dd>
 </dl>
+<p>For convenience, the hub can also be started simply by invoking
+the jar file with no arguments (for instance clicking on it).
+</p>
 
 </subsection>
 
