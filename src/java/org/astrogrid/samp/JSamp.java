@@ -1,5 +1,6 @@
 package org.astrogrid.samp;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -9,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.DefaultClientProfile;
+import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
@@ -22,12 +24,12 @@ public class JSamp {
 
     /** Known command class names. */
     static final String[] COMMAND_CLASSES = new String[] {
+        "org.astrogrid.samp.xmlrpc.HubRunner",
         "org.astrogrid.samp.gui.HubMonitor",
+        "org.astrogrid.samp.test.Snooper",
+        "org.astrogrid.samp.test.MessageSender",
         "org.astrogrid.samp.test.HubTester",
         "org.astrogrid.samp.test.CalcStorm",
-        "org.astrogrid.samp.test.MessageSender",
-        "org.astrogrid.samp.test.Snooper",
-        "org.astrogrid.samp.xmlrpc.HubRunner",
         "org.astrogrid.samp.bridge.Bridge",
     };
 
@@ -40,7 +42,7 @@ public class JSamp {
     /**
      * Does the work for the main method.
      */
-    public static int runMain( String[] args ) {
+    public static int runMain( String[] args ) throws IOException {
 
         // Assemble usage message.
         StringBuffer ubuf = new StringBuffer()
@@ -72,6 +74,16 @@ public class JSamp {
         }
         ubuf.append( "\n" )
             .append( "\n   " )
+            .append( "Environment Variable:" )
+            .append( "\n      " )
+            .append( "SAMP_HUB          = " )
+            .append( StandardClientProfile.STDPROFILE_HUB_PREFIX )
+            .append( "<url>" )
+            .append( "|" )
+            .append( DefaultClientProfile.HUBLOC_CLASS_PREFIX )
+            .append( "<clientprofile-class>" )
+            .append( "\n" )
+            .append( "\n   " )
             .append( "System Properties:" )
             .append( "\n      " )
             .append( "jsamp.localhost   = " )
@@ -82,16 +94,6 @@ public class JSamp {
             .append( "\n      " )
             .append( "jsamp.xmlrpc.impl = " )
             .append( formatImpls( XmlRpcKit.KNOWN_IMPLS, XmlRpcKit.class ) )
-            .append( "\n      " )
-            .append( "\n   " )
-            .append( "Environment Variable:" )
-            .append( "\n      " )
-            .append( "SAMP_HUB          = " )
-            .append( StandardClientProfile.STDPROFILE_HUB_PREFIX )
-            .append( "<url>" )
-            .append( "|" )
-            .append( DefaultClientProfile.HUBLOC_CLASS_PREFIX )
-            .append( "<clientprofile-class>" )
             .append( "\n" );
         String usage = ubuf.toString();
 
@@ -124,11 +126,15 @@ public class JSamp {
                 return 1;
             }
         }
+
+        // No arguments.
         assert argList.isEmpty();
-        System.err.println();
-        System.err.println( getVersionText() );
-        System.err.println( usage );
-        return 1;
+        System.err.println( JSamp.class.getName() + " invoked with no arguments"
+                        + " - running hub" );
+        System.err.println( "Use \"-help\" flag for more options" );
+        System.err.println( "Use \"hubrunner\" argument"
+                          + " to suppress this message" );
+        return HubRunner.runMain( new String[ 0 ] );
     }
 
     /**
@@ -254,7 +260,7 @@ public class JSamp {
      * Main method.
      * Use -help flag for documentation.
      */
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws IOException {
         int status = runMain( args );
         if ( status != 0 ) {
             System.exit( status );
