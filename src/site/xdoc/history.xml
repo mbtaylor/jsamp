@@ -17,6 +17,7 @@
 <li><a href="#Version_0_3"  >Version 0.3</a></li>
 <li><a href="#Version_0_3-1">Version 0.3-1</a></li>
 <li><a href="#Version_1_0"  >Version 1.0</a></li>
+<li><a href="#Version_1_1"  >Version 1.1</a></li>
 </ul>
 
 <subsection name="Version 0.1">
@@ -68,9 +69,7 @@
        href="apidocs/org/astrogrid/samp/gui/package-summary.html"
                     >org.astrogrid.samp.gui</a> package
     to facilitate high-level use of SAMP within GUI applications.
-    <a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/gui/ConnectorGui.html"
-                                           >ConnectorGui</a>
+    <code>ConnectorGui</code>
     provides Actions suitable for insertion in a general SAMP control menu,
     and
     <a target="samp-javadoc"
@@ -425,31 +424,25 @@ to a minimum following this release.
 
 </subsection>
 
-<subsection name="Next version">
+<subsection name="Version 1.1">
+<p>Protocol extension:</p>
 <ul>
-<li>Command-line tools now use <code>DefaultClientProfile.getProfile()</code>
-    rather than <code>StandardClientProfile.getInstance()</code> as they should
-    (hence will be correctly influenced by <code>jsamp.profile</code>
-    system property).</li>
-<li>More tests added to HubTester for correctness of XML-RPC responses.</li>
-<li>Fixed error in XML-RPC fault responses
-    (<code>faultCode</code> was string instead of int).</li>
-<li>Fix concurrency issue in HttpServer.</li>
-<li>Be more frugal with DocumentBuilderFactory instances to reduce some
-    unwanted logging.</li>
-<li>Catch security exceptions when calling <code>addShutdownHook</code> in
-    XmlRpcHubConnection.  It seems that signed applets may not have the 
-    appropiate permissions.</li>
-<li>Fix the MessageTracker hub so it doesn't get confused if clients re-use
-    the same tag for different messages.</li>
-<li>Fix bug in outgoing message tooltips for MessageTracker message box.</li>
-<li>Fix issue which could cause GUI freeze while waiting for
-    remote icons to load.</li>
-<li>Add delays in HubTester to avoid non-yield race conditions.</li>
-<li>Introduce new SAMP_HUB environment variable hub location extension
-    to the Standard Profile.  The non-standard <code>jsamp.lockfile</code> and 
-    <code>jsamp.profile</code> system properties which did the same
-    job in a non-standard way have been withdrawn.
+<li>The environment variable SAMP_HUB can now be used to specify a
+    non-default lockfile location for clients and hub to use with the
+    Standard Profile.  This usage is expected to be part of the next
+    version of the SAMP standard.  See the documentation for the 
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/xmlrpc/StandardClientProfile.html"
+                                              >StandardClientProfile</a>
+    class for details, and 
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/client/DefaultClientProfile.html"
+                                              >DefaultClientProfile</a>
+    for a JSAMP-specific extension to this mechanism.
+    The non-standard 
+    <code>jsamp.lockfile</code> and <code>jsamp.profile</code>
+    system properties which did the same job in a non-standard way
+    have been withdrawn.
     This has some backwardly incompatible consequences:
     <ul>
     <li><code>jsamp.lockfile</code> and <code>jsamp.profile</code>
@@ -472,6 +465,37 @@ to a minimum following this release.
         </li>
     </ul>
 </li>
+</ul>
+<p>Usability:</p>
+<ul>
+<li>Invoking JSsamp class (e.g. java -jar jsamp.jar) with no arguments
+    now starts the hub rather than printing a usage message.</li>
+</ul>
+<p>Bugfixes:</p>
+<ul>
+<li>Fix error in XML-RPC fault responses
+    (<code>faultCode</code> was string instead of int).</li>
+<li>Fix the MessageTracker hub so it doesn't get confused if clients re-use
+    the same tag for different messages.</li>
+<li>Fix bug in outgoing message tooltips for MessageTracker message box.</li>
+<li>Fix concurrency issue in HttpServer.</li>
+<li>Fix issue which could cause GUI freeze while waiting for
+    remote icons to load.</li>
+<li>Catch security exceptions when calling <code>addShutdownHook</code> in
+    XmlRpcHubConnection.  It seems that signed applets may not have the 
+    appropiate permissions.</li>
+</ul>
+<p>Minor improvements:</p>
+<ul>
+<li>Command-line tools now use <code>DefaultClientProfile.getProfile()</code>
+    rather than <code>StandardClientProfile.getInstance()</code> as they should
+    (hence will be correctly influenced by <code>SAMP_HUB</code>
+    environment variable).</li>
+<li>More tests added to HubTester for correctness of XML-RPC responses.</li>
+<li>Be more frugal with DocumentBuilderFactory instances to reduce some
+    unwanted logging.</li>
+<li>Improve wait implementation in HubTester to avoid non-yield
+    race conditions.</li>
 </ul>
 </subsection>
 
