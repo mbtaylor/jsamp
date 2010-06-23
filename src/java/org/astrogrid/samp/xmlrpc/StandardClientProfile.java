@@ -26,6 +26,7 @@ public class StandardClientProfile implements ClientProfile {
     private final SampXmlRpcServerFactory xServerFactory_;
 
     private static StandardClientProfile defaultInstance_;
+    private static URL dfltLockUrl_;
     private static URL lockUrl_;
     private static final Logger logger_ =
         Logger.getLogger( StandardClientProfile.class.getName() );
@@ -115,8 +116,7 @@ public class StandardClientProfile implements ClientProfile {
      */
     public static URL getLockUrl() throws IOException {
         if ( lockUrl_ == null ) {
-            Platform platform = Platform.getPlatform();
-            String hubloc = platform.getEnv( HUBLOC_ENV );
+            String hubloc = Platform.getPlatform().getEnv( HUBLOC_ENV );
             final URL lockUrl;
             if ( hubloc != null &&
                  hubloc.startsWith( STDPROFILE_HUB_PREFIX ) ) {
@@ -128,13 +128,27 @@ public class StandardClientProfile implements ClientProfile {
                     logger_.warning( "Ignoring non-standard $" + HUBLOC_ENV
                                    + "=" + hubloc );
                 }
-                lockUrl =
-                    SampUtils.fileToUrl( new File( platform.getHomeDirectory(),
-                                                   LOCKFILE_NAME ) );
+                lockUrl = getDefaultLockUrl();
             }
             lockUrl_ = lockUrl;
         }
         return lockUrl_;
+    }
+
+    /**
+     * Returns the lockfile URL which will be used in absence of any
+     * SAMP_HUB environment variable.
+     *
+     * @return   URL for file .samp in user's home directory
+     */
+    public static URL getDefaultLockUrl() throws IOException {
+        if ( dfltLockUrl_ == null ) {
+            dfltLockUrl_ =
+                SampUtils.fileToUrl( new File( Platform.getPlatform()
+                                                       .getHomeDirectory(),
+                                              LOCKFILE_NAME ) );
+        }
+        return dfltLockUrl_;
     }
 
     /**
