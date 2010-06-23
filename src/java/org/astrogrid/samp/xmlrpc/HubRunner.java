@@ -1,10 +1,13 @@
 package org.astrogrid.samp.xmlrpc;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -19,6 +22,9 @@ import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.LockWriter;
+import org.astrogrid.samp.httpd.HttpServer;
+import org.astrogrid.samp.httpd.ServerResource;
+import org.astrogrid.samp.httpd.UtilServer;
 
 /**
  * Runs a SAMP hub using the SAMP Standard Profile.
@@ -36,6 +42,7 @@ public class HubRunner {
     private final SampXmlRpcServerFactory xServerFactory_;
     private final HubService hub_;
     private final File lockfile_;
+    private URL lockUrl_;
     private LockInfo lockInfo_;
     private SampXmlRpcServer server_;
     private HubXmlRpcHandler hubHandler_;
@@ -118,14 +125,8 @@ public class HubRunner {
         if ( lockfile_ != null ) {
             logger_.info( "Writing new lockfile " + lockfile_ );
             FileOutputStream out = new FileOutputStream( lockfile_ );
-            LockWriter writer = new LockWriter( out );
             try {
-                writer.writeComment( "SAMP Standard Profile lockfile written "
-                                   + new Date() );
-                writer.writeComment( "Note contact URL hostname may be "
-                                   + "configured using "
-                                   + SampUtils.LOCALHOST_PROP + " property" );
-                out.flush();
+                writeLockInfo( lockInfo_, out );
                 try {
                     LockWriter.setLockPermissions( lockfile_ );
                     logger_.info( "Lockfile permissions set to "
@@ -137,17 +138,10 @@ public class HubRunner {
                                + " permissions to user access only"
                                + " - possible security implications", e );
                 }
-                writer.writeAssignments( lockInfo_ );
-                out.flush();
             }
             finally {
                 try {
-                    if ( writer != null ) {
-                        writer.close();
-                    }
-                    else if ( out != null ) {
-                        out.close();
-                    }
+                    out.close();
                 }
                 catch ( IOException e ) {
                     logger_.log( Level.WARNING, "Error closing lockfile?", e );
@@ -198,6 +192,18 @@ public class HubRunner {
             }
         }
 
+        // Withdraw service of the lockfile, if one has been published.
+        if ( lockUrl_ != null ) {
+            try {
+                UtilServer.getInstance().getResourceHandler()
+                                        .removeResource( lockUrl_ );
+            }
+            catch ( IOException e ) {
+                logger_.warning( "Failed to withdraw lockfile URL" );
+            }
+            lockUrl_ = null;
+        }
+
         // Shut down the hub service if exists.  This sends out shutdown
         // messages to registered clients.
         if ( hub_ != null ) {
@@ -234,6 +240,50 @@ public class HubRunner {
      */
     public LockInfo getLockInfo() {
         return lockInfo_;
+    }
+
+    /**
+     * Returns an HTTP URL at which the lockfile for this hub can be found.
+     * The first call to this method causes the lockfile to be published
+     * in this way; subsequent calls return the same value.
+     *
+     * <p>Use this with care; publishing your lockfile means that other people
+     * can connect to your hub and potentially do disruptive things.
+     *
+     * @return  lockfile information URL
+     */
+    public URL publishLockfile() throws IOException {
+        if ( lockUrl_ == null ) {
+            ByteArrayOutputStream infoStrm = new ByteArrayOutputStream();
+            writeLockInfo( lockInfo_, infoStrm );
+            infoStrm.close();
+            final byte[] infoBuf = infoStrm.toByteArray();
+            URL url = UtilServer.getInstance().getResourceHandler()
+                     .addResource( "samplock", new ServerResource() {
+                public long getContentLength() {
+                     return infoBuf.length;
+                }
+                public String getContentType() {
+                     return "text/plain";
+                }
+                public void writeBody( OutputStream out ) throws IOException {
+                    out.write( infoBuf );
+                }
+            } );
+
+            // Attempt to replace whatever host name is used by the FQDN,
+            // for maximal usefulness to off-host clients.
+            try {
+                url = new URL( url.getProtocol(),
+                               InetAddress.getLocalHost()
+                                          .getCanonicalHostName(),
+                               url.getPort(), url.getFile() );
+            }
+            catch ( IOException e ) {
+            }
+            lockUrl_ = url;
+        }
+        return lockUrl_;
     }
 
     /**
@@ -295,6 +345,26 @@ public class HubRunner {
         return LockInfo.readLockFile( new FileInputStream( lockFile ) );
     }
 
+    
+    /**
+     * Writes lockfile information to a given output stream.
+     * The stream is not closed.
+     *
+     * @param   info  lock info to write
+     * @param   out   destination stream
+     */
+    private static void writeLockInfo( LockInfo info, OutputStream out )
+            throws IOException {
+        LockWriter writer = new LockWriter( out );
+        writer.writeComment( "SAMP Standard Profile lockfile written "
+                           + new Date() );
+        writer.writeComment( "Note contact URL hostname may be "
+                           + "configured using "
+                           + SampUtils.LOCALHOST_PROP + " property" );
+        writer.writeAssignments( info );
+        out.flush();
+    }
+
     /**
      * Returns a new, randomly seeded, Random object.
      *
@@ -349,6 +419,7 @@ public class HubRunner {
         }
         ubuf.append( ']' )
             .append( " [-secret <secret>]" )
+            .append( " [-httplock]" )
             .append( "\n" );
         String usage = ubuf.toString();
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -360,6 +431,7 @@ public class HubRunner {
         int verbAdjust = 0;
         XmlRpcKit xmlrpc = null;
         String secret = null;
+        boolean httplock = false;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-mode" ) && it.hasNext() ) {
@@ -376,6 +448,10 @@ public class HubRunner {
             else if ( arg.equals( "-secret" ) && it.hasNext() ) {
                 it.remove();
                 secret = (String) it.next();
+            }
+            else if ( arg.equals( "-httplock" ) ) {
+                it.remove();
+                httplock = true;
             }
             else if ( arg.startsWith( "-v" ) ) {
                 it.remove();
@@ -403,7 +479,21 @@ public class HubRunner {
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Start the hub.
-        runHub( hubMode, xmlrpc, secret );
+        File lockfile = httplock ? null
+                                 : SampUtils.urlToFile( StandardClientProfile
+                                                       .getLockUrl() );
+        HubRunner runner = runHub( hubMode, xmlrpc, secret, lockfile );
+
+        // If the lockfile is not the default one, write a message through
+        // the logging system.
+        URL lockfileUrl = httplock ? runner.publishLockfile()
+                                   : SampUtils.fileToUrl( lockfile );
+        boolean isDflt = StandardClientProfile.getDefaultLockUrl().toString()
+                        .equals( lockfileUrl.toString() );
+        String hubassign = StandardClientProfile.HUBLOC_ENV + "="
+                         + StandardClientProfile.STDPROFILE_HUB_PREFIX
+                         + lockfileUrl;
+        logger_.log( isDflt ? Level.INFO : Level.WARNING, hubassign );
 
         // For non-GUI case block indefinitely otherwise the hub (which uses
         // a daemon thread) will not just exit immediately.
@@ -431,10 +521,13 @@ public class HubRunner {
      * @param   hubMode  hub mode
      * @param   xmlrpc  XML-RPC implementation;
      *                  automatically determined if null
+     * @return  running hub
      */
-    public static void runHub( HubMode hubMode, XmlRpcKit xmlrpc )
+    public static HubRunner runHub( HubMode hubMode, XmlRpcKit xmlrpc )
             throws IOException {
-        runHub( hubMode, xmlrpc, null );
+        return runHub( hubMode, xmlrpc, null,
+                       SampUtils
+                      .urlToFile( StandardClientProfile.getLockUrl() ) );
     }
 
     /**
@@ -449,9 +542,12 @@ public class HubRunner {
      *                  automatically determined if null
      * @param   secret   samp.secret string to be used for hub connection;
      *                   chosen at random if null
+     * @param   lockfile location of lockfile to write,
+     *                   or null for lock to be provided by HTTP
+     * @return  running hub
      */
-    public static void runHub( HubMode hubMode, XmlRpcKit xmlrpc,
-                               final String secret )
+    public static HubRunner runHub( HubMode hubMode, XmlRpcKit xmlrpc,
+                                    final String secret, File lockfile )
             throws IOException {
         if ( xmlrpc == null ) {
             xmlrpc = XmlRpcKit.getInstance();
@@ -460,8 +556,7 @@ public class HubRunner {
         HubRunner runner =
             new HubRunner( xmlrpc.getClientFactory(), xmlrpc.getServerFactory(),
                            hubMode.createHubService( random_, hubRunners ),
-                           SampUtils.urlToFile( StandardClientProfile
-                                               .getLockUrl() ) ) {
+                           lockfile ) {
                 public String createSecret() {
                     return secret == null ? super.createSecret()
                                           : secret;
@@ -469,6 +564,7 @@ public class HubRunner {
             };
         hubRunners[ 0 ] = runner;
         runner.start();
+        return runner;
     }
 
     /**
