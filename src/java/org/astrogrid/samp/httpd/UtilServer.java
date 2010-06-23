@@ -40,6 +40,7 @@ public class UtilServer {
     private final HttpServer server_;
     private final Set baseSet_;
     private MultiURLMapperHandler mapperHandler_;
+    private ResourceHandler resourceHandler_;
 
     /**
      * System Property key giving a preferred port number for the server.
@@ -101,6 +102,21 @@ public class UtilServer {
             server_.addHandler( mapperHandler_ );
         }
         return mapperHandler_;
+    }
+
+    /**
+     * Returns a handler for general purpose resource serving associated with
+     * this server.
+     *
+     * @return   resource serving handler
+     */
+    public synchronized ResourceHandler getResourceHandler() {
+        if ( resourceHandler_ == null ) {
+            resourceHandler_ =
+                new ResourceHandler( server_, getBasePath( "/docs" ) );
+            server_.addHandler( resourceHandler_ );
+        }
+        return resourceHandler_;
     }
 
     /**
