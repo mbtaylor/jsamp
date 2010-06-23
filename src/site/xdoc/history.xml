@@ -425,6 +425,11 @@ to a minimum following this release.
 </subsection>
 
 <subsection name="Version 1.1">
+<p>
+<strong>Date:</strong> June 2009<br/>
+<strong>Archive:</strong> <a href="../1.1">Version 1.1</a>
+</p>
+
 <p>Protocol extension:</p>
 <ul>
 <li>The environment variable SAMP_HUB can now be used to specify a
@@ -465,6 +470,11 @@ to a minimum following this release.
         </li>
     </ul>
 </li>
+</ul>
+<p>Enhancements:</p>
+<ul>
+<li>Added <code>-httplock</code> flag to hubrunner, which allows publication
+    of lockfile by HTTP for use by non-localhost clients.</li>
 </ul>
 <p>Usability:</p>
 <ul>
