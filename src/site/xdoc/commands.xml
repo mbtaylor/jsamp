@@ -146,6 +146,12 @@ MTypes) may optionally be displayed.
     to the lockfile and which clients must present on registration.
     If not supplied, a random string will be chosen.
     </dd>
+<dt><code>-httplock</code></dt>
+<dd>If this flag is supplied, the lockfile is not written to a file,
+    but is made available via HTTP instead.  The hub will print the
+    location, in a form suitable for use with the SAMP_HUB environment
+    variable, when it starts up.
+    </dd>
 </dl>
 <p>For convenience, the hub can also be started simply by invoking
 the jar file with no arguments (for instance clicking on it).
