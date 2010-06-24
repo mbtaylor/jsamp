@@ -123,13 +123,13 @@ public class HubConnector {
     private final Map responseMap_;
     private final ClientTracker clientTracker_;
     private final CallHandler callHandler_;
-    private boolean isActive_;
-    private HubConnection connection_;
-    private Metadata metadata_;
-    private Subscriptions subscriptions_;
-    private int autoSec_;
-    private Timer regTimer_;
-    private int iCall_;
+    private volatile boolean isActive_;
+    private volatile HubConnection connection_;
+    private volatile Metadata metadata_;
+    private volatile Subscriptions subscriptions_;
+    private volatile int autoSec_;
+    private volatile Timer regTimer_;
+    private volatile int iCall_;
     private final Logger logger_ =
         Logger.getLogger( HubConnector.class.getName() );
 
