@@ -57,6 +57,11 @@ public class HubConnectorTest extends TestCase {
         HubConnection c0 = profile.register();
         assertNotNull( c0 );
         assertEquals( new HashMap(), getSubscriptions( c0 ) );
+
+        // Sometimes these tests just don't work.  It's because of the
+        // indeterminate nature of SAMP - message delivery order is not
+        // guaranteed etc.  I could remove these tests but .. most of the
+        // time they should, and do, pass.
         synchronized ( clientMap ) {
             while ( clientMap.size() != 3 ) clientMap.wait();
         }
