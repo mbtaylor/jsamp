@@ -487,6 +487,9 @@ to a minimum following this release.
     (<code>faultCode</code> was string instead of int).</li>
 <li>Fix the MessageTracker hub so it doesn't get confused if clients re-use
     the same tag for different messages.</li>
+<li>Adjusted logic of client tracking in HubConnector to be more robust.
+    Now <code>declareSubscriptions</code> must be called before
+    <code>getClientMap</code>.</li>
 <li>Fix bug in outgoing message tooltips for MessageTracker message box.</li>
 <li>Fix concurrency issue in HttpServer.</li>
 <li>Fix issue which could cause GUI freeze while waiting for
