@@ -452,10 +452,6 @@ class ClientTracker extends AbstractMessageHandler {
          * Removes all entries from this queue.
          */
         public synchronized void clear() {
-            for ( Iterator it = opList_.iterator(); it.hasNext(); ) {
-                ClientOperation op = (ClientOperation) it.next();
-                logger_.warning( "Discarding queued " + op );
-            }
             opList_.clear();
         }
 
