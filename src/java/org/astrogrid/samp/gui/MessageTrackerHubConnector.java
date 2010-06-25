@@ -51,7 +51,6 @@ public class MessageTrackerHubConnector extends GuiHubConnector
     private final TransmissionListModel rxListModel_;
     private final TransmissionTableModel txTableModel_;
     private final TransmissionTableModel rxTableModel_;
-    private final Map clientMap_;
     private final Map callAllMap_;
     private final Map txModelMap_;
     private final Map rxModelMap_;
@@ -102,7 +101,6 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         rxTableModel_ =
             new TransmissionTableModel( true, false,
                                         tableRemoveDelay, tableMaxRows );
-        clientMap_ = getClientMap();
         callAllMap_ = new HashMap();  // access only from EDT
         txModelMap_ = new WeakHashMap();
         rxModelMap_ = new WeakHashMap();
@@ -403,7 +401,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
 
             // Construct a transmission corresponding to this notify and
             // add it to the send list.
-            Client recipient = (Client) clientMap_.get( recipientId );
+            Client recipient = (Client) getClientMap().get( recipientId );
             Transmission trans = recipient == null
                                ? null
                                : new Transmission( getSelfClient(), recipient,
@@ -444,7 +442,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
             Client sender = getSelfClient();
             for ( Iterator it = recipientIdList.iterator(); it.hasNext(); ) {
                 Client recipient =
-                    (Client) clientMap_.get( (String) it.next() );
+                    (Client) getClientMap().get( (String) it.next() );
                 if ( recipient != null ) {
                     Transmission trans =
                         new Transmission( sender, recipient, message,
@@ -463,7 +461,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
 
             // Construct a transmission corresponding to this call
             // and add it to the send list.
-            Client recipient = (Client) clientMap_.get( recipientId );
+            Client recipient = (Client) getClientMap().get( recipientId );
             Transmission trans = recipient == null
                                ? null
                                : new Transmission( getSelfClient(), recipient,
@@ -514,7 +512,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
                 Map.Entry entry = (Map.Entry) it.next();
                 String recipientId = (String) entry.getKey();
                 Client sender = getSelfClient();
-                Client recipient = (Client) clientMap_.get( recipientId );
+                Client recipient = (Client) getClientMap().get( recipientId );
                 if ( recipient != null ) {
                     String msgId = (String) entry.getValue();
                     Transmission trans =
@@ -542,7 +540,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
 
             // Construct a transmission obejct corresponding to this call
             // and add it to the send list.
-            Client recipient = (Client) clientMap_.get( recipientId );
+            Client recipient = (Client) getClientMap().get( recipientId );
             Transmission trans =
                 recipient == null
                           ? null
@@ -658,7 +656,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
 
             // Construct a transmission corresponding to the incoming call
             // and add it to the receive list.
-            Client sender = (Client) clientMap_.get( senderId );
+            Client sender = (Client) getClientMap().get( senderId );
             Transmission trans =
                 sender == null ? null
                                : new Transmission( sender, getSelfClient(), msg,
@@ -681,7 +679,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
 
         public void receiveNotification( String senderId, Message msg )
                 throws Exception {
-            Client sender = (Client) clientMap_.get( senderId );
+            Client sender = (Client) getClientMap().get( senderId );
 
             // Actually handle the notification.
             base_.receiveNotification( senderId, msg );
