@@ -264,6 +264,9 @@ public class Bridge {
         List profileList = new ArrayList();
         XmlRpcKit xmlrpcKit = XmlRpcKit.getInstance();
         ClientProfile standardProfile = new ClientProfile() {
+            public boolean isHubRunning() {
+                return StandardClientProfile.getInstance().isHubRunning();
+            }
             public HubConnection register() throws SampException {
                 return StandardClientProfile.getInstance().register();
             }

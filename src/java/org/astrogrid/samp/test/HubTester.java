@@ -663,6 +663,9 @@ public class HubTester extends Tester {
      */
     private void testStress() throws IOException {
         ClientProfile profile = new ClientProfile() {
+            public boolean isHubRunning() {
+                return HubTester.this.profile_.isHubRunning();
+            }
             public HubConnection register() throws SampException {
                 return HubTester.this.register();
             }

@@ -20,4 +20,15 @@ public interface ClientProfile {
      * @throws   SampException  in case of some unexpected error
      */
     HubConnection register() throws SampException;
+
+    /**
+     * Indicates whether a hub contactable by this profile appears to be
+     * running.  This method is intended to provide a best guess and
+     * to execute reasonably quickly.  An appropriate implementation for
+     * standard profile might be to check the existence of the lockfile,
+     * but not to attempt contact or registration with the hub.
+     *
+     * @return  true iff it looks like a hub is running
+     */
+    boolean isHubRunning();
 }

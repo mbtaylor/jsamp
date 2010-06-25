@@ -61,6 +61,15 @@ public class StandardClientProfile implements ClientProfile {
         this( xmlrpc.getClientFactory(), xmlrpc.getServerFactory() );
     }
 
+    public boolean isHubRunning() {
+        try {
+            return getLockInfo() != null;
+        }
+        catch ( IOException e ) {
+            return false;
+        }
+    }
+
     public HubConnection register() throws SampException {
         LockInfo lockInfo;
         try {
@@ -97,10 +106,15 @@ public class StandardClientProfile implements ClientProfile {
 
     /**
      * Returns the LockInfo which indicates how to locate the hub.
-     * The default implementation returns {@link LockInfo#readLockFile};
+     * If no lockfile exists (probably becuause no appropriate hub
+     * is running), null is returned.
+     * The default implementation returns 
+     * <code>LockInfo.readLockFile(getLockUrl())</code>;
      * it may be overridden to provide a non-standard client profiles.
      *
      * @return   hub location information
+     * @throws  IOException  if the lockfile exists but cannot be read for
+     *          some reason
      */
     public LockInfo getLockInfo() throws IOException {
         return LockInfo.readLockFile( getLockUrl() );

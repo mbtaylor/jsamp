@@ -480,6 +480,9 @@ to a minimum following this release.
 <ul>
 <li>Invoking JSsamp class (e.g. java -jar jsamp.jar) with no arguments
     now starts the hub rather than printing a usage message.</li>
+<li>ClientProfile interface has new method <code>isHubRunning</code>.
+    This is more general (and easier to use) than testing something like
+    <code>StandardClientProfile.getLockFile().exists()</code>.</li>
 </ul>
 <p>Bugfixes:</p>
 <ul>

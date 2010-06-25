@@ -90,6 +90,16 @@ public class TestClientProfile implements ClientProfile {
         hubRunner_ = null;
     }
 
+    public boolean isHubRunning() {
+        try {
+            return LockInfo.readLockFile( SampUtils.fileToUrl( lockFile_ ) )
+                   != null;
+        }
+        catch ( IOException e ) {
+            return false;
+        }
+    }
+
     public HubConnection register() throws SampException {
         LockInfo lockInfo;
         try {
