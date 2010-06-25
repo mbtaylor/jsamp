@@ -96,23 +96,26 @@ class ClientTracker extends AbstractMessageHandler {
             clientIds[ otherIds.length ] = connection.getRegInfo().getSelfId();
         }
 
-        // Set up the client set to contain an entry for each registered
-        // client.
+        // Prepare an array of client objects, populating their characteristics
+        // by interrogating the connection.
         int nc = clientIds.length;
         TrackedClient[] clients = new TrackedClient[ nc ];
         for ( int ic = 0; ic < nc; ic++ ) {
-            clients[ ic ] = new TrackedClient( clientIds[ ic ] );
-        }
-        clientSet_.setClients( clients );
-
-        // Then get the metadata and subscriptions for each.
-        for ( int ic = 0; ic < nc; ic++ ) {
-            TrackedClient client = clients[ ic ];
-            String id = client.getId();
+            String id = clientIds[ ic ];
+            TrackedClient client = new TrackedClient( id );
             client.setMetadata( connection.getMetadata( id ) );
             client.setSubscriptions( connection.getSubscriptions( id ) );
-            clientSet_.updateClient( client, true, true );
-            opQueue_.apply( client );
+            clients[ ic ] = client;
+        }
+
+        // Populate the client set.  Discard any queued operations first.
+        // This doesn't guarantee that we've got the most up to date
+        // information ... but in absence of guaranteed delivery order for
+        // messages that's more or less impossible.
+        synchronized ( opQueue_ ) {
+            ClientOperation[] pendingOps = opQueue_.getOperations();
+            opQueue_.clear();
+            clientSet_.setClients( clients );
         }
     }
 
@@ -454,6 +457,16 @@ class ClientTracker extends AbstractMessageHandler {
                 logger_.warning( "Discarding queued " + op );
             }
             opList_.clear();
+        }
+
+        /**
+         * Returns an array containing all the operations currently pending.
+         *
+         * @return  operation list
+         */
+        public synchronized ClientOperation[] getOperations() {
+            return (ClientOperation[])
+                   opList_.toArray( new ClientOperation[ 0 ] );
         }
     }
 }
