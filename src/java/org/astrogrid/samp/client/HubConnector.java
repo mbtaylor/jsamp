@@ -692,17 +692,17 @@ public class HubConnector {
      * These will only be received if 
      * <code>declareSubscriptions(computeSubscriptions())</code> has been
      * called.
-     * Hence, this method may not be called until {@link #declareSubscriptions}
-     * has been called.
+     * Hence, this method should only be called after
+     * {@link #declareSubscriptions} has been called.
+     * If this order is not observed, a warning will be emitted through
+     * the logging system.
      *
      * @return   id->Client map
-     * @throws  IllegalStateException  if <code>declareSubscriptions</code>
-     *          has not yet been called
      */
     public Map getClientMap() {
         if ( subscriptions_ == null ) {
-            throw new IllegalStateException( "Must declare subscriptions"
-                                           + " before using client map" );
+            logger_.warning( "Danger: you should call declareSubscriptions "
+                           + "before using client map" );
         }
         return getClientSet().getClientMap();
     }
