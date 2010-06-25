@@ -42,7 +42,7 @@ public class JSamp {
     /**
      * Does the work for the main method.
      */
-    public static int runMain( String[] args ) throws IOException {
+    public static int runMain( String[] args ) {
 
         // Assemble usage message.
         StringBuffer ubuf = new StringBuffer()
@@ -134,7 +134,7 @@ public class JSamp {
         System.err.println( "Use \"-help\" flag for more options" );
         System.err.println( "Use \"hubrunner\" argument"
                           + " to suppress this message" );
-        return HubRunner.runMain( new String[ 0 ] );
+        return runCommand( HubRunner.class.getName(), new String[ 0 ] );
     }
 
     /**
@@ -260,7 +260,7 @@ public class JSamp {
      * Main method.
      * Use -help flag for documentation.
      */
-    public static void main( String[] args ) throws IOException {
+    public static void main( String[] args ) {
         int status = runMain( args );
         if ( status != 0 ) {
             System.exit( status );
