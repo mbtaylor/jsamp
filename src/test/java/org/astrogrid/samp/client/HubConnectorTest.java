@@ -28,7 +28,7 @@ public class HubConnectorTest extends TestCase {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.SEVERE );
     }
 
-    public void testConnector() throws IOException {
+    public void testConnector() throws IOException, InterruptedException {
         TestClientProfile[] profiles =
             TestClientProfile.getTestProfiles( random_ );
         for ( int i = 0; i < profiles.length; i++ ) {
@@ -36,10 +36,13 @@ public class HubConnectorTest extends TestCase {
         }
     }
 
-    private void testConnector( TestClientProfile profile ) throws IOException {
+    private void testConnector( TestClientProfile profile )
+            throws IOException, InterruptedException {
         assertNull( profile.register() );
         HubConnector connector = new HubConnector( profile );
         connector.setAutoconnect( 1 );
+        connector.declareSubscriptions( connector.computeSubscriptions() );
+
         Map clientMap = connector.getClientMap();
         assertTrue( clientMap.isEmpty() );
 
@@ -53,8 +56,14 @@ public class HubConnectorTest extends TestCase {
         profile.startHub();
         HubConnection c0 = profile.register();
         assertNotNull( c0 );
+        assertEquals( new HashMap(), getSubscriptions( c0 ) );
+        synchronized ( clientMap ) {
+            while ( clientMap.size() != 3 ) clientMap.wait();
+        }
         c0.unregister();
-        while ( clientMap.size() != 2 ) delay( 100 );
+        synchronized ( clientMap ) {
+            while ( clientMap.size() != 2 ) clientMap.wait();
+        }
         assertTrue( connector.isConnected() );
         assertNotNull( connector.getConnection() );
         assertEquals( 2, clientMap.size() );
@@ -65,21 +74,25 @@ public class HubConnectorTest extends TestCase {
 
         assertEquals( meta, connector.getMetadata() );
         assertEquals( meta, getMetadata( connector.getConnection() ) );
+        String selfId = connector.getConnection().getRegInfo().getSelfId();
+        synchronized ( clientMap ) {
+            while ( ! meta.equals( ((Client) clientMap.get( selfId ))
+                                  .getMetadata() ) ) {
+                clientMap.wait();
+            }
+        }
 
-        assertEquals( null, connector.getSubscriptions() );
-        assertEquals( new HashMap(),
-                      getSubscriptions( connector.getConnection() ) );
-        Subscriptions subs = connector.computeSubscriptions();
+        Subscriptions subs = connector.getSubscriptions();
         assertTrue( subs.containsKey( "samp.hub.event.register" ) );
         assertTrue( ! subs.containsKey( ECHO_MTYPE ) );
-        connector.declareSubscriptions( subs );
-        assertEquals( subs, connector.getSubscriptions() );
         assertEquals( subs, getSubscriptions( connector.getConnection() ) );
-        delay( 500 );
-        assertEquals( subs,
-                     ((Client) clientMap.get( connector.getConnection()
-                                             .getRegInfo().getSelfId() ))
-                    .getSubscriptions() );
+        synchronized ( clientMap ) {
+            while ( ! subs.equals( ((Client) clientMap.get( selfId ))
+                                  .getSubscriptions() ) ) {
+                clientMap.wait();
+            }
+        }
+
         connector.addMessageHandler( new TestMessageHandler() );
         subs = connector.computeSubscriptions();
         assertTrue( subs.containsKey( ECHO_MTYPE ) );
@@ -117,6 +130,7 @@ public class HubConnectorTest extends TestCase {
         RegInfo regInfo1 = connector.getConnection().getRegInfo();
         assertTrue( ! regInfo0.getSelfId().equals( regInfo1.getSelfId() ) );
         assertEquals( regInfo0.getHubId(), regInfo1.getHubId() );
+        connector.setAutoconnect( 0 );
         profile.stopHub();
         delay( 500 );
         assertNull( connector.getConnection() );
@@ -272,5 +286,11 @@ public class HubConnectorTest extends TestCase {
             isDone_ = false;
             resultMap_.clear();
         }
+    }
+
+    public static void main( String[] args ) throws Exception {
+        HubConnectorTest t = new HubConnectorTest();
+        t.setUp();
+        t.testConnector();
     }
 }
