@@ -688,9 +688,22 @@ public class HubConnector {
      * When the map or any of its contents changes, it will receive a
      * {@link java.lang.Object#notifyAll}.
      *
+     * <p>To keep itself up to date, the client map reads hub status messages.
+     * These will only be received if 
+     * <code>declareSubscriptions(computeSubscriptions())</code> has been
+     * called.
+     * Hence, this method may not be called until {@link #declareSubscriptions}
+     * has been called.
+     *
      * @return   id->Client map
+     * @throws  IllegalStateException  if <code>declareSubscriptions</code>
+     *          has not yet been called
      */
     public Map getClientMap() {
+        if ( subscriptions_ == null ) {
+            throw new IllegalStateException( "Must declare subscriptions"
+                                           + " before using client map" );
+        }
         return getClientSet().getClientMap();
     }
 
