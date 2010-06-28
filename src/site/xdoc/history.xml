@@ -459,6 +459,9 @@ to a minimum following this release.
         </li>
     <li><code>SampUtils.getLockFile()</code> method withdrawn;
         use <code>StandardClientProfile.getLockUrl()</code> instead.
+        If you want to find out if a hub is running, instead of
+        <code>SampUtils.getLockFile().exists()</code>, use
+        <code>DefaultClientProfile.getProfile().isHubRunning()</code>.
         </li>
     <li><code>LockInfo.readLockFile(File)</code> method withdrawn;
         use <code>LockInfo.readLockFile(URL)</code> instead.
@@ -483,6 +486,8 @@ to a minimum following this release.
 <li>ClientProfile interface has new method <code>isHubRunning</code>.
     This is more general (and easier to use) than testing something like
     <code>StandardClientProfile.getLockFile().exists()</code>.</li>
+<li><code>HubRunnner.runHub</code> method now returns the running 
+    HubRunner instance.</li>
 </ul>
 <p>Bugfixes:</p>
 <ul>
