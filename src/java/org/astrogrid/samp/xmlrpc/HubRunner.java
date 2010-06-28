@@ -514,6 +514,7 @@ public class HubRunner {
 
     /**
      * Static method which may be used to start a SAMP hub programmatically.
+     * The returned hub is running (<code>start</code> has been called).
      * If the hub mode corresponds to one of the GUI options,
      * a window will be posted which displays the current status of the hub.
      * When this window is disposed, the hub will stop.
@@ -533,6 +534,7 @@ public class HubRunner {
     /**
      * Static method which may be used to start a SAMP hub programmatically,
      * with a supplied samp.secret string.
+     * The returned hub is running (<code>start</code> has been called).
      * If the hub mode corresponds to one of the GUI options,
      * a window will be posted which displays the current status of the hub.
      * When this window is disposed, the hub will stop.
