@@ -17,7 +17,7 @@
 <li><a href="#Version_0_3"  >Version 0.3</a></li>
 <li><a href="#Version_0_3-1">Version 0.3-1</a></li>
 <li><a href="#Version_1_0"  >Version 1.0</a></li>
-<li><a href="#Version_1_1"  >Version 1.1</a></li>
+<li><a href="#Version_1_1-"  >Version 1.1-</a></li>
 </ul>
 
 <subsection name="Version 0.1">
@@ -424,10 +424,13 @@ to a minimum following this release.
 
 </subsection>
 
-<subsection name="Version 1.1">
+<subsection name="Version 1.1-">
 <p>
-<strong>Date:</strong> June 2009<br/>
+<strong>**Unreleased**</strong>
+<!--
+<strong>Date:</strong> July 2010<br/>
 <strong>Archive:</strong> <a href="../1.1">Version 1.1</a>
+-->
 </p>
 
 <p>Protocol extension:</p>
