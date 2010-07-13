@@ -81,7 +81,6 @@ public class Snooper {
         HubConnector connector = new HubConnector( profile );
         connector.declareMetadata( meta );
         out_ = out;
-        clientMap_ = connector.getClientMap();
 
         // Prepare all-purpose response to logged messages.
         final Response response = new Response();
@@ -109,6 +108,7 @@ public class Snooper {
             }
         } );
         connector.declareSubscriptions( connector.computeSubscriptions() );
+        clientMap_ = connector.getClientMap();
 
         // Connect and ready to log.
         connector.setActive( true );
@@ -267,6 +267,11 @@ public class Snooper {
         }
         assert argList.isEmpty();
 
+        // Adjust logging in accordance with verboseness flags.
+        int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
+        Logger.getLogger( "org.astrogrid.samp" )
+              .setLevel( Level.parse( Integer.toString( logLevel ) ) );
+
         // Combine custom and default metadata.
         Metadata m2 = createDefaultMetadata();
         m2.putAll( meta );
@@ -277,11 +282,6 @@ public class Snooper {
         if ( subs.isEmpty() ) {
             subs.addMType( "*" );
         }
-
-        // Adjust logging in accordance with verboseness flags.
-        int logLevel = Level.WARNING.intValue() + 100 * verbAdjust;
-        Logger.getLogger( "org.astrogrid.samp" )
-              .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Get profile.
         ClientProfile profile = DefaultClientProfile.getProfile();
