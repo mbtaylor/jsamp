@@ -136,13 +136,17 @@ public class StandardClientProfile implements ClientProfile {
                  hubloc.startsWith( STDPROFILE_HUB_PREFIX ) ) {
                 lockUrl = new URL( hubloc.substring( STDPROFILE_HUB_PREFIX
                                                     .length() ) );
+                logger_.info( "Lockfile as set by env var: "
+                            + HUBLOC_ENV + "=" + hubloc );
+            }
+            else if ( hubloc != null ) {
+                throw new IOException( "Bad value of hub location env var: "
+                                     + HUBLOC_ENV + "=" + hubloc );
             }
             else {
-                if ( hubloc != null ) {
-                    logger_.warning( "Ignoring non-standard $" + HUBLOC_ENV
-                                   + "=" + hubloc );
-                }
                 lockUrl = getDefaultLockUrl();
+                logger_.info( "Using default Standard Profile lockfile: " 
+                            + SampUtils.urlToFile( lockUrl ) );
             }
             lockUrl_ = lockUrl;
         }
