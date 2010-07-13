@@ -478,10 +478,27 @@ public class HubRunner {
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
+        // Get the location of the lockfile to write, if any.
+        final File lockfile;
+        if ( httplock ) {
+            lockfile = null;
+        }
+        else {
+            URL lockUrl = StandardClientProfile.getLockUrl();
+            File f = SampUtils.urlToFile( lockUrl );
+            if ( f == null ) {
+                System.err.println( "Can't write lockfile to " + lockUrl );
+                System.err.println( "Try resetting " 
+                                  + StandardClientProfile.HUBLOC_ENV
+                                  + " environment variable." );
+                return 1;
+            }
+            else {
+                lockfile = f;
+            }
+        }
+
         // Start the hub.
-        File lockfile = httplock ? null
-                                 : SampUtils.urlToFile( StandardClientProfile
-                                                       .getLockUrl() );
         HubRunner runner = runHub( hubMode, xmlrpc, secret, lockfile );
 
         // If the lockfile is not the default one, write a message through
