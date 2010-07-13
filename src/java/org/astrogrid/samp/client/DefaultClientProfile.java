@@ -1,5 +1,6 @@
 package org.astrogrid.samp.client;
 
+import java.util.logging.Logger;
 import org.astrogrid.samp.Platform;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 
@@ -23,6 +24,8 @@ import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 public class DefaultClientProfile {
 
     private static ClientProfile profile_;
+    private static final Logger logger_ =
+        Logger.getLogger( DefaultClientProfile.class.getName() );
 
     /**
      * Prefix for SAMP_HUB env var indicating a supplied ClientProfile
@@ -72,6 +75,9 @@ public class DefaultClientProfile {
                 }
                 try {
                     profile = (ClientProfile) clazz.newInstance();
+                    logger_.info( "Using non-standard hub location: "
+                                + StandardClientProfile.HUBLOC_ENV + "="
+                                + hubloc );
                 }
                 catch ( Throwable e ) {
                     throw (RuntimeException)
