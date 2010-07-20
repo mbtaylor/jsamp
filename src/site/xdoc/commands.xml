@@ -138,8 +138,13 @@ MTypes) may optionally be displayed.
         slow down hub operations a bit.
         </dd>
     </dl>
-    In the case of the GUI options, they pop up a window when the hub starts;
-    if the window is closed, the hub will shut down.
+    In the case of the GUI options, they attempt to insert an icon into the
+    "System Tray" area of the desktop, if one exists, and if a java version
+    &gt;=1.6 is being used.  A menu available from this icon can be used
+    to display or hide the window.
+    If the system tray is not accessible (java version &lt;1.6 or not
+    supported on desktop), then the window will be displayed directly,
+    and closing the window will shut down the hub.
     </dd>
 <dt><code>-secret &lt;secret&gt;</code></dt>
 <dd>Optional flag to supply the samp.secret string which will be written
