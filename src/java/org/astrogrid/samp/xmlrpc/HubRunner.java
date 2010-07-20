@@ -345,7 +345,6 @@ public class HubRunner {
         return LockInfo.readLockFile( new FileInputStream( lockFile ) );
     }
 
-    
     /**
      * Writes lockfile information to a given output stream.
      * The stream is not closed.
@@ -532,9 +531,15 @@ public class HubRunner {
     /**
      * Static method which may be used to start a SAMP hub programmatically.
      * The returned hub is running (<code>start</code> has been called).
-     * If the hub mode corresponds to one of the GUI options,
-     * a window will be posted which displays the current status of the hub.
-     * When this window is disposed, the hub will stop.
+     *
+     * <p>If the hub mode corresponds to one of the GUI options,
+     * one of two things will happen.  An attempt will be made to install
+     * an icon in the "system tray"; if this is successful, the attached
+     * popup menu will provide options for displaying the hub window and
+     * for shutting it down.  If no system tray is available, the hub window
+     * will be posted directly, and the hub will shut down when this window
+     * is closed.  System tray functionality is only available when running
+     * under Java 1.6 or later, and when using a suitable display manager.
      *
      * @param   hubMode  hub mode
      * @param   xmlrpc  XML-RPC implementation;
@@ -552,9 +557,15 @@ public class HubRunner {
      * Static method which may be used to start a SAMP hub programmatically,
      * with a supplied samp.secret string.
      * The returned hub is running (<code>start</code> has been called).
-     * If the hub mode corresponds to one of the GUI options,
-     * a window will be posted which displays the current status of the hub.
-     * When this window is disposed, the hub will stop.
+     *
+     * <p>If the hub mode corresponds to one of the GUI options,
+     * one of two things will happen.  An attempt will be made to install
+     * an icon in the "system tray"; if this is successful, the attached
+     * popup menu will provide options for displaying the hub window and
+     * for shutting it down.  If no system tray is available, the hub window
+     * will be posted directly, and the hub will shut down when this window
+     * is closed.  System tray functionality is only available when running
+     * under Java 1.6 or later, and when using a suitable display manager.
      *
      * @param   hubMode  hub mode
      * @param   xmlrpc  XML-RPC implementation;
