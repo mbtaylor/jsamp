@@ -44,8 +44,12 @@ It provides the following components:
 </ul>
 
 <p>The current version targets the SAMP 
+<a href="http://www.ivoa.net/Documents/WD/App/WD-SAMP-1.2-20100719.html"
+   >1.2 Working Draft</a> document (19 July 2010);
+this is very close to the
 <a href="http://www.ivoa.net/Documents/cover/SAMP-20090421.html"
-   >1.11 Recommendation</a> document (21 April 2009).
+   >1.11 Recommendation</a> (21 April 2009),
+but with an enhancement concerning Standard Profile hub discovery.
 </p>
 
 <p>JSAMP is currently developed by 
