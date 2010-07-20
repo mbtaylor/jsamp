@@ -1,13 +1,23 @@
 package org.astrogrid.samp.xmlrpc;
 
+import java.awt.AWTException;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
+import org.astrogrid.samp.Client;
 import org.astrogrid.samp.gui.GuiHubService;
 import org.astrogrid.samp.gui.MessageTrackerHubService;
+import org.astrogrid.samp.gui.SysTray;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.BasicHubService;
 
@@ -23,6 +33,8 @@ public abstract class HubMode {
 
     private final String name_;
     private final boolean isDaemon_;
+    private static final Logger logger_ =
+        Logger.getLogger( HubMode.class.getName() );
 
     /** Hub mode with no GUI representation of hub operations. */
     public static final HubMode NO_GUI;
@@ -125,8 +137,33 @@ public abstract class HubMode {
      * @param  runners  1-element array which will contain an associated
      *         hub runner object if one exists
      */
-    static void configureHubWindow( JFrame frame,
-                                    final HubRunner[] runners ) {
+    static void configureHubWindow( JFrame frame, HubRunner[] runners ) {
+        SysTray sysTray = SysTray.getInstance();
+        if ( sysTray.isSupported() ) {
+            try {
+                configureWindowForSysTray( frame, runners, sysTray );
+            }
+            catch ( AWTException e ) {
+                logger_.warning( "Failed to install in system tray: " + e );
+                configureWindowBasic( frame, runners );
+            }
+            logger_.info( "Hub started in system tray" );
+        }
+        else {
+            logger_.info( "System tray not supported: displaying hub window" );
+            configureWindowBasic( frame, runners );
+        }
+    }
+
+    /**
+     * Performs common configuration of hub display window without
+     * system tray functionality.
+     * @param  frame  hub window
+     * @param  runners  1-element array which will contain an associated
+     *         hub runner object if one exists
+     */
+    private static void configureWindowBasic( JFrame frame,
+                                              final HubRunner[] runners ) {
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         frame.addWindowListener( new WindowAdapter() {
             public void windowClosed( WindowEvent evt ) {
@@ -137,6 +174,93 @@ public abstract class HubMode {
             }
         } );
         frame.setVisible( true );
+    }
+
+    /**
+     * Performs common configuration of hub display window with
+     * system tray functionality.
+     *
+     * @param  frame  hub window
+     * @param  runners  1-element array which will contain an associated
+     *         hub runner object if one exists
+     * @param  sysTray  system tray facade object
+     */
+ 
+    private static void configureWindowForSysTray( final JFrame frame,
+                                                   final HubRunner[] runners,
+                                                   final SysTray sysTray )
+            throws AWTException {
+
+        /* Prepare the items for display in the tray icon popup menu. */
+        final MenuItem showItem;
+        final MenuItem hideItem;
+        final MenuItem stopItem;
+        MenuItem[] items = new MenuItem[] {
+            showItem = new MenuItem( "Show Hub Window" ),
+            hideItem = new MenuItem( "Hide Hub Window" ),
+            stopItem = new MenuItem( "Stop Hub" ),
+        };
+        ActionListener iconListener = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                frame.setVisible( true );
+                showItem.setEnabled( false );
+                hideItem.setEnabled( true );
+            }
+        };
+
+        /* Construct and install the tray icon. */
+        Image im = Toolkit.getDefaultToolkit()
+                  .createImage( Client.class.getResource( "images/hub.png" ) );
+        String tooltip = "SAMP Hub";
+        PopupMenu popup = new PopupMenu();
+        final Object trayIcon =
+            sysTray.addIcon( im, tooltip, popup, iconListener );
+
+        /* Arrange for the menu items to do something appropriate when
+         * triggered. */
+        ActionListener popListener = new ActionListener() {
+            public void actionPerformed( ActionEvent evt ) {
+                String cmd = evt.getActionCommand();
+                if ( cmd.equals( showItem.getActionCommand() ) ||
+                     cmd.equals( hideItem.getActionCommand() ) ) {
+                    boolean visible = cmd.equals( showItem.getActionCommand() );
+                    frame.setVisible( visible );
+                    showItem.setEnabled( ! visible );
+                    hideItem.setEnabled( visible );
+                }
+                else if ( cmd.equals( stopItem.getActionCommand() ) ) {
+                    HubRunner runner = runners[ 0 ];
+                    if ( runner != null ) {
+                        runner.shutdown();
+                    }
+                    try {
+                        sysTray.removeIcon( trayIcon );
+                    }
+                    catch ( AWTException e ) {
+                        logger_.warning( e.toString() );
+                    }
+                    frame.dispose();
+                }
+            }
+        };
+        for ( int i = 0; i < items.length; i++ ) {
+            items[ i ].addActionListener( popListener );
+            popup.add( items[ i ] );
+        }
+
+        /* Arrange that a manual window close will set the action states
+         * correctly. */
+        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+        frame.addWindowListener( new WindowAdapter() {
+            public void windowClosed( WindowEvent evt ) {
+                showItem.setEnabled( true );
+                hideItem.setEnabled( false );
+            }
+        } );
+
+        /* Set to initial state. */
+        popListener.actionPerformed(
+            new ActionEvent( frame, 0, hideItem.getActionCommand() ) );
     }
 
     /**
