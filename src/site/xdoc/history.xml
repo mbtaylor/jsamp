@@ -426,11 +426,8 @@ to a minimum following this release.
 
 <subsection name="Version 1.1-">
 <p>
-<strong>**Unreleased**</strong>
-<!--
 <strong>Date:</strong> July 2010<br/>
 <strong>Archive:</strong> <a href="../1.1">Version 1.1</a>
--->
 </p>
 
 <p>Protocol extension:</p>
@@ -438,7 +435,8 @@ to a minimum following this release.
 <li>The environment variable SAMP_HUB can now be used to specify a
     non-default lockfile location for clients and hub to use with the
     Standard Profile.  This usage is expected to be part of the next
-    version of the SAMP standard.  See the documentation for the 
+    version of the SAMP standard (SAMP 1.2, in WD at time of writing).
+    See the documentation for the 
     <a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/xmlrpc/StandardClientProfile.html"
                                               >StandardClientProfile</a>
@@ -479,6 +477,14 @@ to a minimum following this release.
 </ul>
 <p>Enhancements:</p>
 <ul>
+<li>Where possible, if the hub is running in GUI mode it will now install
+    itself as an icon in the "system tray" rather than posting the 
+    window directly; a popup menu associated with the tray icon allows
+    window display and hub shutdown.  If the platform does not provide
+    system tray functionality, it will revert to the previous behaviour of
+    posting the window directly.
+    System tray functionality is available only when running under
+    Java 1.6 or later, and only when using a suitable display manager.</li>
 <li>Added <code>-httplock</code> flag to hubrunner, which allows publication
     of lockfile by HTTP for use by non-localhost clients.</li>
 </ul>
