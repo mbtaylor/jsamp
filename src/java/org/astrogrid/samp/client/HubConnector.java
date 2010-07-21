@@ -228,7 +228,7 @@ public class HubConnector {
                 String name = (String) message.getParam( "name" );
                 String value = Platform.getPlatform().getEnv( name );
                 Map result = new HashMap();
-                result.put( "value", value );
+                result.put( "value", value == null ? "" : value );
                 return result;
             };
         } );
