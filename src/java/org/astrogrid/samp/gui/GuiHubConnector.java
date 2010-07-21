@@ -215,11 +215,19 @@ public class GuiHubConnector extends HubConnector {
      */
     public Action createRegisterOrHubAction( final Component parent,
                                              Action[] hubStartActions ) {
-        final Action[] hubActs =
-            hubStartActions == null
-               ? new Action[] { createHubAction( false, HubMode.NO_GUI ),
-                                createHubAction( true, HubMode.CLIENT_GUI ), }
-               : hubStartActions;
+        final Action[] hubActs;
+        if ( hubStartActions != null ) {
+            hubActs = hubStartActions;
+        }
+        else {
+            HubMode internalMode = SysTray.getInstance().isSupported()
+                                 ? HubMode.CLIENT_GUI
+                                 : HubMode.NO_GUI;
+            hubActs = new Action[] {
+                createHubAction( false, internalMode ),
+                createHubAction( true, HubMode.MESSAGE_GUI ),
+            };
+        }
         Action regAct = new RegisterAction() {
             protected void registerFailed() {
                 Object msg = new String[] {
