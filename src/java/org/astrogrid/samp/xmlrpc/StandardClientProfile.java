@@ -139,7 +139,7 @@ public class StandardClientProfile implements ClientProfile {
                 logger_.info( "Lockfile as set by env var: "
                             + HUBLOC_ENV + "=" + hubloc );
             }
-            else if ( hubloc != null ) {
+            else if ( hubloc != null && hubloc.trim().length() > 0 ) {
                 throw new IOException( "Bad value of hub location env var: "
                                      + HUBLOC_ENV + "=" + hubloc );
             }
