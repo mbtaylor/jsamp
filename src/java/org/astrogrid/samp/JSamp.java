@@ -96,6 +96,9 @@ public class JSamp {
             .append( formatImpls( XmlRpcKit.KNOWN_IMPLS, XmlRpcKit.class ) )
             .append( "\n" );
         String usage = ubuf.toString();
+ 
+        // Perform general tweaks.
+        setDefaultProperty( "java.awt.Window.locationByPlatform", "true" );
 
         // Process command line arguments.
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -254,6 +257,26 @@ public class JSamp {
            .append( "\n      " )
            .append( "http://software.astrogrid.org/doc/jsamp/" )
            .toString();
+    }
+
+    /**
+     * Sets a system property to a given value unless it has already been set.
+     * If it has a prior value, that is undisturbed.
+     * Potential security exceptions are caught and dealt with.
+     * 
+     * @param   key  property name
+     * @param   value  suggested property value
+     */
+    private static void setDefaultProperty( String key, String value ) {
+        String existingVal = System.getProperty( key );
+        if ( existingVal == null || existingVal.trim().length() == 0 ) {
+            try {
+                System.setProperty( key, value );
+            }
+            catch ( SecurityException e ) {
+                // never mind.
+            }
+        }
     }
 
     /**
