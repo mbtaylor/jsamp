@@ -612,7 +612,12 @@ public class HubRunner {
         String javacmd = ( javaExec.exists() && ! javaExec.isDirectory() )
                        ? javaExec.toString()
                        : "java";
-        String[] propagateProps = new String[] { XmlRpcKit.IMPL_PROP, };
+        String[] propagateProps = new String[] {
+            XmlRpcKit.IMPL_PROP,
+            UtilServer.PORT_PROP,
+            SampUtils.LOCALHOST_PROP,
+            "java.awt.Window.locationByPlatform",
+        };
         List argList = new ArrayList();
         argList.add( javacmd );
         for ( int ip = 0; ip < propagateProps.length; ip++ ) {
