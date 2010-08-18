@@ -531,6 +531,19 @@ to a minimum following this release.
 </ul>
 </subsection>
 
+<subsection name="next version">
+
+<ul>
+<li>Window positioning now follows platform norms by default rather than the
+    java policy of placement at (0,0).  
+    Specifically: the <code>java.awt.Window.locationByPlatform</code>
+    system property is set, if it does not already have an explicit value,
+    in the JSamp class.</li>
+<li>Some additional system properties are now propagated when starting an
+    external hub from HubRunner.</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>
