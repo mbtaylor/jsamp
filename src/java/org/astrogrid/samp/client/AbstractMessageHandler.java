@@ -58,17 +58,20 @@ public abstract class AbstractMessageHandler implements MessageHandler {
     }
 
     /**
-     * Implements message processing.  Implementations should return a map
-     * which contains the <code>samp.result</code> part of the call response,
-     * that is the MType-specific return value name-&gt;value map.
+     * Implements message processing.  Implementations should normally
+     * return a map which contains the <code>samp.result</code> part 
+     * of the call response, that is the MType-specific return value
+     * name-&gt;value map.
      * As a special case, returning null is equivalent to returning an empty 
      * map.
+     * However, if {@link #createResponse} is overridden, the return value
+     * semantics may be different.
      *
      * @param connection  hub connection
      * @param senderId  public ID of sender client
      * @param message  message with MType this handler is subscribed to
-     * @return   MType-specific return name-&gt;value map;
-     *           null may be used for an empty map
+     * @return   result of handling this message; exact semantics determined
+     *           by {@link #createResponse createResponse} implementation
      */
     public abstract Map processCall( HubConnection connection, String senderId,
                                      Message message )
