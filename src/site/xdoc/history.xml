@@ -541,6 +541,8 @@ to a minimum following this release.
     in the JSamp class.</li>
 <li>Some additional system properties are now propagated when starting an
     external hub from HubRunner.</li>
+<li>AbstractMessageHandler has a new method <code>createResponse</code>
+    which may be overridden for more flexibility.</li>
 </ul>
 </subsection>
 
