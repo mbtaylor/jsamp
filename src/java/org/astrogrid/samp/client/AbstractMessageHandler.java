@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
+import org.astrogrid.samp.SampMap;
 import org.astrogrid.samp.Subscriptions;
 
 /**
@@ -74,6 +75,23 @@ public abstract class AbstractMessageHandler implements MessageHandler {
             throws Exception;
 
     /**
+     * Invoked by {@link #receiveCall receiveCall} to create a success 
+     * response from the result of calling {@link #processCall processCall}.
+     *
+     * <p>The default implementation calls 
+     * {@link Response#createSuccessResponse}(processOutput),
+     * first transforming a null value to an empty map for convenience.
+     * However, it may be overridden for more flexibility (for instance
+     * in order to return non-OK responses).
+     * 
+     * @param  processOutput  a Map returned by {@link #processCall processCall}
+     */
+    protected Response createResponse( Map processOutput ) {
+        Map result = processOutput == null ? SampMap.EMPTY : processOutput;
+        return Response.createSuccessResponse( result );
+    }
+
+    /**
      * Sets the subscriptions map.  Usually this is called by the constructor,
      * but it may be reset manually.
      *
@@ -106,17 +124,18 @@ public abstract class AbstractMessageHandler implements MessageHandler {
     }
 
     /**
-     * Calls {@link #processCall} and uses its return value to send 
-     * a reply back to the hub.
+     * Calls {@link #processCall}, generates a response from the result
+     * using {@link #createResponse}, and sends the resulting response
+     * as a reply to the hub.  In case of an exception, a suitable error 
+     * response is sent instead.
      */
     public void receiveCall( HubConnection connection, String senderId,
                              String msgId, Message message )
             throws SampException {
         Response response;
         try {
-            Map result = processCall( connection, senderId, message ); 
-            result = result == null ? new HashMap() : result;
-            response = Response.createSuccessResponse( result );
+            response =
+                createResponse( processCall( connection, senderId, message ) );
         }
         catch ( Throwable e ) {
             response = Response.createErrorResponse( new ErrInfo( e ) );
