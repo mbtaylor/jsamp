@@ -543,6 +543,7 @@ to a minimum following this release.
     external hub from HubRunner.</li>
 <li>AbstractMessageHandler has a new method <code>createResponse</code>
     which may be overridden for more flexibility.</li>
+<li>Fixed a bug related to output capture when an external hub is started.</li>
 </ul>
 </subsection>
 

@@ -656,7 +656,7 @@ public class HubRunner {
     private static void execBackground( String[] cmdarray ) throws IOException {
         Process process = Runtime.getRuntime().exec( cmdarray );
         discardBytes( process.getInputStream() );
-        discardBytes( process.getInputStream() );
+        discardBytes( process.getErrorStream() );
     }
 
     /**
