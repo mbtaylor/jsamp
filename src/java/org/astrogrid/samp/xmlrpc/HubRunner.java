@@ -605,8 +605,13 @@ public class HubRunner {
      * bulletproof, and it may fail without an exception, but we do our best.
      *
      * @param   hubMode  hub mode
+     * @see     #checkExternalHubAvailability
      */
     public static void runExternalHub( HubMode hubMode ) throws IOException {
+        String classpath = System.getProperty( "java.class.path" );
+        if ( classpath == null || classpath.trim().length() == 0 ) {
+            throw new IOException( "No classpath available - JNLP context?" );
+        }
         File javaHome = new File( System.getProperty( "java.home" ) );
         File javaExec = new File( new File( javaHome, "bin" ), "java" );
         String javacmd = ( javaExec.exists() && ! javaExec.isDirectory() )
@@ -628,7 +633,7 @@ public class HubRunner {
             }
         }
         argList.add( "-classpath" );
-        argList.add( System.getProperty( "java.class.path" ) );
+        argList.add( classpath );
         argList.add( HubRunner.class.getName() );
         argList.add( "-mode" );
         argList.add( hubMode.toString() );
@@ -643,6 +648,26 @@ public class HubRunner {
         logger_.info( "Starting external hub" );
         logger_.info( cmdbuf.toString() );
         execBackground( args );
+    }
+
+    /**
+     * Attempts to determine whether an external hub can be started using
+     * {@link #runExternalHub}.  If it can be determined that such an
+     * attempt would fail, this method will throw an exception with
+     * an informative message.  This method succeeding is not a guarantee
+     * that an external hub can be started successfullly.
+     * The behaviour of this method is not expected to change over the
+     * lifetime of a given JVM.
+     */
+    public static void checkExternalHubAvailability() throws IOException {
+        String classpath = System.getProperty( "java.class.path" );
+        if ( classpath == null || classpath.trim().length() == 0 ) {
+            throw new IOException( "No classpath available - JNLP context?" );
+        }
+        if ( System.getProperty( "jnlpx.jvm" ) != null ) {
+            throw new IOException( "Running under WebStart"
+                                 + " - external hub not likely to work" );
+        }
     }
 
     /**
