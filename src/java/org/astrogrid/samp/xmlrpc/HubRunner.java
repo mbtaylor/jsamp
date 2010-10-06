@@ -22,7 +22,6 @@ import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.LockWriter;
-import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.httpd.ServerResource;
 import org.astrogrid.samp.httpd.UtilServer;
 
