@@ -668,6 +668,7 @@ public class GuiHubConnector extends HubConnector {
     private class HubAction extends AbstractAction {
         private final boolean external_;
         private final HubMode hubMode_;
+        private final boolean isAvailable_;
 
         /**
          * Constructor.
@@ -688,6 +689,16 @@ public class GuiHubConnector extends HubConnector {
                                  : " running within this application" ) );
             setEnabled( ! isConnected() );
             registerUpdater( this, DISABLE_ACTION );
+            boolean isAvailable = true;
+            if ( external ) {
+                try {
+                    HubRunner.checkExternalHubAvailability();
+                }
+                catch ( Exception e ) {
+                    isAvailable = false;
+                }
+            }
+            isAvailable_ = isAvailable;
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -699,6 +710,10 @@ public class GuiHubConnector extends HubConnector {
                                        e.getMessage(), e );
             }
             setActive( true );
+        }
+
+        public boolean isEnabled() {
+            return isAvailable_ && super.isEnabled();
         }
 
         /**

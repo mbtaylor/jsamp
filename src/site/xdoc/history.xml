@@ -544,6 +544,8 @@ to a minimum following this release.
 <li>AbstractMessageHandler has a new method <code>createResponse</code>
     which may be overridden for more flexibility.</li>
 <li>Fixed a bug related to output capture when an external hub is started.</li>
+<li>External hub start action is disabled in JNLP context, since
+    it won't work.</li>
 </ul>
 </subsection>
 
