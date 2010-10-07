@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -103,7 +103,7 @@ public class URLMapperHandler implements HttpServer.Handler {
         }
         String method = request.getMethod();
         try {
-            Map hdrMap = new HashMap();
+            Map hdrMap = new LinkedHashMap();
             String contentType = conn.getContentType();
             if ( contentType != null ) {
                 hdrMap.put( "Content-Type", contentType );

@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -108,7 +109,7 @@ public class ResourceHandler implements HttpServer.Handler {
             return HttpServer.createErrorResponse( 410, "Gone" );
         }
         else if ( resource != null ) {
-            Map hdrMap = new HashMap();
+            Map hdrMap = new LinkedHashMap();
             hdrMap.put( "Content-Type", resource.getContentType() );
             long contentLength = resource.getContentLength();
             if ( contentLength >= 0 ) {

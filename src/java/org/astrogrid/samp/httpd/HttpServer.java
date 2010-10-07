@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -337,7 +338,7 @@ public class HttpServer {
             String uri = fullMatcher.group( 2 );
 
             // Then read and parse header lines.
-            Map headerMap = new HashMap();
+            Map headerMap = new LinkedHashMap();
             int iLine = 1;
             boolean headerEnd = false;
             int contentLength = 0;
@@ -504,7 +505,7 @@ public class HttpServer {
      */
     public static Response createErrorResponse( int code, String phrase,
                                                 final Throwable e ) {
-        Map hdrMap = new HashMap();
+        Map hdrMap = new LinkedHashMap();
         hdrMap.put( HDR_CONTENT_TYPE, "text/plain" );
         return new Response( code, phrase, hdrMap ) {
             public void writeBody( OutputStream out ) {

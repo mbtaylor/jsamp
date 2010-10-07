@@ -546,6 +546,8 @@ to a minimum following this release.
 <li>Fixed a bug related to output capture when an external hub is started.</li>
 <li>External hub start action is disabled in JNLP context, since
     it won't work.</li>
+<li>Fixed internal HTTP server so it won't reorder request/response
+    headers.</li>
 </ul>
 </subsection>
 
