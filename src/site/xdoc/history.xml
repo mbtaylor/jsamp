@@ -548,6 +548,10 @@ to a minimum following this release.
     it won't work.</li>
 <li>Fixed internal HTTP server so it won't reorder request/response
     headers.</li>
+<li>Fixed some concurrency bugs to do with handler lists in
+    <code>HubConnector</code>, <code>HttpServer</code>,
+    <code>InternalServer</code> and <code>ApacheServer</code>
+    (thanks to Laurent Bourges).</li>
 </ul>
 </subsection>
 

@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -48,7 +49,7 @@ public class InternalServer implements SampXmlRpcServer {
             throws IOException {
         server_ = httpServer;
         endpoint_ = new URL( server_.getBaseUrl(), path );
-        handlerList_ = new ArrayList();
+        handlerList_ = Collections.synchronizedList( new ArrayList() );
         server_.addHandler( new HttpServer.Handler() {
             public HttpServer.Response serveRequest( HttpServer.Request req ) {
                 if ( req.getUrl().equals( path ) &&
@@ -160,9 +161,11 @@ public class InternalServer implements SampXmlRpcServer {
 
         // Find one of the registered handlers to handle this request.
         SampXmlRpcHandler handler = null;
-        for ( Iterator it = handlerList_.iterator();
-              it.hasNext() && handler == null; ) {
-            SampXmlRpcHandler h = (SampXmlRpcHandler) it.next();
+        SampXmlRpcHandler[] handlers =
+            (SampXmlRpcHandler[])
+            handlerList_.toArray( new SampXmlRpcHandler[ 0 ] );
+        for ( int ih = 0; ih < handlers.length && handler == null; ih++ ) {
+            SampXmlRpcHandler h = handlers[ ih ];
             if ( h.canHandleCall( methodName ) ) {
                 handler = h;
             }

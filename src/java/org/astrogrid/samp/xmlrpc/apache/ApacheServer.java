@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -35,7 +36,7 @@ public class ApacheServer implements SampXmlRpcServer {
     private ApacheServer( LabelledServer server ) {
         webServer_ = server.webServer_;
         endpoint_ = server.endpoint_;
-        handlerList_ = new ArrayList();
+        handlerList_ = Collections.synchronizedList( new ArrayList() );
         webServer_.addHandler( "$default", new XmlRpcHandler() {
             public Object execute( String method, Vector params )
                     throws Exception {
@@ -85,8 +86,11 @@ public class ApacheServer implements SampXmlRpcServer {
      */
     private Object doExecute( String fqMethod, Vector paramVec )
             throws Exception {
-        for ( Iterator it = handlerList_.iterator(); it.hasNext(); ) {
-            SampXmlRpcHandler handler = (SampXmlRpcHandler) it.next();
+        SampXmlRpcHandler[] handlers =
+            (SampXmlRpcHandler[])
+            handlerList_.toArray( new SampXmlRpcHandler[ 0 ] );
+        for ( int ih = 0; ih < handlers.length; ih++ ) {
+            SampXmlRpcHandler handler = handlers[ ih ];
             if ( handler.canHandleCall( fqMethod ) ) {
                 List paramList = (List) ApacheUtils.fromApache( paramVec );
                 Object result = handler.handleCall( fqMethod, paramList );

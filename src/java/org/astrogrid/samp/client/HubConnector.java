@@ -161,8 +161,8 @@ public class HubConnector {
         isActive_ = true;
 
         // Set up data structures.
-        messageHandlerList_ = new ArrayList();
-        responseHandlerList_ = new ArrayList();
+        messageHandlerList_ = Collections.synchronizedList( new ArrayList() );
+        responseHandlerList_ = Collections.synchronizedList( new ArrayList() );
         callable_ = new ConnectorCallableClient();
         responseMap_ = Collections.synchronizedMap( new HashMap() );
 
@@ -385,12 +385,12 @@ public class HubConnector {
      *          connector
      */
     public Subscriptions computeSubscriptions() {
+        MessageHandler[] mhandlers =
+            (MessageHandler[])
+            messageHandlerList_.toArray( new MessageHandler[ 0 ] );
         Map subs = new HashMap();
-        List mhlist = new ArrayList( messageHandlerList_ );
-        Collections.reverse( mhlist );
-        for ( Iterator it = mhlist.iterator(); it.hasNext(); ) {
-            MessageHandler handler = (MessageHandler) it.next();
-            subs.putAll( handler.getSubscriptions() );
+        for ( int ih = mhandlers.length - 1; ih >= 0; ih-- ) {
+            subs.putAll( mhandlers[ ih ].getSubscriptions() );
         }
         return Subscriptions.asSubscriptions( subs );
     }
@@ -809,9 +809,11 @@ public class HubConnector {
             // Offer the notification to each registered MessageHandler in turn.
             // It may in principle get processed by more than one.
             // This is almost certainly harmless.
-            for ( Iterator it = messageHandlerList_.iterator();
-                  it.hasNext(); ) {
-                MessageHandler handler = (MessageHandler) it.next();
+            MessageHandler[] mhandlers =
+                (MessageHandler[])
+                messageHandlerList_.toArray( new MessageHandler[ 0 ] );
+            for ( int ih = 0; ih < mhandlers.length; ih++ ) {
+                MessageHandler handler = mhandlers[ ih ];
                 Subscriptions subs =
                     Subscriptions.asSubscriptions( handler.getSubscriptions() );
                 if ( subs.isSubscribed( message.getMType() ) ) {
@@ -834,9 +836,11 @@ public class HubConnector {
             // the first one which bites is allowed to process it.
             String mtype = message.getMType();
             ErrInfo errInfo = null;
-            for ( Iterator it = messageHandlerList_.iterator();
-                  it.hasNext(); ) {
-                MessageHandler handler = (MessageHandler) it.next();
+            MessageHandler[] mhandlers =
+                (MessageHandler[])
+                messageHandlerList_.toArray( new MessageHandler[ 0 ] );
+            for ( int ih = 0; ih < mhandlers.length; ih++ ) {
+                MessageHandler handler = mhandlers[ ih ];
                 Subscriptions subs =
                     Subscriptions.asSubscriptions( handler.getSubscriptions() );
                 if ( subs.isSubscribed( mtype ) ) {
@@ -876,9 +880,11 @@ public class HubConnector {
             // It shouldn't be processed by more than one, but if it is,
             // warn about it.
             int handleCount = 0;
-            for ( Iterator it = responseHandlerList_.iterator();
-                  it.hasNext(); ) {
-                ResponseHandler handler = (ResponseHandler) it.next();
+            ResponseHandler[] rhandlers =
+                (ResponseHandler[])
+                responseHandlerList_.toArray( new ResponseHandler[ 0 ] );
+            for ( int ih = 0; ih < rhandlers.length; ih++ ) {
+                ResponseHandler handler = rhandlers[ ih ];
                 if ( handler.ownsTag( msgTag ) ) {
                     handleCount++;
                     try {
