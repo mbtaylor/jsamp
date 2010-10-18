@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.net.SocketAddress;
 import java.util.HashMap;
 import junit.framework.TestCase;
 
@@ -27,7 +28,7 @@ public class ServerTest extends TestCase {
 
         HttpServer.Request req2 =
             new HttpServer.Request( "GET", url2.getPath(), new HashMap(),
-                                    null );
+                                    new SocketAddress() {}, null );
         HttpServer.Response resp2 = server.serve( req2 );
         assertEquals( 200, resp2.getStatusCode() );
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
