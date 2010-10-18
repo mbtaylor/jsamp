@@ -164,7 +164,7 @@ abstract class IconAdjuster implements HttpServer.Handler {
         }
         else {
             return HttpServer
-                  .createErrorResponse( 405, "Unsupported method" );
+                  .create405Response( new String[] { "GET", "HEAD" } );
         }
     }
 }

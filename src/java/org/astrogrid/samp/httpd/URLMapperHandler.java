@@ -133,7 +133,7 @@ public class URLMapperHandler implements HttpServer.Handler {
             }
             else {
                 return HttpServer
-                      .createErrorResponse( 405, "Unsupported method" );
+                      .create405Response( new String[] { "HEAD", "GET" } );
             }
         }
         catch ( Exception e ) {

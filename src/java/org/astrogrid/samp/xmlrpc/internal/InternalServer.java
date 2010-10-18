@@ -52,9 +52,14 @@ public class InternalServer implements SampXmlRpcServer {
         handlerList_ = Collections.synchronizedList( new ArrayList() );
         server_.addHandler( new HttpServer.Handler() {
             public HttpServer.Response serveRequest( HttpServer.Request req ) {
-                if ( req.getUrl().equals( path ) &&
-                     req.getMethod().equals( "POST" ) ) {
-                    return getXmlRpcResponse( req.getBody() );
+                if ( req.getUrl().equals( path ) ) {
+                    if ( req.getMethod().equals( "POST" ) ) {
+                        return getXmlRpcResponse( req.getBody() );
+                    }
+                    else {
+                        return HttpServer
+                              .create405Response( new String[] { "POST" } );
+                    }
                 }
                 else {
                     return null;
