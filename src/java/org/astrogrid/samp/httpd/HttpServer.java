@@ -9,6 +9,7 @@ import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -58,11 +59,14 @@ public class HttpServer {
         "([^\\s\\?]*)\\??([^\\s\\?]*)";
     private static final String HTTP_VERSION_REGEX =
         "HTTP/[0-9]+\\.[0-9]+";
+    private static final String HTTP_TOKEN_REGEX =
+        "[a-zA-Z0-9_\\.\\-]+";
 
     private static final Pattern SIMPLE_REQUEST_PATTERN =
         Pattern.compile( "GET" + " " + "(" + "\\S+" + ")" );
     private static final Pattern REQUEST_LINE_PATTERN =
-        Pattern.compile( "(GET|HEAD|POST)" + " " + "(" + "\\S+" + ")"
+        Pattern.compile( "(" + HTTP_TOKEN_REGEX + ")" // typically GET, HEAD etc
+                       + " " + "(" + "\\S+" + ")"
                        + " " + HTTP_VERSION_REGEX );
     private static final Pattern HEADER_PATTERN =
         Pattern.compile( "(" + "[^\\s:]+" +")" + ":\\s*(.*)" );
@@ -248,7 +252,7 @@ public class HttpServer {
         Response response = null;
         Request request = null; 
         try {
-            request = parseRequest( in );
+            request = parseRequest( in, sock.getRemoteSocketAddress() );
         }
         catch ( HttpException e ) {
             response = e.createResponse();
@@ -311,8 +315,10 @@ public class HttpServer {
      * a Request object.
      *
      * @param   in   input stream
+     * @param   remoteAddress  address of requesting client
      */
-    private static Request parseRequest( InputStream in )
+    private static Request parseRequest( InputStream in,
+                                         SocketAddress remoteAddress )
             throws IOException {
 
         // Read the pre-body part.
@@ -327,7 +333,7 @@ public class HttpServer {
         Matcher simpleMatcher = SIMPLE_REQUEST_PATTERN.matcher( hdrLines[ 0 ] );
         if ( simpleMatcher.matches() ) {
             return new Request( "GET", simpleMatcher.group( 1 ),
-                                new HashMap(), null );
+                                new HashMap(), remoteAddress, null );
         }
 
         // Normal HTTP/1.0 request.
@@ -408,12 +414,12 @@ public class HttpServer {
             uri = URLDecoder.decode( uri, "UTF-8" );
 
             // Return the request.
-            return new Request( method, uri, headerMap, body );
+            return new Request( method, uri, headerMap, remoteAddress, body );
         }
 
         // Unrecognised.
         else {
-            throw new HttpException( 500, "Bad request" );
+            throw new HttpException( 400, "Bad request" );
         }
     }
 
@@ -482,6 +488,25 @@ public class HttpServer {
     }
 
     /**
+     * Returns a header value from a header map.
+     * Key value is case-insensitive.
+     *
+     * @param  headerMap  map
+     * @param  key   header key
+     * @return   value of map entry with case-insensitive match for key
+     */
+    public String getHeader( Map headerMap, String key ) {
+        for ( Iterator it = headerMap.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            if ( key.equalsIgnoreCase( (String) entry.getKey() ) ) {
+                Object value = entry.getValue();
+                return value instanceof String ? (String) value : null;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Utility method to create an error response.
      *
      * @param   code  status code
@@ -489,7 +514,31 @@ public class HttpServer {
      * @return   new response object
      */
     public static Response createErrorResponse( int code, String phrase ) {
-        return new Response( code, phrase, null ) {
+        return new Response( code, phrase, new HashMap() ) {
+            public void writeBody( OutputStream out ) {
+            }
+        };
+    }
+
+    /**
+     * Creates an HTTP response indicating that the requested method
+     * (GET, POST, etc) is not supported.
+     *
+     * @param  supportedMethods  list of the methods which are supported
+     * @return   error response
+     */
+    public static Response create405Response( String[] supportedMethods ) {
+        Map hdrMap = new LinkedHashMap();
+        StringBuffer mlist = new StringBuffer();
+        for ( int i = 0; i < supportedMethods.length; i++ ) {
+            if ( i > 0 ) {
+                mlist.append( ", " );
+            }
+            mlist.append( supportedMethods[ i ] );
+        }
+        hdrMap.put( "Allow", mlist.toString() );
+        hdrMap.put( "Content-Length", "0" );
+        return new Response( 405, "Method not allowed", hdrMap ) {
             public void writeBody( OutputStream out ) {
             }
         };
@@ -523,6 +572,7 @@ public class HttpServer {
         private final String method_;
         private final String url_;
         private final Map headerMap_;
+        private final SocketAddress remoteAddress_;
         private final byte[] body_;
 
         /**
@@ -531,13 +581,15 @@ public class HttpServer {
          * @param  method  HTTP method string (GET, HEAD etc)
          * @param  url     requested URL path (should start "/")
          * @param  headerMap  map of HTTP request header key-value pairs
+         * @param  remoteAddress  address of the client making the request
          * @param  body  bytes comprising request body, or null if none present
          */
         public Request( String method, String url, Map headerMap,
-                        byte[] body ) {
+                        SocketAddress remoteAddress, byte[] body ) {
             method_ = method;
             url_ = url;
             headerMap_ = headerMap;
+            remoteAddress_ = remoteAddress;
             body_ = body;
         }
 
@@ -567,6 +619,15 @@ public class HttpServer {
          */
         public Map getHeaderMap() {
             return headerMap_;
+        }
+
+        /**
+         * Returns the address of the client which made this request.
+         *
+         * @return   requesting client's socket address
+         */
+        public SocketAddress getRemoteAddress() {
+            return remoteAddress_;
         }
 
         /**
