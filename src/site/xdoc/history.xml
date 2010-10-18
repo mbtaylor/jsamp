@@ -552,6 +552,8 @@ to a minimum following this release.
     <code>HubConnector</code>, <code>HttpServer</code>,
     <code>InternalServer</code> and <code>ApacheServer</code>
     (thanks to Laurent Bourges).</li>
+<li>Fixed some not-quite-correct internal HTTP server error responses
+    (405, 400).</li>
 </ul>
 </subsection>
 
