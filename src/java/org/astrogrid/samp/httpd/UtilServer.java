@@ -128,7 +128,7 @@ public class UtilServer {
      * @return  URL for external reference to the resource
      */
     public URL exportResource( String resource ) throws IOException {
-        URL localUrl = getClass().getResource( resource );
+        URL localUrl = UtilServer.class.getResource( resource );
         if ( localUrl != null ) {
             return getMapperHandler().addLocalUrl( localUrl );
         }
