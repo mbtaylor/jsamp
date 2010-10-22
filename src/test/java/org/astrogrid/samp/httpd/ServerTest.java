@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import junit.framework.TestCase;
 
@@ -48,5 +50,31 @@ public class ServerTest extends TestCase {
         URL fragUrl1 = new URL( fileUrl1.toString() + "#" + frag ); 
         assertEquals( frag, fragUrl1.getRef() );
         assertEquals( frag, mHandler.addLocalUrl( fragUrl1 ).getRef() );
+    }
+
+    public void testHeaderMap() {
+        HttpServer.HttpHeaderMap hdrMap = new HttpServer.HttpHeaderMap();
+        hdrMap.addHeader( "a", "AA" );
+        hdrMap.addHeader( "b", "BB" );
+        hdrMap.addHeader( "c", "CC" );
+        assertEquals( 3, hdrMap.size() );
+        assertEquals( Arrays.asList( new String[] { "a", "b", "c" } ),
+                      new ArrayList( hdrMap.keySet() ) );
+        assertEquals( "CC", hdrMap.get( "c" ) );
+        hdrMap.addHeader( "c", "DD" );
+        assertEquals( Arrays.asList( new String[] { "a", "b", "c" } ),
+                      new ArrayList( hdrMap.keySet() ) );
+        assertEquals( "CC, DD", hdrMap.get( "c" ) );
+        hdrMap.addHeader( "C", "EE" );
+        assertEquals( Arrays.asList( new String[] { "a", "b", "c" } ),
+                      new ArrayList( hdrMap.keySet() ) );
+        assertEquals( "CC, DD, EE", hdrMap.get( "c" ) );
+
+        assertEquals( "AA", HttpServer.getHeader( hdrMap, "a" ) );
+        assertEquals( "AA", HttpServer.getHeader( hdrMap, "A" ) );
+        assertNull( HttpServer.getHeader( hdrMap, "x" ) );
+        assertNull( HttpServer.getHeader( hdrMap, null ) );
+        assertEquals( "CC, DD, EE", HttpServer.getHeader( hdrMap, "c" ) );
+        assertEquals( "CC, DD, EE", HttpServer.getHeader( hdrMap, "C" ) );
     }
 }
