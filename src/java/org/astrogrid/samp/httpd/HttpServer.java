@@ -344,7 +344,7 @@ public class HttpServer {
             String uri = fullMatcher.group( 2 );
 
             // Then read and parse header lines.
-            Map headerMap = new LinkedHashMap();
+            HttpHeaderMap headerMap = new HttpHeaderMap();
             int iLine = 1;
             boolean headerEnd = false;
             int contentLength = 0;
@@ -371,7 +371,7 @@ public class HttpServer {
                     }
 
                     // Store the header.
-                    headerMap.put( key, value );
+                    headerMap.addHeader( key, value );
 
                     // Iff we have a content-length line it means we can expect
                     // a body later.
@@ -490,20 +490,42 @@ public class HttpServer {
     /**
      * Returns a header value from a header map.
      * Key value is case-insensitive.
+     * In the (undesirable) case that multiple keys with the same
+     * case-insensitive value exist, the values are concatenated with
+     * comma separators, as per RFC2616 section 4.2.
      *
      * @param  headerMap  map
      * @param  key   header key
      * @return   value of map entry with case-insensitive match for key
      */
-    public String getHeader( Map headerMap, String key ) {
+    public static String getHeader( Map headerMap, String key ) {
+        List valueList = new ArrayList();
         for ( Iterator it = headerMap.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry entry = (Map.Entry) it.next();
-            if ( key.equalsIgnoreCase( (String) entry.getKey() ) ) {
+            if ( ((String) entry.getKey()).equalsIgnoreCase( key ) ) {
                 Object value = entry.getValue();
-                return value instanceof String ? (String) value : null;
+                if ( value instanceof String ) {
+                    valueList.add( value );
+                }
             }
         }
-        return null;
+        int nval = valueList.size();
+        if ( nval == 0 ) {
+            return null;
+        }
+        else if ( nval == 1 ) {
+            return (String) valueList.get( 0 );
+        }
+        else {
+            StringBuffer sbuf = new StringBuffer();
+            for ( Iterator vit = valueList.iterator(); vit.hasNext(); ) {
+                sbuf.append( (String) vit.next() );
+                if ( vit.hasNext() ) {
+                    sbuf.append( ", " );
+                }
+            }
+            return sbuf.toString();
+        }
     }
 
     /**
@@ -614,8 +636,11 @@ public class HttpServer {
 
         /**
          * Returns a map of key-value pairs representing HTTP request headers.
+         * Note that for HTTP usage, header keys are case-insensitive
+         * (RFC2616 sec 4.2); the {@link #getHeader} utility method 
+         * can be used to interrogate the returned map.
          *
-         * @return   headers
+         * @return   header map
          */
         public Map getHeaderMap() {
             return headerMap_;
@@ -705,7 +730,10 @@ public class HttpServer {
         }
 
         /**
-         * Returns a map of the header keyword-value pairs.
+         * Returns a map of key-value pairs representing HTTP response headers.
+         * Note that for HTTP usage, header keys are case-insensitive
+         * (RFC2616 sec 4.2); the {@link #getHeader} utility method 
+         * can be used to interrogate the returned map.
          *
          * @return   header map
          */
@@ -788,6 +816,44 @@ public class HttpServer {
          */
         Response createResponse() {
             return createErrorResponse( code_, phrase_ );
+        }
+    }
+
+    /**
+     * Map implementation suitable for storing HTTP headers.
+     * It should be populated using the {@link #addHeader}, not {@link #put},
+     * method.
+     * This implementation should be used when a header is being constructed
+     * from an uncontrolled source of (key,value) pairs.
+     * If you are adding headers yourself and know that you won't duplicate
+     * keys, then a normal Map implementation will do.
+     */
+    static class HttpHeaderMap extends LinkedHashMap {
+
+        /**
+         * Adds a header value to this map.
+         * This differs from put in two subtle ways.
+         * First, key matching is case-insensitive.
+         * Second, if a value for the given key already exists, the new
+         * value will be appended after a comma, rather than replacing
+         * the old entry.  See RFC2616 section 4.2 for the HTTP rules.
+         *
+         * @param   key  header name
+         * @param   value  header value
+         */
+        public void addHeader( String key, String value ) {
+            boolean added = false;
+            for ( Iterator it = entrySet().iterator();
+                  it.hasNext() && ! added; ) {
+                Map.Entry entry = (Map.Entry) it.next();
+                if ( ((String) entry.getKey()).equalsIgnoreCase( key ) ) {
+                    entry.setValue( entry.getValue() + ", " + value );
+                    added = true;
+                }
+            }
+            if ( ! added ) {
+                put( key, value );
+            }
         }
     }
 
