@@ -554,6 +554,8 @@ to a minimum following this release.
     (thanks to Laurent Bourges).</li>
 <li>Fixed some not-quite-correct internal HTTP server error responses
     (405, 400).</li>
+<li>Improved header handling (case-sensitive, duplicated keys)
+    in HttpServer.</li>
 </ul>
 </subsection>
 
