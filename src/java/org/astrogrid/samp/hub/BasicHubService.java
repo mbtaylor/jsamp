@@ -158,6 +158,7 @@ public class BasicHubService implements HubService {
             throw new HubServiceException( "Not started" );
         }
         HubClient client = createClient( keyGen_.next(), idGen_.next() );
+        assert client.getId().indexOf( ID_DELIMITER ) < 0;
         clientSet_.add( client );
         hubEvent( new Message( "samp.hub.event.register" )
                      .addParam( "id", client.getId() ) );
@@ -798,7 +799,6 @@ public class BasicHubService implements HubService {
         private final int nchar_;
         private final Random random_;
         private int iseq_;
-        private final char unused_;
 
         /**
          * Constructor.
@@ -811,7 +811,6 @@ public class BasicHubService implements HubService {
             prefix_ = prefix;
             nchar_ = nchar;
             random_ = random;
-            unused_ = '_';
         }
 
         /**
@@ -827,20 +826,9 @@ public class BasicHubService implements HubService {
             sbuf.append( '_' );
             for ( int i = 0; i < nchar_; i++ ) {
                 char c = (char) ( 'a' + (char) random_.nextInt( 'z' - 'a' ) );
-                assert c != ID_DELIMITER;
                 sbuf.append( c );
             }
             return sbuf.toString();
-        }
-
-        /**
-         * Returns a character guaranteed to be absent from any key generated
-         * by this object.
-         *
-         * @return  unused character
-         */
-        public char getUnusedChar() {
-            return unused_;
         }
     }
 
