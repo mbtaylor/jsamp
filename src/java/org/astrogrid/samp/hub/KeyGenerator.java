@@ -1,5 +1,6 @@
 package org.astrogrid.samp.hub;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
 /**
@@ -48,5 +49,19 @@ public class KeyGenerator {
             sbuf.append( c );
         }
         return sbuf.toString();
+    }
+
+    /**
+     * Returns a new, randomly seeded, Random object.
+     *
+     * @return  random
+     */
+    public static Random createRandom() {
+        byte[] seedBytes = new SecureRandom().generateSeed( 8 );
+        long seed = 0L;
+        for ( int i = 0; i < 8; i++ ) {
+            seed = ( seed << 8 ) | ( seedBytes[ i ] & 0xff );
+        }
+        return new Random( seed );
     }
 }

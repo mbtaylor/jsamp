@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.URL;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -21,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.hub.KeyGenerator;
 import org.astrogrid.samp.hub.LockWriter;
 import org.astrogrid.samp.httpd.ServerResource;
 import org.astrogrid.samp.httpd.UtilServer;
@@ -49,7 +49,7 @@ public class HubRunner {
 
     private final static Logger logger_ =
         Logger.getLogger( HubRunner.class.getName() );
-    private final static Random random_ = createRandom();
+    private final static Random random_ = KeyGenerator.createRandom();
 
     /**
      * Constructor.
@@ -361,20 +361,6 @@ public class HubRunner {
                            + SampUtils.LOCALHOST_PROP + " property" );
         writer.writeAssignments( info );
         out.flush();
-    }
-
-    /**
-     * Returns a new, randomly seeded, Random object.
-     *
-     * @return  random
-     */
-    static Random createRandom() {
-        byte[] seedBytes = new SecureRandom().generateSeed( 8 );
-        long seed = 0L;
-        for ( int i = 0; i < 8; i++ ) {
-            seed = ( seed << 8 ) | ( seedBytes[ i ] & 0xff );
-        }
-        return new Random( seed );
     }
 
     /**
