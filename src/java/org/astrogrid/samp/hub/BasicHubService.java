@@ -789,50 +789,6 @@ public class BasicHubService implements HubService {
     }
 
     /**
-     * Object which can generate a sequence of private keys.
-     * The values returned by the next() method should in general not be
-     * easy to guess.
-     */
-    private static class KeyGenerator {
-
-        private final String prefix_;
-        private final int nchar_;
-        private final Random random_;
-        private int iseq_;
-
-        /**
-         * Constructor.
-         *
-         * @param  prefix  prefix prepended to all generated keys
-         * @param  nchar   number of characters in generated keys
-         * @param  random  random number generator
-         */
-        public KeyGenerator( String prefix, int nchar, Random random ) {
-            prefix_ = prefix;
-            nchar_ = nchar;
-            random_ = random;
-        }
-
-        /**
-         * Returns the next key in the sequence.
-         * Guaranteed different from any previous return value from this method.
-         *
-         * @return  key string
-         */
-        public synchronized String next() {
-            StringBuffer sbuf = new StringBuffer();
-            sbuf.append( prefix_ );
-            sbuf.append( Integer.toString( ++iseq_ ) );
-            sbuf.append( '_' );
-            for ( int i = 0; i < nchar_; i++ ) {
-                char c = (char) ( 'a' + (char) random_.nextInt( 'z' - 'a' ) );
-                sbuf.append( c );
-            }
-            return sbuf.toString();
-        }
-    }
-
-    /**
      * Generates client public IDs.
      * These must be unique, but don't need to be hard to guess.
      */
