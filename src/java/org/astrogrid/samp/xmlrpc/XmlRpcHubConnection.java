@@ -213,13 +213,13 @@ public class XmlRpcHubConnection implements HubConnection {
     /**
      * Unregisters if not already unregistered.
      */
-    public void finalize() throws Exception {
+    public void finalize() throws Throwable {
         try {
+            finish();
+        }
+        finally {
             super.finalize();
         }
-        catch ( Throwable e ) {
-        }
-        finish();
     }
 
     /**
