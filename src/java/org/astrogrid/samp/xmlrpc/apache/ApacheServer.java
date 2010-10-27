@@ -93,7 +93,7 @@ public class ApacheServer implements SampXmlRpcServer {
             SampXmlRpcHandler handler = handlers[ ih ];
             if ( handler.canHandleCall( fqMethod ) ) {
                 List paramList = (List) ApacheUtils.fromApache( paramVec );
-                Object result = handler.handleCall( fqMethod, paramList );
+                Object result = handler.handleCall( fqMethod, paramList, null );
                 return ApacheUtils.toApache( result );
             }
         }

@@ -45,7 +45,8 @@ public class RpcLoggingInternalServer extends InternalServer {
     }
 
     protected Object handleCall( SampXmlRpcHandler handler, String methodName,
-                                 List paramList ) throws Exception {
+                                 List paramList, HttpServer.Request request )
+            throws Exception {
         String paramString = SampUtils.formatObject( paramList, 2 );
         synchronized ( out_ ) {
             out_.println( "SERVER IN:" );
@@ -55,7 +56,8 @@ public class RpcLoggingInternalServer extends InternalServer {
         }
         final Object result;
         try {
-            result = super.handleCall( handler, methodName, paramList );
+            result = super.handleCall( handler, methodName, paramList,
+                                       request );
         }
         catch ( Throwable e ) {
             synchronized ( out_ ) {

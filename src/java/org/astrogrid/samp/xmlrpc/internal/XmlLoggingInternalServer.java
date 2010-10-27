@@ -43,17 +43,18 @@ public class XmlLoggingInternalServer extends InternalServer {
         out_ = out;
     }
 
-    protected HttpServer.Response getXmlRpcResponse( byte[] body ) {
+    protected HttpServer.Response
+              getXmlRpcResponse( HttpServer.Request request ) {
         synchronized ( out_ ) {
             out_.println( "SERVER IN:" );
             try {
-                out_.write( body );
+                out_.write( request.getBody() );
             }
             catch ( IOException e ) {
             }
             out_.println();
         }
-        return new LoggingResponse( super.getXmlRpcResponse( body ) );
+        return new LoggingResponse( super.getXmlRpcResponse( request ) );
     }
 
     private class LoggingResponse extends HttpServer.Response {

@@ -25,6 +25,10 @@ import org.w3c.dom.Element;
 
 /**
  * SampXmlRpcServer implementation without external dependencies.
+ * The <code>reqInfo</code> argument passed to the
+ * {@link SampXmlRpcHandler#handleCall handleCall} method of registered
+ * <code>SampXmlRpcHandler</code>s is the associated
+ * {@link org.astrogrid.samp.httpd.HttpServer.Request}.
  *
  * @author   Mark Taylor
  * @since    27 Aug 2008
@@ -54,7 +58,7 @@ public class InternalServer implements SampXmlRpcServer {
             public HttpServer.Response serveRequest( HttpServer.Request req ) {
                 if ( req.getUrl().equals( path ) ) {
                     if ( req.getMethod().equals( "POST" ) ) {
-                        return getXmlRpcResponse( req.getBody() );
+                        return getXmlRpcResponse( req );
                     }
                     else {
                         return HttpServer
@@ -82,6 +86,15 @@ public class InternalServer implements SampXmlRpcServer {
         return endpoint_;
     }
 
+    /**
+     * Returns the HTTP server hosting this XML-RPC server.
+     *
+     * @return   http server
+     */
+    public HttpServer getHttpServer() {
+        return server_;
+    }
+
     public void addHandler( SampXmlRpcHandler handler ) {
         handlerList_.add( handler );
     }
@@ -91,18 +104,18 @@ public class InternalServer implements SampXmlRpcServer {
     }
 
     /**
-     * Returns the HTTP response object given the body of an incoming
-     * XML-RPC POST request.  Any error should be handled by returning
-     * a fault-type methodResponse element rather than by throwing an
-     * exception.
+     * Returns the HTTP response object given an incoming XML-RPC POST request.
+     * Any error should be handled by returning a fault-type methodResponse
+     * element rather than by throwing an exception.
      *
-     * @param  body  byte buffer containing POSTed body
+     * @param  request  POSTed HTTP request
      * @return  XML-RPC response (possibly fault)
      */
-    protected HttpServer.Response getXmlRpcResponse( byte[] body ) {
+    protected HttpServer.Response
+              getXmlRpcResponse( HttpServer.Request request ) {
         byte[] rbuf;
         try {
-            rbuf = getResultBytes( getXmlRpcResult( body ) );
+            rbuf = getResultBytes( getXmlRpcResult( request ) );
         }
         catch ( Throwable e ) {
             boolean isChecked = ! ( e instanceof RuntimeException ||
@@ -130,13 +143,15 @@ public class InternalServer implements SampXmlRpcServer {
 
     /**
      * Returns the SAMP-friendly (string, list and map only) object representing
-     * the reply to an XML-RPC request given by a supplied byte array.
+     * the reply to an XML-RPC request given by a request.
      *
-     * @param  body  byte buffer containing POSTed body
+     * @param  request  POSTed HTTP request
      * @return   SAMP-friendly object
      * @throws  Exception  in case of error (will become XML-RPC fault)
      */ 
-    private Object getXmlRpcResult( byte[] body ) throws Exception {
+    private Object getXmlRpcResult( HttpServer.Request request )
+            throws Exception {
+        byte[] body = request.getBody();
 
         // Parse body as XML document.
         if ( body == null || body.length == 0 ) {
@@ -198,7 +213,7 @@ public class InternalServer implements SampXmlRpcServer {
         }
 
         // Pass the call to the handler and return the result.
-        return handleCall( handler, methodName, paramList );
+        return handleCall( handler, methodName, paramList, request );
     }
 
     /**
@@ -209,10 +224,12 @@ public class InternalServer implements SampXmlRpcServer {
      *                   named method
      * @param   methodName  XML-RPC method name
      * @param   paramList  list of parameters to XML-RPC call
+     * @param   request  HTTP request from which this call originated
      */
     protected Object handleCall( SampXmlRpcHandler handler, String methodName,
-                                 List paramList ) throws Exception {
-        return handler.handleCall( methodName, paramList );
+                                 List paramList, HttpServer.Request request )
+            throws Exception {
+        return handler.handleCall( methodName, paramList, request );
     }
 
     /**

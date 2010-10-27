@@ -558,6 +558,9 @@ to a minimum following this release.
     in HttpServer.</li>
 <li>Fixed URI escaping bugs related to "+" characters
     (new utility methods <code>SampUtils.uriEncode/Decode</code>).</li>
+<li>Changed pluggable XML-RPC implementation framework API slightly -
+    <code>handleCall</code> method in <code>SampXmlRpcHandler</code>
+    interface gets an additional argument.</li>
 </ul>
 </subsection>
 

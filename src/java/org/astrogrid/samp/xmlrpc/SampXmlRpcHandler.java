@@ -25,11 +25,15 @@ public interface SampXmlRpcHandler {
      * The <code>params</code> list and the return value must be 
      * SAMP-compatible, that is only Strings, Lists and String-keyed Maps
      * are allowed in the data structures.
+     * The <code>reqInfo</code> parameter may be used to provide additional
+     * information about the XML-RPC request, for instance the originating
+     * host; this is implementation specific, and may be null.
      *
      * @param   method   XML-RPC method name
      * @param   params   XML-RPC parameter list (SAMP-compatible)
+     * @param   reqInfo  optional additional request information; may be null
      * @return   return value (SAMP-compatible)
      */
-    Object handleCall( String method, List params )
+    Object handleCall( String method, List params, Object reqInfo )
             throws Exception;
 }
