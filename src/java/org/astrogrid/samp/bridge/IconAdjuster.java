@@ -5,12 +5,12 @@ import java.awt.image.RenderedImage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.httpd.HttpServer;
 
 /**
@@ -109,14 +109,10 @@ abstract class IconAdjuster implements HttpServer.Handler {
                 qurl = SampUtils.uriDecode( query );
             }
             catch ( RuntimeException e ) {
-                throw new MalformedURLException( e );
+                throw (MalformedURLException)
+                      new MalformedURLException().initCause( e );
             }
-            try {
-                return new URL( qurl );
-            }
-            catch ( UnsupportedEncodingException e ) {
-                throw (AssertionError) new AssertionError().initCause( e );
-            }
+            return new URL( qurl );
         }
     }
 
