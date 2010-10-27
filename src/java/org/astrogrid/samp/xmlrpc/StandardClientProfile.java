@@ -99,8 +99,8 @@ public class StandardClientProfile implements ClientProfile {
             catch ( IOException e ) {
                 throw new SampException( "Can't connect to " + xurl, e );
             }
-            return new XmlRpcHubConnection( xClient, xServerFactory_,
-                                            lockInfo.getSecret() );
+            return new StandardHubConnection( xClient, xServerFactory_,
+                                              lockInfo.getSecret() );
         }
     }
 

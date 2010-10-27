@@ -13,7 +13,7 @@ import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
-import org.astrogrid.samp.xmlrpc.XmlRpcHubConnection;
+import org.astrogrid.samp.xmlrpc.StandardHubConnection;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
@@ -118,8 +118,8 @@ public class TestClientProfile implements ClientProfile {
                 SampXmlRpcClient xClient =
                     clientClientFactory_.createClient( lockInfo
                                                       .getXmlrpcUrl() );
-                return new XmlRpcHubConnection( xClient, clientServerFactory_,
-                                                lockInfo.getSecret() );
+                return new StandardHubConnection( xClient, clientServerFactory_,
+                                                  lockInfo.getSecret() );
             }
         }
         catch ( IOException e ) {

@@ -5,30 +5,31 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 import java.util.logging.Logger;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
-import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 
 /**
- * HubConnection implementation based on XML-RPC as per the SAMP 
- * Standard Profile.
+ * Partial HubConnection implementation based on XML-RPC.
+ * No implementation is provided for the {@link #setCallable} method.
+ * This is a useful base class for XML-RPC-based profile implementations,
+ * but it is not perfectly general: some assumptions, compatible
+ * with the Standard Profile, are made about the way that XML-RPC
+ * calls are mapped on to SAMP hub interface calls.
  *
  * @author   Mark Taylor
  * @since    16 Jul 2008
  */
-public class XmlRpcHubConnection implements HubConnection {
+public abstract class XmlRpcHubConnection implements HubConnection {
 
     private final SampXmlRpcClient xClient_;
-    private final SampXmlRpcServerFactory serverFactory_;
+    private final String prefix_;
     private final RegInfo regInfo_;
-    private CallableClientServer callableServer_;
     private boolean unregistered_;
     private static final Logger logger_ =
         Logger.getLogger( XmlRpcHubConnection.class.getName() );
@@ -37,17 +38,17 @@ public class XmlRpcHubConnection implements HubConnection {
      * Constructor.
      *
      * @param   xClient   XML-RPC client
-     * @param   serverFactory  XML-RPC server factory implementation
-     * @param   secret  samp.secret registration password
+     * @param   prefix   string prepended to all hub interface method names
+     *                   to turn them into XML-RPC method names
+     * @param   registerArgs  arguments to the profile-specific "register"
+     *                        method to initiate this connection
      */
-    public XmlRpcHubConnection( SampXmlRpcClient xClient,
-                                SampXmlRpcServerFactory serverFactory,
-                                String secret )
+    public XmlRpcHubConnection( SampXmlRpcClient xClient, String prefix,
+                                List registerArgs )
             throws SampException {
         xClient_ = xClient;
-        serverFactory_ = serverFactory;
-        Object regInfo =
-            rawExec( "samp.hub.register", Collections.singletonList( secret ) );
+        prefix_ = prefix;
+        Object regInfo = rawExec( prefix_ + "register", registerArgs );
         if ( regInfo instanceof Map ) {
             regInfo_ = RegInfo.asRegInfo( Collections
                                          .unmodifiableMap( asMap( regInfo ) ) );
@@ -75,27 +76,8 @@ public class XmlRpcHubConnection implements HubConnection {
         rawExec( "samp.hub.ping", new ArrayList() );
     }
 
-    public void setCallable( CallableClient callable ) throws SampException {
-        if ( callableServer_ == null ) {
-            try {
-                callableServer_ = CallableClientServer
-                                 .getInstance( serverFactory_.getServer() );
-            }
-            catch ( IOException e ) {
-                throw new SampException( "Can't start client XML-RPC server",
-                                         e );
-            }
-        }
-        callableServer_.addClient( regInfo_.getPrivateKey(), callable );
-        exec( "setXmlrpcCallback",
-              new Object[] { callableServer_.getUrl().toString() } );
-    }
-
     public void unregister() throws SampException {
         exec( "unregister", new Object[ 0 ] );
-        if ( callableServer_ != null ) {
-            callableServer_.removeClient( regInfo_.getPrivateKey() );
-        }
         unregistered_ = true;
     }
 
@@ -162,20 +144,30 @@ public class XmlRpcHubConnection implements HubConnection {
     }
 
     /**
+     * Returns an object which is used as the first argument of most
+     * XML-RPC calls to the hub.
+     *
+     * @return  SAMP-friendly object to identify this client
+     */
+    public abstract Object getClientKey();
+
+    /**
      * Makes an XML-RPC call to the SAMP hub represented by this connection.
+     * The result of {@link #getClientKey} is passed as the first argument
+     * of the XML-RPC call.
      *
      * @param  methodName  unqualified SAMP hub API method name
      * @param  params   array of method parameters
      * @return  XML-RPC call return value
      */
-    private Object exec( String methodName, Object[] params )
+    public Object exec( String methodName, Object[] params )
             throws SampException {
         List paramList = new ArrayList();
-        paramList.add( regInfo_.getPrivateKey() );
+        paramList.add( getClientKey() );
         for ( int ip = 0; ip < params.length; ip++ ) {
             paramList.add( params[ ip ] );
         }
-        return rawExec( "samp.hub." + methodName, paramList );
+        return rawExec( prefix_ + methodName, paramList );
     }
 
     /**
@@ -186,7 +178,7 @@ public class XmlRpcHubConnection implements HubConnection {
      * @param  paramList   list of method parameters
      * @return  XML-RPC call return value
      */
-    private Object rawExec( String fqName, List paramList )
+    public Object rawExec( String fqName, List paramList )
             throws SampException {
         try {
             return xClient_.callAndWait( fqName, paramList );
