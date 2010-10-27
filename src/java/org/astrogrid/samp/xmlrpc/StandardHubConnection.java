@@ -2,7 +2,6 @@ package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.logging.Logger;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.SampException;
 
@@ -17,8 +16,6 @@ public class StandardHubConnection extends XmlRpcHubConnection {
     private final SampXmlRpcServerFactory serverFactory_;
     private final String clientKey_;
     private CallableClientServer callableServer_;
-    private static final Logger logger_ =
-        Logger.getLogger( StandardHubConnection.class.getName() );
 
     /**
      * Constructor.
