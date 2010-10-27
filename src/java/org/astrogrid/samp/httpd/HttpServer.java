@@ -11,7 +11,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.URL;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -410,8 +409,8 @@ public class HttpServer {
                 body = null;
             }
  
-            // Decode escaped characters in the requeted URI.
-            uri = URLDecoder.decode( uri, "UTF-8" );
+            // Decode escaped characters in the requested URI.
+            uri = SampUtils.uriDecode( uri );
 
             // Return the request.
             return new Request( method, uri, headerMap, remoteAddress, body );

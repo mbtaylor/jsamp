@@ -33,6 +33,27 @@ public class SampUtilsTest extends TestCase {
         }
     }
 
+    public void testUriCodecs() {
+        assertEquals( "abc", SampUtils.uriEncode( "abc" ) );
+        assertEquals( "abc", SampUtils.uriDecode( "abc" ) );
+        assertEquals( "a b+c+d", SampUtils.uriDecode( "a%20b+c%2Bd" ) );
+        String[] txts = {
+            "abc",
+            "http://localhost/file",
+            "a b c * / % ++--%1",
+        };
+        for ( int i = 0; i < txts.length; i++ ) {
+            String txt = txts[ i ];
+            assertEquals( txt,
+                          SampUtils.uriDecode( SampUtils.uriEncode( txt ) ) );
+            assertEquals( txt,
+                          SampUtils.uriDecode(
+                              SampUtils.uriDecode(
+                                  SampUtils.uriEncode(
+                                      SampUtils.uriEncode( txt ) ) ) ) );
+        }
+    }
+
     public void testChars() {
         assertTrue( SampUtils.isStringChar( 'x' ) );
         assertTrue( SampUtils.isStringChar( 'X' ) );

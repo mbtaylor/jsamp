@@ -8,8 +8,6 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
@@ -67,12 +65,9 @@ abstract class IconAdjuster implements HttpServer.Handler {
     public URL exportAdjustedIcon( URL iconUrl ) {
         try {
             return new URL( baseUrl_ + "?"
-                          + URLEncoder.encode( iconUrl.toString(), "UTF-8" ) );
+                          + SampUtils.uriEncode( iconUrl.toString() ) );
         }
         catch ( MalformedURLException e ) {
-            throw (AssertionError) new AssertionError().initCause( e );
-        }
-        catch ( UnsupportedEncodingException e ) {
             throw (AssertionError) new AssertionError().initCause( e );
         }
     }
@@ -109,8 +104,15 @@ abstract class IconAdjuster implements HttpServer.Handler {
             // It should be the URL of the original icon.
             // If it's not, an exception will result.
 
+            String qurl;
             try {
-                return new URL( URLDecoder.decode( query, "UTF-8" ) );
+                qurl = SampUtils.uriDecode( query );
+            }
+            catch ( RuntimeException e ) {
+                throw new MalformedURLException( e );
+            }
+            try {
+                return new URL( qurl );
             }
             catch ( UnsupportedEncodingException e ) {
                 throw (AssertionError) new AssertionError().initCause( e );

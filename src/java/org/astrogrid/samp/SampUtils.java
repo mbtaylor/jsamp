@@ -3,6 +3,7 @@ package org.astrogrid.samp;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -10,6 +11,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -500,6 +502,42 @@ public class SampUtils {
     }
 
     /**
+     * Reverses URI-style character escaping (%xy) on a string.
+     * Note, unlike {@link java.net.URLDecoder},
+     * this does not turn "+" characters into spaces.
+     *
+     * @see "RFC 2396, Section 2.4"
+     * @param  text  escaped text
+     * @return  unescapted text
+     */
+    public static String uriDecode( String text ) {
+        try {
+            return URLDecoder.decode( text.replace( "+", "%2B" ), "UTF-8" );
+        }
+        catch ( UnsupportedEncodingException e ) {
+            throw new AssertionError( "UTF-8 unsupported??" );
+        }
+    }
+
+    /**
+     * Performs URI-stype character escaping (%xy) on a string.
+     * Note, unlike {@link java.net.URLEncoder},
+     * this encodes spaces as "%20" and not "+".
+     *
+     * @see "RFC 2396, Section 2.4"
+     * @param  text  unescaped text
+     * @return  escaped text
+     */
+    public static String uriEncode( String text ) {
+        try {
+            return URLEncoder.encode( text, "UTF-8" ).replace( "+", "%20" );
+        }
+        catch ( UnsupportedEncodingException e ) {
+            throw new AssertionError( "UTF-8 unsupported??" );
+        }
+    }
+
+    /**
      * Attempts to interpret a URL as a file.
      * If the URL does not have the "file:" protocol, null is returned.
      *
@@ -509,13 +547,7 @@ public class SampUtils {
     public static File urlToFile( URL url ) {
         if ( url.getProtocol().equals( "file" ) && url.getRef() == null
                                                 && url.getQuery() == null ) {
-            String path = url.getPath();
-            try {
-                path = URLDecoder.decode( path );
-            }
-            catch ( IllegalArgumentException e ) {
-                // probably a badly-formed URL - try with the undecoded form
-            }
+            String path = uriDecode( url.getPath() );
             String filename = File.separatorChar == '/'
                             ? path
                             : path.replace( '/', File.separatorChar );

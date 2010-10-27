@@ -556,6 +556,8 @@ to a minimum following this release.
     (405, 400).</li>
 <li>Improved header handling (case-sensitive, duplicated keys)
     in HttpServer.</li>
+<li>Fixed URI escaping bugs related to "+" characters
+    (new utility methods <code>SampUtils.uriEncode/Decode</code>).</li>
 </ul>
 </subsection>
 
