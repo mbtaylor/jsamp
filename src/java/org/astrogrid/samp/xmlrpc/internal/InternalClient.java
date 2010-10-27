@@ -197,7 +197,7 @@ public class InternalClient implements SampXmlRpcClient {
      */
     private static class XmlRpcFault extends IOException {
         public XmlRpcFault( int code, String msg ) {
-            super( code + ": " + msg );
+            super( "XML-RPC Fault (" + code + ": " + msg + ")" );
         }
     }
 }
