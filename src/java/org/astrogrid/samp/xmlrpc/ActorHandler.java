@@ -25,7 +25,7 @@ import org.astrogrid.samp.DataException;
  * @author   Mark Taylor
  * @since    15 Jul 2008
  */
-class ActorHandler implements SampXmlRpcHandler {
+public class ActorHandler implements SampXmlRpcHandler {
 
     private final String prefix_;
     private final Object actor_;
@@ -39,14 +39,14 @@ class ActorHandler implements SampXmlRpcHandler {
      * <code>actorType</code> <em>must</em> be visible from this class,
      * that is it may not be package-private to another package.
      *
-     * @param  namespace  string prepended to every method name in the
+     * @param  prefix  string prepended to every method name in the
      *         <code>actorType</code> interface to form the XML-RPC
      *         <code>methodName</code> element
      * @param  actorType  interface defining the XML-RPC methods
      * @param  actor     object implementing <code>actorType</code>
      */
-    public ActorHandler( String namespace, Class actorType, Object actor ) {
-        prefix_ = namespace + ".";
+    public ActorHandler( String prefix, Class actorType, Object actor ) {
+        prefix_ = prefix;
         actor_ = actor;
         methodMap_ = new HashMap();
 
@@ -71,7 +71,7 @@ class ActorHandler implements SampXmlRpcHandler {
         return fqName.startsWith( prefix_ );
     }
 
-    public Object handleCall( String fqName, List params )
+    public Object handleCall( String fqName, List params, Object reqInfo )
             throws Exception {
         if ( ! canHandleCall( fqName ) ) {
             throw new IllegalArgumentException( "No I can't" );
@@ -133,7 +133,7 @@ class ActorHandler implements SampXmlRpcHandler {
     /**
      * Returns the implementation object for this handler.
      *
-     * @return   implementaion object
+     * @return   implementation object
      */
     public Object getActor() {
         return actor_;

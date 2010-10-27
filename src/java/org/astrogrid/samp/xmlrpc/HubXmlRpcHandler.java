@@ -26,7 +26,7 @@ class HubXmlRpcHandler extends ActorHandler {
      */
     public HubXmlRpcHandler( SampXmlRpcClientFactory xClientFactory,
                              HubService service, String secret ) {
-        super( "samp.hub", HubActor.class,
+        super( "samp.hub.", HubActor.class,
                new HubActorImpl( xClientFactory, service, secret ) );
     }
 

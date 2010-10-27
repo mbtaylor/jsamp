@@ -22,7 +22,7 @@ class ClientXmlRpcHandler extends ActorHandler {
      * Constructor.
      */
     public ClientXmlRpcHandler() {
-        super( "samp.client", ClientActor.class, new ClientActorImpl() );
+        super( "samp.client.", ClientActor.class, new ClientActorImpl() );
         clientActor_ = (ClientActorImpl) getActor();
     }
 
