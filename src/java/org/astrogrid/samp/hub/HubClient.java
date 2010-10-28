@@ -19,9 +19,9 @@ public class HubClient implements Client {
 
     private final String publicId_;
     private final Object privateKey_;
-    private Subscriptions subscriptions_;
-    private Metadata metadata_;
-    private Receiver receiver_;
+    private volatile Subscriptions subscriptions_;
+    private volatile Metadata metadata_;
+    private volatile Receiver receiver_;
 
     /**
      * Constructor.
