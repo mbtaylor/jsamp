@@ -6,6 +6,8 @@ import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
@@ -36,6 +38,8 @@ public class Transmission {
     private boolean senderUnreg_;
     private boolean receiverUnreg_;
     private long doneTime_;
+    private static final Logger logger_ =
+        Logger.getLogger( Transmission.class.getName() );
 
     /**
      * Constructor.
@@ -136,6 +140,8 @@ public class Transmission {
      */
     public void setError( Throwable error ) {
         error_ = error;
+        logger_.log( Level.WARNING,
+                     "Error in hub operation: " + error.getMessage(), error );
         fireChange();
     }
 
