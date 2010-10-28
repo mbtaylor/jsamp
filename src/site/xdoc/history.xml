@@ -561,6 +561,7 @@ to a minimum following this release.
 <li>Changed pluggable XML-RPC implementation framework API slightly -
     <code>handleCall</code> method in <code>SampXmlRpcHandler</code>
     interface gets an additional argument.</li>
+<li>Fixed client XML logging bug.</li>
 </ul>
 </subsection>
 

@@ -47,12 +47,12 @@ public class XmlLoggingInternalClient extends InternalClient {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         byte[] buf = new byte[ 1024 ];
         for ( int nb; ( nb = in.read( buf ) ) >= 0; ) {
-            out_.write( buf, 0, nb );
             bout.write( buf, 0, nb );
         }
+        byte[] obuf = bout.toByteArray();
         synchronized ( out_ ) {
             out_.println( "CLIENT IN:" );
-            out_.write( buf );
+            out_.write( obuf );
             out_.println();
         }
         InputStream copyIn = new ByteArrayInputStream( bout.toByteArray() );
