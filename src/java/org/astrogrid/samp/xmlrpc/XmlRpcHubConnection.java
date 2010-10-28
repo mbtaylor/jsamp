@@ -73,7 +73,7 @@ public abstract class XmlRpcHubConnection implements HubConnection {
     }
 
     public void ping() throws SampException {
-        rawExec( "samp.hub.ping", new ArrayList() );
+        rawExec( prefix_ + "ping", new ArrayList() );
     }
 
     public void unregister() throws SampException {
