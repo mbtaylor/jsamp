@@ -92,16 +92,29 @@ public class URLMapperHandler implements HttpServer.Handler {
             }
         }
 
-        // Copy relevant information from this resource to the HTTP Response.
+        // Forward header and data from the source URL to the response.
+        return mapUrlResponse( request.getMethod(), srcUrl );
+    }
+
+    /**
+     * Repackages a resource from a given target URL as an HTTP response.
+     * The data and relevant headers are copied straight through.
+     * GET and HEAD methods are served.
+     *
+     * @param  method  HTTP method
+     * @param  targetUrl  URL containing the resource to forward
+     * @return   response redirecting to the given target URL
+     */
+    public static HttpServer.Response mapUrlResponse( String method,
+                                                      URL targetUrl ) {
         final URLConnection conn;
         try {
-            conn = srcUrl.openConnection();
+            conn = targetUrl.openConnection();
             conn.connect();
         }
         catch ( IOException e ) {
             return HttpServer.createErrorResponse( 404, "Not found", e );
         }
-        String method = request.getMethod();
         try {
             Map hdrMap = new LinkedHashMap();
             String contentType = conn.getContentType();

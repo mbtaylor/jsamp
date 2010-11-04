@@ -1,11 +1,8 @@
 package org.astrogrid.samp.httpd;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -146,53 +143,7 @@ public class MultiURLMapperHandler implements HttpServer.Handler {
         }
         URL srcUrl = (URL) urlMap_.get( relPath );
 
-        // Copy relevant information from this resource to the HTTP response.
-        final URLConnection conn;
-        try {
-            conn = srcUrl.openConnection();
-            conn.connect();
-        }
-        catch ( IOException e ) {
-            return HttpServer.createErrorResponse( 404, "Not found", e );
-        }
-        String method = request.getMethod();
-        try {
-            Map hdrMap = new HashMap();
-            String contentType = conn.getContentType();
-            if ( contentType != null ) {
-                hdrMap.put( "Content-Type", contentType );
-            }
-            int contentLength = conn.getContentLength();
-            if ( contentLength >= 0 ) {
-                hdrMap.put( "Content-Length",
-                            Integer.toString( contentLength ) );
-            }
-            String contentEncoding = conn.getContentEncoding();
-            if ( contentEncoding != null ) {
-                hdrMap.put( "Content-Encoding", contentEncoding );
-            }
-            if ( "GET".equals( method ) ) {
-                return new HttpServer.Response( 200, "OK", hdrMap ) {
-                    public void writeBody( OutputStream out )
-                            throws IOException {
-                        UtilServer.copy( conn.getInputStream(), out );
-                    }
-                };
-            }
-            else if ( "HEAD".equals( method ) ) {
-                return new HttpServer.Response( 200, "OK", hdrMap ) {
-                    public void writeBody( OutputStream out ) {
-                    }
-                };
-            }
-            else {
-                return HttpServer
-                      .create405Response( new String[] { "HEAD", "GET" } );
-            }
-        }
-        catch ( Exception e ) {
-            return HttpServer
-                  .createErrorResponse( 500, "Internal server error", e );
-        }
+        // Forward header and data from the source URL to the response.
+        return URLMapperHandler.mapUrlResponse( request.getMethod(), srcUrl );
     }
 }
