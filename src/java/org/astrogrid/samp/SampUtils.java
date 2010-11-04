@@ -508,7 +508,7 @@ public class SampUtils {
      *
      * @see "RFC 2396, Section 2.4"
      * @param  text  escaped text
-     * @return  unescapted text
+     * @return  unescaped text
      */
     public static String uriDecode( String text ) {
         try {
