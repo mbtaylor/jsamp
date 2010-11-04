@@ -5,11 +5,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,10 @@ public class InternalServer implements SampXmlRpcServer {
     private final HttpServer server_;
     private final URL endpoint_;
     private final List handlerList_;
+    private static final HttpServer.Response GET_RESPONSE =
+        createInfoResponse( true );
+    private static final HttpServer.Response HEAD_RESPONSE =
+        createInfoResponse( false );
 
     private static final Logger logger_ =
         Logger.getLogger( InternalServer.class.getName() );
@@ -57,12 +62,20 @@ public class InternalServer implements SampXmlRpcServer {
         server_.addHandler( new HttpServer.Handler() {
             public HttpServer.Response serveRequest( HttpServer.Request req ) {
                 if ( req.getUrl().equals( path ) ) {
-                    if ( req.getMethod().equals( "POST" ) ) {
+                    String method = req.getMethod();
+                    if ( "POST".equals( method ) ) {
                         return getXmlRpcResponse( req );
+                    }
+                    else if ( "GET".equals( method ) ) {
+                        return GET_RESPONSE;
+                    }
+                    else if ( "HEAD".equals( method ) ) {
+                        return HEAD_RESPONSE;
                     }
                     else {
                         return HttpServer
-                              .create405Response( new String[] { "POST" } );
+                              .create405Response( new String[] { "POST", "GET",
+                                                                 "HEAD", } );
                     }
                 }
                 else {
@@ -131,7 +144,7 @@ public class InternalServer implements SampXmlRpcServer {
             }
         }
         final byte[] replyBuf = rbuf;
-        Map hdrMap = new HashMap();
+        Map hdrMap = new LinkedHashMap();
         hdrMap.put( "Content-Length", Integer.toString( replyBuf.length ) );
         hdrMap.put( "Content-Type", "text/xml" );
         return new HttpServer.Response( 200, "OK", hdrMap ) {
@@ -291,5 +304,47 @@ public class InternalServer implements SampXmlRpcServer {
         xout.end( "methodResponse" );
         xout.close();
         return out.toByteArray();
+    }
+
+    /**
+     * Returns a simple response suitable for GET/HEAD at the XML-RPC
+     * server's endpoint.
+     *
+     * @param  withData  true for text (GET), false for no text (HEAD)
+     * @return  HTTP response
+     */
+    private static HttpServer.Response createInfoResponse( final boolean
+                                                           withData ) {
+        String text = new StringBuffer()
+            .append( "<html>\n" )
+            .append( "<head><title>XML-RPC</title></head>\n" )
+            .append( "<body>\n" )
+            .append( "<h1>XML-RPC Server</h1>\n" )
+            .append( "<p>This is an " )
+            .append( "<a href='http://www.xmlrpc.com/'>XML-RPC</a> server.\n" )
+            .append( "</p>\n" )
+            .append( "<p>Try POSTing.</p>\n" )
+            .append( "</body>\n" )
+            .append( "</html>\n" )
+        .toString();
+        byte[] buf1;
+        try {
+            buf1 = text.getBytes( "utf-8" );
+        }
+        catch ( UnsupportedEncodingException e ) {
+            assert false : "no UTF-8??";
+            buf1 = new byte[ 0 ];
+        }
+        final byte[] buf = buf1;
+        Map hdrMap = new LinkedHashMap();
+        hdrMap.put( "Content-Type", "text/html" );
+        hdrMap.put( "Content-Length", Integer.toString( buf.length ) );
+        return new HttpServer.Response( 200, "OK", hdrMap ) {
+            public void writeBody( OutputStream out ) throws IOException {
+                if ( withData ) {
+                    out.write( buf );
+                }
+            }
+        };
     }
 }
