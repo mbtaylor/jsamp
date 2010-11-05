@@ -432,6 +432,7 @@ public class HubRunner {
             else if ( arg.equals( "-secret" ) && it.hasNext() ) {
                 it.remove();
                 secret = (String) it.next();
+                it.remove();
             }
             else if ( arg.equals( "-httplock" ) ) {
                 it.remove();
