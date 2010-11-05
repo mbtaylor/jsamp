@@ -36,8 +36,8 @@ public class BasicHubService implements HubService {
     private final Map waiterMap_;
     private ClientSet clientSet_;
     private HubClient hubClient_;
-    private boolean started_;
-    private boolean shutdown_;
+    private volatile boolean started_;
+    private volatile boolean shutdown_;
     private static final char ID_DELIMITER = '_';
     private final Logger logger_ =
         Logger.getLogger( BasicHubService.class.getName() );
@@ -537,6 +537,10 @@ public class BasicHubService implements HubService {
         clientSet_.remove( client );
         hubEvent( new Message( "samp.hub.event.unregister" )
                  .addParam( "id", clientId ) );
+    }
+
+    public synchronized boolean isRunning() {
+        return started_ && ! shutdown_;
     }
 
     public synchronized void shutdown() {

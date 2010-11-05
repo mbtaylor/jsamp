@@ -181,6 +181,13 @@ public interface HubService {
              throws HubServiceException;
 
     /**
+     * Indicates whether this hub service is currently open for operations.
+     *
+     * @return  true iff called between {@link #start} and {@link #shutdown}
+     */
+    boolean isRunning();
+
+    /**
      * Tidies up any resources owned by this object.
      * Should be called when no longer required.
      */
