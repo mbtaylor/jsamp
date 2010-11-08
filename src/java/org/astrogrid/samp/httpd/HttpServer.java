@@ -42,10 +42,11 @@ import org.astrogrid.samp.SampUtils;
 public class HttpServer {
 
     private final ServerSocket serverSocket_;
-    private Thread serverThread_;
     private boolean isDaemon_;
     private List handlerList_;
     private final URL baseUrl_;
+    private volatile boolean started_;
+    private volatile boolean stopped_;
 
     /** Header string for MIME content type. */
     public static final String HDR_CONTENT_TYPE = "Content-Type";
@@ -178,11 +179,11 @@ public class HttpServer {
      * Starts the server if it is not already started.
      */
     public synchronized void start() {
-        if ( serverThread_ == null ) {
+        if ( ! started_ ) {
             Thread server = new Thread( "HTTP Server" ) {
                 public void run() {
                     try {
-                        while ( ! isInterrupted() ) {
+                        while ( ! stopped_ ) {
                             try {
                                 final Socket sock = serverSocket_.accept();
                                 new Thread( "HTTP Request" ) {
@@ -198,18 +199,22 @@ public class HttpServer {
                                 }.start();
                             }
                             catch ( IOException e ) {
-                                logger_.log( Level.WARNING, "Socket error", e );
+                                if ( ! stopped_ ) {
+                                    logger_.log( Level.WARNING,
+                                                 "Socket error", e );
+                                }
                             }
                         }
                     }
                     finally {
-                        serverThread_ = null;
+                        stop();
                     }
                 }
             };
             server.setDaemon( isDaemon_ );
             logger_.info( "Server " + getBaseUrl() + " starting" );
             server.start();
+            started_ = true;
             logger_.config( "Server " + getBaseUrl() + " started" );
         }
     }
@@ -219,11 +224,16 @@ public class HttpServer {
      * which have already been received is completed.
      */
     public synchronized void stop() {
-        Thread serverThread = serverThread_;
-        if ( serverThread != null ) {
-            serverThread.interrupt();
-            serverThread_ = null;
+        if ( ! stopped_ ) {
+            stopped_ = true;
             logger_.info( "Server " + getBaseUrl() + " stopping" );
+            try {
+                serverSocket_.close();
+            }
+            catch ( IOException e ) {
+                logger_.log( Level.WARNING,
+                             "Error during server stop: " + e, e );
+            }
         }
     }
 
@@ -233,7 +243,7 @@ public class HttpServer {
      * @return   true if running
      */
     public boolean isRunning() {
-        return serverThread_ != null;
+        return started_ && ! stopped_;
     }
 
     /**
