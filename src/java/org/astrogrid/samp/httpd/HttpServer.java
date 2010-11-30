@@ -251,7 +251,7 @@ public class HttpServer {
      *
      * @param  sock   client connection socket
      */
-    private void serveRequest( Socket sock ) throws IOException {
+    protected void serveRequest( Socket sock ) throws IOException {
 
         // Try to generate a request object by examining the socket's 
         // input stream.  If that fails, generate a response representing
