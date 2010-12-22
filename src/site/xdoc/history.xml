@@ -562,6 +562,7 @@ to a minimum following this release.
     <code>handleCall</code> method in <code>SampXmlRpcHandler</code>
     interface gets an additional argument.</li>
 <li>Fixed client XML logging bug.</li>
+<li>Version now declares itself as SAMP v1.2 REC.</li>
 </ul>
 </subsection>
 
