@@ -563,6 +563,13 @@ to a minimum following this release.
     interface gets an additional argument.</li>
 <li>Fixed client XML logging bug.</li>
 <li>Version now declares itself as SAMP v1.2 REC.</li>
+<li>Changes to hub classes.
+    Most of the <code>HubService</code> interface has been replaced using
+    <code>HubConnection</code> and <code>Receiver</code> has been replaced by
+    <code>CallableClient</code>.
+    This has reduced amount and duplication of code.
+    The changes are backwardly incompatible, but this is unikely to affect
+    anybody who is not writing hub implementation code.</li>
 </ul>
 </subsection>
 
