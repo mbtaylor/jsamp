@@ -31,17 +31,16 @@ public interface ClientSet {
     HubClient getFromPublicId( String publicId );
 
     /**
-     * Returns the client in the set corresponding to a given private key.
-     *
-     * @param  privateKey  client private key
-     * @return  client with key <code>privateKey</code> if registered, or null
-     */
-    HubClient getFromPrivateKey( String privateKey );
-
-    /**
      * Returns an array of all the currently contained clients.
      *
      * @return client list
      */
     HubClient[] getClients();
+
+    /**
+     * Indicates whether a given client is currently a member of this set.
+     *
+     * @return  true iff <code>client</code> is currently a member of this set
+     */
+    boolean containsClient( HubClient client );
 }

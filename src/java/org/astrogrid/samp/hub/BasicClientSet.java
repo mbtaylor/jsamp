@@ -15,7 +15,6 @@ import java.util.TreeMap;
 public class BasicClientSet implements ClientSet {
 
     private final Map publicIdMap_;
-    private final Map privateKeyMap_;
 
     /**
      * Constructor.
@@ -25,29 +24,26 @@ public class BasicClientSet implements ClientSet {
     public BasicClientSet( Comparator clientIdComparator ) {
         publicIdMap_ = Collections
                       .synchronizedMap( new TreeMap( clientIdComparator ) );
-        privateKeyMap_ = Collections.synchronizedMap( new HashMap() );
     }
 
     public synchronized void add( HubClient client ) {
         publicIdMap_.put( client.getId(), client );
-        privateKeyMap_.put( client.getPrivateKey(), client );
     }
 
     public synchronized void remove( HubClient client ) {
         publicIdMap_.remove( client.getId() );
-        privateKeyMap_.remove( client.getPrivateKey() );
     }
 
     public synchronized HubClient getFromPublicId( String publicId ) {
         return (HubClient) publicIdMap_.get( publicId );
     }
 
-    public synchronized HubClient getFromPrivateKey( String privateKey ) {
-        return (HubClient) privateKeyMap_.get( privateKey );
-    }
-
     public synchronized HubClient[] getClients() {
         return (HubClient[])
                publicIdMap_.values().toArray( new HubClient[ 0 ] );
+    }
+
+    public synchronized boolean containsClient( HubClient client ) {
+        return publicIdMap_.containsValue( client );
     }
 }

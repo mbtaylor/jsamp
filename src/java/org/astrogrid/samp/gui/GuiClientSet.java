@@ -23,8 +23,7 @@ class GuiClientSet extends BasicClientSet implements ListModel {
 
     private final List clientList_;
     private final List listenerList_;
-    private final static HubClient MORIBUND_CLIENT =
-         new HubClient( "<no-id>", "<moribund>" );
+    private final static HubClient MORIBUND_CLIENT = new HubClient( "<no-id>" );
 
     /**
      * Constructor.
@@ -83,12 +82,11 @@ class GuiClientSet extends BasicClientSet implements ListModel {
      * of a client have changed.
      * May be called from any thread.
      *
-     * @param  privateKey  private key of client which has changed
+     * @param  client  client which has changed
      */
-    public synchronized void scheduleClientChanged( String privateKey ) {
+    public synchronized void scheduleClientChanged( HubClient client ) {
         for ( int ix = 0; ix < clientList_.size(); ix++ ) {
-            HubClient client = (HubClient) clientList_.get( ix );
-            if ( client.getPrivateKey().equals( privateKey ) ) {
+            if ( clientList_.get( ix ).equals( client ) ) {
                 scheduleListDataEvent( ListDataEvent.CONTENTS_CHANGED,
                                        ix, ix );
                 return;
