@@ -3,22 +3,22 @@ package org.astrogrid.samp.xmlrpc;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.astrogrid.samp.Message;
-import org.astrogrid.samp.hub.HubServiceException;
-import org.astrogrid.samp.hub.Receiver;
+import org.astrogrid.samp.Response;
+import org.astrogrid.samp.client.CallableClient;
+import org.astrogrid.samp.client.SampException;
 
 /**
- * Receiver implementation used to communicate with XML-RPC-based callable
- * clients.
+ * CallableClient implementation used to communicate with XML-RPC-based
+ * callable clients.
  *
  * @author   Mark Taylor
- * @since    15 Jul 2008
+ * @since    28 Jan 2011
  */
-class XmlRpcReceiver implements Receiver {
+class XmlRpcCallableClient implements CallableClient {
 
-    private final String privateKey_;
     private final SampXmlRpcClient xClient_;
+    private final String privateKey_;
 
     /**
      * Constructor.
@@ -26,38 +26,37 @@ class XmlRpcReceiver implements Receiver {
      * @param  xClient  XML-RPC client implementation
      * @param  SAMP client's private key
      */
-    public XmlRpcReceiver( SampXmlRpcClient xClient, String privateKey ) {
+    public XmlRpcCallableClient( SampXmlRpcClient xClient, String privateKey ) {
         xClient_ = xClient;
         privateKey_ = privateKey;
     }
 
-    public void receiveCall( String senderId, String msgId, Map message )
-            throws HubServiceException {
-        exec( "receiveCall", new Object[] { senderId, msgId, message, } );
+    public void receiveCall( String senderId, String msgId, Message msg )
+            throws SampException {
+        exec( "receiveCall", new Object[] { senderId, msgId, msg, } );
     }
 
-    public void receiveNotification( String senderId, Map message )
-            throws HubServiceException {
-        exec( "receiveNotification", new Object[] { senderId, message, } );
+    public void receiveNotification( String senderId, Message msg )
+            throws SampException {
+        exec( "receiveNotification", new Object[] { senderId, msg, } );
     }
 
     public void receiveResponse( String responderId, String msgTag,
-                                 Map response )
-            throws HubServiceException {
+                                 Response response )
+            throws SampException {
         exec( "receiveResponse",
               new Object[] { responderId, msgTag, response, } );
     }
 
     /**
-     * Makes an XML-RPC call to the SAMP callable client represented 
+     * Makes an XML-RPC call to the SAMP callable client represented
      * by this receiver.
      *
      * @param   methodName  unqualified SAMP callable client API method name
      * @param   params   array of method parameters
-     * @return  XML-RPC call return value
      */
     private void exec( String methodName, Object[] params )
-            throws HubServiceException {
+            throws SampException {
         List paramList = new ArrayList();
         paramList.add( privateKey_ );
         for ( int ip = 0; ip < params.length; ip++ ) {
@@ -67,17 +66,16 @@ class XmlRpcReceiver implements Receiver {
             rawExec( "samp.client." + methodName, paramList );
         }
         catch ( IOException e ) {
-            throw new HubServiceException( e.getMessage(), e );
+            throw new SampException( e.getMessage(), e );
         }
     }
 
     /**
-     * Actually makes an XML-RPC call to the SAMP callable client 
+     * Actually makes an XML-RPC call to the SAMP callable client
      * represented by this receiver.
      *
      * @param   fqName  fully qualified SAMP callable client API method name
      * @param   paramList   list of method parameters
-     * @return  XML-RPC call return value
      */
     private void rawExec( String fqName, List paramList ) throws IOException {
         xClient_.callAndForget( fqName, paramList );
