@@ -19,6 +19,9 @@ import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampMap;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.client.CallableClient;
+import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.UtilServer;
 
 /**
@@ -35,7 +38,8 @@ public class BasicHubService implements HubService {
     private final ClientIdGenerator idGen_;
     private final Map waiterMap_;
     private ClientSet clientSet_;
-    private HubClient hubClient_;
+    private HubClient serviceClient_;
+    private HubConnection serviceClientConnection_;
     private volatile boolean started_;
     private volatile boolean shutdown_;
     private static final char ID_DELIMITER = '_';
@@ -73,7 +77,8 @@ public class BasicHubService implements HubService {
 
         // Prepare and store the client object which represents the hub itself
         // (the one that apparently sends samp.hub.event.shutdown messages etc).
-        hubClient_ = createClient( keyGen_.next(), "hub" );
+        serviceClient_ = createClient( "hub" );
+        serviceClientConnection_ = createConnection( serviceClient_ );
         Metadata meta = new Metadata();
         meta.setName( "Hub" );
         try {
@@ -88,12 +93,12 @@ public class BasicHubService implements HubService {
         meta.put( "author.name", "Mark Taylor" );
         meta.put( "author.mail", "m.b.taylor@bristol.ac.uk" );
         meta.setDescriptionText( getClass().getName() );
-        hubClient_.setMetadata( meta );
-        HubReceiver hubRec =
-            new HubReceiver( this, hubClient_.getPrivateKey() );
-        hubClient_.setReceiver( hubRec );
-        hubClient_.setSubscriptions( hubRec.getSubscriptions() );
-        clientSet_.add( hubClient_ );
+        serviceClient_.setMetadata( meta );
+        HubCallableClient hubCallable =
+            new HubCallableClient( serviceClient_, serviceClientConnection_ );
+        serviceClient_.setCallable( hubCallable );
+        serviceClient_.setSubscriptions( hubCallable.getSubscriptions() );
+        clientSet_.add( serviceClient_ );
 
         // Ensure that things are tidied up (importantly, shutdown messages
         // get sent) in the case of a JVM termination.
@@ -124,10 +129,11 @@ public class BasicHubService implements HubService {
      * Factory method used to create all the client objects which will
      * be used by this hub service.
      *
+     * @param   publicId  client public ID
      * @return   hub client
      */
-    protected HubClient createClient( String privateKey, String publicId ) {
-        return new HubClient( privateKey, publicId );
+    protected HubClient createClient( String publicId ) {
+        return new HubClient( publicId );
     }
 
     /**
@@ -149,45 +155,160 @@ public class BasicHubService implements HubService {
         return clientSet_;
     }
 
-    /**
-     * Returns a RegInfo suitable for use with the SAMP Standard Profile,
-     * in that it contains a privateKey string.
-     */
-    public Map register() throws HubServiceException {
+    public HubConnection register() throws SampException {
         if ( ! started_ ) {
-            throw new HubServiceException( "Not started" );
+            throw new SampException( "Not started" );
         }
-        HubClient client = createClient( keyGen_.next(), idGen_.next() );
+        HubClient client = createClient( idGen_.next() );
         assert client.getId().indexOf( ID_DELIMITER ) < 0;
         clientSet_.add( client );
         hubEvent( new Message( "samp.hub.event.register" )
                      .addParam( "id", client.getId() ) );
-        RegInfo regInfo = new RegInfo();
-        regInfo.put( RegInfo.HUBID_KEY, hubClient_.getId() );
-        regInfo.put( RegInfo.SELFID_KEY, client.getId() );
-
-        // Specific to standard profile.
-        regInfo.put( RegInfo.PRIVATEKEY_KEY, 
-                     String.valueOf( client.getPrivateKey() ) );
-        return regInfo;
+        return createConnection( client );
     }
 
-    public void unregister( Object callerKey ) throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Returns a new HubConnection for use by a given hub client.
+     * The instance methods of the returned object delegate to similarly
+     * named protected methods of this BasicHubService object.
+     * These BasicHubService methods may therefore be overridden to
+     * modify the behaviour of such returned connections.
+     *
+     * @param   caller   client requiring a connection
+     * @return  connection whose methods may be called by or on behalf of 
+     *          <code>caller</code>
+     */
+    protected HubConnection createConnection( final HubClient caller ) {
+        final BasicHubService service = this;
+        final RegInfo regInfo = new RegInfo();
+        regInfo.put( RegInfo.HUBID_KEY, serviceClient_.getId() );
+        regInfo.put( RegInfo.SELFID_KEY, caller.getId() );
+        return new HubConnection() {
+            public RegInfo getRegInfo() {
+                return regInfo;
+            }
+            public void ping() throws SampException {
+                if ( ! service.isRunning() ) {
+                    throw new SampException( "Service is stopped" );
+                }
+            }
+            public void unregister() throws SampException {
+                checkCaller();
+                service.unregister( caller );
+            }
+            public void setCallable( CallableClient callable )
+                    throws SampException {
+                checkCaller();
+                service.setCallable( caller, callable );
+            }
+            public void declareMetadata( Map meta ) throws SampException {
+                checkCaller();
+                service.declareMetadata( caller, meta );
+            }
+            public Metadata getMetadata( String clientId )
+                    throws SampException {
+                checkCaller();
+                return service.getMetadata( clientId );
+            }
+            public void declareSubscriptions( Map subs )
+                    throws SampException {
+                checkCaller();
+                service.declareSubscriptions( caller, subs );
+            }
+            public Subscriptions getSubscriptions( String clientId )
+                    throws SampException {
+                checkCaller();
+                return service.getSubscriptions( clientId );
+            }
+            public String[] getRegisteredClients() throws SampException {
+                checkCaller();
+                return service.getRegisteredClients( caller );
+            }
+            public Map getSubscribedClients( String mtype )
+                    throws SampException {
+                checkCaller();
+                return service.getSubscribedClients( caller, mtype );
+            }
+            public void notify( String recipientId, Map message )
+                    throws SampException {
+                checkCaller();
+                service.notify( caller, recipientId, message );
+            }
+            public String call( String recipientId, String msgTag,
+                                Map message ) throws SampException {
+                checkCaller();
+                return service.call( caller, recipientId, msgTag, message );
+            }
+            public List notifyAll( Map message ) throws SampException {
+                checkCaller();
+                return service.notifyAll( caller, message );
+            }
+            public Map callAll( String msgTag, Map message )
+                    throws SampException {
+                checkCaller();
+                return service.callAll( caller, msgTag, message );
+            }
+            public void reply( String msgId, Map response )
+                    throws SampException {
+                checkCaller();
+                service.reply( caller, msgId, response );
+            }
+            public Response callAndWait( String recipientId, Map message,
+                                         int timeout ) throws SampException {
+                checkCaller();
+                return service.callAndWait( caller, recipientId, message,
+                                            timeout );
+            }
+
+            /**
+             * Checks that this connection's client is able to make calls
+             * on this connection.  If it is not, for instance if it has been
+             * unregistered, an exception will be thrown.
+             */
+            private void checkCaller() throws SampException {
+                if ( ! clientSet_.containsClient( caller ) ) {
+                    throw new SampException( "Client not registered" );
+                }
+            }
+        };
+    }
+
+    /**
+     * Does the work for the <code>unregister</code> method of conections
+     * registered with this service.
+     *
+     * @param   caller   client to unregister
+     * @see   org.astrogrid.samp.client.HubConnection#unregister
+     */
+    protected void unregister( HubClient caller ) throws SampException {
         clientSet_.remove( caller );
         hubEvent( new Message( "samp.hub.event.unregister" )
                      .addParam( "id", caller.getId() ) );
     }
 
-    public void setReceiver( Object callerKey, Receiver receiver )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
-        caller.setReceiver( receiver );
+    /**
+     * Does the work for the <code>setCallable</code> method of connections
+     * registered with this service.
+     *
+     * @param   caller  client 
+     * @param   callable  callable object
+     * @see   org.astrogrid.samp.client.HubConnection#setCallable
+     */
+    protected void setCallable( HubClient caller, CallableClient callable )
+            throws SampException {
+        caller.setCallable( callable );
     }
 
-    public void declareMetadata( Object callerKey, Map meta )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Does the work for the <code>declareMetadata</code> method of connections
+     * registered with this service.
+     *
+     * @param  caller  client
+     * @param  meta   new metadata for client
+     * @see  org.astrogrid.samp.client.HubConnection#declareMetadata
+     */
+    protected void declareMetadata( HubClient caller, Map meta )
+            throws SampException {
         Metadata.asMetadata( meta ).check();
         caller.setMetadata( meta );
         hubEvent( new Message( "samp.hub.event.metadata" )
@@ -195,15 +316,28 @@ public class BasicHubService implements HubService {
                      .addParam( "metadata", meta ) );
     }
 
-    public Map getMetadata( Object callerKey, String clientId )
-            throws HubServiceException {
-        checkCaller( callerKey );
+    /**
+     * Does the work for the <code>getMetadata</code> method of connections
+     * registered with this service.
+     *
+     * @param  clientId  id of client being queried
+     * @return   metadata for client
+     * @see  org.astrogrid.samp.client.HubConnection#getMetadata
+     */
+    protected Metadata getMetadata( String clientId ) throws SampException {
         return getClient( clientId ).getMetadata();
     }
 
-    public void declareSubscriptions( Object callerKey, Map subscriptions )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Does the work for the <code>declareSubscriptions</code> method of
+     * connections registered with this service.
+     *
+     * @param   caller  client
+     * @param  subscriptions  new subscriptions for client
+     * @see  org.astrogrid.samp.client.HubConnection#declareSubscriptions
+     */
+    protected void declareSubscriptions( HubClient caller, Map subscriptions )
+            throws SampException {
         if ( caller.isCallable() ) {
             Subscriptions.asSubscriptions( subscriptions ).check();
             caller.setSubscriptions( subscriptions );
@@ -212,19 +346,33 @@ public class BasicHubService implements HubService {
                          .addParam( "subscriptions", subscriptions ) );
         }
         else {
-            throw new HubServiceException( "Client is not callable" );
+            throw new SampException( "Client is not callable" );
         }
     }
 
-    public Map getSubscriptions( Object callerKey, String clientId ) 
-            throws HubServiceException {
-        checkCaller( callerKey );
+    /** 
+     * Does the work for the <code>getSubscriptions</code> method of connections
+     * registered with this service.
+     *
+     * @param   clientId  id of client being queried
+     * @return   subscriptions for client
+     * @see  org.astrogrid.samp.client.HubConnection#getSubscriptions
+     */
+    protected Subscriptions getSubscriptions( String clientId )
+            throws SampException {
         return getClient( clientId ).getSubscriptions();
     }
 
-    public List getRegisteredClients( Object callerKey )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Does the work for the <code>getRegisteredClients</code> method of
+     * connections registered with this service.
+     *
+     * @param  caller  calling client
+     * @return   array of registered client IDs excluding <code>caller</code>'s
+     * @see  org.astrogrid.samp.client.HubConnection#getRegisteredClients
+     */
+    protected String[] getRegisteredClients( HubClient caller )
+            throws SampException {
         HubClient[] clients = clientSet_.getClients();
         List idList = new ArrayList( clients.length );
         for ( int ic = 0; ic < clients.length; ic++ ) {
@@ -232,12 +380,21 @@ public class BasicHubService implements HubService {
                 idList.add( clients[ ic ].getId() );
             }
         }
-        return idList;
+        return (String[]) idList.toArray( new String[ 0 ] );
     }
 
-    public Map getSubscribedClients( Object callerKey, String mtype )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Does the work for the <code>getSubscribedClients</code> method of
+     * connections registered with this service.
+     *
+     * @param  caller  calling client
+     * @param  mtype   message type
+     * @return   map in which the keys are the public IDs of clients
+     *           subscribed to <code>mtype</code>
+     * @see  org.astrogrid.samp.client.HubConnection#getSubscribedClients
+     */
+    protected Map getSubscribedClients( HubClient caller, String mtype )
+            throws SampException {
         HubClient[] clients = clientSet_.getClients();
         Map subMap = new TreeMap(); 
         for ( int ic = 0; ic < clients.length; ic++ ) {
@@ -252,46 +409,88 @@ public class BasicHubService implements HubService {
         return subMap;
     }
 
-    public void notify( Object callerKey, String recipientId, Map message )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Does the work for the <code>notify</code> method of connections
+     * registered with this service.
+     *
+     * @param   caller  calling client
+     * @param   recipientId  public ID of client to receive message
+     * @param   message  message
+     * @see  org.astrogrid.samp.client.HubConnection#notify
+     */
+    protected void notify( HubClient caller, String recipientId, Map message )
+            throws SampException {
         Message msg = Message.asMessage( message );
         msg.check();
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
-            recipient.getReceiver()
-                     .receiveNotification( caller.getId(), msg );
+            try {
+                recipient.getCallable()
+                         .receiveNotification( caller.getId(), msg );
+            }
+            catch ( SampException e ) {
+                throw e;
+            }
+            catch ( Exception e ) {
+                throw new SampException( e.getMessage(), e );
+            }
         }
         else {
-            throw new HubServiceException( "Client " + recipient
-                                         + " not subscribed to " + mtype );
+            throw new SampException( "Client " + recipient
+                                   + " not subscribed to " + mtype );
         }
     }
 
-    public String call( Object callerKey, String recipientId, String msgTag,
-                        Map message )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Does the work for the <code>call</code> method of connections
+     * registered with this service.
+     *
+     * @param   caller  calling client
+     * @param   recipientId  client ID of recipient
+     * @param   msgTag  message tag
+     * @param   message  message
+     * @return  message ID 
+     * @see   org.astrogrid.samp.client.HubConnection#call
+     */
+    protected String call( HubClient caller, String recipientId, String msgTag,
+                           Map message )
+            throws SampException {
         Message msg = Message.asMessage( message );
         msg.check();
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         String msgId = MessageId.encode( caller, msgTag, false );
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
-            recipient.getReceiver()
-                     .receiveCall( caller.getId(), msgId, msg );
+            try {
+                recipient.getCallable()
+                         .receiveCall( caller.getId(), msgId, msg );
+            }
+            catch ( SampException e ) {
+                throw e;
+            }
+            catch ( Exception e ) {
+                throw new SampException( e.getMessage(), e );
+            }
         }
         else {
-            throw new HubServiceException( "Client " + recipient
-                                         + " not subscribed to " + mtype );
+            throw new SampException( "Client " + recipient
+                                   + " not subscribed to " + mtype );
         }
         return msgId;
     }
 
-    public List notifyAll( Object callerKey, Map message )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Does the work for the <code>notifyAll</code> method of connections
+     * registered with this service.
+     *
+     * @param   caller   calling client
+     * @param   message   message
+     * @return  list of public IDs for clients to which the notify will be sent
+     * @see  org.astrogrid.samp.client.HubConnection#notifyAll
+     */
+    protected List notifyAll( HubClient caller, Map message )
+            throws SampException {
         Message msg = Message.asMessage( message );
         msg.check();
         String mtype = msg.getMType();
@@ -301,11 +500,11 @@ public class BasicHubService implements HubService {
             HubClient recipient = recipients[ ic ];
             if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
                 try {
-                    recipient.getReceiver()
+                    recipient.getCallable()
                              .receiveNotification( caller.getId(), msg );
                     sentList.add( recipient.getId() );
                 }
-                catch ( HubServiceException e ) {
+                catch ( Exception e ) {
                     logger_.log( Level.WARNING, 
                                  "Notification " + caller + " -> " + recipient
                                + " failed: " + e, e );
@@ -315,9 +514,19 @@ public class BasicHubService implements HubService {
         return sentList;
     }
 
-    public Map callAll( Object callerKey, String msgTag, Map message )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Does the work for the <code>call</code> method of connections
+     * registered with this service.
+     *
+     * @param   caller  calling client
+     * @param   msgTag  message tag
+     * @param   message  message
+     * @return   publicId-&gt;msgId map for clients to which an attempt to
+     *           send the call will be made
+     * @see   org.astrogrid.samp.client.HubConnection#callAll
+     */
+    protected Map callAll( HubClient caller, String msgTag, Map message )
+            throws SampException {
         Message msg = Message.asMessage( message );
         msg.check();
         String mtype = msg.getMType();
@@ -327,19 +536,35 @@ public class BasicHubService implements HubService {
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
             if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
-                recipient.getReceiver()
-                         .receiveCall( caller.getId(), msgId, msg );
+                try {
+                    recipient.getCallable()
+                             .receiveCall( caller.getId(), msgId, msg );
+                }
+                catch ( SampException e ) {
+                    throw e;
+                }
+                catch ( Exception e ) {
+                    throw new SampException( e.getMessage(), e );
+                }
                 sentMap.put( recipient.getId(), msgId );
             }
         }
         return sentMap;
     }
 
-    public void reply( Object callerKey, String msgIdStr, Map response )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
-        Response resp = Response.asResponse( response );
-        resp.check();
+    /**
+     * Does the work for the <code>reply</code> method of connections
+     * registered with this service.
+     *
+     * @param   caller  calling client
+     * @param   msgIdStr   message ID
+     * @param   resp  response to forward
+     * @see   org.astrogrid.samp.client.HubConnection#reply
+     */
+    protected void reply( HubClient caller, String msgIdStr, Map resp )
+            throws SampException {
+        Response response = Response.asResponse( resp );
+        response.check();
         MessageId msgId = MessageId.decode( msgIdStr );
         HubClient sender = getClient( msgId.getSenderId() );
         String senderTag = msgId.getSenderTag();
@@ -352,16 +577,16 @@ public class BasicHubService implements HubService {
             synchronized ( waiterMap_ ) {
                 if ( waiterMap_.containsKey( msgId ) ) {
                     if ( waiterMap_.get( msgId ) == null ) {
-                         waiterMap_.put( msgId, resp );
+                         waiterMap_.put( msgId, response );
                          waiterMap_.notifyAll();
                     }
                     else {
-                        throw new HubServiceException(
+                        throw new SampException(
                             "Response ignored - you've already sent one" );
                     }
                 }
                 else {
-                    throw new HubServiceException(
+                    throw new SampException(
                         "Response ignored - synchronous call timed out" );
                 }
             }
@@ -369,29 +594,39 @@ public class BasicHubService implements HubService {
 
         // Otherwise, just pass it to the sender using a callback.
         else {
-            sender.getReceiver()
-                  .receiveResponse( caller.getId(), senderTag, resp );
+            try {
+                sender.getCallable()
+                      .receiveResponse( caller.getId(), senderTag, response );
+            }
+            catch ( SampException e ) {
+                throw e;
+            }
+            catch ( Exception e ) {
+                throw new SampException( e.getMessage(), e );
+            }
         }
     }
 
-    public Map callAndWait( Object callerKey, String recipientId, Map message,
-                            String timeoutStr )
-            throws HubServiceException {
-        HubClient caller = getCaller( callerKey );
+    /**
+     * Does the work for the <code>callAndWait</code> method of connections
+     * registered with this service.
+     *
+     * @param   caller  calling client
+     * @param   recipientId  client ID of recipient
+     * @param   message  message
+     * @param   timeout  timeout in seconds
+     * @return   response  response
+     * @see   org.astrogrid.samp.client.HubConnection#callAndWait
+     */
+    protected Response callAndWait( HubClient caller, String recipientId,
+                                    Map message, int timeout )
+            throws SampException {
         Message msg = Message.asMessage( message );
         msg.check();
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         MessageId hubMsgId =
             new MessageId( caller.getId(), keyGen_.next(), true );
-        int timeout;
-        try { 
-            timeout = SampUtils.decodeInt( timeoutStr );
-        }
-        catch ( Exception e ) {
-            throw new HubServiceException( "Bad timeout format"
-                                         + " (should be SAMP int)", e );
-        }
         long start = System.currentTimeMillis();
         if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
             synchronized ( waiterMap_ ) {
@@ -418,8 +653,17 @@ public class BasicHubService implements HubService {
             }
 
             // Make the call asynchronously to the receiver.
-            recipient.getReceiver()
-                     .receiveCall( caller.getId(), hubMsgId.toString(), msg );
+            try {
+                recipient.getCallable()
+                         .receiveCall( caller.getId(), hubMsgId.toString(),
+                                       msg );
+            }
+            catch ( SampException e ) {
+                throw e;
+            }
+            catch ( Exception e ) {
+                throw new SampException( e.getMessage(), e );
+            }
 
             // Wait until either the timeout expires, or the response to the
             // message turns up in the waiter map (placed there on another
@@ -439,8 +683,7 @@ public class BasicHubService implements HubService {
                             waiterMap_.wait( millis );
                         }
                         catch ( InterruptedException e ) {
-                            throw new HubServiceException( "Wait interrupted",
-                                                           e );
+                            throw new SampException( "Wait interrupted", e );
                         }
                     }
                 }
@@ -466,14 +709,14 @@ public class BasicHubService implements HubService {
                             .append( '.' )
                             .append( millis.substring( millis.length() - 3 ) )
                             .append( '/' )
-                            .append( timeoutStr )
+                            .append( timeout )
                             .append( " sec" )
                             .toString();
-                        throw new HubServiceException( emsg );
+                        throw new SampException( emsg );
                     }
                 }
                 else {
-                    throw new HubServiceException(
+                    throw new SampException(
                         "Synchronous call aborted"
                       + " - server load exceeded maximum of " + MAX_WAITERS
                       + "?" );
@@ -481,43 +724,27 @@ public class BasicHubService implements HubService {
             }
         }
         else {
-            throw new HubServiceException( "Client " + recipient
-                                         + " not subscribed to " + mtype );
+            throw new SampException( "Client " + recipient
+                                   + " not subscribed to " + mtype );
         }
     }
 
     /**
-     * Returns the HubClient object which represents the hub itself.
+     * Returns the HubConnection object which represents the hub itself.
      * This is the one which apparently sends samp.hub.event.shutdown messages
      * etc.
      *
-     * @return  hub client object
+     * @return  hub service object
      */
-    public HubClient getHubClient() {
-        return hubClient_;
+    public HubConnection getServiceConnection() {
+        return serviceClientConnection_;
     }
 
-    /**
-     * Forcibly disconnects a given client.
-     * This call does three things:
-     * <ol>
-     * <li>sends a <code>samp.hub.disconnect</code> message to the
-     *     client which is * about to be ejected, if the client is 
-     *     subscribed to that MType</li>
-     * <li>removes that client from this hub's client set so that any 
-     *     further communication attempts to or from it will fail</li>
-     * <li>broadcasts a <code>samp.hub.unregister</code> message to all
-     *     remaining clients indicating that the client has disappeared</li>
-     * </ol>
-     *
-     * @param  clientId  public-id of client to eject
-     * @param  reason    short text string indicating reason for ejection
-     */
     public void disconnect( String clientId, String reason )
-            throws HubServiceException {
-        if ( clientId.equals( hubClient_.getId() ) ) {
-            throw new HubServiceException( "Refuse to disconnect "
-                                         + "the hub client itself" );
+            throws SampException {
+        if ( clientId.equals( serviceClient_.getId() ) ) {
+            throw new SampException( "Refuse to disconnect "
+                                   + "the hub client itself" );
         }
         HubClient client = clientSet_.getFromPublicId( clientId );
         String mtype = "samp.hub.disconnect";
@@ -527,9 +754,9 @@ public class BasicHubService implements HubService {
                 msg.addParam( "reason", reason );
             }
             try {
-                notify( hubClient_.getPrivateKey(), clientId, msg );
+                notify( serviceClient_, clientId, msg );
             }
-            catch ( HubServiceException e ) {
+            catch ( SampException e ) {
                 logger_.log( Level.INFO,
                              mtype + " to " + client + " failed", e );
             }
@@ -547,6 +774,7 @@ public class BasicHubService implements HubService {
         if ( ! shutdown_ ) {
             shutdown_ = true;
             hubEvent( new Message( "samp.hub.event.shutdown" ) );
+            serviceClientConnection_ = null;
         }
     }
 
@@ -558,38 +786,10 @@ public class BasicHubService implements HubService {
      */
     private void hubEvent( Message msg ) {
         try {
-            notifyAll( hubClient_.getPrivateKey(), msg );
+            notifyAll( serviceClient_, msg );
         }
-        catch ( HubServiceException e ) {
+        catch ( SampException e ) {
             assert false;
-        }
-    }
-
-    /**
-     * Check that a given callerKey represents a registered client.
-     * If it does not, throw an exception.
-     *
-     * @param callerKey  calling client key
-     */
-    private void checkCaller( Object callerKey ) throws HubServiceException {
-        getCaller( callerKey );
-    }
-
-    /**
-     * Returns the client object corresponding to a caller private key.
-     * If no such client is registered, throw an exception.
-     *
-     * @param  callerKey  calling client key
-     * @return   hub client object representing caller
-     */
-    public HubClient getCaller( Object callerKey ) throws HubServiceException {
-        HubClient caller = clientSet_.getFromPrivateKey( (String) callerKey );
-        if ( caller != null ) {
-            return caller;
-        }
-        else {
-            throw new HubServiceException( "Invalid key " + callerKey
-                                         + " for caller" );
         }
     }
 
@@ -600,18 +800,18 @@ public class BasicHubService implements HubService {
      * @param   id  client public id
      * @return  HubClient object
      */
-    private HubClient getClient( String id ) throws HubServiceException {
+    private HubClient getClient( String id ) throws SampException {
         HubClient client = clientSet_.getFromPublicId( id );
         if ( client != null ) {
             return client;
         }
         else if ( idGen_.hasUsed( id ) ) {
-            throw new HubServiceException( "Client " + id
-                                         + " is no longer registered" );
+            throw new SampException( "Client " + id
+                                   + " is no longer registered" );
         }
         else {
-            throw new HubServiceException( "No registered client with ID \""
-                                         + id + "\"" );
+            throw new SampException( "No registered client with ID \""
+                                   + id + "\"" );
         }
     }
 
@@ -720,14 +920,12 @@ public class BasicHubService implements HubService {
          * @param  msgId  string representation of message ID
          * @return   new MessageId object
          */
-        public static MessageId decode( String msgId )
-                throws HubServiceException {
+        public static MessageId decode( String msgId ) throws SampException {
             int delim1 = msgId.indexOf( ID_DELIMITER );
             int delim2 = msgId.indexOf( ID_DELIMITER, delim1 + 1 );
             int delim3 = msgId.indexOf( ID_DELIMITER, delim2 + 1 );
             if ( delim1 < 0 || delim2 < 0 || delim3 < 0 ) {
-                throw new HubServiceException( "Badly formed message ID "
-                                             + msgId );
+                throw new SampException( "Badly formed message ID " + msgId );
             }
             String senderId = msgId.substring( 0, delim1 );
             String synchFlag = msgId.substring( delim1 + 1, delim2 );
@@ -741,12 +939,12 @@ public class BasicHubService implements HubService {
                 isSynch = false;
             }
             else {
-                throw new HubServiceException( "Badly formed message ID "
-                                             + msgId + " (synch flag)" );
+                throw new SampException( "Badly formed message ID "
+                                       + msgId + " (synch flag)" );
             }
             if ( ! checksum( senderId, senderTag, isSynch )
                   .equals( checksum ) ) {
-                throw new HubServiceException( "Bad message ID checksum" );
+                throw new SampException( "Bad message ID checksum" );
             }
             MessageId idObj = new MessageId( senderId, senderTag, isSynch );
             assert idObj.toString().equals( msgId );

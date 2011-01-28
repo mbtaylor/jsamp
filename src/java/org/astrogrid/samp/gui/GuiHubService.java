@@ -8,10 +8,10 @@ import javax.swing.JList;
 import javax.swing.JFrame;
 import javax.swing.ListModel;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.ClientSet;
 import org.astrogrid.samp.hub.HubClient;
-import org.astrogrid.samp.hub.HubServiceException;
 
 /**
  * BasicHubService subclass which provides a GUI window displaying hub
@@ -73,16 +73,16 @@ public class GuiHubService extends BasicHubService {
         return frame;
     }
 
-    public void declareMetadata( Object id, Map meta )
-            throws HubServiceException {
-        super.declareMetadata( id, meta );
-        clientSet_.scheduleClientChanged( (String) id );
+    protected void declareMetadata( HubClient caller, Map meta )
+            throws SampException {
+        super.declareMetadata( caller, meta );
+        clientSet_.scheduleClientChanged( caller );
     }
 
-    public void declareSubscriptions( Object id, Map subscriptions )
-            throws HubServiceException {
-        super.declareSubscriptions( id, subscriptions );
-        clientSet_.scheduleClientChanged( (String) id );
+    protected void declareSubscriptions( HubClient caller, Map subscriptions )
+            throws SampException {
+        super.declareSubscriptions( caller, subscriptions );
+        clientSet_.scheduleClientChanged( caller );
     }
 
     /**
