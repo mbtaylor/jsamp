@@ -104,7 +104,9 @@ public class HubRunner {
         // Start the hub service.
         hub_.start();
         String secret = createSecret();
-        hubHandler_ = new HubXmlRpcHandler( xClientFactory_, hub_, secret );
+        hubHandler_ =
+            new HubXmlRpcHandler( xClientFactory_, hub_, secret,
+                                  new KeyGenerator( "k:", 16, random_ ) );
         server_.addHandler( hubHandler_ );
 
         // Ensure tidy up in case of JVM shutdown.
