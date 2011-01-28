@@ -27,7 +27,7 @@ public class GuiHubService extends BasicHubService {
     /**
      * Constructor.
      *
-     * @param  random  random number generator used for private keys etc
+     * @param  random  random number generator used for message tags etc
      */
     public GuiHubService( Random random ) {
         super( random );

@@ -62,7 +62,7 @@ public class BasicHubService implements HubService {
     public BasicHubService( Random random ) {
 
         // Prepare ID generators.
-        keyGen_ = new KeyGenerator( "k:", 16, random );
+        keyGen_ = new KeyGenerator( "m:", 16, random );
         idGen_ = new ClientIdGenerator( "c" );
 
         // Prepare the data structure which keeps track of pending synchronous
