@@ -9,8 +9,10 @@ import javax.swing.JList;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import org.astrogrid.samp.Message;
-import org.astrogrid.samp.hub.BasicHubService;
+import org.astrogrid.samp.RegInfo;
+import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.hub.HubClient;
+import org.astrogrid.samp.hub.HubService;
 
 /**
  * MouseListener which provides a popup menu with per-client options
@@ -21,7 +23,7 @@ import org.astrogrid.samp.hub.HubClient;
  */
 class HubClientPopupListener implements MouseListener {
 
-    private final BasicHubService hub_;
+    private final HubService hub_;
 
     /** Message which does a ping. */
     private static final Message PING_MSG = new Message( "samp.app.ping" );
@@ -32,7 +34,7 @@ class HubClientPopupListener implements MouseListener {
      * @param  hub  hub service which knows about the HubClients contained
      *              in the JList this will be listening to
      */
-    public HubClientPopupListener( BasicHubService hub ) {
+    public HubClientPopupListener( HubService hub ) {
         hub_ = hub;
     }
 
@@ -119,7 +121,9 @@ class HubClientPopupListener implements MouseListener {
             client_ = client;
             putValue( SHORT_DESCRIPTION,
                       "Forcibly disconnect client " + client_ + " from hub" );
-            setEnabled( ! client.equals( hub_.getHubClient() ) );
+            setEnabled( ! client.getId()
+                         .equals( hub_.getServiceConnection()
+                                 .getRegInfo().get( RegInfo.SELFID_KEY ) ) );
         }
 
         public void actionPerformed( ActionEvent evt ) {
@@ -170,14 +174,14 @@ class HubClientPopupListener implements MouseListener {
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            Object senderKey = hub_.getHubClient().getPrivateKey();
+            HubConnection connection = hub_.getServiceConnection();
             String recipientId = client_.getId();
             try {
                 if ( isCall_ ) {
-                    hub_.call( senderKey, recipientId, name_ + "-tag", msg_ );
+                    connection.call( recipientId, name_ + "-tag", msg_ );
                 }
                 else {
-                    hub_.notify( senderKey, recipientId, msg_ );
+                    connection.notify( recipientId, msg_ );
                 }
             }
             catch ( Exception e ) {

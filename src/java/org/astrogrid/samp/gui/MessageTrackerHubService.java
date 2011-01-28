@@ -21,10 +21,10 @@ import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
+import org.astrogrid.samp.client.CallableClient;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.ClientSet;
 import org.astrogrid.samp.hub.HubClient;
-import org.astrogrid.samp.hub.HubServiceException;
-import org.astrogrid.samp.hub.Receiver;
 
 /**
  * GuiHubService subclass which additionally keeps track of which messages
@@ -91,8 +91,8 @@ public class MessageTrackerHubService extends GuiHubService
         return new MessageTrackerClientSet( getIdComparator() );
     }
 
-    public HubClient createClient( String privateKey, String publicId ) {
-        return new MessageTrackerHubClient( privateKey, publicId );
+    public HubClient createClient( String publicId ) {
+        return new MessageTrackerHubClient( publicId );
     }
 
     public JComponent createHubPanel() {
@@ -143,12 +143,12 @@ public class MessageTrackerHubService extends GuiHubService
              : null;
     }
 
-    public void reply( Object callerKey, String msgId, final Map response )
-            throws HubServiceException {
+    protected void reply( HubClient caller, String msgId, final Map response )
+            throws SampException {
 
         // Notify the transmission object corresponding to this response
         // that the response has been received.
-        final Object callKey = getCallKey( getCaller( callerKey ), msgId );
+        final Object callKey = getCallKey( caller, msgId );
         SwingUtilities.invokeLater( new Runnable() {
             public void run() {
                 Transmission trans = callMap_.remove( callKey );
@@ -159,7 +159,7 @@ public class MessageTrackerHubService extends GuiHubService
         } );
 
         // Forward the call to the base implementation.
-        super.reply( callerKey, msgId, response );
+        super.reply( caller, msgId, response );
     }
 
     /**
@@ -201,11 +201,10 @@ public class MessageTrackerHubService extends GuiHubService
         /**
          * Constructor.
          *
-         * @param  privateKey  private key
          * @param  publicId   public ID
          */
-        public MessageTrackerHubClient( String privateKey, String publicId ) {
-            super( privateKey, publicId );
+        public MessageTrackerHubClient( String publicId ) {
+            super( publicId );
 
             // Prepare list models for the transmissions sent/received by
             // a given client.  These models are updated as the hub forwards
@@ -215,40 +214,39 @@ public class MessageTrackerHubService extends GuiHubService
             rxListModel_ = new TransmissionListModel( listRemoveDelay_ );
         }
 
-        public void setReceiver( Receiver receiver ) {
-            super.setReceiver( receiver == null
-                             ? null
-                             : new MessageTrackerReceiver( receiver, this ) );
+        public void setCallable( CallableClient callable ) {
+            super.setCallable( callable == null
+                     ? null
+                     : new MessageTrackerCallableClient( callable, this ) );
         }
     }
 
     /**
-     * Wrapper implementation for the {@link Receiver} class which intercepts
+     * Wrapper implementation for the CallableClient class which intercepts
      * calls to update sent and received transmission list models.
      */
-    private class MessageTrackerReceiver implements Receiver {
-        private final Receiver base_;
+    private class MessageTrackerCallableClient implements CallableClient {
+        private final CallableClient base_;
         private final MessageTrackerHubClient client_;
 
         /**
          * Constructor.
          *
-         * @param  base   receiver on which this one is based
+         * @param  base   callable on which this one is based
          * @param  client  hub client for which this receiver is operating
          */
-        MessageTrackerReceiver( Receiver base,
-                                MessageTrackerHubClient client ) {
+        MessageTrackerCallableClient( CallableClient base,
+                                      MessageTrackerHubClient client ) {
             base_ = base;
             client_ = client;
         }
 
-        public void receiveCall( String senderId, String msgId, Map message )
-                throws HubServiceException {
+        public void receiveCall( String senderId, String msgId, Message msg )
+                throws SampException {
 
             // When a call is received, create a corresponding Transmission
             // object and add it to both the send list of the sender and
             // the receive list of the recipient.
-            Message msg = Message.asMessage( message );
             MessageTrackerHubClient sender = 
                 (MessageTrackerHubClient)
                 clientSet_.getFromPublicId( senderId );
@@ -265,9 +263,9 @@ public class MessageTrackerHubService extends GuiHubService
 
             // Forward the call to the base implementation.
             try {
-                base_.receiveCall( senderId, msgId, message );
+                base_.receiveCall( senderId, msgId, msg );
             }
-            catch ( final HubServiceException e ) {
+            catch ( final Exception e ) {
                 SwingUtilities.invokeLater( new Runnable() {
                     public void run() {
                         trans.setError( e );
@@ -276,13 +274,12 @@ public class MessageTrackerHubService extends GuiHubService
             }
         }
 
-        public void receiveNotification( String senderId, Map message )
-                throws HubServiceException {
+        public void receiveNotification( String senderId, Message msg )
+                throws SampException {
 
             // When a notification is received, create a corresponding
             // Transmission object and add it to both the send list of the
             // sender and the receive list of the recipient.
-            Message msg = Message.asMessage( message );
             MessageTrackerHubClient sender =
                 (MessageTrackerHubClient)
                 clientSet_.getFromPublicId( senderId );
@@ -296,12 +293,12 @@ public class MessageTrackerHubService extends GuiHubService
             } );
 
             // Forward the call to the base implementation.
-            HubServiceException error;
+            Exception error;
             try {
-                base_.receiveNotification( senderId, message );
+                base_.receiveNotification( senderId, msg );
                 error = null;
             }
-            catch ( HubServiceException e ) {
+            catch ( Exception e ) {
                 error = e;
             }
 
@@ -321,8 +318,8 @@ public class MessageTrackerHubService extends GuiHubService
         }
 
         public void receiveResponse( String responderId, String msgTag,
-                                     Map response )
-                throws HubServiceException {
+                                     Response response )
+                throws Exception {
 
             // Just forward the call to the base implementation.
             // Handling the responses happens elsewhere (where we have the
