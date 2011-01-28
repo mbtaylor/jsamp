@@ -57,7 +57,7 @@ public class BasicHubService implements HubService {
     /**
      * Constructor.
      *
-     * @param  random   random number generator used for private keys etc
+     * @param  random   random number generator used for message tags etc
      */
     public BasicHubService( Random random ) {
 
