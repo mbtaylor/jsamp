@@ -61,7 +61,7 @@ public interface HubConnection {
     /**
      * Returns the metadata for another registered client.
      *
-     * @param  clientId  publid id for another registered client
+     * @param  clientId  public id for another registered client
      * @return  metadata map
      */
     Metadata getMetadata( String clientId ) throws SampException;
@@ -95,7 +95,7 @@ public interface HubConnection {
      * Returns a map of subscriptions for a given MType.
      *
      * @param  mtype  MType
-     * @return  map in which the keys are the publid IDs of clients subscribed
+     * @return  map in which the keys are the public IDs of clients subscribed
      *          to <code>mtype</code>
      */
     Map getSubscribedClients( String mtype ) throws SampException;
