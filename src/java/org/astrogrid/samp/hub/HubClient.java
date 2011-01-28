@@ -1,6 +1,5 @@
 package org.astrogrid.samp.hub;
 
-import java.util.HashMap;
 import java.util.Map;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Message;
@@ -8,6 +7,8 @@ import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.client.CallableClient;
+import org.astrogrid.samp.client.SampException;
 
 /**
  * Represents a client registered with a hub.
@@ -18,23 +19,20 @@ import org.astrogrid.samp.Subscriptions;
 public class HubClient implements Client {
 
     private final String publicId_;
-    private final Object privateKey_;
     private volatile Subscriptions subscriptions_;
     private volatile Metadata metadata_;
-    private volatile Receiver receiver_;
+    private volatile CallableClient callable_;
 
     /**
      * Constructor.
      *
-     * @param  privateKey  client private key
      * @param  publicId    client public ID
      */
-    public HubClient( Object privateKey, String publicId ) {
-        privateKey_ = privateKey;
+    public HubClient( String publicId ) {
         publicId_ = publicId;
         subscriptions_ = new Subscriptions();
         metadata_ = new Metadata();
-        receiver_ = new NoReceiver();
+        callable_ = new NoCallableClient();
     }
 
     public String getId() {
@@ -47,15 +45,6 @@ public class HubClient implements Client {
 
     public Subscriptions getSubscriptions() {
         return subscriptions_;
-    }
-
-    /**
-     * Returns this client's private key.
-     *
-     * @return private key
-     */
-    public Object getPrivateKey() {
-        return privateKey_;
     }
 
     /**
@@ -99,32 +88,33 @@ public class HubClient implements Client {
     }
 
     /**
-     * Sets the receiver which allows this client to receive callbacks.
-     * If null is used, a no-op receiver is installed.
+     * Sets the callable object which allows this client to receive
+     * callbacks.  If null is used, a no-op callable object is installed.
      *
-     * @param  receiver  new receiver, or null
+     * @param  callable  new callable interface, or null
      */
-    public void setReceiver( Receiver receiver ) {
-        receiver_ = receiver == null ? new NoReceiver() : receiver;
+    public void setCallable( CallableClient callable ) {
+        callable_ = callable == null ? new NoCallableClient() : callable;
     }
 
     /**
-     * Returns the receiver which allows this client to receive callbacks.
-     * It is never null.
+     * Returns the callable object which allows this client to receive
+     * callbacks.  It is never null.
      *
-     * @return  receiver
+     * @return  callable object
      */
-    public Receiver getReceiver() {
-        return receiver_;
+    public CallableClient getCallable() {
+        return callable_;
     }
 
     /**
      * Indicates whether this client is callable.
      *
-     * @return  true  iff this client has a non-useless receiver installed
+     * @return  true iff this client has a non-useless callback handler
+     *          installed
      */
     public boolean isCallable() {
-        return ! ( receiver_ instanceof NoReceiver );
+        return ! ( callable_ instanceof NoCallableClient );
     }
 
     public String toString() {
@@ -132,26 +122,26 @@ public class HubClient implements Client {
     }
 
     /**
-     * No-op receiver implementation.
+     * No-op callback handler implementation.
      * Any attempt to call its methods results in an exception.
      */
-    private class NoReceiver implements Receiver {
-        public void receiveNotification( String senderId, Map message )
-                throws HubServiceException {
+    private class NoCallableClient implements CallableClient {
+        public void receiveNotification( String senderId, Message message )
+                throws SampException {
             refuse();
         }
-        public void receiveCall( String senderId, String msgId, Map message )
-                throws HubServiceException {
+        public void receiveCall( String senderId, String msgId,
+                                 Message message )
+                throws SampException {
             refuse();
         }
         public void receiveResponse( String responderId, String msgId,
-                                     Map response )
-                throws HubServiceException {
+                                     Response response )
+                throws SampException {
             refuse();
         }
-        private void refuse() throws HubServiceException {
-            throw new HubServiceException( "Client " + getId()
-                                         + " is not callable" );
+        private void refuse() throws SampException {
+            throw new SampException( "Client " + getId() + " is not callable" );
         }
     }
 }
