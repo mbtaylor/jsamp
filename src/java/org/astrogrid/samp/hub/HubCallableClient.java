@@ -6,49 +6,51 @@ import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.client.CallableClient;
+import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 
 /**
- * Receiver implementation used by the hub client.
+ * CallableClient implementation used by the hub client.
  * This isn't exactly essential, but it enables the hub client 
  * (the client which represents the hub itself) to subscribe to some MTypes.
  * Possibly useful for testing purposes etc.
  *
  * @author   Mark Taylor
- * @since    15 Jul 2008
+ * @since    28 Jan 2011
  */
-class HubReceiver implements Receiver {
+class HubCallableClient implements CallableClient {
 
-    private final HubService hub_;
-    private final Object clientId_;
+    private final HubClient client_;
+    private final HubConnection connection_;
     private final MessageHandler[] handlers_;
 
     /**
-     * Constructs a HubReceiver with a default set of handlers.
+     * Constructs a HubCallableClient with a default set of handlers.
      *
-     * @param  hub  hub service object
-     * @param  clientId  public id for hub client
+     * @param  client  hub client object
+     * @param  connection  connection to hub service
      */
-    public HubReceiver( HubService hub, Object clientId ) {
-        this( hub, clientId, createDefaultHandlers() );
+    public HubCallableClient( HubClient client, HubConnection connection ) {
+        this( client, connection, createDefaultHandlers() );
     }
 
     /**
-     * Constructs a HubReceiver with a given set of handlers.
+     * Constructs a HubCallableClient with a given set of handlers.
      *
-     * @param  hub  hub service object
-     * @param  clientId  public id for hub client
+     * @param  client  hub client object
+     * @param  connection  connection to hub service
      * @param  handlers  array of message handlers
      */
-    private HubReceiver( HubService hub, Object clientId,
-                        MessageHandler[] handlers ) {
-        hub_ = hub;
-        clientId_ = clientId;
+    private HubCallableClient( HubClient client, HubConnection connection,
+                               MessageHandler[] handlers ) {
+        client_ = client;
+        connection_ = connection;
         handlers_ = handlers;
     } 
 
-    public void receiveCall( String senderId, String msgId, Map message ) 
-            throws HubServiceException {
-        Message msg = Message.asMessage( message );
+    public void receiveCall( String senderId, String msgId, Message msg ) 
+            throws SampException {
         msg.check();
         String mtype = msg.getMType();
         for ( int i = 0; i < handlers_.length; i++ ) {
@@ -63,16 +65,15 @@ class HubReceiver implements Receiver {
                 catch ( Exception e ) {
                     response = Response.createErrorResponse( new ErrInfo( e ) );
                 }
-                hub_.reply( clientId_, msgId, response );
+                connection_.reply( msgId, response );
                 return;
             }
         }
-        throw new HubServiceException( "Unsubscribed MType " + mtype );
+        throw new SampException( "Unsubscribed MType " + mtype );
     }
 
-    public void receiveNotification( String senderId, Map message )
-            throws HubServiceException {
-        Message msg = Message.asMessage( message );
+    public void receiveNotification( String senderId, Message msg )
+            throws SampException {
         msg.check();
         String mtype = msg.getMType();
         for ( int i = 0; i < handlers_.length; i++ ) {
@@ -82,11 +83,11 @@ class HubReceiver implements Receiver {
                 return;
             }
         }
-        throw new HubServiceException( "Unsubscribed MType " + mtype );
+        throw new SampException( "Unsubscribed MType " + mtype );
     }
 
     public void receiveResponse( String responderId, String msgTag,
-                                 Map response ) throws HubServiceException {
+                                 Response response ) throws SampException {
     }
 
     /**
