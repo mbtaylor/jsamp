@@ -50,9 +50,11 @@ public class StandardHubProfileFactory implements HubProfileFactory {
                 }
             }
             else if ( arg.equals( "-std:httplock" ) ) {
+                it.remove();
                 httpLock = true;
             }
             else if ( arg.equals( "-std:nohttplock" ) ) {
+                it.remove();
                 httpLock = false;
             }
         }
