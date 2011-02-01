@@ -83,7 +83,7 @@
     <ant:mkdir dir="target/docs"/>
     <j:set var="commands"
            value="org.astrogrid.samp.JSamp
-                  org.astrogrid.samp.xmlrpc.HubRunner
+                  org.astrogrid.samp.hub.Hub
                   org.astrogrid.samp.gui.HubMonitor
                   org.astrogrid.samp.test.Snooper
                   org.astrogrid.samp.test.MessageSender

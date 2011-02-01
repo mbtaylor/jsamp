@@ -7,13 +7,15 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.BasicHubService;
+import org.astrogrid.samp.hub.Hub;
+import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.xmlrpc.LockInfo;
-import org.astrogrid.samp.xmlrpc.HubRunner;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
 import org.astrogrid.samp.xmlrpc.StandardHubConnection;
+import org.astrogrid.samp.xmlrpc.StandardHubProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
@@ -33,7 +35,7 @@ public class TestClientProfile implements ClientProfile {
     private final SampXmlRpcServerFactory hubServerFactory_;
     private final SampXmlRpcClientFactory clientClientFactory_;
     private final SampXmlRpcServerFactory clientServerFactory_;
-    private HubRunner hubRunner_;
+    private Hub hub_;
     private static TestClientProfile[] testProfiles_;
 
     public TestClientProfile( Random random, XmlRpcKit xmlrpc ) {
@@ -69,25 +71,28 @@ public class TestClientProfile implements ClientProfile {
      * Starts a hub associated with this profile.
      */
     public synchronized void startHub() throws IOException {
-        if ( hubRunner_ != null ) {
+        if ( hub_ != null ) {
             throw new IllegalStateException( "Hub not stopped"
                                            + " due to earlier test failure?" );
         }
         HubService service = new BasicHubService( random_ );
-        hubRunner_ = new HubRunner( hubClientFactory_, hubServerFactory_,
-                                    service, lockFile_ );
-        hubRunner_.start();
+        HubProfile hubProfile =
+            new StandardHubProfile( hubClientFactory_, hubServerFactory_,
+                                    lockFile_,
+                                    StandardHubProfile.createSecret() );
+        hub_ = new Hub( service, new HubProfile[] { hubProfile } );
+        hub_.start();
     }
 
     /** 
      * Stops the hub associated with this profile.
      */
     public synchronized void stopHub() {
-        if ( hubRunner_ == null ) {
+        if ( hub_ == null ) {
             throw new IllegalStateException();
         }
-        hubRunner_.shutdown();
-        hubRunner_ = null;
+        hub_.shutdown();
+        hub_ = null;
     }
 
     public boolean isHubRunning() {
