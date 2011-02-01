@@ -187,7 +187,7 @@ class HubXmlRpcHandler extends ActorHandler {
         }
 
         public void ping() throws SampException {
-            if ( ! service_.isRunning() ) {
+            if ( ! service_.isHubRunning() ) {
                 throw new SampException( "Hub is stopped" );
             }
         }

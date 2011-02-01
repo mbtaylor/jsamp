@@ -188,7 +188,7 @@ public class BasicHubService implements HubService {
                 return regInfo;
             }
             public void ping() throws SampException {
-                if ( ! service.isRunning() ) {
+                if ( ! service.isHubRunning() ) {
                     throw new SampException( "Service is stopped" );
                 }
             }
@@ -766,7 +766,7 @@ public class BasicHubService implements HubService {
                  .addParam( "id", clientId ) );
     }
 
-    public synchronized boolean isRunning() {
+    public synchronized boolean isHubRunning() {
         return started_ && ! shutdown_;
     }
 

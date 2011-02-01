@@ -68,7 +68,7 @@ public interface HubService {
      *
      * @return  true iff called between {@link #start} and {@link #shutdown}
      */
-    boolean isRunning();
+    boolean isHubRunning();
 
     /**
      * Tidies up any resources owned by this object.
