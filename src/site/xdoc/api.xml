@@ -92,8 +92,8 @@ If you want to run a Standard Profile hub,
 either with or without a graphical display,
 in most cases you can do it simply by using static methods of the
 <a target="samp-javadoc"
-   href="apidocs/org/astrogrid/samp/xmlrpc/HubRunner.html"
-                                          >HubRunner</a> class.
+   href="apidocs/org/astrogrid/samp/hub/Hub.html"
+                                       >Hub</a> class.
 This hub can be embedded within a third party application if required.
 For more configurability, for instance customising the graphical display or
 hub discovery process, you may want to look at the other classes in this

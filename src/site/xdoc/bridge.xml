@@ -119,12 +119,12 @@ hubs and communities of clients for connection with bridges.
 </p>
 <pre>
    // Start up a hub and a client using the standard profile.
-   java -jar jsamp.jar hubrunner
+   java -jar jsamp.jar hub
    java -jar jsamp.jar hubmonitor
 
    // Start a hub and client using a non-standard lockfile location.
    setenv SAMP_HUB std-lockurl:file://localhost/tmp/samp1
-   java -jar jsamp.jar hubrunner &amp;
+   java -jar jsamp.jar hub &amp;
    java -jar topcat.jar &amp;
    unsetenv SAMP_HUB
 

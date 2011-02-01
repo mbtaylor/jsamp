@@ -27,7 +27,7 @@ hub in graphical terms, including all the messages which are
 passing through and their responses.  If you start the JSAMP hub
 </p>
 <pre>
-   java -jar jsamp.jar hubrunner -mode msg-gui
+   java -jar jsamp.jar hub -mode msg-gui
 </pre>
 <p>
 then you can see all the messages, including their text and 

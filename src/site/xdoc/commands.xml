@@ -4,8 +4,8 @@
           "http://maven.apache.org/dtd/xdoc_1_0.dtd" [
   <!ENTITY jsamp-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.JSamp.usage">
-  <!ENTITY hubrunner-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.xmlrpc.HubRunner.usage">
+  <!ENTITY hub-usage SYSTEM
+           "../../../target/docs/org.astrogrid.samp.hub.Hub.usage">
   <!ENTITY hubmonitor-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.gui.HubMonitor.usage">
   <!ENTITY snooper-usage SYSTEM
@@ -33,7 +33,7 @@
 
 <!-- doesn't work at this version of xdoc <macro name="toc"/> -->
 <ul>
-<li><a href="#HubRunner">HubRunner</a></li>
+<li><a href="#Hub">Hub</a></li>
 <li><a href="#HubMonitor">HubMonitor</a></li>
 <li><a href="#Snooper">Snooper</a></li>
 <li><a href="#MessageSender">MessageSender</a></li>
@@ -48,14 +48,14 @@ These come with their own <code>main()</code> methods so can be invoked
 directly.  A convenience class <code>org.astrogrid.samp.JSamp</code> is
 also provided (with its own <code>main()</code> method) which might save
 you a bit of typing when running these.
-So for instance to run the hubrunner, which is in class
-org.astrogrid.samp.xmlrpc.HubRunner, you can execute either:
+So for instance to run the hub, which is in class
+org.astrogrid.samp.hub.Hub, you can execute either:
 <pre>
-   java -classpath jsamp.jar org.astrogrid.samp.xmlrpc.HubRunner
+   java -classpath jsamp.jar org.astrogrid.samp.hub.Hub
 </pre>
 or, more simply:
 <pre>
-   java -jar jsamp.jar hubrunner
+   java -jar jsamp.jar hub
 </pre>
 As a special case for convenience, 
 simply running "<code>java -jar jsamp.jar</code>",
@@ -106,19 +106,23 @@ though see the <a href="gui.html">GUI Features</a> section for more detail.
 <img src="images/HubMonitor.png" alt="HubMonitor screenshot"/>
 
 
-<subsection name="HubRunner">
+<subsection name="Hub">
 
-<p>The <code>org.astrogrid.samp.xmlrpc.HubRunner</code> class runs a SAMP hub
-using the SAMP Standard Profile.  A graphical window showing 
+<p>The <code>org.astrogrid.samp.hub.Hub</code> class runs a SAMP hub.
+A graphical window showing 
 currently registered clients and their attributes (metadata and subscribed
 MTypes) may optionally be displayed.
+By default the hub operates using the SAMP Standard Profile,
+but there are options to use different profiles, including
+user-defined ones, as well or instead.
+Some of the flags relate to particular profiles.
 </p>
 
-<p>HubRunner usage is:
+<p>Hub usage is:
 </p>
-<source>&hubrunner-usage;</source>
+<source>&hub-usage;</source>
 <dl>
-<dt><code>-mode [no-gui|client-gui|msg-gui]</code></dt>
+<dt><code>-mode no-gui|client-gui|msg-gui</code></dt>
 <dd>Determines what hub implementation is used; currently this affects
     whether and how the hub status is displayed graphically.
     The following options are available:
@@ -146,13 +150,42 @@ MTypes) may optionally be displayed.
     supported on desktop), then the window will be displayed directly,
     and closing the window will shut down the hub.
     </dd>
-<dt><code>-secret &lt;secret&gt;</code></dt>
-<dd>Optional flag to supply the samp.secret string which will be written
-    to the lockfile and which clients must present on registration.
-    If not supplied, a random string will be chosen.
+<dt><code>-profile std|&lt;hubprofile-class&gt; ...</code></dt>
+<dd>Identifies a profile to run with the hub.
+    If no <code>-profile</code> flag is specified, then the default profile(s)
+    are used, which at present means just the Standard Profile.
+    The flag may be given more than once, in which case all the named profiles
+    will run.
+    The following options are available:
+    <dl>
+    <dt><code>std</code></dt>
+    <dd>Standard Profile.
+        The <code>-std:</code> flags below relate only to this profile.
+        </dd>
+    <dt><code>&lt;hubprofile-class&gt;</code></dt>
+    <dd>If the name of a class which implements the
+        <a target="samp-javadoc"
+           href="apidocs/org/astrogrid/samp/hub/HubProfile.html"
+                                               >HubProfile</a>
+        interface and which has a no-arg constructor is given,
+        that profile is run.
+        </dd>
+    </dl>
     </dd>
-<dt><code>-httplock</code></dt>
-<dd>If this flag is supplied, the lockfile is not written to a file,
+</dl>
+<p>
+The following flags are used only if the Standard Profile 
+(<code>-profile std</code>) is in operation:
+</p>
+<dl>
+<dt><code>-std:secret &lt;secret&gt;</code></dt>
+<dd>Optional flag to supply the samp.secret string which will be written
+    to the Standard Profile lockfile and which clients must present
+    on registration.  If not supplied, a random string will be chosen.
+    </dd>
+<dt><code>-std:httplock</code></dt>
+<dd>If this flag is supplied, the Standard Profile lockfile
+    is not written to a file,
     but is made available via HTTP instead.  The hub will print the
     location, in a form suitable for use with the SAMP_HUB environment
     variable, when it starts up.
@@ -448,7 +481,7 @@ by using one or more of the command-line options described below.
     <a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/client/ClientProfile.html"
                                               >ClientProfile</a>
-    class and which has a no-arg constructor.
+    interface and which has a no-arg constructor.
     A newly-constructed instance of this class will be used to 
     contact a hub.
     This flag may be given more than once to specify multiple 

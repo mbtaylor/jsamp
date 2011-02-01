@@ -570,6 +570,14 @@ to a minimum following this release.
     This has reduced amount and duplication of code.
     The changes are backwardly incompatible, but this is unikely to affect
     anybody who is not writing hub implementation code.</li>
+<li>Class <code>org.astrogrid.samp.xmlrpc.HubRunner</code> has been
+    deprecated in favour of class 
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/hub/Hub.html">Hub</a>.
+    <code>Hub</code> implements pluggable profiles using the new
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/hub/HubProfile.html">HubProfile</a>
+    interface.</li>
 </ul>
 </subsection>
 
