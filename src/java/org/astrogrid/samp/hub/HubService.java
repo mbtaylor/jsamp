@@ -29,39 +29,12 @@ public interface HubService {
     void start();
 
     /**
-     * Returns the connection used by the hub itself to send and receive
-     * messages.  This is the connection with a client ID given by
-     * {@link org.astrogrid.samp.RegInfo#HUBID_KEY}.
-     *
-     * @return  hub service's own hub connection
-     */
-    HubConnection getServiceConnection();
-
-    /**
      * Creates a new connection to this hub service, thereby initiating
      * a new registered client.
      *
      * @return   new hub connection representing registration of a new client
      */
     HubConnection register() throws SampException;
-
-    /**
-     * Forcibly disconnects a given client.
-     * This call does three things:
-     * <ol>
-     * <li>sends a <code>samp.hub.disconnect</code> message to the
-     *     client which is about to be ejected, if the client is
-     *     subscribed to that MType</li>
-     * <li>removes that client from this hub's client set so that any
-     *     further communication attempts to or from it will fail</li>
-     * <li>broadcasts a <code>samp.hub.unregister</code> message to all
-     *     remaining clients indicating that the client has disappeared</li>
-     * </ol>
-     *
-     * @param  clientId  public-id of client to eject
-     * @param  reason    short text string indicating reason for ejection
-     */
-    void disconnect( String clientId, String reason ) throws SampException;
 
     /**
      * Indicates whether this hub service is currently open for operations.

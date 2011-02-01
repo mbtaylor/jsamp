@@ -12,7 +12,7 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.hub.HubClient;
-import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.hub.BasicHubService;
 
 /**
  * MouseListener which provides a popup menu with per-client options
@@ -23,7 +23,7 @@ import org.astrogrid.samp.hub.HubService;
  */
 class HubClientPopupListener implements MouseListener {
 
-    private final HubService hub_;
+    private final BasicHubService hub_;
 
     /** Message which does a ping. */
     private static final Message PING_MSG = new Message( "samp.app.ping" );
@@ -34,7 +34,7 @@ class HubClientPopupListener implements MouseListener {
      * @param  hub  hub service which knows about the HubClients contained
      *              in the JList this will be listening to
      */
-    public HubClientPopupListener( HubService hub ) {
+    public HubClientPopupListener( BasicHubService hub ) {
         hub_ = hub;
     }
 
