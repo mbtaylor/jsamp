@@ -15,6 +15,8 @@ import java.util.Random;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.client.DefaultClientProfile;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.gui.GuiHubService;
 import org.astrogrid.samp.gui.MessageTrackerHubService;
 import org.astrogrid.samp.gui.SysTray;
@@ -43,11 +45,16 @@ public abstract class HubServiceMode {
     /** Hub mode with a GUI representation of clients and messages. */
     public static HubServiceMode MESSAGE_GUI;
 
+    /** Hub Mode which piggy-backs on an existing hub using
+     *  the default client profile. */
+    public static HubServiceMode FACADE;
+
     /** Array of available hub modes. */
     private static final HubServiceMode[] KNOWN_MODES = new HubServiceMode[] {
         NO_GUI = createBasicHubMode( "no-gui" ),
         CLIENT_GUI = createGuiHubMode( "client-gui" ),
         MESSAGE_GUI = createMessageTrackerHubMode( "msg-gui" ),
+        FACADE = createFacadeHubMode( "facade" ),
     };
 
     /**
@@ -326,6 +333,20 @@ public abstract class HubServiceMode {
         catch ( Throwable e ) {
             return new BrokenHubMode( name, e );
         }
+    }
+
+    /**
+     * Constructs a mode for FacadeHubService.
+     *
+     * @return  mode based on the default client profile
+     */
+    private static HubServiceMode createFacadeHubMode( String name ) {
+        return new HubServiceMode( name, true ) {
+            HubService createHubService( Random random, final Hub[] runners ) {
+                return new FacadeHubService( DefaultClientProfile
+                                            .getProfile() );
+            }
+        };
     }
 
     /**
