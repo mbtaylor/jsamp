@@ -5,14 +5,9 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
-import org.astrogrid.samp.Platform;
-import org.astrogrid.samp.SampUtils;
-import org.astrogrid.samp.hub.BasicHubService;
-import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.test.CalcStorm;
 import org.astrogrid.samp.test.Calculator;
 import org.astrogrid.samp.test.HubTester;
-import org.astrogrid.samp.xmlrpc.HubRunner;
 
 /**
  * Hub test case.
