@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.DefaultClientProfile;
-import org.astrogrid.samp.xmlrpc.HubRunner;
+import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
@@ -24,7 +24,7 @@ public class JSamp {
 
     /** Known command class names. */
     static final String[] COMMAND_CLASSES = new String[] {
-        "org.astrogrid.samp.xmlrpc.HubRunner",
+        "org.astrogrid.samp.hub.Hub",
         "org.astrogrid.samp.gui.HubMonitor",
         "org.astrogrid.samp.test.Snooper",
         "org.astrogrid.samp.test.MessageSender",
@@ -104,6 +104,11 @@ public class JSamp {
         List argList = new ArrayList( Arrays.asList( args ) );
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
+            if ( arg.toLowerCase().equals( "hubrunner" ) ) {
+                System.err.println( "\"hubrunner\" command is deprecated. "
+                                  + "Use \"hub\" instead." );
+                return 1;
+            }
             for ( int ic = 0; ic < COMMAND_CLASSES.length; ic++ ) {
                 String className = COMMAND_CLASSES[ ic ];
                 if ( arg.toLowerCase()
@@ -135,9 +140,9 @@ public class JSamp {
         System.err.println( JSamp.class.getName() + " invoked with no arguments"
                         + " - running hub" );
         System.err.println( "Use \"-help\" flag for more options" );
-        System.err.println( "Use \"hubrunner\" argument"
+        System.err.println( "Use \"hub\" argument"
                           + " to suppress this message" );
-        return runCommand( HubRunner.class.getName(), new String[ 0 ] );
+        return runCommand( Hub.class.getName(), new String[ 0 ] );
     }
 
     /**

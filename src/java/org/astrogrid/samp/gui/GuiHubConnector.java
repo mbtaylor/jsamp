@@ -43,8 +43,8 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.client.TrackedClientSet;
-import org.astrogrid.samp.xmlrpc.HubMode;
-import org.astrogrid.samp.xmlrpc.HubRunner;
+import org.astrogrid.samp.hub.Hub;
+import org.astrogrid.samp.hub.HubServiceMode;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
@@ -220,12 +220,12 @@ public class GuiHubConnector extends HubConnector {
             hubActs = hubStartActions;
         }
         else {
-            HubMode internalMode = SysTray.getInstance().isSupported()
-                                 ? HubMode.CLIENT_GUI
-                                 : HubMode.NO_GUI;
+            HubServiceMode internalMode = SysTray.getInstance().isSupported()
+                                        ? HubServiceMode.CLIENT_GUI
+                                        : HubServiceMode.NO_GUI;
             hubActs = new Action[] {
                 createHubAction( false, internalMode ),
-                createHubAction( true, HubMode.MESSAGE_GUI ),
+                createHubAction( true, HubServiceMode.MESSAGE_GUI ),
             };
         }
         Action regAct = new RegisterAction() {
@@ -283,7 +283,7 @@ public class GuiHubConnector extends HubConnector {
      *                    true to run in a new one
      * @param   hubMode   hub mode
      */
-    public Action createHubAction( boolean external, HubMode hubMode ) {
+    public Action createHubAction( boolean external, HubServiceMode hubMode ) {
         return new HubAction( external, hubMode );
     }
 
@@ -667,7 +667,7 @@ public class GuiHubConnector extends HubConnector {
      */
     private class HubAction extends AbstractAction {
         private final boolean external_;
-        private final HubMode hubMode_;
+        private final HubServiceMode hubMode_;
         private final boolean isAvailable_;
 
         /**
@@ -677,7 +677,7 @@ public class GuiHubConnector extends HubConnector {
          *                     true to run in a new one
          * @param   hubMode    hub mode
          */
-        HubAction( boolean external, HubMode hubMode ) {
+        HubAction( boolean external, HubServiceMode hubMode ) {
             external_ = external;
             hubMode_ = hubMode;
             putValue( NAME,
@@ -692,7 +692,7 @@ public class GuiHubConnector extends HubConnector {
             boolean isAvailable = true;
             if ( external ) {
                 try {
-                    HubRunner.checkExternalHubAvailability();
+                    Hub.checkExternalHubAvailability();
                 }
                 catch ( Exception e ) {
                     isAvailable = false;
@@ -721,10 +721,10 @@ public class GuiHubConnector extends HubConnector {
          */
         private void attemptRunHub() throws IOException {
             if ( external_ ) {
-                HubRunner.runExternalHub( hubMode_ );
+                Hub.runExternalHub( hubMode_, null );
             }
             else {
-                HubRunner.runHub( hubMode_, XmlRpcKit.getInstance() );
+                Hub.runHub( hubMode_, null );
             }
             setActive( true );
         }

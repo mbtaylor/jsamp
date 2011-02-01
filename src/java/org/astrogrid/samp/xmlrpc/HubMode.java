@@ -26,6 +26,8 @@ import org.astrogrid.samp.hub.BasicHubService;
  *
  * @author   Mark Taylor
  * @since    20 Nov 2008
+ * @deprecated  use {@link org.astrogrid.samp.hub.HubServiceMode} with
+ *                  {@link org.astrogrid.samp.hub.Hub} instead
  */
 public abstract class HubMode {
     // This class looks like an enumeration-type class to external users.

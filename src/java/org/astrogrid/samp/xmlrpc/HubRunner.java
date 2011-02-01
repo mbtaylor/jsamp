@@ -19,6 +19,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.KeyGenerator;
 import org.astrogrid.samp.hub.LockWriter;
@@ -34,6 +35,7 @@ import org.astrogrid.samp.httpd.UtilServer;
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
+ * @deprecated  use {@link org.astrogrid.samp.hub.Hub} instead
  */
 public class HubRunner {
 
@@ -68,6 +70,9 @@ public class HubRunner {
         xServerFactory_ = xServerFactory;
         hub_ = hub;
         lockfile_ = lockfile;
+        logger_.warning( "Class " + HubRunner.class.getName()
+                       + " is deprecated; use "
+                       + Hub.class.getName() + " instead." );
     }
 
     /**
