@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<!-- MS Silverlight cross-origin resource policy file.
+ !   Documented here:
+ !      http://msdn.microsoft.com/en-us/library/cc645032(VS.95).aspx
+ !   There's a DTD at that URL, but it contains syntax errors :-(.
+ !-->
+
+<access-policy>
+  <cross-domain-access>
+    <policy>
+      <allow-from>
+        <domain uri="http://*"/>
+      </allow-from>
+      <grant-to>
+        <resource path="/" include-subpaths="true"/>
+      </grant-to>
+    </policy>
+  </cross-domain-access>
+</access-policy>
