@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<!DOCTYPE cross-domain-policy
+          SYSTEM "http://www.adobe.com/xml/dtds/cross-domain-policy.dtd">
+
+<!-- Adobe Flash cross-domain resource policy file.
+ !   Documented here:
+ !      http://www.adobe.com/devnet/articles/crossdomain_policy_file_spec.html
+ !-->
+
+<cross-domain-policy>
+  <site-control permitted-cross-domain-policies="all"/>
+  <allow-access-from domain="*"/>
+  <!-- Not sure why the allow headers element is required, but flXHR/IE6
+   !   seems to need it, though FF3.6 does not. -->
+  <allow-http-request-headers-from domain="*" headers="*"/>
+</cross-domain-policy>
