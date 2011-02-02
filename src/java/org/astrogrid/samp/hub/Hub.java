@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.httpd.UtilServer;
+import org.astrogrid.samp.web.WebHubProfileFactory;
 import org.astrogrid.samp.xmlrpc.StandardHubProfile;
 import org.astrogrid.samp.xmlrpc.StandardHubProfileFactory;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
@@ -90,6 +91,7 @@ public class Hub {
     public static HubProfileFactory[] getKnownHubProfileFactories() {
         return new HubProfileFactory[] {
             new StandardHubProfileFactory(),
+            new WebHubProfileFactory(),
         };
     }
 
