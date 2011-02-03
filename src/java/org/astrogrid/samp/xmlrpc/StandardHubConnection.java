@@ -11,7 +11,7 @@ import org.astrogrid.samp.client.SampException;
  * @author   Mark Taylor
  * @since    27 Oct 2010
  */
-public class StandardHubConnection extends XmlRpcHubConnection {
+class StandardHubConnection extends XmlRpcHubConnection {
 
     private final SampXmlRpcServerFactory serverFactory_;
     private final String clientKey_;
