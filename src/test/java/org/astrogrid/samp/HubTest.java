@@ -8,6 +8,7 @@ import junit.framework.TestCase;
 import org.astrogrid.samp.test.CalcStorm;
 import org.astrogrid.samp.test.Calculator;
 import org.astrogrid.samp.test.HubTester;
+import org.astrogrid.samp.xmlrpc.TestClientProfile;
 
 /**
  * Hub test case.

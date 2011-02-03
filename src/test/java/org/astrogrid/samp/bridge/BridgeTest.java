@@ -21,7 +21,6 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
-import org.astrogrid.samp.TestClientProfile;
 import org.astrogrid.samp.bridge.Bridge;
 import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.ClientProfile;
@@ -30,6 +29,7 @@ import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.ResultHandler;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.UtilServer;
+import org.astrogrid.samp.xmlrpc.TestClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 public class BridgeTest extends TestCase {

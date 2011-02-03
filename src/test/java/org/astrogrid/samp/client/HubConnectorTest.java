@@ -16,7 +16,7 @@ import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
-import org.astrogrid.samp.TestClientProfile;
+import org.astrogrid.samp.xmlrpc.TestClientProfile;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 
 public class HubConnectorTest extends TestCase {

@@ -1,8 +1,10 @@
-package org.astrogrid.samp;
+package org.astrogrid.samp.xmlrpc;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Random;
+import org.astrogrid.samp.DataException;
+import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
@@ -10,13 +12,6 @@ import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.HubService;
-import org.astrogrid.samp.xmlrpc.LockInfo;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
-import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
-import org.astrogrid.samp.xmlrpc.StandardHubConnection;
-import org.astrogrid.samp.xmlrpc.StandardHubProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Client profile implementation for use with test cases.
