@@ -1,6 +1,8 @@
 package org.astrogrid.samp.web;
 
 import java.lang.SecurityException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -75,6 +77,11 @@ class WebHubXmlRpcHandler extends ActorHandler {
      */
     public HttpServer.Handler getUrlTranslationHandler() {
         return impl_.getUrlTranslationHandler();
+    }
+
+    protected Object invokeMethod( Method method, Object obj, Object[] args )
+            throws IllegalAccessException, InvocationTargetException {
+        return method.invoke( obj, args );
     }
 
     /**

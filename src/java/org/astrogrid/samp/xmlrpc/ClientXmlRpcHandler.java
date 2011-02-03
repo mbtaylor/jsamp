@@ -1,5 +1,7 @@
 package org.astrogrid.samp.xmlrpc;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import org.astrogrid.samp.Message;
@@ -44,6 +46,11 @@ class ClientXmlRpcHandler extends ActorHandler {
      */
     public void removeClient( String privateKey ) {
         clientActor_.map_.remove( privateKey );
+    }
+
+    protected Object invokeMethod( Method method, Object obj, Object[] args )
+            throws IllegalAccessException, InvocationTargetException {
+        return method.invoke( obj, args );
     }
 
     /**

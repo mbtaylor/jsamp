@@ -25,7 +25,7 @@ import org.astrogrid.samp.DataException;
  * @author   Mark Taylor
  * @since    15 Jul 2008
  */
-public class ActorHandler implements SampXmlRpcHandler {
+public abstract class ActorHandler implements SampXmlRpcHandler {
 
     private final String prefix_;
     private final Object actor_;
@@ -35,9 +35,6 @@ public class ActorHandler implements SampXmlRpcHandler {
 
     /**
      * Constructor.
-     * Note that because of java rules about member visibility,
-     * <code>actorType</code> <em>must</em> be visible from this class,
-     * that is it may not be package-private to another package.
      *
      * @param  prefix  string prepended to every method name in the
      *         <code>actorType</code> interface to form the XML-RPC
@@ -93,7 +90,7 @@ public class ActorHandler implements SampXmlRpcHandler {
             Object result;
             Throwable error;
             try {
-                result = method.invoke( actor_, params.toArray() );
+                result = invokeMethod( method, actor_, params.toArray() );
             }
             catch ( InvocationTargetException e ) {
                 Throwable e2 = e.getCause();
@@ -138,6 +135,30 @@ public class ActorHandler implements SampXmlRpcHandler {
     public Object getActor() {
         return actor_;
     }
+
+    /**
+     * Invokes a method reflectively on an object.
+     * This method should be implemented in the obvious way, that is
+     * <code>return method.invoke(obj,params)</code>.
+     *
+     * <p>If the implementation is effectively prescribed, why is this
+     * abstract method here?  It's tricky.
+     * The reason is so that reflective method invocation from this class
+     * is done by code within the actor implementation class itself
+     * rather than by code in the superclass, <code>ActorHandler</code>.
+     * That in turn means that the <code>actorType</code> class specified
+     * in the constructor does not need to be visible from 
+     * <code>ActorHandler</code>'s package, only from the package where
+     * the implementation class lives.
+     *
+     * @param  method  method to invoke
+     * @param  obj   object to invoke the method on
+     * @param  args   arguments for the method call
+     * @see   java.lang.reflect.Method#invoke
+     */
+    protected abstract Object invokeMethod( Method method, Object obj,
+                                            Object[] args )
+            throws IllegalAccessException, InvocationTargetException;
 
     /**
      * Enumeration of permitted types within a SAMP data structure.
