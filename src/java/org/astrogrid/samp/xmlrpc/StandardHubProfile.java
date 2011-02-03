@@ -14,10 +14,11 @@ import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.httpd.ServerResource;
 import org.astrogrid.samp.httpd.UtilServer;
 import org.astrogrid.samp.hub.HubProfile;
-import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.KeyGenerator;
 import org.astrogrid.samp.hub.LockWriter;
 
@@ -72,7 +73,7 @@ public class StandardHubProfile implements HubProfile {
               createSecret() );
     }
 
-    public void start( HubService hubService ) throws IOException {
+    public void start( ClientProfile profile ) throws IOException {
 
         // Check state.
         synchronized ( this ) {
@@ -106,13 +107,13 @@ public class StandardHubProfile implements HubProfile {
                                .initCause( e );
         }
         hubHandler_ =
-            new HubXmlRpcHandler( xClientFactory_, hubService, secret_,
+            new HubXmlRpcHandler( xClientFactory_, profile, secret_,
                                   new KeyGenerator( "k:", 16, random_ ) );
         server_.addHandler( hubHandler_ );
 
         // Prepare lockfile information.
         lockInfo_ = new LockInfo( secret_, server_.getEndpoint().toString() );
-        lockInfo_.put( "hub.impl", hubService.getClass().getName() );
+        lockInfo_.put( "hub.impl", profile.getClass().getName() );
         lockInfo_.put( "profile.impl", this.getClass().getName() );
         lockInfo_.put( "profile.start.date", new Date().toString() );
 
@@ -151,7 +152,7 @@ public class StandardHubProfile implements HubProfile {
                         : SampUtils.fileToUrl( lockfile_ );
         boolean isDflt = StandardClientProfile.getDefaultLockUrl().toString()
                         .equals( lockfileUrl.toString() );
-        String hubassign = StandardClientProfile.HUBLOC_ENV + "="
+        String hubassign = DefaultClientProfile.HUBLOC_ENV + "="
                          + StandardClientProfile.STDPROFILE_HUB_PREFIX
                          + lockfileUrl;
         logger_.log( isDflt ? Level.INFO : Level.WARNING, hubassign );

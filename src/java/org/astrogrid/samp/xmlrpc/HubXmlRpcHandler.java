@@ -1,6 +1,8 @@
 package org.astrogrid.samp.xmlrpc;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -10,14 +12,14 @@ import java.util.List;
 import java.util.Map;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
-import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.KeyGenerator;
 
 /**
  * SampXmlRpcHandler implementation which passes Standard Profile-type XML-RPC
- * calls to a <code>HubService</code> to provide a SAMP hub service.
+ * calls to a hub connection factory to provide a Standard Profile hub server.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
@@ -28,25 +30,30 @@ class HubXmlRpcHandler extends ActorHandler {
      * Constructor.
      *
      * @param   xClientFactory  XML-RPC client factory implementation
-     * @param   service  hub service
+     * @param   profile  hub connection factory
      * @param   secret  password required for client registration
      */
     public HubXmlRpcHandler( SampXmlRpcClientFactory xClientFactory,
-                             HubService service, String secret,
+                             ClientProfile profile, String secret,
                              KeyGenerator keyGen ) {
         super( "samp.hub.", HubActor.class,
-               new HubActorImpl( xClientFactory, service, secret, keyGen ) );
+               new HubActorImpl( xClientFactory, profile, secret, keyGen ) );
+    }
+
+    protected Object invokeMethod( Method method, Object obj, Object[] args )
+            throws IllegalAccessException, InvocationTargetException {
+        return method.invoke( obj, args );
     }
 
     /**
      * Implementation of the {@link HubActor} interface which does 
      * the work for this class.
      * Apart from a few methods which have Standard-Profile-specific
-     * aspects, the work is simply delegated to the HubService.
+     * aspects, the work is simply delegated to the hub connection factory.
      */
     private static class HubActorImpl implements HubActor {
         private final SampXmlRpcClientFactory xClientFactory_;
-        private final HubService service_;
+        private final ClientProfile profile_;
         private final String secret_;
         private final KeyGenerator keyGen_;
         private final Map clientMap_;
@@ -55,22 +62,29 @@ class HubXmlRpcHandler extends ActorHandler {
          * Constructor.
          *
          * @param   xClientFactory  XML-RPC client factory implementation
-         * @param   service  hub service
+         * @param   profile  hub connection factory
          * @param   secret  password required for client registration
          * @param   keyGen  generator for private keys
          */
         HubActorImpl( SampXmlRpcClientFactory xClientFactory,
-                      HubService service, String secret, KeyGenerator keyGen ) {
+                      ClientProfile profile, String secret,
+                      KeyGenerator keyGen ) {
             xClientFactory_ = xClientFactory;
-            service_ = service;
+            profile_ = profile;
             secret_ = secret;
             keyGen_ = keyGen;
             clientMap_ = Collections.synchronizedMap( new HashMap() );
         }
 
         public Map register( String secret ) throws SampException {
-            if ( secret_.equals( secret ) ) {
-                HubConnection connection = service_.register();
+            if ( ! profile_.isHubRunning() ) {
+                throw new SampException( "Hub not running" );
+            }
+            else if ( secret_.equals( secret ) ) {
+                HubConnection connection = profile_.register();
+                if ( connection == null ) {
+                    throw new SampException( "Hub is not running" );
+                }
                 String privateKey = keyGen_.next();
                 RegInfo regInfo = connection.getRegInfo();
                 regInfo.put( RegInfo.PRIVATEKEY_KEY, privateKey );
@@ -187,7 +201,7 @@ class HubXmlRpcHandler extends ActorHandler {
         }
 
         public void ping() throws SampException {
-            if ( ! service_.isHubRunning() ) {
+            if ( ! profile_.isHubRunning() ) {
                 throw new SampException( "Hub is stopped" );
             }
         }
