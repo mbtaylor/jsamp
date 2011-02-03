@@ -2,6 +2,7 @@ package org.astrogrid.samp.client;
 
 import java.util.logging.Logger;
 import org.astrogrid.samp.Platform;
+import org.astrogrid.samp.web.WebClientProfile;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 
 /**
@@ -11,12 +12,13 @@ import org.astrogrid.samp.xmlrpc.StandardClientProfile;
  * requiring any code changes.
  *
  * <p>The profile returned by this class depends on the SAMP_HUB environment
- * variable ({@link StandardClientProfile#HUBLOC_ENV}).
+ * variable ({@link #HUBLOC_ENV}).
  * If it consists of the prefix "<code>jsamp-class:</code>" 
  * ({@link #HUBLOC_CLASS_PREFIX}) followed by the classname of a class
  * which implements {@link ClientProfile} and has a no-arg constructor,
  * then an instance of the named class is used.
- * Otherwise, an instance of {@link StandardClientProfile} is returned.
+ * Otherwise, an instance of {@link StandardClientProfile} or 
+ * {@link WebClientProfile} is returned.
  *
  * @author   Mark Taylor
  * @since    4 Aug 2009
@@ -27,9 +29,12 @@ public class DefaultClientProfile {
     private static final Logger logger_ =
         Logger.getLogger( DefaultClientProfile.class.getName() );
 
+    /** Environment variable used for hub location ({@value}). */
+    public static final String HUBLOC_ENV = "SAMP_HUB";
+
     /**
      * Prefix for SAMP_HUB env var indicating a supplied ClientProfile
-     * implementation.
+     * implementation ({@value}).
      */
     public static final String HUBLOC_CLASS_PREFIX = "jsamp-class:";
 
@@ -61,9 +66,11 @@ public class DefaultClientProfile {
     public static ClientProfile getProfile() {
         if ( profile_ == null ) {
             final ClientProfile profile;
-            String hubloc = Platform.getPlatform()
-                           .getEnv( StandardClientProfile.HUBLOC_ENV );
-            if ( hubloc != null && hubloc.startsWith( HUBLOC_CLASS_PREFIX ) ) {
+            String hubloc = Platform.getPlatform().getEnv( HUBLOC_ENV );
+            if ( hubloc == null || hubloc.trim().length() == 0 ) {
+                profile = StandardClientProfile.getInstance();
+            }
+            else if ( hubloc.startsWith( HUBLOC_CLASS_PREFIX ) ) {
                 String cname = hubloc.substring( HUBLOC_CLASS_PREFIX.length() );
                 final Class clazz;
                 try {
@@ -76,8 +83,7 @@ public class DefaultClientProfile {
                 try {
                     profile = (ClientProfile) clazz.newInstance();
                     logger_.info( "Using non-standard hub location: "
-                                + StandardClientProfile.HUBLOC_ENV + "="
-                                + hubloc );
+                                + HUBLOC_ENV + "=" + hubloc );
                 }
                 catch ( Throwable e ) {
                     throw (RuntimeException)
@@ -86,8 +92,17 @@ public class DefaultClientProfile {
                          .initCause( e );
                 }
             }
-            else {
+            else if ( hubloc.startsWith( StandardClientProfile
+                                        .STDPROFILE_HUB_PREFIX ) ) {
                 profile = StandardClientProfile.getInstance();
+            }
+            else if ( hubloc.startsWith( WebClientProfile
+                                        .WEBPROFILE_HUB_PREFIX ) ) {
+                profile = WebClientProfile.getInstance();
+            }
+            else {
+                throw new RuntimeException( "Can't make sense of " + HUBLOC_ENV
+                                          + "=" + hubloc ); 
             }
             profile_ = profile;
         }
