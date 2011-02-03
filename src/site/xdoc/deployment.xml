@@ -74,7 +74,6 @@ They are organised as follows:
        href="apidocs/org/astrogrid/samp/client/package-summary.html"
                     >org.astrogrid.samp.client</a></dt>
 <dd>Classes intended for use by application authors writing SAMP clients.
-    If you only need to run a SAMP hub, you do not need these classes.
     </dd>
 <dt><a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/hub/package-summary.html"
