@@ -9,6 +9,7 @@ import org.astrogrid.samp.DataException;
 import org.astrogrid.samp.Platform;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 
@@ -30,9 +31,6 @@ public class StandardClientProfile implements ClientProfile {
     private static URL lockUrl_;
     private static final Logger logger_ =
         Logger.getLogger( StandardClientProfile.class.getName() );
-
-    /** Environment variable used for hub location ({@value}). */
-    public static final String HUBLOC_ENV = "SAMP_HUB";
 
     /** Filename used for lockfile in home directory by default ({@value}). */
     public static final String LOCKFILE_NAME = ".samp";
@@ -130,18 +128,20 @@ public class StandardClientProfile implements ClientProfile {
      */
     public static URL getLockUrl() throws IOException {
         if ( lockUrl_ == null ) {
-            String hubloc = Platform.getPlatform().getEnv( HUBLOC_ENV );
+            String hublocEnv = DefaultClientProfile.HUBLOC_ENV;
+            String hubloc = Platform.getPlatform().getEnv( hublocEnv );
             final URL lockUrl;
             if ( hubloc != null &&
                  hubloc.startsWith( STDPROFILE_HUB_PREFIX ) ) {
                 lockUrl = new URL( hubloc.substring( STDPROFILE_HUB_PREFIX
                                                     .length() ) );
-                logger_.info( "Lockfile as set by env var: "
-                            + HUBLOC_ENV + "=" + hubloc );
+                logger_.info( "Lockfile as set by env var: " 
+                            + hublocEnv + "=" + hubloc );
             }
             else if ( hubloc != null && hubloc.trim().length() > 0 ) {
-                throw new IOException( "Bad value of hub location env var: "
-                                     + HUBLOC_ENV + "=" + hubloc );
+                logger_.warning( "Ignoring non-Standard " + hublocEnv + "="
+                               + hubloc );
+                lockUrl = getDefaultLockUrl();
             }
             else {
                 lockUrl = getDefaultLockUrl();

@@ -19,6 +19,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.KeyGenerator;
@@ -481,7 +482,7 @@ public class HubRunner {
             if ( f == null ) {
                 System.err.println( "Can't write lockfile to " + lockUrl );
                 System.err.println( "Try resetting " 
-                                  + StandardClientProfile.HUBLOC_ENV
+                                  + DefaultClientProfile.HUBLOC_ENV
                                   + " environment variable." );
                 return 1;
             }
@@ -499,7 +500,7 @@ public class HubRunner {
                                    : SampUtils.fileToUrl( lockfile );
         boolean isDflt = StandardClientProfile.getDefaultLockUrl().toString()
                         .equals( lockfileUrl.toString() );
-        String hubassign = StandardClientProfile.HUBLOC_ENV + "="
+        String hubassign = DefaultClientProfile.HUBLOC_ENV + "="
                          + StandardClientProfile.STDPROFILE_HUB_PREFIX
                          + lockfileUrl;
         logger_.log( isDflt ? Level.INFO : Level.WARNING, hubassign );
