@@ -13,7 +13,7 @@ import org.astrogrid.samp.client.SampException;
  * @author   Mark Taylor
  * @since    2 Feb 2011
  */
-interface WebHubActor {
+public interface WebHubActor {
 
     /**
      * Throws an exception if service is not operating.
