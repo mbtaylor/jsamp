@@ -122,7 +122,7 @@ Some of the flags relate to particular profiles.
 </p>
 <source>&hub-usage;</source>
 <dl>
-<dt><code>-mode no-gui|client-gui|msg-gui</code></dt>
+<dt><code>-mode no-gui|client-gui|msg-gui|facade</code></dt>
 <dd>Determines what hub implementation is used; currently this affects
     whether and how the hub status is displayed graphically.
     The following options are available:
@@ -141,6 +141,13 @@ Some of the flags relate to particular profiles.
         traffic, the extra processing required for this display can
         slow down hub operations a bit.
         </dd>
+    <dt><code>facade</code></dt>
+    <dd>This option piggy-backs the hub on an existing hub.
+        The hub passes any registration requests to an underlying hub.
+        The underlying hub is located using the usual arrangements for
+        client hub discovery (influenced by the SAMP_HUB environment variable).
+        There is no graphical representation in this case.
+        </dd>
     </dl>
     In the case of the GUI options, they attempt to insert an icon into the
     "System Tray" area of the desktop, if one exists, and if a java version
@@ -150,10 +157,10 @@ Some of the flags relate to particular profiles.
     supported on desktop), then the window will be displayed directly,
     and closing the window will shut down the hub.
     </dd>
-<dt><code>-profile std|&lt;hubprofile-class&gt; ...</code></dt>
+<dt><code>-profile std|web|&lt;hubprofile-class&gt; ...</code></dt>
 <dd>Identifies a profile to run with the hub.
-    If no <code>-profile</code> flag is specified, then the default profile(s)
-    are used, which at present means just the Standard Profile.
+    If no <code>-profile</code> flag is specified, then the default set
+    of profiles is used, which at present means just the Standard Profile.
     The flag may be given more than once, in which case all the named profiles
     will run.
     The following options are available:
@@ -161,6 +168,10 @@ Some of the flags relate to particular profiles.
     <dt><code>std</code></dt>
     <dd>Standard Profile.
         The <code>-std:</code> flags below relate only to this profile.
+        </dd>
+    <dt><code>web</code></dt>
+    <dd>Web Profile.
+        The <code>-web:</code> flags below relate only to this profile.
         </dd>
     <dt><code>&lt;hubprofile-class&gt;</code></dt>
     <dd>If the name of a class which implements the
@@ -189,6 +200,65 @@ The following flags are used only if the Standard Profile
     but is made available via HTTP instead.  The hub will print the
     location, in a form suitable for use with the SAMP_HUB environment
     variable, when it starts up.
+    </dd>
+</dl>
+<p>The following flags are used only if the Web Profile
+(<code>-profile web</code>) is in operation:
+</p>
+<dl>
+<dt><code>-web:log none|http|xml|rpc</code></dt>
+<dd>Provides different levels of logging of the Web Profile communications.
+    This logging is to standard error, and not performed through the
+    Java logging system.
+    The following options are available:
+    <dl>
+    <dt><code>none</code></dt>
+    <dd>No logging.</dd>
+    <dt><code>http</code></dt>
+    <dd>All HTTP communications, including HTTP headers and in most cases
+        HTTP request/response bodies, to the web server hosting the XML-RPC
+        server, are logged.
+        This can be very useful for debugging communication issues,
+        since both HTTP headers and non-XML-RPC HTTP requests are essential
+        parts of the various sandbox-busting technologies required by
+        the Web Profile.
+        </dd>
+     <dt><code>xml</code></dt>
+     <dd>The XML text of all XML-RPC communications is logged.
+         </dd>
+     <dt><code>rpc</code></dt>
+     <dd>An interpreted summary of the content of the remote procedure calls
+         is logged.
+         </dd>
+    </dl>
+    </dd>
+<dt><code>-web:auth swing|true|false</code></dt>
+<dd>Configures how the Web Profile hub determines whether clients are
+    permitted to connect.  The options are:
+    <dl>
+    <dt><code>swing</code></dt>
+    <dd>A popup dialogue is shown to the user for every registration request.
+        Registration is only granted if the user explicitly authorizes it.
+        This option is the default and should usually be used.
+        </dd>
+    <dt><code>true</code></dt>
+    <dd>All requests to register are granted without reference to the user.
+        This can be convenient during testing, but should be used with care,
+        since it can facilitate access for potentially hostile browser-based
+        clients.
+        </dd>
+    <dt><code>false</code></dt>
+    <dd>All requests to register are refused without reference to the user.
+        This rather silly option means that no clients can register via the
+        Web Profile.
+        </dd>
+    </dl>
+    </dd>
+<dt><code>-web:allowremote</code></dt>
+<dd>If used, this option means that clients from hosts other than the
+    local host may be permitted to register.  Normally such requests are
+    automatically refused.  Enable this option with care, it has serious
+    security implications.
     </dd>
 </dl>
 <p>For convenience, the hub can also be started simply by invoking
