@@ -11,6 +11,7 @@ import java.util.List;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.hub.Hub;
+import org.astrogrid.samp.web.WebClientProfile;
 import org.astrogrid.samp.xmlrpc.StandardClientProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
@@ -76,9 +77,14 @@ public class JSamp {
             .append( "\n   " )
             .append( "Environment Variable:" )
             .append( "\n      " )
-            .append( "SAMP_HUB          = " )
+            .append( DefaultClientProfile.HUBLOC_ENV )
+            .append( "          = " )
             .append( StandardClientProfile.STDPROFILE_HUB_PREFIX )
             .append( "<url>" )
+            .append( "|" )
+            .append( WebClientProfile.WEBPROFILE_HUB_PREFIX )
+            .append( "<name>" )
+            .append( "\n                                           " )
             .append( "|" )
             .append( DefaultClientProfile.HUBLOC_CLASS_PREFIX )
             .append( "<clientprofile-class>" )
