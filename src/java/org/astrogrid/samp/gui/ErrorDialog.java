@@ -126,6 +126,6 @@ public abstract class ErrorDialog extends JDialog {
         };
         dialog.setLocationRelativeTo( parent );
         dialog.pack();
-        dialog.show();
+        dialog.setVisible( true );
     }
 }

@@ -253,7 +253,7 @@ public class GuiHubConnector extends HubConnector {
                 for ( int iopt = 0; iopt < options.length; iopt++ ) {
                     options[ iopt ].addActionListener( closeListener );
                 }
-                dialog.show();
+                dialog.setVisible( true );
             }
         };
         registerUpdater( regAct, new ConnectionUpdate() {

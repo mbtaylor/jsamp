@@ -366,7 +366,7 @@ public class PopupResultHandler extends JFrame implements ResultHandler {
             // Post the dialogue.
             dialog.setLocationRelativeTo( PopupResultHandler.this );
             dialog.pack();
-            dialog.show();
+            dialog.setVisible( true );
         }
     }
 }
