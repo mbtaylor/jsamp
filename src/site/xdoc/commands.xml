@@ -146,6 +146,8 @@ Some of the flags relate to particular profiles.
         The hub passes any registration requests to an underlying hub.
         The underlying hub is located using the usual arrangements for
         client hub discovery (influenced by the SAMP_HUB environment variable).
+        This can be used to provide additional access to an existing hub using
+        a profile which the existing hub does not implement.
         There is no graphical representation in this case.
         </dd>
     </dl>
@@ -264,6 +266,17 @@ The following flags are used only if the Standard Profile
 <p>For convenience, the hub can also be started simply by invoking
 the jar file with no arguments (for instance clicking on it).
 </p>
+
+<p>To run a hub with default settings (standard profile only) do this:
+<pre>
+    java -jar jsamp.jar hub
+</pre>
+and to run it with both Standard and Web Profiles, do this:
+<pre>
+    java -jar jsamp.jar hub -profile std -profile web
+</pre>
+</p>
+
 
 </subsection>
 
