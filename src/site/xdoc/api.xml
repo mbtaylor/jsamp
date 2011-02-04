@@ -18,7 +18,7 @@ in order to use the toolkit for a particular purpose.
 
 <subsection name="Implementing SAMP Client Functionality">
 
-<p>If you have an application which you would like to provide SAMP
+<p>If you have an application in which you would like to provide SAMP
 functionality, you should in most cases use the
 <a target="samp-javadoc"
    href="apidocs/org/astrogrid/samp/client/HubConnector.html"
@@ -84,13 +84,17 @@ are in the package
 <a target="samp-javadoc"
    href="apidocs/org/astrogrid/samp/hub/package-summary.html"
                 >org.astrogrid.samp.hub</a>,
-and the classes required for running a Standard Profile hub are in
+and the classes required for running a Standard and Web Profile hub are in
 <a target="samp-javadoc"
    href="apidocs/org/astrogrid/samp/xmlrpc/package-summary.html"
-                >org.astrogrid.samp.xmlrpc</a>.
-If you want to run a Standard Profile hub, 
+                >org.astrogrid.samp.xmlrpc</a> and
+<a target="samp-javadoc"
+   href="apidocs/org/astrogrid/samp/web/package-summary.html"
+                >org.astrogrid.samp.web</a> respectively.
+If you want to run a hub, 
 either with or without a graphical display,
-in most cases you can do it simply by using static methods of the
+in most cases you can do it simply by using static methods
+(<code>runHub</code>/<code>runExternalHub</code>) of the
 <a target="samp-javadoc"
    href="apidocs/org/astrogrid/samp/hub/Hub.html"
                                        >Hub</a> class.

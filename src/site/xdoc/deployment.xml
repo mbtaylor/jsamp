@@ -14,7 +14,7 @@ It should run on any Java Runtime Environment of version J2SE1.4 or above.
 It does not <em>require</em> any external libraries, though see below.
 </p>
 
-<p>In order to perform the necessry XML-RPC communications for use with
+<p>In order to perform the necessary XML-RPC communications for use with
 the SAMP Standard Profile, a pluggable layer is used.  
 This means that you can choose which XML-RPC library is used.
 Currently, there are the following possibilities:
@@ -111,8 +111,8 @@ They are organised as follows:
 <dt><a target="samp-javadoc"
        href="apidocs/org/astrogrid/samp/xmlrpc/package-summary.html"
                     >org.astrogrid.samp.xmlrpc</a></dt>
-<dd>Classes which deal with implementing the Standard Profile of SAMP,
-    that is the XML-RPC-based communications.
+<dd>Classes which deal with XML-RPC based communications and the
+    implementation of the Standard Profile.
     Everything in the packages above is independent of the Profile used,
     so if for some reason you are using a non-standard profile, you may
     not need the <code>xmlrpc*</code> packages.
@@ -134,6 +134,13 @@ They are organised as follows:
 <dd>Implementation of the pluggable XML-RPC layer which requires no 
     external libraries.  If you are using the Apache library
     or a home-grown XML-RPC implementation, these classes are not required.
+    </dd>
+<dt><a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/web/package-summary.html"
+                    >org.astrogrid.samp.web</a></dt>
+<dd>Implementation of the Web Profile hub and clients.  The Web Profile
+    is XML-RPC based, and requires some of the classes in the
+    <code>org.astrogrid.samp.xmlrpc*</code> packages as well.
     </dd>
 </dl>
 

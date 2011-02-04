@@ -56,6 +56,11 @@ getting concrete examples of what the POSTed XML text looks like
 if you are constructing your own messages by hand.
 </p>
 
+<p>When using the Web Profile, running the hub with the
+<code>-web:log http</code> flag can be very helpful, since it shows
+all of the HTTP traffic to and from the Hub Web Profile HTTP server.
+</p>
+
 </subsection>
 
 <subsection name="Custom message sends">
