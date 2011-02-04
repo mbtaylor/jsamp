@@ -8,7 +8,7 @@ import junit.framework.TestCase;
 import org.astrogrid.samp.test.CalcStorm;
 import org.astrogrid.samp.test.Calculator;
 import org.astrogrid.samp.test.HubTester;
-import org.astrogrid.samp.xmlrpc.TestClientProfile;
+import org.astrogrid.samp.xmlrpc.StandardTestProfile;
 
 /**
  * Hub test case.
@@ -22,20 +22,18 @@ import org.astrogrid.samp.xmlrpc.TestClientProfile;
  */
 public class HubTest extends TestCase {
 
-    private final Random random_ = new Random( 23 );
-    private final TestClientProfile[] profiles_ =
-        TestClientProfile.getTestProfiles( random_ );
-
     protected void setUp() throws IOException {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.SEVERE );
     }
 
     public void testHubTester() throws Exception {
-        for ( int i = 0; i < profiles_.length; i++ ) {
-            TestClientProfile profile = profiles_[ i ];
+        Random random = new Random( 23 );
+        TestProfile[] profiles = TestProfile.createTestProfiles( random );
+        for ( int i = 0; i < profiles.length; i++ ) {
+            TestProfile profile = profiles[ i ];
             profile.startHub();
             new HubTester( profile ).run();
-            new CalcStorm( profile, random_, 8, 8, Calculator.RANDOM_MODE )
+            new CalcStorm( profile, random, 8, 8, Calculator.RANDOM_MODE )
                .run();
             profile.stopHub();
         }

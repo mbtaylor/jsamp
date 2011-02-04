@@ -16,7 +16,7 @@ import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
-import org.astrogrid.samp.xmlrpc.TestClientProfile;
+import org.astrogrid.samp.TestProfile;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 
 public class HubConnectorTest extends TestCase {
@@ -29,14 +29,13 @@ public class HubConnectorTest extends TestCase {
     }
 
     public void testConnector() throws IOException, InterruptedException {
-        TestClientProfile[] profiles =
-            TestClientProfile.getTestProfiles( random_ );
+        TestProfile[] profiles = TestProfile.createTestProfiles( random_ );
         for ( int i = 0; i < profiles.length; i++ ) {
             testConnector( profiles[ i ] );
         }
     }
 
-    private void testConnector( TestClientProfile profile )
+    private void testConnector( TestProfile profile )
             throws IOException, InterruptedException {
         assertNull( profile.register() );
         HubConnector connector = new HubConnector( profile );
@@ -159,14 +158,13 @@ public class HubConnectorTest extends TestCase {
     }
 
     public void testSynch() throws IOException {
-        TestClientProfile[] profiles =
-            TestClientProfile.getTestProfiles( random_ );
+        TestProfile[] profiles = TestProfile.createTestProfiles( random_ );
         for ( int i = 0; i < profiles.length; i++ ) {
             testSynch( profiles[ i ] );
         }
     }
 
-    private void testSynch( TestClientProfile profile ) throws IOException {
+    private void testSynch( TestProfile profile ) throws IOException {
         profile.startHub();
         TestMessageHandler echo = new TestMessageHandler();
 

@@ -21,6 +21,7 @@ import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.TestProfile;
 import org.astrogrid.samp.bridge.Bridge;
 import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.ClientProfile;
@@ -29,7 +30,7 @@ import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.ResultHandler;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.UtilServer;
-import org.astrogrid.samp.xmlrpc.TestClientProfile;
+import org.astrogrid.samp.xmlrpc.StandardTestProfile;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 public class BridgeTest extends TestCase {
@@ -93,13 +94,13 @@ public class BridgeTest extends TestCase {
         // Set up N hubs with one client each.
         // Clients all have similar (not identical) metadata, and all
         // subscribe to MTYPE_ECHO.
-        TestClientProfile[] profiles = new TestClientProfile[ nhub ];
+        TestProfile[] profiles = new TestProfile[ nhub ];
         HubConnector[] connectors = new HubConnector[ nhub ];
         HubConnection[] connections = new HubConnection[ nhub ];
         for ( int ih = 0; ih < nhub; ih++ ) {
             final int ih1 = ih + 1;
             final char iha = (char) ( ih + 'A' );
-            TestClientProfile profile = new TestClientProfile( random, kit ) {
+            TestProfile profile = new StandardTestProfile( random, kit ) {
                 public String toString() {
                     return "P." + iha;
                 }
