@@ -568,6 +568,8 @@ to a minimum following this release.
     <code>HubConnection</code> and <code>Receiver</code> has been replaced by
     <code>CallableClient</code>.
     This has reduced amount and duplication of code.
+    A number of other changes in hub implementation code have taken place
+    to support a properly pluggable infrastructure for hub Profiles.
     The changes are backwardly incompatible, but this is unikely to affect
     anybody who is not writing hub implementation code.</li>
 <li>Class <code>org.astrogrid.samp.xmlrpc.HubRunner</code> has been
