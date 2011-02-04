@@ -207,7 +207,7 @@ public class HttpServer {
                         }
                     }
                     finally {
-                        stop();
+                        HttpServer.this.stop();
                     }
                 }
             };
