@@ -94,7 +94,9 @@ public class WebClientProfile implements ClientProfile {
 
     public boolean isHubRunning() {
         try {
-            new Socket( hubEndpoint_.getHost(), hubEndpoint_.getPort() );
+            Socket sock = new Socket( hubEndpoint_.getHost(),
+                                      hubEndpoint_.getPort() );
+            sock.close();
             return true;
         }
         catch ( IOException e ) {
