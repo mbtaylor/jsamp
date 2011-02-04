@@ -51,7 +51,7 @@ public abstract class TestProfile implements ClientProfile {
         hub_ = null;
     }
 
-    public abstract HubProfile createHubProfile();
+    public abstract HubProfile createHubProfile() throws IOException;
 
     public Random createRandom() {
         return new Random( random_.nextLong() );
