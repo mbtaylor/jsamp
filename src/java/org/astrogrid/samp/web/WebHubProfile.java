@@ -91,7 +91,11 @@ public class WebHubProfile implements HubProfile {
      */
     public static InternalServer createSampXmlRpcServer( String logType )
             throws IOException {
-        return createSampXmlRpcServer( logType, OriginAuthorizers.TRUE,
+        return createSampXmlRpcServer( logType,
+                                       new ServerSocket( WebClientProfile
+                                                        .WEBSAMP_PORT ),
+                                       WebClientProfile.WEBSAMP_PATH,
+                                       OriginAuthorizers.TRUE,
                                        true, true );
     }
 
@@ -101,6 +105,9 @@ public class WebHubProfile implements HubProfile {
      *
      * @param  logType  logging type;
      *                  may be "http", "rpc", "xml", "none" or null
+     * @param  socket  socket on which HTTP server will run
+     * @param  xmlrpcPath  path on socket for XML-RPC endpoint
+     *                     (should start with "/")
      * @param   oAuth  origin authorizer to control access at the origin level
      * @param   allowFlash  true iff Adobe's cross-origin policy should be
      *                      honoured
@@ -110,13 +117,13 @@ public class WebHubProfile implements HubProfile {
      */
     public static InternalServer
                   createSampXmlRpcServer( String logType,
+                                          ServerSocket socket,
+                                          String xmlrpcPath,
                                           OriginAuthorizer oAuth,
                                           boolean allowFlash,
                                           boolean allowSilverlight )
             throws IOException {
-        int port = WebClientProfile.WEBSAMP_PORT;
         String path = WebClientProfile.WEBSAMP_PATH;
-        ServerSocket socket = new ServerSocket( port );
         CorsHttpServer hServer = "http".equals( logType )
                                ? new LoggingCorsHttpServer( socket, oAuth,
                                                             System.err )
@@ -138,7 +145,7 @@ public class WebHubProfile implements HubProfile {
         }
         else if ( "none".equals( logType ) || "http".equals( logType ) ||
                   logType == null || logType.length() == 0 ) {
-            return new InternalServer( hServer, path );
+            return new InternalServer( hServer, xmlrpcPath );
         }
         else {
             throw new IllegalArgumentException( "Unknown logType " + logType );
