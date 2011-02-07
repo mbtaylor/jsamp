@@ -14,7 +14,7 @@ public class ClientAuthorizers {
 
     /** Authorizer which always denies access. */
     public static final ClientAuthorizer FALSE =
-        createLoggingClientAuthorizer( createFixedClientAuthorizer( true ),
+        createLoggingClientAuthorizer( createFixedClientAuthorizer( false ),
                                        Level.INFO, Level.INFO );
 
     /** Authorizer which always permits access. */
