@@ -68,7 +68,7 @@ public class ClientAuthorizers {
      * Returns a new authorizer instance which always produces the same
      * authorization status.
      *
-     * @author  policy  value to return from the <code>authorize</code> method
+     * @param  policy  value to return from the <code>authorize</code> method
      * @return   new authorizer
      */
     public static ClientAuthorizer
