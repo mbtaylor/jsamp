@@ -11,6 +11,7 @@ import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.TestProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.KeyGenerator;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
@@ -24,8 +25,8 @@ public class WebTestProfile extends TestProfile {
     private final URL hubEndpoint_;
     private final SampXmlRpcClientFactory xClientFactory_;
     private final String baseAppName_;
+    private ClientAuthorizer clientAuth_;
     private int regSeq_;
-   
 
     public WebTestProfile( Random random ) throws IOException {
         this( random, getFreePort(), "/",
@@ -40,6 +41,7 @@ public class WebTestProfile extends TestProfile {
         path_ = path;
         xClientFactory_ = xClientFactory;
         baseAppName_ = baseAppName;
+        clientAuth_ = ClientAuthorizers.createFixedClientAuthorizer( true );
         try {
             hubEndpoint_ = new URL( "http://" + SampUtils.getLocalhost() + ":"
                                   + port + path );
@@ -49,14 +51,22 @@ public class WebTestProfile extends TestProfile {
         }
     }
 
+    public void setClientAuthorizer( ClientAuthorizer clientAuth ) {
+        clientAuth_ = clientAuth;
+    }
+
     public HubProfile createHubProfile() throws IOException {
         InternalServer xServer =
             WebHubProfile
            .createSampXmlRpcServer( null, new ServerSocket( port_ ), path_,
                                     OriginAuthorizers.TRUE, false, false );
-        return new WebHubProfile( xServer,
-                                  ClientAuthorizers
-                                 .createFixedClientAuthorizer( true ),
+        ClientAuthorizer copyAuth = new ClientAuthorizer() {
+            public boolean authorize( HttpServer.Request request,
+                                      String appName ) {
+                return clientAuth_.authorize( request, appName );
+            }
+        };
+        return new WebHubProfile( xServer, copyAuth,
                                   new KeyGenerator( "wk:", 24,
                                                     createRandom() ) );
     }
