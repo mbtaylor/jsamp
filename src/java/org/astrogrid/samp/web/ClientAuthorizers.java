@@ -12,17 +12,26 @@ import org.astrogrid.samp.httpd.HttpServer;
  */
 public class ClientAuthorizers {
 
-    /** Authorizer which always denies access. */
+    /**
+     * Authorizer which always denies access,
+     * with INFO logging either way.
+     */
     public static final ClientAuthorizer FALSE =
         createLoggingClientAuthorizer( createFixedClientAuthorizer( false ),
                                        Level.INFO, Level.INFO );
 
-    /** Authorizer which always permits access. */
+    /**
+     * Authorizer which always permits access,
+     * with WARNING logging either way.
+     */
     public static final ClientAuthorizer TRUE =
         createLoggingClientAuthorizer( createFixedClientAuthorizer( true ),
                                        Level.WARNING, Level.WARNING );
 
-    /** Authorizer which queries the user via a popup dialogue. */
+    /**
+     * Authorizer which queries the user via a popup dialogue,
+     * with INFO logging either way.
+     */
     public static final ClientAuthorizer SWING =
         createLoggingClientAuthorizer( new SwingClientAuthorizer( null, false ),
                                        Level.INFO, Level.INFO );
@@ -62,8 +71,8 @@ public class ClientAuthorizers {
      * @author  policy  value to return from the <code>authorize</code> method
      * @return   new authorizer
      */
-    private static ClientAuthorizer
-                   createFixedClientAuthorizer( final boolean policy ) {
+    public static ClientAuthorizer
+                  createFixedClientAuthorizer( final boolean policy ) {
         return new ClientAuthorizer() {
             public boolean authorize( HttpServer.Request request,
                                       String appName ) {
