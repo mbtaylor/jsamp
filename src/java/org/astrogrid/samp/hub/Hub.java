@@ -219,7 +219,8 @@ public class Hub {
      * @param   hubMode  hub mode
      * @param   profileClasses  classes which implement {@link HubProfile}
      *          and have a no-arg constructor, determining which profiles
-     *          the hub will support;  if null, a default set is used
+     *          the hub will support;  if null, the default set from
+     *          the current JVM is used
      * @see     #checkExternalHubAvailability
      */
     public static void runExternalHub( HubServiceMode hubMode,
@@ -254,12 +255,12 @@ public class Hub {
         argList.add( Hub.class.getName() );
         argList.add( "-mode" );
         argList.add( hubMode.toString() );
-        if ( profileClasses != null ) {
+        if ( profileClasses == null ) {
             profileClasses = getDefaultProfileClasses();
-            for ( int ip = 0; ip < profileClasses.length; ip++ ) {
-                argList.add( "-profile" );
-                argList.add( profileClasses[ ip ].getName() );
-            }
+        }
+        for ( int ip = 0; ip < profileClasses.length; ip++ ) {
+            argList.add( "-profile" );
+            argList.add( profileClasses[ ip ].getName() );
         }
         String[] args = (String[]) argList.toArray( new String[ 0 ] );
         StringBuffer cmdbuf = new StringBuffer();
