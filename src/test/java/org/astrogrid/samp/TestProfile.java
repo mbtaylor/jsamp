@@ -7,6 +7,7 @@ import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.web.WebTestProfile;
 import org.astrogrid.samp.xmlrpc.StandardTestProfile;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
@@ -60,7 +61,8 @@ public abstract class TestProfile implements ClientProfile {
     /**
      * Returns an array of TestProfiles suitable for performing tests on.
      */
-    public static TestProfile[] createTestProfiles( Random random ) {
+    public static TestProfile[] createTestProfiles( Random random )
+            throws IOException {
         SampXmlRpcClientFactory aClient =
             XmlRpcKit.APACHE.getClientFactory();
         SampXmlRpcServerFactory aServ =
@@ -73,6 +75,7 @@ public abstract class TestProfile implements ClientProfile {
             new StandardTestProfile( random, aClient, aServ, iClient, iServ ),
             new StandardTestProfile( random, iClient, iServ, aClient, aServ ),
             new StandardTestProfile( random, iClient, iServ, iClient, iServ ),
+            new WebTestProfile( random ),
         };
     }
 }
