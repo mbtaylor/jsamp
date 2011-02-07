@@ -15,6 +15,7 @@ import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.TestProfile;
 import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 
@@ -22,10 +23,12 @@ public class WebClientTest extends TestCase {
 
     public void setUp() {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
+        Logger.getLogger( InternalServer.class.getName() )
+              .setLevel( Level.SEVERE );
     }
 
     public void testUrlTranslator() throws IOException {
-        TestProfile profile = new WebTestProfile( new Random( 23L ) );
+        WebTestProfile profile = new WebTestProfile( new Random( 23L ) );
         profile.startHub();
         assertTrue( profile.isHubRunning() );
         HubConnection conn = profile.register();
@@ -42,6 +45,16 @@ public class WebClientTest extends TestCase {
         URL furl = new URL( turl + SampUtils.fileToUrl( file ).toString() );
         assertEquals( ftxt, readUrl( furl ) );
         file.delete();
+
+        profile.setClientAuthorizer( ClientAuthorizers
+                                    .createFixedClientAuthorizer( false ) );
+        try {
+            profile.register();
+            fail();
+        }
+        catch ( SampException e ) {
+            assertTrue( e.getMessage().indexOf( "denied" ) > 0 );
+        }
         profile.stopHub();
     }
 
