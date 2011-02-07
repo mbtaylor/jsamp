@@ -262,6 +262,11 @@ public class HttpServer {
         Request request = null; 
         try {
             request = parseRequest( in, sock.getRemoteSocketAddress() );
+
+            // If there was no input, make no response at all.
+            if ( request == null ) {
+                return;
+            }
         }
         catch ( HttpException e ) {
             response = e.createResponse();
@@ -322,9 +327,12 @@ public class HttpServer {
     /**
      * Takes the input stream from a client connection and turns it into
      * a Request object.
+     * As a special case, if the input stream has no content at all,
+     * null is returned.
      *
      * @param   in   input stream
      * @param   remoteAddress  address of requesting client
+     * @return  parsed request, or null
      */
     private static Request parseRequest( InputStream in,
                                          SocketAddress remoteAddress )
@@ -333,7 +341,12 @@ public class HttpServer {
         // Read the pre-body part.
         String[] hdrLines = readHeaderLines( in );
 
-        // No content?
+        // No text at all?
+        if ( hdrLines == null ) {
+            return null;
+        }
+
+        // No header content?
         if ( hdrLines.length == 0 ) {
             throw new HttpException( 400, "Empty request" );
         }
@@ -436,16 +449,20 @@ public class HttpServer {
      * Reads the header lines from an HTTP client connection input stream.
      * All lines are read up to the first CRLF, which is when the body starts.
      * The input stream is left in a state ready to read the first body line.
+     * As a special case, if the input stream has no content at all,
+     * null is returned.
      *
      * @param  is   socket input stream
      * @return   array  of header lines (including initial request line);
-     *           the terminal blank line is not included
+     *           the terminal blank line is not included, or null
      */
     private static String[] readHeaderLines( InputStream is )
             throws IOException {
         List lineList = new ArrayList();
         StringBuffer sbuf = new StringBuffer();
+        boolean hasChars = false;
         for ( int c; ( c = is.read() ) >= 0; ) {
+            hasChars = true;
             switch ( c ) {
 
                 // CRLF is the correct HTTP line terminator.
@@ -481,6 +498,11 @@ public class HttpServer {
                 default:
                    sbuf.append( (char) c );
             }
+        }
+
+        // No input.
+        if ( ! hasChars ) {
+            return null;
         }
 
         // Special case: can handle HTTP/0.9 type simple requests. 
