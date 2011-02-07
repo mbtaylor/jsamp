@@ -54,7 +54,9 @@ public class WebTestProfile extends TestProfile {
             WebHubProfile
            .createSampXmlRpcServer( null, new ServerSocket( port_ ), path_,
                                     OriginAuthorizers.TRUE, false, false );
-        return new WebHubProfile( xServer, ClientAuthorizers.TRUE,
+        return new WebHubProfile( xServer,
+                                  ClientAuthorizers
+                                 .createFixedClientAuthorizer( true ),
                                   new KeyGenerator( "wk:", 24,
                                                     createRandom() ) );
     }
