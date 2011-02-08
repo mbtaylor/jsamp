@@ -12,6 +12,7 @@
 <dl>
 <dt>Jar file:</dt>
 <dd><ul>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.2.jar">jsamp-1.2.jar</a></li>
     <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.1.jar">jsamp-1.1.jar</a></li>
     <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.0.jar">jsamp-1.0.jar</a></li>
     <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.3-1.jar">jsamp-0.3-1.jar</a></li>
@@ -23,6 +24,7 @@
     </dd>
 <dt>Sources:</dt>
 <dd><ul>
+    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.2.zip">jsamp_src-1.2.zip</a></li>
     <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.1.zip">jsamp_src-1.1.zip</a></li>
     <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.0.zip">jsamp_src-1.0.zip</a></li>
     <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.3-1.zip">jsamp_src-0.3-1.zip</a></li>
