@@ -42,4 +42,15 @@ public interface HubProfileFactory {
      * @return  new profile
      */
     HubProfile createHubProfile( List flagList ) throws IOException;
+
+    /**
+     * Returns a HubProfile subclass with a no-arg constructor which,
+     * when invoked, will produce a basic instance of the HubProfile
+     * represented by this factory.  The instance thus produced will
+     * typically be similar to that produced by invoking
+     * {@link #createHubProfile} with an empty flag list.
+     *
+     * @return   HubProfile subclass with a public no-arg constructor
+     */
+    Class getHubProfileClass();
 }

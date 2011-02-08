@@ -69,4 +69,8 @@ public class StandardHubProfileFactory implements HubProfileFactory {
                                        xmlrpc.getServerFactory(),
                                        lockfile, secret );
     }
+
+    public Class getHubProfileClass() {
+        return StandardHubProfile.class;
+    }
 }

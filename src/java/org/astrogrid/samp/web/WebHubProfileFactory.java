@@ -103,4 +103,8 @@ public class WebHubProfileFactory implements HubProfileFactory {
         return new WebHubProfile( xServer, clientAuth,
                                   WebHubProfile.createKeyGenerator() );
     }
+
+    public Class getHubProfileClass() {
+        return WebHubProfile.class;
+    }
 }
