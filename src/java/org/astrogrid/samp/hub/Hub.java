@@ -22,6 +22,15 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
  * external JVM, and a <code>main()</code> method is provided for
  * use from the command line.
  *
+ * <p>Some of the static methods allow you to indicate which hub profiles
+ * should be used, others use a default.  The default list can be set
+ * programmatically by using the {@link #setDefaultProfileClasses} method
+ * or externally by using the {@value #HUBPROFILES_PROP} system property.
+ * So, for instance, running an application with
+ * <code>-Djsamp.hub.profiles=web,std</code> will cause it to run hubs
+ * using both the Standard and Web profiles if it does not explicitly choose
+ * profiles.
+ *
  * @author   Mark Taylor
  * @since    31 Jan 2011
  */
@@ -29,11 +38,20 @@ public class Hub {
 
     private final HubService service_;
     private final HubProfile[] profiles_;
-    private static Class[] defaultProfileClasses_ = new Class[] {
-        StandardHubProfile.class,
+    private static Class[] defaultDefaultProfileClasses_ = {
+        StandardHubProfile.class
     };
+    private static Class[] defaultProfileClasses_ =
+        createDefaultProfileClasses();
     private static final Logger logger_ =
         Logger.getLogger( Hub.class.getName() );
+
+    /**
+     * System property name for supplying default profiles ({@value}).
+     * The value of this property, if any, will be fed to 
+     * {@link #parseProfileList}.
+     */
+    public static final String HUBPROFILES_PROP = "jsamp.hub.profiles";
 
     /**
      * Constructor.
@@ -52,19 +70,28 @@ public class Hub {
     public void start() throws IOException {
         logger_.info( "Starting hub service" );
         service_.start();
+        int nStarted = 0;
         try {
             for ( int i = 0; i < profiles_.length; i++ ) {
                 logger_.info( "Starting hub profile " + profiles_[ i ] );
                 profiles_[ i ].start( service_ );
+                nStarted++;
             }
         }
         catch ( IOException e ) {
+            for ( int i = 0; i < nStarted; i++ ) {
+                try {
+                    profiles_[ i ].shutdown();
+                }
+                catch ( Throwable e2 ) {
+                }
+            }
             try {
-                shutdown();
+                service_.shutdown();
             }
-            finally {
-                throw e;
+            catch ( Throwable e2 ) {
             }
+            throw e;
         }
     }
 
@@ -84,7 +111,8 @@ public class Hub {
 
     /**
      * Returns a standard list of known HubProfileFactories.
-     * This is used by the {@link #main} method.
+     * This is used when parsing hub profile lists
+     * ({@link #parseProfileList} to supply the well-known named profiles.
      *
      * @return   array of known hub profile factories
      */
@@ -125,6 +153,130 @@ public class Hub {
     }
 
     /**
+     * Invoked at class load time to come up with the list of hub 
+     * profiles to use when no profiles are specified explicitly.
+     * By default this is just the standard profile, but if the
+     * {@link #HUBPROFILES_PROP} system property is defined its value
+     * is used instead.
+     *
+     * @return  default array of hub profile classes
+     */
+    private static Class[] createDefaultProfileClasses() {
+        String listTxt = System.getProperty( HUBPROFILES_PROP );
+        if ( listTxt != null ) {
+            HubProfileFactory[] facts = parseProfileList( listTxt );
+            Class[] clazzes = new Class[ facts.length ];
+            for ( int i = 0; i < facts.length; i++ ) {
+                clazzes[ i ] = facts[ i ].getHubProfileClass();
+            }
+            return clazzes;
+        }
+        else {
+            return defaultDefaultProfileClasses_;
+        }
+    }
+
+    /**
+     * Parses a string representing a list of hub profiles.
+     * The result is an array of HubProfileFactories.
+     * The list is comma-separated, and each element may be
+     * <em>either</em> the {@link HubProfileFactory#getName name}
+     * of a HubProfileFactory
+     * <em>or</em> the classname of a {@link HubProfile} implementation
+     * with a suitable no-arg constructor.
+     *
+     * @param  listTxt  comma-separated list
+     * @return  array of hub profile factories
+     * @throws   IllegalArgumentException  if unknown
+     */
+    public static HubProfileFactory[] parseProfileList( String listTxt ) {
+        String[] txtItems = listTxt.split( "," );
+        List factoryList = new ArrayList();
+        for ( int i = 0; i < txtItems.length; i++ ) {
+            factoryList.add( parseProfileClass( txtItems[ i ] ) );
+        }
+        return (HubProfileFactory[])
+               factoryList.toArray( new HubProfileFactory[ 0 ] );
+    }
+
+    /**
+     * Parses a string representing a hub profile.  Each element may be
+     * <em>either</em> the {@link HubProfileFactory#getName name}
+     * of a HubProfileFactory
+     * <em>or</em> the classname of a {@link HubProfile} implementation
+     * with a suitable no-arg constructor.
+     *
+     * @param  txt  string
+     * @return  hub profile factory
+     * @throws   IllegalArgumentException  if unknown
+     */
+    private static HubProfileFactory parseProfileClass( String txt ) {
+        HubProfileFactory[] profFacts = getKnownHubProfileFactories();
+        for ( int i = 0; i < profFacts.length; i++ ) {
+            if ( txt.equals( profFacts[ i ].getName() ) ) {
+                return profFacts[ i ];
+            }
+        }
+        final Class clazz;
+        try {
+            clazz = Class.forName( txt );
+        }
+        catch ( ClassNotFoundException e ) {
+            throw (IllegalArgumentException)
+                  new IllegalArgumentException( "No known hub/class " + txt )
+                 .initCause( e );
+        }
+        if ( HubProfile.class.isAssignableFrom( clazz ) ) {
+            return new HubProfileFactory() {
+                public Class getHubProfileClass() {
+                    return clazz;
+                }
+                public String[] getFlagsUsage() {
+                    return new String[ 0 ];
+                }
+                public String getName() {
+                    return clazz.getName();
+                }
+                public HubProfile createHubProfile( List flagList )
+                        throws IOException {
+                    try {
+                        return (HubProfile) clazz.newInstance();
+                    }
+                    catch ( IllegalAccessException e ) {
+                        throw (IOException)
+                              new IOException( "Can't create " + clazz.getName()
+                                             + " instance" )
+                             .initCause( e );
+                    }
+                    catch ( InstantiationException e ) {
+                        throw (IOException)
+                              new IOException( "Can't create " + clazz.getName()
+                                             + " instance" )
+                             .initCause( e );
+                    }
+                    catch ( ExceptionInInitializerError e ) {
+                        Throwable cause = e.getCause();
+                        if ( cause instanceof IOException ) {
+                            throw (IOException) cause;
+                        }
+                        else {
+                            throw (IOException)
+                                  new IOException( "Can't create "
+                                                 + clazz.getName()
+                                                 + " instance" )
+                                 .initCause( e );
+                        }
+                    }
+                }
+            };
+        }
+        else {
+            throw new IllegalArgumentException( clazz + " is not a "
+                                              + HubProfile.class.getName() );
+        }
+    }
+
+    /**
      * Returns an array of default Hub Profiles.
      * This is the result of calling the no-arg constructor
      * for each element of the result of {@link #getDefaultProfileClasses}.
@@ -149,6 +301,11 @@ public class Hub {
             catch ( IllegalAccessException e ) {
                 logger_.warning( "No hub profile " + clazz.getName()
                                + " - inaccessible constructor (" + e + ")" );
+            }
+            catch ( ExceptionInInitializerError e ) {
+                logger_.warning( "No hub profile " + clazz.getName()
+                               + " - construction error"
+                               + " (" + e.getCause() + ")" );
             }
         }
         return (HubProfile[]) hubProfileList.toArray( new HubProfile[ 0 ] );
@@ -239,6 +396,7 @@ public class Hub {
             XmlRpcKit.IMPL_PROP,
             UtilServer.PORT_PROP,
             SampUtils.LOCALHOST_PROP,
+            HUBPROFILES_PROP,
             "java.awt.Window.locationByPlatform",
         };
         List argList = new ArrayList();
@@ -343,6 +501,15 @@ public class Hub {
             getKnownHubProfileFactories();
 
         // Assemble usage message.
+        StringBuffer pbuf = new StringBuffer();
+        pbuf.append( "-profiles " );
+        for ( int ip = 0; ip < knownProfileFactories.length; ip++ ) {
+            pbuf.append( knownProfileFactories[ ip ].getName() )
+                .append( '|' );
+        }
+        pbuf.append( "<hubprofile-class>" )
+            .append( "[,...]" );
+        String profilesUsage = pbuf.toString();
         StringBuffer ubuf = new StringBuffer();
         ubuf.append( "\n   Usage:" )
             .append( "\n      " )
@@ -361,13 +528,9 @@ public class Hub {
         }
         ubuf.append( ']' )
             .append( "\n           " )
-            .append( " [-profile " );
-        for ( int ip = 0; ip < knownProfileFactories.length; ip++ ) {
-            ubuf.append( knownProfileFactories[ ip ].getName() )
-                .append( '|' );
-        }
-        ubuf.append( "<hubprofile-class>]" )
-            .append( " ..." );
+            .append( " [" )
+            .append( profilesUsage )
+            .append( "]" );
         for ( int ip = 0; ip < knownProfileFactories.length; ip++ ) {
             List pusageList =
                  new ArrayList( Arrays.asList( knownProfileFactories[ ip ]
@@ -407,7 +570,7 @@ public class Hub {
         String webAuth = "swing";
         String webLog = "none";
         boolean webRemote = false;
-        List profNameList = new ArrayList();
+        String profilesTxt = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-mode" ) && it.hasNext() ) {
@@ -421,11 +584,16 @@ public class Hub {
                     return 1;
                 }
             }
-            else if ( ( arg.equals( "-profile" ) || arg.equals( "-prof" ) )
-                      && it.hasNext() ) {
+            else if ( arg.equals( "-profiles" ) ) {
                 it.remove();
-                profNameList.add( (String) it.next() );
-                it.remove();
+                if ( it.hasNext() ) {
+                    profilesTxt = (String) it.next();
+                    it.remove();
+                }
+                else {
+                    System.err.println( usage );
+                    return 1;
+                }
             }
             else if ( arg.equals( "-v" ) || arg.equals( "-verbose" ) ) {
                 it.remove();
@@ -448,61 +616,35 @@ public class Hub {
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
         // Assemble list of profile factories to use.
-        if ( profNameList.isEmpty() ) {
-            profNameList.add( "std" );
+        final HubProfile[] profiles;
+        if ( profilesTxt == null ) {
+            profiles = createDefaultProfiles();
         }
-
-        // Assemble list of profiles to use.
-        List profileList = new ArrayList();
-        for ( Iterator it = profNameList.iterator(); it.hasNext(); ) {
-            String profName = (String) it.next();
-            HubProfileFactory profFactory = null;
-            for ( int ip = 0;
-                  ip < knownProfileFactories.length && profFactory == null;
-                  ip++ ) {
-                HubProfileFactory pf = knownProfileFactories[ ip ];
-                if ( profName.equals( pf.getName() ) ||
-                     profName.equals( pf.getClass().getName() ) ) {
-                    profFactory = pf;
-                }
+        else {
+            HubProfileFactory[] pfacts;
+            try {
+                pfacts = parseProfileList( profilesTxt );
             }
-            if ( profFactory == null ) {
-                final Class clazz;
-                try {
-                    clazz = Class.forName( profName );
-                }
-                catch ( ClassNotFoundException e ) {
-                    System.err.println( "Unknown profile " + profName + "\n"
-                                      + usage );
-                    return 1;
-                }
-                if ( HubProfile.class.isAssignableFrom( clazz ) ) {
-                    try {
-                        profileList.add( (HubProfile) clazz.newInstance() );
-                    }
-                    catch ( InstantiationException e ) {
-                        System.err.println( "Error instantiating HubProfile "
-                                          + clazz + ": " + e );
-                    }
-                    catch ( IllegalAccessException e ) {
-                        System.err.println( "Error instantiating HubProfile "
-                                          + clazz + ": " + e );
-                    }
-                }
+            catch ( IllegalArgumentException e ) {
+                System.err.println( e.getMessage() );
+                System.err.println( "Usage: " + profilesUsage );
+                return 1;
             }
-            else {
+            profiles = new HubProfile[ pfacts.length ];
+            for ( int i = 0; i < pfacts.length; i++ ) {
+                HubProfileFactory pfact = pfacts[ i ];
                 try {
-                    profileList.add( profFactory.createHubProfile( argList ) );
+                    profiles[ i ] = pfact.createHubProfile( argList );
                 }
                 catch ( RuntimeException e ) {
-                    System.err.println( "Error configuring profile " + profName
-                                      + ":\n" + e.getMessage() );
+                    System.err.println( "Error configuring profile "
+                                      + pfact.getName() + ":\n"
+                                      + e.getMessage() );
                     return 1;
                 }
+             
             }
         }
-        HubProfile[] profiles =
-            (HubProfile[]) profileList.toArray( new HubProfile[ 0 ] );
 
         // Check all command line args have been used.
         if ( ! argList.isEmpty() ) {
