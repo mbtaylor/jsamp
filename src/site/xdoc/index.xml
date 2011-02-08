@@ -66,6 +66,9 @@ and has also been supported by <a href="http://www.stfc.ac.uk/">STFC</a>
 grant ST/H008470/1 and by 
 <a href="http://research.microsoft.com/">Microsoft Research</a>.
 All of this support is gratefully acknowledged.
+Many members of the SAMP community have provided valuable input and
+help with development; special mentions go to Thomas Boch,
+Laurent Borges, Jonathan Fay, John Taylor and Ivan Zolotukhin.
 </p>
 
 <p>Queries, bug reports, suggestions etc may be mailed to the author,
