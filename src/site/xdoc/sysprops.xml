@@ -72,8 +72,10 @@ detail on use.
         and has a suitable no-arg constructor.</li>
     </ul>
     If this property is not specified, a default list will be used.
-    This is currently just the Stanard Profile
+    This is currently just the Standard Profile
     (equivalent to <code>jsamp.hub.profiles=std</code>).
+    This property only affects how a hub is run; it has no effect on
+    SAMP clients.
     </dd>
 
 <dt><strong>
