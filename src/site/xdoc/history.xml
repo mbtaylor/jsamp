@@ -553,7 +553,7 @@ class has been deprecated in favour of the new class
 <a target="samp-javadocs"
    href="apidocs/org/astrogrid/samp/hub/Hub.html"
                 >org.astrogrid.samp.hub.Hub</a>.
-This should be used from the command line or programmatically to start a hub,
+This can be used from the command line or programmatically to start a hub,
 and it can run zero or more profiles, defined by the new
 <a target="samp-javadocs"
    href="apidocs/org/astrogrid/samp/hub/HubProfile.html">HubProfile</a>
