@@ -45,12 +45,8 @@ It provides the following components:
 
 <p>The current version targets the SAMP 
 <a href="http://www.ivoa.net/Documents/SAMP/20101216/"
-   >1.2 Recommendation</a> document (16 December 2010);
-this is very close to the
-<a href="http://www.ivoa.net/Documents/cover/SAMP-20090421.html"
-   >1.11 Recommendation</a> (21 April 2009),
-but with an enhancement concerning Standard Profile hub discovery.
-This version also provides support for the experimental Web Profile.
+   >1.2 Recommendation</a> document (16 December 2010).
+It also provides support for the experimental Web Profile.
 </p>
 
 <p>JSAMP is currently developed by 
