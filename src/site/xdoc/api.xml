@@ -102,6 +102,10 @@ This hub can be embedded within a third party application if required.
 For more configurability, for instance customising the graphical display or
 hub discovery process, you may want to look at the other classes in this
 package, perhaps with reference to the source code.
+It is possible to configure which profiles a hub runs either programmatically
+using <code>Hub</code> class methods or externally by setting the
+<a href="sysprops.html#jsamp_hub_profiles">jsamp.hub.profiles</a>
+system property.
 </p>
 
 </subsection>
