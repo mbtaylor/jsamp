@@ -83,15 +83,15 @@ public class StandardHubProfile implements HubProfile {
             started_ = true;
         }
 
-        // Check for running or moribund hub.
+        // Check for running hub.  If there is a running hub, bail out.
+        // If there is a lockfile but apparently no running hub,
+        // continue preparations to start; the hub reference by the lockfile
+        // may either be moribund or in the process of starting up.
+        // To deal with the latter case, make all our preparations to give
+        // it more time to get going before preempting it.
         if ( lockfile_ != null && lockfile_.exists() ) {
             if ( isHubAlive( xClientFactory_, lockfile_ ) ) {
                 throw new IOException( "A hub is already running" );
-            }
-            else {
-                logger_.warning( "Overwriting " + lockfile_ + " lockfile "
-                               + "for apparently dead hub" );
-                lockfile_.delete();
             }
         }
 
@@ -119,10 +119,29 @@ public class StandardHubProfile implements HubProfile {
 
         // Write lockfile information to file if required.
         if ( lockfile_ != null ) { 
-            logger_.info( "Writing new lockfile " + lockfile_ );
+
+            // If the lockfile already exists, wait a little while in case
+            // a hub is in the process of waking up.  If it's still not
+            // present, overwrite the lockfile with a warning.
+            if ( ! lockfile_.createNewFile() ) {
+                try {
+                    Thread.sleep( 500 );
+                }
+                catch ( InterruptedException e ) {
+                }
+                if ( isHubAlive( xClientFactory_, lockfile_ ) ) {
+                    server_.removeHandler( hubHandler_ );
+                    throw new IOException( "A hub is already running" );
+                }
+                else {
+                    logger_.warning( "Overwriting " + lockfile_ + " lockfile "
+                                   + "for apparently dead hub" );
+                }
+            }
             FileOutputStream out = new FileOutputStream( lockfile_ );
             try {
                 writeLockInfo( lockInfo_, out );
+                logger_.info( "Wrote new lockfile " + lockfile_ );
                 try {
                     LockWriter.setLockPermissions( lockfile_ );
                     logger_.info( "Lockfile permissions set to "
