@@ -161,7 +161,7 @@ Some of the flags relate to particular profiles.
     </dd>
 <dt><code>-profiles std|web|&lt;hubprofile-class&gt;[,...]</code></dt>
 <dd>Identifies what profiles to run with the hub.
-    If no <code>-profile</code> flag is specified, then the default set
+    If no <code>-profiles</code> flag is specified, then the default set
     of profiles is used, which at present means just the Standard Profile.
     The flag may be given more than once, in which case all the named profiles
     will run.
@@ -193,7 +193,7 @@ Some of the flags relate to particular profiles.
 </dl>
 <p>
 The following flags are used only if the Standard Profile 
-(<code>-profile std</code>) is in operation:
+(<code>-profiles std</code>) is in operation:
 </p>
 <dl>
 <dt><code>-std:secret &lt;secret&gt;</code></dt>
@@ -210,7 +210,7 @@ The following flags are used only if the Standard Profile
     </dd>
 </dl>
 <p>The following flags are used only if the Web Profile
-(<code>-profile web</code>) is in operation:
+(<code>-profiles web</code>) is in operation:
 </p>
 <dl>
 <dt><code>-web:log none|http|xml|rpc</code></dt>
