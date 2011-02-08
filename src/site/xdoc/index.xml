@@ -59,7 +59,22 @@ working in the
 <a href="http://www.phy.bris.ac.uk/groups/astrophysics/">Astrophysics Group</a>
 at
 <a href="http://www.bristol.ac.uk/">Bristol University</a>.
-Please contact me with queries, bug reports, suggestions etc.
+It was originally developed within the UK's 
+<a href="http://www.astrogrid.org/">AstroGrid</a> project,
+and has also been supported by <a href="http://www.stfc.ac.uk/">STFC</a> 
+grant ST/H008470/1 and by 
+<a href="http://research.microsoft.com/">Microsoft Research</a>.
+All of this support is gratefully acknowledged.
+</p>
+
+<p>Queries, bug reports, suggestions etc may be mailed to the author,
+or raised on the 
+<a href="http://www.ivoa.net/pipermail/apps-samp/">apps-samp@ivoa.net</a>
+mailing list.
+</p>
+
+<p>JSAMP is open source software; it is available under (at least) the
+Academic Free Licence and the BSD Licence.
 </p>
 
 </section>
