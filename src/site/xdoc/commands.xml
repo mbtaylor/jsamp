@@ -159,8 +159,8 @@ Some of the flags relate to particular profiles.
     supported on desktop), then the window will be displayed directly,
     and closing the window will shut down the hub.
     </dd>
-<dt><code>-profile std|web|&lt;hubprofile-class&gt; ...</code></dt>
-<dd>Identifies a profile to run with the hub.
+<dt><code>-profiles std|web|&lt;hubprofile-class&gt;[,...]</code></dt>
+<dd>Identifies what profiles to run with the hub.
     If no <code>-profile</code> flag is specified, then the default set
     of profiles is used, which at present means just the Standard Profile.
     The flag may be given more than once, in which case all the named profiles
@@ -184,6 +184,11 @@ Some of the flags relate to particular profiles.
         that profile is run.
         </dd>
     </dl>
+    This flag has a similar usage to the
+    <a href="sysprops.html#jsamp_hub_profiles"
+                    ><code>jsamp.hub.profiles</code></a> system property,
+    but overrides it, and must be used to use the corresponding
+    profile-specific flags.
     </dd>
 </dl>
 <p>
@@ -273,7 +278,7 @@ the jar file with no arguments (for instance clicking on it).
 </pre>
 and to run it with both Standard and Web Profiles, do this:
 <pre>
-    java -jar jsamp.jar hub -profile std -profile web
+    java -jar jsamp.jar hub -profiles std,web
 </pre>
 </p>
 
