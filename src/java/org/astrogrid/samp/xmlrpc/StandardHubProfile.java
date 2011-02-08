@@ -173,12 +173,12 @@ public class StandardHubProfile implements HubProfile {
 
         // Delete the lockfile if it exists and if it is the one originally
         // written by this runner.
-        if ( lockfile_ != null ) {
+        if ( lockInfo_ != null && lockfile_ != null ) {
             if ( lockfile_.exists() ) {
                 try {
                     LockInfo lockInfo = readLockFile( lockfile_ );
-                    if ( lockInfo.getSecret()
-                        .equals( lockInfo_.getSecret() ) ) {
+                    if ( lockInfo_.getSecret()
+                        .equals( lockInfo.getSecret() ) ) {
                         assert lockInfo.equals( lockInfo_ );
                         boolean deleted = lockfile_.delete();
                         logger_.info( "Lockfile " + lockfile_ + " "
