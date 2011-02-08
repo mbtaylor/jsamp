@@ -413,12 +413,16 @@ public class Hub {
         argList.add( Hub.class.getName() );
         argList.add( "-mode" );
         argList.add( hubMode.toString() );
-        if ( profileClasses == null ) {
-            profileClasses = getDefaultProfileClasses();
-        }
-        for ( int ip = 0; ip < profileClasses.length; ip++ ) {
-            argList.add( "-profile" );
-            argList.add( profileClasses[ ip ].getName() );
+        if ( profileClasses != null ) {
+            argList.add( "-profiles" );
+            StringBuffer profArg = new StringBuffer();
+            for ( int ip = 0; ip < profileClasses.length; ip++ ) {
+                if ( ip > 0 ) {
+                    profArg.append( ',' );
+                }
+                profArg.append( profileClasses[ ip ].getName() );
+            }
+            argList.add( profArg.toString() );
         }
         String[] args = (String[]) argList.toArray( new String[ 0 ] );
         StringBuffer cmdbuf = new StringBuffer();
