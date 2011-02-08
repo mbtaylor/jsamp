@@ -52,6 +52,31 @@ detail on use.
 </p>
 <dl>
 <dt><strong>
+    <a name="jsamp.hub.profiles"/>
+    <code>jsamp.hub.profiles</code>
+    (<a target="samp-javadoc"
+        href="apidocs/org/astrogrid/samp/hub/Hub.html#HUBPROFILES_PROP"
+                                            >Hub.HUBPROFILES_PROP</a>):
+    </strong></dt>
+<dd>Defines the default profiles which a hub will run.
+    If a hub is started from within JSAMP without specifying which profiles
+    it will use, the profiles are defined by the value of this property.
+    The value is a comma-separated list, and each item may be one of:
+    <ul>
+    <li><code>std</code>: Standard Profile</li>
+    <li><code>web</code>: Web Profile</li>
+    <li><i>hubprofile-classname</i>: the name of a class which implements
+        <a target="samp-javadoc"
+           href="apidocs/org/astrogrid/samp/hub/HubProfile.html"
+                                               >HubProfile</a>
+        and has a suitable no-arg constructor.</li>
+    </ul>
+    If this property is not specified, a default list will be used.
+    This is currently just the Stanard Profile
+    (equivalent to <code>jsamp.hub.profiles=std</code>).
+    </dd>
+
+<dt><strong>
     <a name="jsamp.localhost"/>
     <code>jsamp.localhost</code>
     (<a target="samp-javadoc"
