@@ -50,6 +50,7 @@ this is very close to the
 <a href="http://www.ivoa.net/Documents/cover/SAMP-20090421.html"
    >1.11 Recommendation</a> (21 April 2009),
 but with an enhancement concerning Standard Profile hub discovery.
+This version also provides support for the experimental Web Profile.
 </p>
 
 <p>JSAMP is currently developed by 
