@@ -18,6 +18,7 @@
 <li><a href="#Version_0_3-1">Version 0.3-1</a></li>
 <li><a href="#Version_1_0"  >Version 1.0</a></li>
 <li><a href="#Version_1_1"  >Version 1.1</a></li>
+<li><a href="#Version_1_2"  >Version 1.2</a></li>
 </ul>
 
 <subsection name="Version 0.1">
@@ -531,55 +532,110 @@ to a minimum following this release.
 </ul>
 </subsection>
 
-<subsection name="next version">
+<subsection name="Version 1.2">
+<p>
+<strong>Date:</strong> 8 Feb 2011<br/>
+<strong>Archive:</strong> <a href="../1.2">Version 1.2</a>
+</p>
 
+<p>The two main changes at this release are generalisation of the
+hub running framework to allow multiple profiles to run interfacing to
+the same hub simultaneously, and implementation of the experimental
+Web Profile.  The former was motivated by the latter (though should really
+have been present from the start).  There are also
+a number of bug fixes and minor enhancements.
+</p>
+
+<p>Hub framework:</p>
+<blockquote>
+<p>The <code>org.astrogrid.samp.hub.HubRunner</code>
+class has been deprecated in favour of the new class
+<a target="samp-javadocs"
+   href="apidocs/org/astrogrid/samp/hub/Hub.html"
+                >org.astrogrid.samp.hub.Hub</a>.
+This should be used from the command line or programmatically to start a hub,
+and it can run zero or more profiles, defined by the new
+<a target="samp-javadocs"
+   href="apidocs/org/astrogrid/samp/hub/HubProfile.html">HubProfile</a>
+interface, simultaneously.  HubProfile implementations are provided for
+the Standard Profile and the Web Profile, and you can plug in your own
+at runtime.  This class is now the Main-Class defined in the jar file's
+Manifest, so invoking (e.g. clicking or java -jar) the jsamp-*.jar file
+will now invoke this class.  Documentation of the command-line usage
+is on the <a href="commands.html#Hub">Command-line Tools</a> page.
+By default only the Standard Profile is run, so simply invoking the
+jar file will have much the same behaviour as it did in previous 
+versions, that is starting a Standard Profile-only hub.
+Which profiles are run can be influenced in various ways,
+including by defining the
+<a href="sysprops.html#jsamp_hub_profiles"><code>jsamp.hub.profiles</code></a>
+system property.
+</p>
+<p>A new "facade" mode of hub operation has been introduced, which 
+allows tunnelling from one hub profile to another (mostly of interest
+to hub profile implementors).
+</p>
+<p>There have been a number of other backwardly incompatible changes to
+the hub implementation classes:
+Most of the <code>HubService</code> interface has been replaced using
+<code>HubConnection</code> and <code>Receiver</code> has been replaced with
+<code>CallableClient</code>, reducing amount and duplication of code,
+and some assumptions specific to the Standard Profile have been
+removed from the interfaces of hub classes which are properly 
+profile-independent.
+These changes are not believed likely to affect
+anybody who is not writing hub implementation code.
+</p>
+</blockquote>
+
+<p>Web Profile:</p>
+<blockquote>
+<p>This release also includes client and hub implementations of the
+experimental Web Profile.
+Implementation is in the new package
+<a target="samp-javadoc"
+   href="apidocs/org/astrogrid/samp/web/package-summary.html"
+                >org.astrogrid.samp.web</a>.
+Note that this profile is still under discussion and details of the
+definition may change in the future.
+</p>
+</blockquote>
+
+<p>Bug fixes:</p>
 <ul>
+<li>Fixed URI escaping bugs related to "+" characters
+    (new utility methods <code>SampUtils.uriEncode/Decode</code>).</li>
+<li>Fixed some concurrency bugs to do with handler lists in
+    <code>HubConnector</code>, <code>HttpServer</code>,
+    <code>InternalServer</code> and <code>ApacheServer</code>
+    (thanks to Laurent Bourges).</li>
+<li>Fixed a bug related to output capture when an external hub is started.</li>
+<li>Fixed some not-quite-correct internal HTTP server error responses
+    (405, 400).</li>
+<li>Fixed internal HTTP server so it won't reorder request/response
+    headers.</li>
+<li>Improved header handling (case-sensitive, duplicated keys)
+    in HttpServer.</li>
+<li>Fixed client XML logging bug.</li>
+</ul>
+
+<p>Minor changes and enhancements:</p>
+<ul>
+<li>Changed pluggable XML-RPC implementation framework API slightly -
+    <code>handleCall</code> method in <code>SampXmlRpcHandler</code>
+    interface gets an additional argument.</li>
+<li>SAMP Version now declares itself as SAMP v1.2 REC.</li>
+<li>Some additional system properties are now propagated when starting an
+    external hub.</li>
 <li>Window positioning now follows platform norms by default rather than the
     java policy of placement at (0,0).  
     Specifically: the <code>java.awt.Window.locationByPlatform</code>
     system property is set, if it does not already have an explicit value,
     in the JSamp class.</li>
-<li>Some additional system properties are now propagated when starting an
-    external hub from HubRunner.</li>
 <li>AbstractMessageHandler has a new method <code>createResponse</code>
     which may be overridden for more flexibility.</li>
-<li>Fixed a bug related to output capture when an external hub is started.</li>
 <li>External hub start action is disabled in JNLP context, since
     it won't work.</li>
-<li>Fixed internal HTTP server so it won't reorder request/response
-    headers.</li>
-<li>Fixed some concurrency bugs to do with handler lists in
-    <code>HubConnector</code>, <code>HttpServer</code>,
-    <code>InternalServer</code> and <code>ApacheServer</code>
-    (thanks to Laurent Bourges).</li>
-<li>Fixed some not-quite-correct internal HTTP server error responses
-    (405, 400).</li>
-<li>Improved header handling (case-sensitive, duplicated keys)
-    in HttpServer.</li>
-<li>Fixed URI escaping bugs related to "+" characters
-    (new utility methods <code>SampUtils.uriEncode/Decode</code>).</li>
-<li>Changed pluggable XML-RPC implementation framework API slightly -
-    <code>handleCall</code> method in <code>SampXmlRpcHandler</code>
-    interface gets an additional argument.</li>
-<li>Fixed client XML logging bug.</li>
-<li>Version now declares itself as SAMP v1.2 REC.</li>
-<li>Changes to hub classes.
-    Most of the <code>HubService</code> interface has been replaced using
-    <code>HubConnection</code> and <code>Receiver</code> has been replaced by
-    <code>CallableClient</code>.
-    This has reduced amount and duplication of code.
-    A number of other changes in hub implementation code have taken place
-    to support a properly pluggable infrastructure for hub Profiles.
-    The changes are backwardly incompatible, but this is unikely to affect
-    anybody who is not writing hub implementation code.</li>
-<li>Class <code>org.astrogrid.samp.xmlrpc.HubRunner</code> has been
-    deprecated in favour of class 
-    <a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/hub/Hub.html">Hub</a>.
-    <code>Hub</code> implements pluggable profiles using the new
-    <a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/hub/HubProfile.html">HubProfile</a>
-    interface.</li>
 </ul>
 </subsection>
 
