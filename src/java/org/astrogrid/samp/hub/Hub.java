@@ -335,23 +335,14 @@ public class Hub {
         HubService hubService =
             hubMode.createHubService( KeyGenerator.createRandom(), runners );
         final Hub hub = new Hub( hubService, profiles );
+        hub.start();
         runners[ 0 ] = hub;
         Runtime.getRuntime().addShutdownHook( new Thread( "Hub Terminator" ) {
             public void run() {
                 hub.shutdown();
             }
         } );
-        boolean started = false;;
-        try {
-            hub.start();
-            started = true;
-            return hub;
-        }
-        finally {
-            if ( ! started ) {
-                hub.shutdown();
-            }
-        }
+        return hub;
     }
 
     /**
