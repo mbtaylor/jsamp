@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.SampException;
@@ -141,22 +142,25 @@ public abstract class HubServiceMode {
      * @param  frame  hub window
      * @param  runners  1-element array which will contain an associated
      *         hub runner object if one exists
+     * @return  object which should be shutdown when the hub stops running
      */
-    static void configureHubWindow( JFrame frame, Hub[] runners ) {
+    private static Tidier configureHubWindow( JFrame frame, Hub[] runners ) {
         SysTray sysTray = SysTray.getInstance();
         if ( sysTray.isSupported() ) {
+            Tidier tidier;
             try {
-                configureWindowForSysTray( frame, runners, sysTray );
+                tidier = configureWindowForSysTray( frame, runners, sysTray );
+                logger_.info( "Hub started in system tray" );
             }
             catch ( AWTException e ) {
                 logger_.warning( "Failed to install in system tray: " + e );
-                configureWindowBasic( frame, runners );
+                tidier = configureWindowBasic( frame, runners );
             }
-            logger_.info( "Hub started in system tray" );
+            return tidier;
         }
         else {
             logger_.info( "System tray not supported: displaying hub window" );
-            configureWindowBasic( frame, runners );
+            return configureWindowBasic( frame, runners );
         }
     }
 
@@ -166,9 +170,10 @@ public abstract class HubServiceMode {
      * @param  frame  hub window
      * @param  runners  1-element array which will contain an associated
      *         hub runner object if one exists
+     * @return  object which should be shutdown when the hub stops running
      */
-    private static void configureWindowBasic( JFrame frame,
-                                              final Hub[] runners ) {
+    private static Tidier configureWindowBasic( final JFrame frame,
+                                                final Hub[] runners ) {
         frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
         frame.addWindowListener( new WindowAdapter() {
             public void windowClosed( WindowEvent evt ) {
@@ -179,6 +184,11 @@ public abstract class HubServiceMode {
             }
         } );
         frame.setVisible( true );
+        return new Tidier() {
+            protected void tidyGui() {
+                frame.dispose();
+            }
+        };
     }
 
     /**
@@ -190,9 +200,9 @@ public abstract class HubServiceMode {
      *         hub runner object if one exists
      * @param  sysTray  system tray facade object
      */
-    private static void configureWindowForSysTray( final JFrame frame,
-                                                   final Hub[] runners,
-                                                   final SysTray sysTray )
+    private static Tidier configureWindowForSysTray( final JFrame frame,
+                                                     final Hub[] runners,
+                                                     final SysTray sysTray )
             throws AWTException {
 
         /* Prepare the items for display in the tray icon popup menu. */
@@ -219,6 +229,17 @@ public abstract class HubServiceMode {
         PopupMenu popup = new PopupMenu();
         final Object trayIcon =
             sysTray.addIcon( im, tooltip, popup, iconListener );
+        final Tidier iconRemover = new Tidier() {
+            protected void tidyGui() {
+                try {
+                    sysTray.removeIcon( trayIcon );
+                }
+                catch ( AWTException e ) {
+                    logger_.warning( "Can't remove system tray icon: " + e );
+                }
+                frame.dispose();
+            }
+        };
 
         /* Arrange for the menu items to do something appropriate when
          * triggered. */
@@ -237,13 +258,7 @@ public abstract class HubServiceMode {
                     if ( runner != null ) {
                         runner.shutdown();
                     }
-                    try {
-                        sysTray.removeIcon( trayIcon );
-                    }
-                    catch ( AWTException e ) {
-                        logger_.warning( e.toString() );
-                    }
-                    frame.dispose();
+                    iconRemover.tidyGui();
                 }
             }
         };
@@ -265,6 +280,9 @@ public abstract class HubServiceMode {
         /* Set to initial state. */
         popListener.actionPerformed(
             new ActionEvent( frame, 0, hideItem.getActionCommand() ) );
+
+        /* Return object which can tidy up. */
+        return iconRemover;
     }
 
     /**
@@ -297,9 +315,17 @@ public abstract class HubServiceMode {
                 HubService createHubService( Random random,
                                              final Hub[] runners ) {
                     return new GuiHubService( random ) {
+                        Tidier tidier;
                         public void start() {
                             super.start();
-                            configureHubWindow( createHubWindow(), runners );
+                            tidier = configureHubWindow( createHubWindow(),
+                                                         runners );
+                        }
+                        public void shutdown() {
+                            super.shutdown();
+                            if ( tidier != null ) {
+                                tidier.scheduleTidy();
+                            }
                         }
                     };
                 }
@@ -322,9 +348,17 @@ public abstract class HubServiceMode {
                 HubService createHubService( Random random,
                                              final Hub[] runners ) {
                     return new MessageTrackerHubService( random ) {
+                        Tidier tidier;
                         public void start() {
                             super.start();
-                            configureHubWindow( createHubWindow(), runners );
+                            tidier = configureHubWindow( createHubWindow(),
+                                                         runners );
+                        }
+                        public void shutdown() {
+                            super.shutdown();
+                            if ( tidier != null ) {
+                                tidier.scheduleTidy();
+                            }
                         }
                     };
                 }
@@ -369,6 +403,31 @@ public abstract class HubServiceMode {
         HubService createHubService( Random random, Hub[] runners ) {
             throw new RuntimeException( "Hub mode " + getName()
                                       + " unavailable", error_ );
+        }
+    }
+
+    /**
+     * Utility abstract class to define an object which can be tidied up
+     * on hub shutdown.
+     */
+    private static abstract class Tidier {
+
+        /**
+         * Performs any required tidying operations.
+         * May be assumed to be called on the AWT Event Dispatch Thread.
+         */
+        protected abstract void tidyGui();
+        
+        /**
+         * Schedules any tidying operations to be performed.
+         * May be called from any thread.
+         */
+        public void scheduleTidy() {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    tidyGui();
+                }
+            } );
         }
     }
 }
