@@ -790,7 +790,9 @@ public class BasicHubService implements HubService {
     public synchronized void shutdown() {
         if ( ! shutdown_ ) {
             shutdown_ = true;
-            hubEvent( new Message( "samp.hub.event.shutdown" ) );
+            if ( started_ ) {
+                hubEvent( new Message( "samp.hub.event.shutdown" ) );
+            }
             serviceClientConnection_ = null;
         }
     }
