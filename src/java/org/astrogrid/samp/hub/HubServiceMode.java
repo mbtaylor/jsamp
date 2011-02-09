@@ -185,7 +185,7 @@ public abstract class HubServiceMode {
         } );
         frame.setVisible( true );
         return new Tidier() {
-            protected void tidyGui() {
+            public void tidyGui() {
                 if ( frame.isShowing() ) {
                     frame.dispose();
                 }
@@ -232,7 +232,7 @@ public abstract class HubServiceMode {
         final Object trayIcon =
             sysTray.addIcon( im, tooltip, popup, iconListener );
         final Tidier iconRemover = new Tidier() {
-            protected void tidyGui() {
+            public void tidyGui() {
                 try {
                     sysTray.removeIcon( trayIcon );
                 }
@@ -322,14 +322,23 @@ public abstract class HubServiceMode {
                         Tidier tidier;
                         public void start() {
                             super.start();
-                            tidier = configureHubWindow( createHubWindow(),
-                                                         runners );
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    tidier =
+                                        configureHubWindow( createHubWindow(),
+                                                            runners );
+                                }
+                            } );
                         }
                         public void shutdown() {
                             super.shutdown();
-                            if ( tidier != null ) {
-                                tidier.scheduleTidy();
-                            }
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    if ( tidier != null ) {
+                                        tidier.tidyGui();
+                                    }
+                                }
+                            } );
                         }
                     };
                 }
@@ -355,14 +364,23 @@ public abstract class HubServiceMode {
                         Tidier tidier;
                         public void start() {
                             super.start();
-                            tidier = configureHubWindow( createHubWindow(),
-                                                         runners );
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    tidier =
+                                        configureHubWindow( createHubWindow(),
+                                                            runners );
+                                }
+                            } );
                         }
                         public void shutdown() {
                             super.shutdown();
-                            if ( tidier != null ) {
-                                tidier.scheduleTidy();
-                            }
+                            SwingUtilities.invokeLater( new Runnable() {
+                                public void run() {
+                                    if ( tidier != null ) {
+                                        tidier.tidyGui();
+                                    }
+                                }
+                            } );
                         }
                     };
                 }
@@ -420,18 +438,6 @@ public abstract class HubServiceMode {
          * Performs any required tidying operations.
          * May be assumed to be called on the AWT Event Dispatch Thread.
          */
-        protected abstract void tidyGui();
-        
-        /**
-         * Schedules any tidying operations to be performed.
-         * May be called from any thread.
-         */
-        public void scheduleTidy() {
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    tidyGui();
-                }
-            } );
-        }
+        public abstract void tidyGui();
     }
 }
