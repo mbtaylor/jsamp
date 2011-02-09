@@ -190,7 +190,9 @@ public class Hub {
      * @throws   IllegalArgumentException  if unknown
      */
     public static HubProfileFactory[] parseProfileList( String listTxt ) {
-        String[] txtItems = listTxt.split( "," );
+        String[] txtItems = listTxt == null || listTxt.trim().length() == 0
+                          ? new String[ 0 ]
+                          : listTxt.split( "," );
         List factoryList = new ArrayList();
         for ( int i = 0; i < txtItems.length; i++ ) {
             factoryList.add( parseProfileClass( txtItems[ i ] ) );
