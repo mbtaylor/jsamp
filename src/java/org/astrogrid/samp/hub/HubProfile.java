@@ -20,7 +20,7 @@ import org.astrogrid.samp.client.ClientProfile;
 public interface HubProfile {
 
     /**
-     * Starts this hub's activity allowing access to a given supplier of
+     * Starts this profile's activity allowing access to a given supplier of
      * hub connections.
      *
      * @param   profile  object which can provide hub connections
