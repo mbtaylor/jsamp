@@ -186,7 +186,9 @@ public abstract class HubServiceMode {
         frame.setVisible( true );
         return new Tidier() {
             protected void tidyGui() {
-                frame.dispose();
+                if ( frame.isShowing() ) {
+                    frame.dispose();
+                }
             }
         };
     }
@@ -237,7 +239,9 @@ public abstract class HubServiceMode {
                 catch ( AWTException e ) {
                     logger_.warning( "Can't remove system tray icon: " + e );
                 }
-                frame.dispose();
+                if ( frame.isShowing() ) {
+                    frame.dispose();
+                }
             }
         };
 
