@@ -33,6 +33,7 @@
     <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.2.zip">jsamp_src-0.2.zip</a></li>
     <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.1.zip">jsamp_src-0.1.zip</a></li>
     </ul>
+    (See also <a href="cvs-usage.html">CVS access</a>)
     </dd>
 <dt>Dependencies:</dt>
 <dd><a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
