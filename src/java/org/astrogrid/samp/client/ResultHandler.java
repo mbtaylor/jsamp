@@ -23,7 +23,7 @@ public interface ResultHandler {
     /**
      * Called when no more {@link #result} invocations will be made,
      * either because all have been received or for some other reason,
-     * such as the hub shutting down.
+     * such as a timeout or the hub shutting down.
      */
     public void done();
 }
