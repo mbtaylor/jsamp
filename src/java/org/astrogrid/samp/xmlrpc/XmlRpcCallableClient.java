@@ -78,6 +78,15 @@ class XmlRpcCallableClient implements CallableClient {
      * @param   paramList   list of method parameters
      */
     private void rawExec( String fqName, List paramList ) throws IOException {
-        xClient_.callAndForget( fqName, paramList );
+
+        // callAndForget might seem adequate here.  However, any implementation
+        // I've come up with for it presents problems (for instance incomplete
+        // HTTP connections when run from a shutdown hook thread,
+        // so hub fails to warn all clients of impending shutdown, though
+        // hacks around this are possible).
+        // It seems least problematic, and not dramatically slower,
+        // just to do synchronous calls here.  This could cause trouble
+        // if clients hang onto HTTP connections for long though.
+        xClient_.callAndWait( fqName, paramList );
     }
 }
