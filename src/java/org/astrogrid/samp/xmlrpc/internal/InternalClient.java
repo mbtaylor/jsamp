@@ -72,6 +72,8 @@ public class InternalClient implements SampXmlRpcClient {
         return result;
     }
 
+    // NOTE: if this method is invoked from a shutdownHook thread,
+    // the call may not complete because it is completed from a new thread.
     public void callAndForget( String method, List params )
             throws IOException {
         final HttpURLConnection connection =

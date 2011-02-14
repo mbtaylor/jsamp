@@ -29,6 +29,11 @@ public interface SampXmlRpcClient {
      * Sends a call, but does not wait around for the response.
      * If possible, this method should complete quickly.
      *
+     * <p>NOTE: it seems to be difficult to implement this method in a
+     * way which is faster than {@link #callAndWait} but does not cause
+     * problems elsewhere (incomplete HTTP responses).  It is probably 
+     * a good idea to avoid using it if possible.
+     *
      * @param  method    XML-RPC method name
      * @param  params    parameters for XML-RPC call (SAMP-compatible)
      */
