@@ -197,21 +197,41 @@ public class HubConnectorTest extends TestCase {
         TestResultHandler tHandler = new TestResultHandler();
         c1.call( id2, msg, tHandler, 0 );
         int millis = tHandler.waitTillDone();
-        assert tHandler.getResponse( id2 ).isOK();
+        assertTrue( tHandler.getResponse( id2 ).isOK() );
 
-        msg.addParam( "waitMillis", "5000" );
+        Message msg5 = new Message( msg );
+        msg5.addParam( "waitMillis", "5000" );
         TestResultHandler th2 = new TestResultHandler();
         TestResultHandler th3 = new TestResultHandler();
-        c1.call( id2, msg, th2, 1 );
-        c1.callAll( msg, th3, 1 );
+        c1.call( id2, msg5, th2, 1 );
+        c1.callAll( msg5, th3, 1 );
         assertTrue( ! th2.isDone_ );
         assertTrue( ! th3.isDone_ );
+        assertNull( th2.getResponse( id2 ) );
+        assertNull( th3.getResponse( id2 ) );
         int delay = th2.waitTillDone() + th3.waitTillDone();
-        assertTrue( delay > 400 );
+        assertTrue( delay > 400 );   // should be about 1 sec
         assertTrue( th2.isDone_ );
         assertTrue( th3.isDone_ );
-        assertTrue( th2.getResponse( id2 ) == null );
-        assertTrue( th3.getResponse( id2 ) == null );
+        assertNull( th2.getResponse( id2 ) );
+        assertNull( th3.getResponse( id2 ) );
+
+        Message msg02 = new Message( msg );
+        msg02.addParam( "waitMillis", "200" );
+        TestResultHandler th4 = new TestResultHandler();
+        TestResultHandler th5 = new TestResultHandler();
+        long start02 = System.currentTimeMillis();
+        c1.call( id2, msg02, th4, 5 );
+        c1.callAll( msg02, th5, 5 );
+        assertTrue( ! th4.isDone_ );
+        assertTrue( ! th5.isDone_ );
+        th4.waitTillDone();
+        th5.waitTillDone();
+        assertTrue( System.currentTimeMillis() - start02 > 150 );
+        assertTrue( th4.isDone_ );
+        assertTrue( th5.isDone_ );
+        assertTrue( th4.getResponse( id2 ).isOK() );
+        assertTrue( th5.getResponse( id2 ).isOK() );
 
         profile.stopHub();
     }
@@ -255,7 +275,7 @@ public class HubConnectorTest extends TestCase {
     }
 
     private static class TestResultHandler implements ResultHandler {
-        boolean isDone_;
+        volatile boolean isDone_;
         final Map resultMap_ = Collections.synchronizedMap( new HashMap() );
 
         public synchronized void result( Client client, Response response ) {
