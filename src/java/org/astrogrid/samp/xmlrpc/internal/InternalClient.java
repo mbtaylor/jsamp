@@ -7,12 +7,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.DOMException;
@@ -36,46 +33,6 @@ public class InternalClient implements SampXmlRpcClient {
     private final String userAgent_;
     private static final Logger logger_ =
         Logger.getLogger( InternalClient.class.getName() );
-    private static final Set readThreadSet_;
-    private static final long MAX_SHUTDOWN_WAIT = 2000;
-
-    /**
-     * This static initializer sets up a shutdown hook which makes sure
-     * that any pending reads from the callAndForget mechanism complete
-     * execution before shutdown.  This prevents a problem which can
-     * prevent some hub shutdown notifications getting delivered on
-     * JVM shutdown.
-     */
-    static {
-        readThreadSet_ = Collections.synchronizedSet( new HashSet() );
-        Runtime.getRuntime()
-               .addShutdownHook( new Thread( "XMLRPC Call Waiter" ) {
-            public void run() {
-                if ( readThreadSet_.isEmpty() ) {
-                    return;
-                }
-                Thread[] threads;
-                synchronized ( readThreadSet_ ) {
-                    threads =
-                        (Thread[]) readThreadSet_.toArray( new Thread[ 0 ] );
-                    readThreadSet_.clear();
-                }
-                logger_.info( "Waiting for " + threads.length + " "
-                            + "XML-RPC callAndForget connections to complete" );
-                try {
-                    for ( int i = 0; i < threads.length; i++ ) {
-                        threads[ i ].join( MAX_SHUTDOWN_WAIT );
-                    }
-                }
-                catch ( InterruptedException e ) {
-                    logger_.warning( "Read thread wait interrupted" );
-                }
-                catch ( Throwable e ) {
-                    e.printStackTrace();
-                }
-            }
-        } );
-    }
 
     /**
      * Constructor.
@@ -137,7 +94,7 @@ public class InternalClient implements SampXmlRpcClient {
         // However, connection.setDoInput(false) and doing no reads causes
         // trouble - probably the call doesn't complete at the other end or
         // something.  So read it to the end asynchronously.
-        final Thread readThread = new Thread( "XMLRPC callAndForget reader" ) {
+        new Thread() {
             public void run() {
                 try {
                     InputStream in =
@@ -152,13 +109,10 @@ public class InternalClient implements SampXmlRpcClient {
                 catch ( IOException e ) {
                 }
                 finally {
-                    readThreadSet_.remove( (Thread) this );
                     connection.disconnect();
                 }
             }
-        };
-        readThreadSet_.add( readThread );
-        readThread.start();
+        }.start();
     }
 
     /**
