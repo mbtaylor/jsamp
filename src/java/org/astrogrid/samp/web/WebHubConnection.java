@@ -117,8 +117,21 @@ class WebHubConnection extends XmlRpcHubConnection {
                         for ( Iterator it = resultList.iterator();
                               it.hasNext(); ) {
                             try {
-                                Callback cb = new Callback( (Map) it.next() );
-                                ClientCallbackOperation.invoke( cb, client_ );
+                                final Callback cb =
+                                    new Callback( (Map) it.next() );
+                                new Thread( "Web Profile Callback" ) {
+                                    public void run() {
+                                        try {
+                                            ClientCallbackOperation
+                                                .invoke( cb, client_ );
+                                        }
+                                        catch ( Throwable e ) {
+                                            logger_.log( Level.WARNING,
+                                                         "Callback failure: "
+                                                       + e.getMessage(), e );
+                                        }
+                                    }
+                                }.start();
                             }
                             catch ( Throwable e ) {
                                 logger_.log( Level.WARNING, e.getMessage(), e );
