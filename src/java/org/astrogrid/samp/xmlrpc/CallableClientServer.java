@@ -5,12 +5,12 @@ import java.net.URL;
 import java.util.Map;
 import java.util.HashMap;
 import org.astrogrid.samp.client.CallableClient;
+import org.astrogrid.samp.client.HubConnection;
 
 /**
  * XML-RPC server which can host {@link CallableClient} instances.
- * It is usually appropriate to treat this class as a singleton, since
- * in most cases a single instance will be more efficient than multiple ones,
- * but you can construct your own instances if you want.
+ * There should usually be only one instance of this class for each
+ * SampXmlRpcServer - see {@link #getInstance}.
  *
  * @author   Mark Taylor
  * @since    16 Jul 2008
@@ -23,12 +23,11 @@ class CallableClientServer {
     private static final Map serverMap_ = new HashMap();
 
     /**
-     * Constructor.  Note that a singleton-like {@link #getInstance} method
-     * exists as well.
+     * Constructor.  Note that a {@link #getInstance} method exists as well.
      *
      * @param  server  XML-RPC server hosting this client server
      */
-    public CallableClientServer( SampXmlRpcServer server ) throws IOException {
+    public CallableClientServer( SampXmlRpcServer server) throws IOException {
         clientHandler_ = new ClientXmlRpcHandler();
         server.addHandler( clientHandler_ );
         url_ = server.getEndpoint();
@@ -46,21 +45,21 @@ class CallableClientServer {
     /**
      * Adds a CallableClient object to this server.
      *
-     * @param   privateKey  private key for the registered client on behalf
+     * @param   connection  hub connection for the registered client on behalf
      *          of which the client will operate
      * @param   callable   callable client object
      */
-    public void addClient( String privateKey, CallableClient callable ) {
-        clientHandler_.addClient( privateKey, callable );
+    public void addClient( HubConnection connection, CallableClient callable ) {
+        clientHandler_.addClient( connection, callable );
     }
 
     /**
      * Removes a CallableClient object from this server.
      *
-     * @param  privateKey   key under which this client was added
+     * @param  privateKey   hub connection for which this client was added
      */
-    public void removeClient( String privateKey ) {
-        clientHandler_.removeClient( privateKey );
+    public void removeClient( HubConnection connection ) {
+        clientHandler_.removeClient( connection );
     }
 
     /**

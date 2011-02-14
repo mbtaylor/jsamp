@@ -48,14 +48,14 @@ class StandardHubConnection extends XmlRpcHubConnection {
                                          e );
             }
         }
-        callableServer_.addClient( getRegInfo().getPrivateKey(), callable );
+        callableServer_.addClient( this, callable );
         exec( "setXmlrpcCallback",
               new Object[] { callableServer_.getUrl().toString() } );
     }
 
     public void unregister() throws SampException {
         if ( callableServer_ != null ) {
-            callableServer_.removeClient( getRegInfo().getPrivateKey() );
+            callableServer_.removeClient( this );
         }
         super.unregister();
     }
