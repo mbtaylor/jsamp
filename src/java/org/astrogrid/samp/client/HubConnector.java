@@ -816,13 +816,14 @@ public class HubConnector {
                 MessageHandler handler = mhandlers[ ih ];
                 Subscriptions subs =
                     Subscriptions.asSubscriptions( handler.getSubscriptions() );
-                if ( subs.isSubscribed( message.getMType() ) ) {
+                String mtype = message.getMType();
+                if ( subs.isSubscribed( mtype ) ) {
                     try {
                         handler.receiveNotification( conn_, senderId, message );
                     }
-                    catch ( Exception e ) {
-                        logger_.log( Level.WARNING, "Notify handler failed",
-                                     e );
+                    catch ( Throwable e ) {
+                        logger_.log( Level.WARNING,
+                                     "Notify handler failed " + mtype, e );
                     }
                 }
             }
@@ -848,10 +849,10 @@ public class HubConnector {
                         handler.receiveCall( conn_, senderId, msgId, message );
                         return;
                     }
-                    catch ( Exception e ) {
+                    catch ( Throwable e ) {
                         errInfo = new ErrInfo( e );
                         logger_.log( Level.WARNING,
-                                     "Call handler failed: " + mtype );
+                                     "Call handler failed " + mtype, e );
                     }
                 }
             }
@@ -1067,8 +1068,8 @@ public class HubConnector {
     private class CallItem implements Comparable {
         final ResultHandler handler_;
         final long finish_;
-        Map responseMap_;  // responderId -> Response
-        Map recipientMap_; // responderId -> Client
+        volatile Map responseMap_;  // responderId -> Response
+        volatile Map recipientMap_; // responderId -> Client
  
         /**
          * Constructor.
@@ -1182,8 +1183,8 @@ public class HubConnector {
          * @return  iff no further activity is expected
          */
         public synchronized boolean isDone() {
-            return recipientMap_ != null
-                && recipientMap_.isEmpty();
+            return ( recipientMap_ != null && recipientMap_.isEmpty() )
+                || System.currentTimeMillis() >= finish_;
         }
 
         /**
