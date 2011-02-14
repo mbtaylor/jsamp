@@ -608,7 +608,11 @@ definition may change in the future.
 <li>Fixed some concurrency bugs to do with handler lists in
     <code>HubConnector</code>, <code>HttpServer</code>,
     <code>InternalServer</code> and <code>ApacheServer</code>
-    (thanks to Laurent Bourges).</li>
+    (thanks to Laurent Bourg&#xe8;s).</li>
+<li>Fixed, I think, threading issues that occasionally prevented hub
+    forced shutdown notifications getting to some clients.
+    It is possible this fix will have knock-on performance or other effects -
+    watch out.  Thanks again to Laurent Borg&#xe8;s for help with this.</li>
 <li>Fixed a bug related to output capture when an external hub is started.</li>
 <li>Fixed some not-quite-correct internal HTTP server error responses
     (405, 400).</li>
