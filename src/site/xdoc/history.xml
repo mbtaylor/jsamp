@@ -534,7 +534,7 @@ to a minimum following this release.
 
 <subsection name="Version 1.2">
 <p>
-<strong>Date:</strong> 10 Feb 2011<br/>
+<strong>Date:</strong> 15 Feb 2011<br/>
 <strong>Archive:</strong> <a href="../1.2">Version 1.2</a>
 </p>
 
@@ -611,8 +611,10 @@ definition may change in the future.
     (thanks to Laurent Bourg&#xe8;s).</li>
 <li>Fixed, I think, threading issues that occasionally prevented hub
     forced shutdown notifications getting to some clients.
-    It is possible this fix will have knock-on performance or other effects -
-    watch out.  Thanks again to Laurent Borg&#xe8;s for help with this.</li>
+    It is possible this fix will have knock-on performance or other effects,
+    especially in the presence of badly-behaved clients -
+    please report if you notice problems.
+    Thanks (again) to Laurent Borg&#xe8;s for extensive help with this.</li>
 <li>Fixed a bug related to output capture when an external hub is started.</li>
 <li>Fixed some not-quite-correct internal HTTP server error responses
     (405, 400).</li>
