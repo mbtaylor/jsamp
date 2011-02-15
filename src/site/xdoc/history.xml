@@ -542,7 +542,9 @@ to a minimum following this release.
 hub running framework to allow multiple profiles to run interfacing to
 the same hub simultaneously, and implementation of the experimental
 Web Profile.  The former was motivated by the latter (though should really
-have been present from the start).  There are also
+have been present from the start).  This work was suggested by 
+Jonathan Fay and financially supported by Microsoft Research,
+whose support is gratefully acknowledged.  There are also
 a number of bug fixes and minor enhancements.
 </p>
 
