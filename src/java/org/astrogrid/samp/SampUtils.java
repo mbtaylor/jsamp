@@ -520,7 +520,7 @@ public class SampUtils {
     }
 
     /**
-     * Performs URI-stype character escaping (%xy) on a string.
+     * Performs URI-style character escaping (%xy) on a string.
      * Note, unlike {@link java.net.URLEncoder},
      * this encodes spaces as "%20" and not "+".
      *
