@@ -647,6 +647,18 @@ definition may change in the future.
 </ul>
 </subsection>
 
+<subsection name="Next version">
+<p>
+<strong>Date:</strong><br/>
+<strong>Archive:</strong>
+</p>
+
+<ul>
+<li>Use <code>DefaultClientProfile</code> not
+    <code>StandardClientProfile</code> in <code>HubMonitor</code>.</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>
