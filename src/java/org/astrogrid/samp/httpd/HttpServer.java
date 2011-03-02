@@ -435,6 +435,24 @@ public class HttpServer {
             // Decode escaped characters in the requested URI.
             uri = SampUtils.uriDecode( uri );
 
+            // Make sure it's a relative URI (probably not necessary
+            // at HTTP 1.1).
+            if ( uri.startsWith( "http://" ) ) {
+                String path;
+                try {
+                    URL url = new URL( uri );
+                    path = url.getPath();
+                    String query = url.getQuery();
+                    if ( query != null ) {
+                        path += '?' + query;
+                    }
+                    uri = path;
+                }
+                catch ( MalformedURLException e ) {
+                    // never mind
+                }
+            }
+
             // Return the request.
             return new Request( method, uri, headerMap, remoteAddress, body );
         }
