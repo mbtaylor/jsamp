@@ -29,8 +29,6 @@ import org.astrogrid.samp.client.HubConnector;
 import org.astrogrid.samp.client.MessageHandler;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.UtilServer;
-import org.astrogrid.samp.xmlrpc.StandardClientProfile;
-import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
  * Client application which uses a {@link GuiHubConnector}
@@ -151,7 +149,6 @@ public class HubMonitor extends JPanel {
         boolean gui = true;
         boolean trackMsgs = true;
         int autoSec = 3;
-        XmlRpcKit xmlrpc = null;
         Subscriptions subs = new Subscriptions();
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
@@ -209,15 +206,8 @@ public class HubMonitor extends JPanel {
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
-        // Get XML-RPC implementation.
-        if ( xmlrpc == null ) {
-            xmlrpc = XmlRpcKit.getInstance();
-        }
-
         // Get profile.
-        final ClientProfile profile =
-            xmlrpc == null ? DefaultClientProfile.getProfile()
-                           : new StandardClientProfile( xmlrpc );
+        final ClientProfile profile =DefaultClientProfile.getProfile();
 
         // Create the HubMonitor.
         final HubMonitor monitor =
