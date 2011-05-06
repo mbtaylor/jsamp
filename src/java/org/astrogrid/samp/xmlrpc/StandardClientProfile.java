@@ -87,7 +87,17 @@ public class StandardClientProfile implements ClientProfile {
                 lockInfo.check();
             }
             catch ( DataException e ) {
-                throw new SampException( "Incomplete/broken lock file", e );
+                String msg = "Incomplete/broken lock file";
+                try {
+                    File lockFile = SampUtils.urlToFile( getLockUrl() );
+                    if ( lockFile != null ) {
+                        msg += " - try deleting " + lockFile;
+                    }
+                }
+                catch ( IOException e2 ) {
+                    // never mind
+                }
+                throw new SampException( msg, e );
             }
             SampXmlRpcClient xClient;
             URL xurl = lockInfo.getXmlrpcUrl();
