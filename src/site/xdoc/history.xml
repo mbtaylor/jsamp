@@ -656,6 +656,8 @@ definition may change in the future.
 <ul>
 <li>Use <code>DefaultClientProfile</code> not
     <code>StandardClientProfile</code> in <code>HubMonitor</code>.</li>
+<li>More helpful warning message when standard profile lockfile
+    is present but broken (suggests deleting file).</li>
 </ul>
 </subsection>
 
