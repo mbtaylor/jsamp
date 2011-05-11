@@ -32,9 +32,7 @@ public class ClientAuthorizers {
      * Authorizer which queries the user via a popup dialogue,
      * with INFO logging either way.
      */
-    public static final ClientAuthorizer SWING =
-        createLoggingClientAuthorizer( new SwingClientAuthorizer( null, false ),
-                                       Level.INFO, Level.INFO );
+    private static ClientAuthorizer swingAuth_;
 
     private static final Logger logger_ =
         Logger.getLogger( ClientAuthorizers.class.getName() );
@@ -48,6 +46,7 @@ public class ClientAuthorizers {
      * @param  name  one of "false", "true", "swing"
      * @return   authorizer instance
      * @throws  IllegalArgumentException  if <code>name</code> is unknown
+     * @throws  HeadlessException  if name=swing and graphics is headless
      */
     public static ClientAuthorizer getClientAuthorizer( String name ) {
         if ( "false".equalsIgnoreCase( name ) ) {
@@ -57,7 +56,14 @@ public class ClientAuthorizers {
             return TRUE;
         }
         else if ( "swing".equalsIgnoreCase( name ) ) {
-            return SWING;
+
+            // Initialised lazily since it can throw a HeadlessException.
+            if ( swingAuth_ == null ) {
+                swingAuth_ = createLoggingClientAuthorizer(
+                                 new SwingClientAuthorizer( null, false ),
+                                 Level.INFO, Level.INFO );
+            }
+            return swingAuth_;
         }
         else {
             throw new IllegalArgumentException( "unknown auth " + name );

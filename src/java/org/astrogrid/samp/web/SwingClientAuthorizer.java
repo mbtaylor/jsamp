@@ -1,6 +1,8 @@
 package org.astrogrid.samp.web;
 
 import java.awt.Component;
+import java.awt.GraphicsEnvironment;
+import java.awt.HeadlessException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -38,6 +40,10 @@ public class SwingClientAuthorizer implements ClientAuthorizer {
     public SwingClientAuthorizer( Component parent, boolean permitRemote ) {
         parent_ = parent;
         permitRemote_ = permitRemote;
+        if ( GraphicsEnvironment.isHeadless() ) {
+            throw new HeadlessException( "Client authorization dialogues "
+                                       + "impossible - no graphics" );
+        }
     }
 
     public boolean authorize( HttpServer.Request request, String appName ) {

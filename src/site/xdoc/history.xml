@@ -658,6 +658,9 @@ definition may change in the future.
     <code>StandardClientProfile</code> in <code>HubMonitor</code>.</li>
 <li>More helpful warning message when standard profile lockfile
     is present but broken (suggests deleting file).</li>
+<li>Web Profile hub now fails at start time rather than during
+    registration attempts if Swing client authorization is in use
+    with headless graphics.</li>
 </ul>
 </subsection>
 
