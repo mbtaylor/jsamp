@@ -21,7 +21,7 @@ public interface OriginAuthorizer {
     boolean authorize( String origin );
 
     /**
-     * Indicates whether clients from arbitrary origins (includeing none)
+     * Indicates whether clients from arbitrary origins (including none)
      * are permitted to access resources.
      *
      * @return  true iff access is permitted
