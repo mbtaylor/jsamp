@@ -172,7 +172,7 @@ public class SwingClientAuthorizer implements ClientAuthorizer {
         // Just calling showOptionDialog can end up with the popup being
         // obscured by other windows on the desktop, at least for win XP.
         JOptionPane jop =
-            new JOptionPane( lines, JOptionPane.QUESTION_MESSAGE,
+            new JOptionPane( lines, JOptionPane.WARNING_MESSAGE,
                              JOptionPane.YES_NO_OPTION, null,
                              new String[] { yesOpt, noOpt }, noOpt );
         JDialog dialog = jop.createDialog( parent_, "SAMP Hub Security" );
