@@ -3,6 +3,7 @@ package org.astrogrid.samp.web;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.HubProfileFactory;
 import org.astrogrid.samp.hub.KeyGenerator;
@@ -87,16 +88,23 @@ public class WebHubProfileFactory implements HubProfileFactory {
         }
 
         // Prepare client authorizer.
-        ClientAuthorizer clientAuth;
-        try {
-            clientAuth = ClientAuthorizers.getClientAuthorizer( authType );
+        final ClientAuthorizer clientAuth;
+        if ( "swing".equalsIgnoreCase( authType ) ) {
+            clientAuth = ClientAuthorizers
+                        .createLoggingClientAuthorizer(
+                             new HubSwingClientAuthorizer( null, false ),
+                             Level.INFO, Level.INFO );
         }
-        catch ( IllegalArgumentException e ) {
-            throw (IllegalArgumentException)
-                  new IllegalArgumentException( "Unknown authorizer type "
+        else if ( "true".equalsIgnoreCase( authType ) ) {
+            clientAuth = ClientAuthorizers.TRUE;
+        }
+        else if ( "false".equalsIgnoreCase( authType ) ) {
+            clientAuth = ClientAuthorizers.FALSE;
+        }
+        else {
+            throw new IllegalArgumentException( "Unknown authorizer type "
                                               + authType + "; Usage: "
-                                              + authUsage_ )
-                 .initCause( e );
+                                              + authUsage_ );
         }
 
         // Construct and return an appropriately configured hub profile.

@@ -41,36 +41,6 @@ public class ClientAuthorizers {
     }
 
     /**
-     * Returns one of the known authorizer instances given its name.
-     *
-     * @param  name  one of "false", "true", "swing"
-     * @return   authorizer instance
-     * @throws  IllegalArgumentException  if <code>name</code> is unknown
-     * @throws  HeadlessException  if name=swing and graphics is headless
-     */
-    public static ClientAuthorizer getClientAuthorizer( String name ) {
-        if ( "false".equalsIgnoreCase( name ) ) {
-            return FALSE;
-        }
-        else if ( "true".equalsIgnoreCase( name ) ) {
-            return TRUE;
-        }
-        else if ( "swing".equalsIgnoreCase( name ) ) {
-
-            // Initialised lazily since it can throw a HeadlessException.
-            if ( swingAuth_ == null ) {
-                swingAuth_ = createLoggingClientAuthorizer(
-                                 new SwingClientAuthorizer( null, false ),
-                                 Level.INFO, Level.INFO );
-            }
-            return swingAuth_;
-        }
-        else {
-            throw new IllegalArgumentException( "unknown auth " + name );
-        }
-    }
-
-    /**
      * Returns a new authorizer instance which always produces the same
      * authorization status.
      *
