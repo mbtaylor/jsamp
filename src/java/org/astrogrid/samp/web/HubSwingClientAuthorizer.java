@@ -45,6 +45,10 @@ public class HubSwingClientAuthorizer extends SwingClientAuthorizer {
         lineList.add( "of user " + System.getProperty( "user.name" )
                     + ", such as file read/write." );
         lineList.add( "\n" );
+        lineList.add( "You should only accept if you have just performed" );
+        lineList.add( "some action in the browser, on a web site you trust," );
+        lineList.add( "that you expect to have caused this." );
+        lineList.add( "\n" );
         lineList.add( "Do you authorize connection?" );
         return getResponse( (String[]) lineList.toArray( new String[ 0 ] ) );
     }
