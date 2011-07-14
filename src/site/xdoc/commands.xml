@@ -261,12 +261,6 @@ The following flags are used only if the Standard Profile
         </dd>
     </dl>
     </dd>
-<dt><code>-web:allowremote</code></dt>
-<dd>If used, this option means that clients from hosts other than the
-    local host may be permitted to register.  Normally such requests are
-    automatically refused.  Enable this option with care, it has serious
-    security implications.
-    </dd>
 </dl>
 <p>For convenience, the hub can also be started simply by invoking
 the jar file with no arguments (for instance clicking on it).

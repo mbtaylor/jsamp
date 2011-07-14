@@ -19,7 +19,6 @@ public class WebHubProfileFactory implements HubProfileFactory {
 
     private static final String logUsage_ = "[-web:log none|http|xml|rpc]";
     private static final String authUsage_ = "[-web:auth swing|true|false]";
-    private static final String remoteUsage_ = "[-web:allowremote]";
 
     /**
      * Returns "web".
@@ -32,7 +31,6 @@ public class WebHubProfileFactory implements HubProfileFactory {
         return new String[] {
             logUsage_,
             authUsage_,
-            remoteUsage_,
         };
     }
 
@@ -41,7 +39,6 @@ public class WebHubProfileFactory implements HubProfileFactory {
         // Process flags.
         String logType = "none";
         String authType = "swing";
-        boolean allowRemote = false;
         for ( Iterator it = flagList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-web:log" ) ) {
@@ -64,14 +61,6 @@ public class WebHubProfileFactory implements HubProfileFactory {
                     throw new IllegalArgumentException( "Usage: "
                                                       + authUsage_ );
                 }
-            }
-            else if ( arg.equals( "-web:allowremote" ) ) {
-                it.remove();
-                allowRemote = true;
-            }
-            else if ( arg.equals( "-web:noallowremote" ) ) {
-                it.remove();
-                allowRemote = false;
             }
         }
 
