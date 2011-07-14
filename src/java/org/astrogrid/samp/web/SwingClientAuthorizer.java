@@ -3,10 +3,6 @@ package org.astrogrid.samp.web;
 import java.awt.Component;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +21,6 @@ import org.astrogrid.samp.httpd.HttpServer;
 public class SwingClientAuthorizer implements ClientAuthorizer {
 
     private final Component parent_;
-    private final boolean permitRemote_;
     private static final Logger logger_ =
         Logger.getLogger( SwingClientAuthorizer.class.getName() );
 
@@ -33,13 +28,9 @@ public class SwingClientAuthorizer implements ClientAuthorizer {
      * Constructor.
      *
      * @param  parent  parent component
-     * @param   permitRemote  true iff clients from non-local hosts can be
-     *          authorized; if false, they will be rejected without asking
-     *          the user (this is usually a good idea)
      */
-    public SwingClientAuthorizer( Component parent, boolean permitRemote ) {
+    public SwingClientAuthorizer( Component parent ) {
         parent_ = parent;
-        permitRemote_ = permitRemote;
         if ( GraphicsEnvironment.isHeadless() ) {
             throw new HeadlessException( "Client authorization dialogues "
                                        + "impossible - no graphics" );
@@ -47,9 +38,6 @@ public class SwingClientAuthorizer implements ClientAuthorizer {
     }
 
     public boolean authorize( HttpServer.Request request, String appName ) {
-        if ( ! checkAddress( request, appName ) ) {
-            return false;
-        }
         List lineList = new ArrayList();
         lineList.add( "The following application, "
                     + "probably running in a browser," );
@@ -64,41 +52,6 @@ public class SwingClientAuthorizer implements ClientAuthorizer {
         lineList.add( "\n" );
         lineList.add( "Do you authorise connection?" );
         return getResponse( (String[]) lineList.toArray( new String[ 0 ] ) );
-    }
-
-    /**
-     * Indicates whether an application should be rejected out of hand
-     * because of characteristics of its HTTP request.
-     * False will be returned if it cannot be accepted, for instance if
-     * it comes from a non-local host, and if non-local hosts are blocked.
-     *
-     * @param   request   HTTP request making the application
-     * @param   appName   name claimed by the applicant
-     * @return  true if the application <em>may</em> be successful,
-     *          false if it should definitely be rejected
-     */
-    public boolean checkAddress( HttpServer.Request request, String appName ) {
-        if ( permitRemote_ ) {
-            return true;
-        }
-        else {
-            SocketAddress sock = request.getRemoteAddress();
-            InetAddress address = sock instanceof InetSocketAddress
-                                ? ((InetSocketAddress) sock).getAddress()
-                                : null;
-            if ( address == null ) {
-                logger_.warning( "Reject registration request for " + appName
-                               + "; address not on internet" );
-                return false;
-            }
-            else if ( ! isLocalHost( address ) ) {
-                logger_.warning( "Reject registration request for " + appName
-                               + "; address is not localhost" );
-                return false;
-            }
-            assert isLocalHost( address );
-            return true;
-        }
     }
 
     /**
@@ -126,30 +79,6 @@ public class SwingClientAuthorizer implements ClientAuthorizer {
             origin = "undeclared";
         }
         lineList.add( "    Origin: " + origin );
-
-        // Warn about non-local origin if appropriate.
-        if ( permitRemote_ ) {
-            SocketAddress sock = request.getRemoteAddress();
-            InetAddress address = sock instanceof InetSocketAddress
-                                ? ((InetSocketAddress) sock).getAddress()
-                                : null;
-            boolean isLocal = isLocalHost( address );
-            String host;
-            if ( isLocal ) {
-                host = "local host";
-            }
-            else if ( address != null ) {
-                host = address.getHostName();
-            }
-            else {
-                host = "unknown host";
-            }
-            lineList.add( "    Host: " + host );
-            if ( ! isLocal ) {
-                lineList.add( "Warning: the requesting application "
-                            + "is not running on your local host." );
-            }
-        }
 
         // Return text lines.
         return (String[]) lineList.toArray( new String[ 0 ] );
@@ -187,30 +116,5 @@ public class SwingClientAuthorizer implements ClientAuthorizer {
         dialog.setVisible( true );
         dialog.dispose();
         return jop.getValue() == yesOpt;
-    }
-
-    /**
-     * Indicates whether a network address is known to represent the local host.
-     *
-     * @param   address  internet address
-     * @return  true  iff address is known to be local
-     */
-    public static boolean isLocalHost( InetAddress address ) {
-        if ( address != null ) {
-            if ( address.isLoopbackAddress() ) {
-                return true;
-            }
-            else {
-                try {
-                    return address.equals( InetAddress.getLocalHost() );
-                }
-                catch ( UnknownHostException e ) {
-                    return false;
-                }
-            }
-        }
-        else {
-            return false;
-        }
     }
 }

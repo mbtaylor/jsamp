@@ -661,6 +661,7 @@ definition may change in the future.
 <li>Web Profile hub now fails at start time rather than during
     registration attempts if Swing client authorization is in use
     with headless graphics.</li>
+<li>Web profile hub server now blocks non-localhost requests at HTTP level.</li>
 </ul>
 </subsection>
 

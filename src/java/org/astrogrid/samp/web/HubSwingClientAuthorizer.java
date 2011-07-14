@@ -21,18 +21,12 @@ public class HubSwingClientAuthorizer extends SwingClientAuthorizer {
      * Constructor.
      *
      * @param  parent  parent component
-     * @param   permitRemote  true iff clients from non-local hosts can be
-     *          authorized; if false, they will be rejected without asking
-     *          the user; set false only with care
      */
-    public HubSwingClientAuthorizer( Component parent, boolean permitRemote ) {
-        super( parent, permitRemote );
+    public HubSwingClientAuthorizer( Component parent ) {
+        super( parent );
     }
 
     public boolean authorize( HttpServer.Request request, String appName ) {
-        if ( ! checkAddress( request, appName ) ) {
-            return false;
-        }
         List lineList = new ArrayList();
         lineList.add( "The following application, "
                     + "probably running in a browser," );

@@ -2,7 +2,12 @@ package org.astrogrid.samp.web;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -59,6 +64,9 @@ public class CorsHttpServer extends HttpServer {
     }
 
     public Response serve( Request request ) {
+        if ( ! isLocalHost( request.getRemoteAddress() ) ) {
+            return createNonLocalErrorResponse( request );
+        }
         Map hdrMap = request.getHeaderMap();
         String method = request.getMethod();
         String originTxt = getHeader( hdrMap, ORIGIN_KEY );
@@ -123,6 +131,37 @@ public class CorsHttpServer extends HttpServer {
         };
     }
 
+    private Response createNonLocalErrorResponse( Request request ) {
+        int status = 403;
+        String msg = "Forbidden";
+        String method = request.getMethod();
+        if ( "HEAD".equals( method ) ) {
+            return createErrorResponse( status, msg );
+        }
+        else {
+            Map hdrMap = new LinkedHashMap();
+            hdrMap.put( HDR_CONTENT_TYPE, "text/plain" );
+            byte[] mbuf;
+            try {
+                mbuf = ( "Access to server from non-local hosts "
+                       + "is not permitted.\r\n" )
+                      .getBytes( "UTF-8" );
+            }
+            catch ( UnsupportedEncodingException e ) {
+                logger_.warning( "Unsupported UTF-8??" );
+                mbuf = new byte[ 0 ];
+            }
+            final byte[] mbuf1 = mbuf;
+            hdrMap.put( "Content-Length", Integer.toString( mbuf1.length ) );
+            return new Response( status, msg, hdrMap ) {
+                public void writeBody( OutputStream out ) throws IOException {
+                    out.write( mbuf1 );
+                    out.flush();
+                }
+            };
+        }
+    }
+
     /**
      * Determines whether a given origin is permitted access.
      * This is done by interrogating this server's OriginAuthorizer policy.
@@ -147,6 +186,36 @@ public class CorsHttpServer extends HttpServer {
             hasLegalOrigin = false;
         }
         return hasLegalOrigin && authorizer_.authorize( originTxt );
+    }
+
+    /**
+     * Indicates whether a network address is known to represent the local host.
+     *
+     * @param   address  socket address
+     * @return  true  iff address is known to be local
+     */
+    public static boolean isLocalHost( SocketAddress address ) {
+        if ( address instanceof InetSocketAddress ) {
+            InetAddress iAddress = ((InetSocketAddress) address).getAddress();
+            if ( iAddress == null ) {
+                return false;
+            }
+            else if ( iAddress.isLoopbackAddress() ) {
+                return true;
+            }
+            else {
+                try {
+                    return iAddress.equals( InetAddress.getLocalHost() );
+                }
+                catch ( UnknownHostException e ) {
+                    return false;
+                }
+            }
+        }
+        else {
+            logger_.warning( "Socket address not from internet? " + address );
+            return false;
+        }
     }
 
     /**

@@ -47,7 +47,7 @@ public class WebHubProfile implements HubProfile {
      */
     public WebHubProfile() throws IOException {
         this( createSampXmlRpcServer( null ),
-              new HubSwingClientAuthorizer( null, false ),
+              new HubSwingClientAuthorizer( null ),
               createKeyGenerator() );
     }
 

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.SampUtils;
@@ -136,6 +137,14 @@ class WebHubXmlRpcHandler extends ActorHandler {
         public RegInfo register( HttpServer.Request request, String appName )
                 throws SecurityException, SampException {
             if ( profile_.isHubRunning() ) {
+                if ( ! CorsHttpServer
+                      .isLocalHost( request.getRemoteAddress() ) ) {
+                    String alert =
+                        "Registration attempt from non-local remote host - "
+                      + "should have been blocked earlier by HTTP server";
+                    Logger.getLogger( getClass().getName() ).severe( alert );
+                    throw new SecurityException( alert );
+                }
                 boolean isAuth = auth_.authorize( request, appName );
                 if ( ! isAuth ) {
                     throw new SecurityException( "Registration denied" );
