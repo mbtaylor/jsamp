@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.SampUtils;
@@ -33,6 +34,8 @@ import org.astrogrid.samp.xmlrpc.ActorHandler;
 class WebHubXmlRpcHandler extends ActorHandler {
 
     private final WebHubActorImpl impl_;
+    private static final Logger logger_ =
+        Logger.getLogger( WebHubXmlRpcHandler.class.getName() );
 
     /**
      * Constructor.
@@ -54,16 +57,25 @@ class WebHubXmlRpcHandler extends ActorHandler {
         String regMethod = WebClientProfile.WEBSAMP_HUB_PREFIX + "register";
         if ( regMethod.equals( fqName ) &&
              reqObj instanceof HttpServer.Request ) {
-            if ( params.size() == 1 && params.get( 0 ) instanceof String ) {
-                Map result = impl_.register( (HttpServer.Request) reqObj,
-                                             (String) params.get( 0 ) );
-                assert result != null;
-                return result;
+            HttpServer.Request req = (HttpServer.Request) reqObj;
+            final Map securityMap;
+            if ( params.size() == 1 && params.get( 0 ) instanceof Map ) {
+                securityMap = (Map) params.get( 0 );
+            }
+            else if ( params.size() == 1 &&
+                      params.get( 0 ) instanceof String ) {
+                securityMap = new HashMap();
+                securityMap.put( Metadata.NAME_KEY, (String) params.get( 0 ) );
+                logger_.info( "Deprecated register call signature "
+                            + "(arg is string appName not map security-info)" );
             }
             else {
                 throw new IllegalArgumentException( "Bad args for " + regMethod
-                                                  + "(string)" );
+                                                  + "(map)" );
             }
+            Map result = impl_.register( req, securityMap );
+            assert result != null;
+            return result;
         }
         else {
             return super.handleCall( fqName, params, reqObj );
@@ -131,10 +143,11 @@ class WebHubXmlRpcHandler extends ActorHandler {
          * fails for any reason.
          *
          * @param  request  HTTP request from applicant
-         * @param  appName  application name supplied by applicant
+         * @param  securityMap  map of required security information
+         *                      supplied by applicant
          * @return  registration information if registration is successful
          */
-        public RegInfo register( HttpServer.Request request, String appName )
+        public RegInfo register( HttpServer.Request request, Map securityMap )
                 throws SecurityException, SampException {
             if ( profile_.isHubRunning() ) {
                 if ( ! CorsHttpServer
@@ -142,8 +155,18 @@ class WebHubXmlRpcHandler extends ActorHandler {
                     String alert =
                         "Registration attempt from non-local remote host - "
                       + "should have been blocked earlier by HTTP server";
-                    Logger.getLogger( getClass().getName() ).severe( alert );
+                    logger_.severe( alert );
                     throw new SecurityException( alert );
+                }
+                Object appNameObj = securityMap.get( Metadata.NAME_KEY );
+                final String appName;
+                if ( appNameObj instanceof String ) {
+                    appName = (String) appNameObj;
+                }
+                else {
+                    throw new SampException( "Wrong data type (not string) for "
+                                           + Metadata.NAME_KEY + " securityInfo"
+                                           + " entry" );
                 }
                 boolean isAuth = auth_.authorize( request, appName );
                 if ( ! isAuth ) {

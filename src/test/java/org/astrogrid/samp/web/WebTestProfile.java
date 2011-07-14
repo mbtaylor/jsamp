@@ -6,6 +6,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.TestProfile;
@@ -87,10 +89,12 @@ public class WebTestProfile extends TestProfile {
         synchronized ( this ) {
             regSeq = ++regSeq_;
         }
+        Map secMap = new HashMap();
+        secMap.put( "samp.name", baseAppName_ + "-" + regSeq );
         try {
             return new WebHubConnection( xClientFactory_
                                         .createClient( hubEndpoint_ ),
-                                         baseAppName_ + "-" + regSeq  );
+                                         secMap );
         }
         catch ( SampException e ) {
             for ( Throwable ex = e; ex != null; ex = ex.getCause() ) {

@@ -662,6 +662,9 @@ definition may change in the future.
     registration attempts if Swing client authorization is in use
     with headless graphics.</li>
 <li>Web profile hub server now blocks non-localhost requests at HTTP level.</li>
+<li>Web profile now uses <code>map</code> argument not <code>string</code>
+    argument to <code>register()</code>, as per change to Web Profile
+    specification.</li>
 </ul>
 </subsection>
 

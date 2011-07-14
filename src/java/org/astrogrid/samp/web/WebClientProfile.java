@@ -5,6 +5,9 @@ import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Platform;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.ClientProfile;
@@ -23,7 +26,7 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 public class WebClientProfile implements ClientProfile {
 
     private final SampXmlRpcClientFactory xClientFactory_;
-    private final String appName_;
+    private final Map securityMap_;
     private final URL hubEndpoint_;
 
     /** Web Profile hub port number ({@value}). */
@@ -62,14 +65,14 @@ public class WebClientProfile implements ClientProfile {
     /**
      * Constructor with configuration options.
      *
-     * @param  appName  client's declared application name
+     * @param  securityMap  map containing security information for registration
      * @param  xClientFactory  XML-RPC client factory
      * @param  hubEndpoint  XML-RPC endpoint for hub server
      */
-    public WebClientProfile( String appName,
+    public WebClientProfile( Map securityMap,
                              SampXmlRpcClientFactory xClientFactory,
                              URL hubEndpoint ) {
-        appName_ = appName;
+        securityMap_ = securityMap;
         xClientFactory_ = xClientFactory;
         hubEndpoint_ = hubEndpoint;
     }
@@ -78,9 +81,11 @@ public class WebClientProfile implements ClientProfile {
      * Constructor with declared client name.
      *
      * @param  appName  client's declared application name
+     *                  (samp.name entry in security-info map)
      */
     public WebClientProfile( String appName ) {
-        this( appName, XmlRpcKit.getInstance().getClientFactory(),
+        this( createSecurityMap( appName ),
+              XmlRpcKit.getInstance().getClientFactory(),
               getDefaultHubEndpoint() );
     }
 
@@ -108,7 +113,7 @@ public class WebClientProfile implements ClientProfile {
         try {
             return new WebHubConnection( xClientFactory_
                                         .createClient( hubEndpoint_ ),
-                                         appName_ );
+                                         securityMap_ );
         }
         catch ( SampException e ) {
             for ( Throwable ex = e; ex != null; ex = ex.getCause() ) {
@@ -175,5 +180,18 @@ public class WebClientProfile implements ClientProfile {
         return hubloc != null && hubloc.startsWith( WEBPROFILE_HUB_PREFIX )
              ? hubloc.substring( WEBPROFILE_HUB_PREFIX.length() )
              : "Unknown Application";
+    }
+
+    /**
+     * Constructs a security-info map suitable for presentation at
+     * registration time, containing the mandatory samp.name entry.
+     *
+     * @param  appName  samp.name entry
+     * @return  security map
+     */
+    private static Map createSecurityMap( String appName ) {
+        Map map = new HashMap();
+        map.put( Metadata.NAME_KEY, appName );
+        return map;
     }
 }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.SampException;
@@ -30,13 +31,15 @@ class WebHubConnection extends XmlRpcHubConnection {
      * Constructor.
      *
      * @param   xClient  XML-RPC client
+     * @param   securityMap    security information map
      * @param   appName  client's declared name
      */
-    public WebHubConnection( SampXmlRpcClient xClient, String appName )
+    public WebHubConnection( SampXmlRpcClient xClient, Map securityMap )
             throws SampException {
         super( xClient, WebClientProfile.WEBSAMP_HUB_PREFIX,
-               Collections.singletonList( appName ) );
-        appName_ = appName;
+               Collections.singletonList( securityMap ) );
+        Object nameObj = securityMap.get( Metadata.NAME_KEY );
+        appName_ = nameObj instanceof String ? (String) nameObj : "??";
         clientKey_ = getRegInfo().getPrivateKey();
     }
 
