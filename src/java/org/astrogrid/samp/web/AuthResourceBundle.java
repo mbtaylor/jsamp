@@ -1,7 +1,14 @@
 package org.astrogrid.samp.web;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
@@ -15,27 +22,6 @@ import java.util.logging.Logger;
 public class AuthResourceBundle extends ResourceBundle {
 
     private final Hashtable map_;
-
-    public static final String APP_INTRODUCTION_LINES;
-    public static final String NAME_WORD;
-    public static final String ORIGIN_WORD;
-    public static final String UNDECLARED_WORD;
-    public static final String PRIVILEGE_WARNING_FORMAT_LINES;
-    public static final String ADVICE_LINES;
-    public static final String QUESTION_LINE;
-    public static final String YES_WORD;
-    public static final String NO_WORD;
-    private static final String[] keys_ = new String[] {
-        APP_INTRODUCTION_LINES = "appIntroductionLines",
-        NAME_WORD = "nameWord",
-        ORIGIN_WORD = "originWord",
-        UNDECLARED_WORD = "undeclaredWord",
-        PRIVILEGE_WARNING_FORMAT_LINES = "privilegeWarningFormatLines",
-        ADVICE_LINES = "adviceLines",
-        QUESTION_LINE = "questionLine",
-        YES_WORD = "yesWord",
-        NO_WORD = "noWord",
-    };
     private static final Logger logger_ =
         Logger.getLogger( AuthResourceBundle.class.getName() );
 
@@ -50,17 +36,28 @@ public class AuthResourceBundle extends ResourceBundle {
      */
     protected AuthResourceBundle( Content content ) {
         map_ = new Hashtable();
-        map_.put( APP_INTRODUCTION_LINES, content.appIntroductionLines() );
-        map_.put( NAME_WORD, content.nameWord() );
-        map_.put( ORIGIN_WORD, content.originWord() );
-        map_.put( UNDECLARED_WORD, content.undeclaredWord() );
-        map_.put( PRIVILEGE_WARNING_FORMAT_LINES,
-                  content.privilegeWarningFormatLines() );
-        map_.put( ADVICE_LINES, content.adviceLines() );
-        map_.put( QUESTION_LINE, content.questionLine() );
-        map_.put( YES_WORD, content.yesWord() );
-        map_.put( NO_WORD, content.noWord() );
-        assert hasAllKeys( this );
+        Method[] methods = Content.class.getMethods();
+        Object[] noArgs = new Object[ 0 ];
+        for ( int im = 0; im < methods.length; im++ ) {
+            Method method = methods[ im ];
+            String mname = method.getName();
+            try {
+                map_.put( method.getName(), method.invoke( content, noArgs ) );
+            }
+            catch ( IllegalAccessException e ) {
+                throw (RuntimeException)
+                      new RuntimeException( "Failed to call method "
+                                          + method.getName() )
+                    .initCause( e );
+            }
+            catch ( InvocationTargetException e ) {
+                throw (RuntimeException)
+                      new RuntimeException( "Failed to call method "
+                                          + method.getName() )
+                    .initCause( e );
+            }
+        }
+        checkHasAllKeys( this );
     }
 
     protected final Object handleGetObject( String key ) {
@@ -82,43 +79,36 @@ public class AuthResourceBundle extends ResourceBundle {
      *          all its attributes
      */
     public static Content getAuthContent( final ResourceBundle bundle ) {
-        if ( hasAllKeys( bundle ) ) {
-            return new Content() {
-                public String[] appIntroductionLines() {
-                    return bundle.getStringArray( APP_INTRODUCTION_LINES );
-                }
-                public String nameWord() {
-                    return bundle.getString( NAME_WORD );
-                }
-                public String originWord() {
-                    return bundle.getString( ORIGIN_WORD );
-                }
-                public String undeclaredWord() {
-                    return bundle.getString( UNDECLARED_WORD );
-                }
-                public String[] privilegeWarningFormatLines() {
-                    return bundle
-                          .getStringArray( PRIVILEGE_WARNING_FORMAT_LINES );
-                }
-                public String[] adviceLines() {
-                    return bundle.getStringArray( ADVICE_LINES );
-                }
-                public String questionLine() {
-                    return bundle.getString( QUESTION_LINE );
-                }
-                public String yesWord() {
-                    return bundle.getString( YES_WORD );
-                }
-                public String noWord() {
-                    return bundle.getString( NO_WORD );
-                }
-            };
+        try {
+            checkHasAllKeys( bundle );
         }
-        else {
-            logger_.warning( "Some keys missing from localised "
-                           + "auth resource bundle; use English" );
+        catch ( MissingResourceException e ) {
+            logger_.warning( "Some keys missing from localised auth resource "
+                           + "bundle; using English" );
             return getDefaultContent();
         }
+        InvocationHandler ihandler = new InvocationHandler() {
+            public Object invoke( Object proxy, Method method,
+                                  Object[] args ) throws Throwable {
+                String key = method.getName();
+                Class rclazz = method.getReturnType();
+                if ( String.class.equals( rclazz ) ) {
+                    return bundle.getString( key );
+                }
+                else if ( String[].class.equals( rclazz ) ) {
+                    return bundle.getStringArray( key );
+                }
+                else {
+                    throw new RuntimeException( "Unsuitable return type "
+                                              + rclazz.getName()
+                                              + " (shouldn't happen)" );
+                }
+            }
+        };
+        return (Content)
+               Proxy
+              .newProxyInstance( AuthResourceBundle.class.getClassLoader(),
+                                 new Class[] { Content.class }, ihandler );
     }
 
     /**
@@ -127,13 +117,23 @@ public class AuthResourceBundle extends ResourceBundle {
      * @param  bundle  bundle to test
      * @return   true iff bundle has all required keys
      */
-    private static boolean hasAllKeys( ResourceBundle bundle ) {
-        for ( int ik = 0; ik < keys_.length; ik++ ) {
-            if ( bundle.getObject( keys_[ ik ] ) == null ) {
-                return false;
-            }
+    private static void checkHasAllKeys( ResourceBundle bundle ) {
+        Collection bkeys = new HashSet();
+        for ( Enumeration en = bundle.getKeys(); en.hasMoreElements(); ) {
+            bkeys.add( en.nextElement() );
         }
-        return true;
+        Collection mnames = new HashSet();
+        Method[] methods = Content.class.getMethods();
+        for ( int im = 0; im < methods.length; im++ ) {
+            mnames.add( methods[ im ].getName() );
+        }
+        mnames.removeAll( bkeys );
+        if ( ! mnames.isEmpty() ) {
+            throw new MissingResourceException(
+                          "Missing resources " + mnames,
+                          AuthResourceBundle.class.getName(),
+                          mnames.iterator().next().toString() );
+        }
     }
 
     /**
@@ -152,6 +152,9 @@ public class AuthResourceBundle extends ResourceBundle {
      *
      * <p>All methods should return one or more strings which will be
      * used as displayed screen lines, so they shouldn't be too long.
+     *
+     * <p>The method names define the keys which can be used if a
+     * property resource file is used to supply the content.
      */
     public static interface Content {
 
