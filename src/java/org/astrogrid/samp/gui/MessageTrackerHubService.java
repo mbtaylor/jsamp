@@ -25,6 +25,7 @@ import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.ClientSet;
 import org.astrogrid.samp.hub.HubClient;
+import org.astrogrid.samp.hub.ProfileToken;
 
 /**
  * GuiHubService subclass which additionally keeps track of which messages
@@ -91,8 +92,8 @@ public class MessageTrackerHubService extends GuiHubService
         return new MessageTrackerClientSet( getIdComparator() );
     }
 
-    public HubClient createClient( String publicId ) {
-        return new MessageTrackerHubClient( publicId );
+    public HubClient createClient( String publicId, ProfileToken ptoken ) {
+        return new MessageTrackerHubClient( publicId, ptoken );
     }
 
     public JComponent createHubPanel() {
@@ -202,9 +203,10 @@ public class MessageTrackerHubService extends GuiHubService
          * Constructor.
          *
          * @param  publicId   public ID
+         * @param  ptoken   connection source
          */
-        public MessageTrackerHubClient( String publicId ) {
-            super( publicId );
+        public MessageTrackerHubClient( String publicId, ProfileToken ptoken ) {
+            super( publicId, ptoken );
 
             // Prepare list models for the transmissions sent/received by
             // a given client.  These models are updated as the hub forwards

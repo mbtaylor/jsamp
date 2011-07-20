@@ -71,7 +71,7 @@ public class StandardHubProfile implements HubProfile {
               createSecret() );
     }
 
-    public String getName() {
+    public String getProfileName() {
         return "Standard";
     }
 
@@ -291,10 +291,6 @@ public class StandardHubProfile implements HubProfile {
             lockUrl_ = url;
         }
         return lockUrl_;
-    }
-
-    public String toString() {
-        return getName();
     }
 
     /**

@@ -19,6 +19,7 @@ import org.astrogrid.samp.client.SampException;
 public class HubClient implements Client {
 
     private final String publicId_;
+    private final ProfileToken profileToken_;
     private volatile Subscriptions subscriptions_;
     private volatile Metadata metadata_;
     private volatile CallableClient callable_;
@@ -27,9 +28,11 @@ public class HubClient implements Client {
      * Constructor.
      *
      * @param  publicId    client public ID
+     * @param  profileToken  identifier for the source of the hub connection
      */
-    public HubClient( String publicId ) {
+    public HubClient( String publicId, ProfileToken profileToken ) {
         publicId_ = publicId;
+        profileToken_ = profileToken;
         subscriptions_ = new Subscriptions();
         metadata_ = new Metadata();
         callable_ = new NoCallableClient();
@@ -45,6 +48,16 @@ public class HubClient implements Client {
 
     public Subscriptions getSubscriptions() {
         return subscriptions_;
+    }
+
+    /**
+     * Returns a token identifying the source of this client's connection
+     * to the hub.
+     *
+     * @return  profile token
+     */
+    public ProfileToken getProfileToken() {
+        return profileToken_;
     }
 
     /**

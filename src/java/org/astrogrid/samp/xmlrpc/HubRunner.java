@@ -19,11 +19,15 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.DefaultClientProfile;
+import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.KeyGenerator;
 import org.astrogrid.samp.hub.LockWriter;
+import org.astrogrid.samp.hub.ProfileToken;
 import org.astrogrid.samp.httpd.ServerResource;
 import org.astrogrid.samp.httpd.UtilServer;
 
@@ -50,6 +54,11 @@ public class HubRunner {
     private HubXmlRpcHandler hubHandler_;
     private boolean shutdown_;
 
+    private final static ProfileToken STANDARD_PROFILE = new ProfileToken() {
+        public String getProfileName() {
+            return "Standard";
+        }
+    };
     private final static Logger logger_ =
         Logger.getLogger( HubRunner.class.getName() );
     private final static Random random_ = KeyGenerator.createRandom();
@@ -110,8 +119,16 @@ public class HubRunner {
         // Start the hub service.
         hub_.start();
         String secret = createSecret();
+        ClientProfile connectionFactory = new ClientProfile() {
+            public HubConnection register() throws SampException {
+                return hub_.register( STANDARD_PROFILE );
+            }
+            public boolean isHubRunning() {
+                return hub_.isHubRunning();
+            }
+        };
         hubHandler_ =
-            new HubXmlRpcHandler( xClientFactory_, hub_, secret,
+            new HubXmlRpcHandler( xClientFactory_, connectionFactory, secret,
                                   new KeyGenerator( "k:", 16, random_ ) );
         server_.addHandler( hubHandler_ );
 

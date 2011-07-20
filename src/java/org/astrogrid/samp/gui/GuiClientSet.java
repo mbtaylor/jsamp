@@ -11,6 +11,7 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.hub.BasicClientSet;
 import org.astrogrid.samp.hub.HubClient;
+import org.astrogrid.samp.hub.ProfileToken;
 
 /**
  * ClientSet implementation used by GuiHubService.
@@ -23,7 +24,13 @@ class GuiClientSet extends BasicClientSet implements ListModel {
 
     private final List clientList_;
     private final List listenerList_;
-    private final static HubClient MORIBUND_CLIENT = new HubClient( "<no-id>" );
+    private final static HubClient MORIBUND_CLIENT =
+        new HubClient( "<no-id>",
+                       new ProfileToken() {
+                           public String getProfileName() {
+                               return "<no-profile>";
+                           }
+                       } );
 
     /**
      * Constructor.

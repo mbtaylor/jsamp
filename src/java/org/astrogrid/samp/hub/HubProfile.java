@@ -18,7 +18,7 @@ import org.astrogrid.samp.client.ClientProfile;
  * @author   Mark Taylor
  * @since    31 Jan 2011
  */
-public interface HubProfile {
+public interface HubProfile extends ProfileToken {
 
     /**
      * Starts this profile's activity allowing access to a given supplier of
@@ -48,5 +48,5 @@ public interface HubProfile {
      *
      * @return  profile name, usually one word
      */
-    public String getName();
+    public String getProfileName();
 }

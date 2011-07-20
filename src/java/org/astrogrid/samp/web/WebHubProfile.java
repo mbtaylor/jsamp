@@ -53,7 +53,7 @@ public class WebHubProfile implements HubProfile {
               createKeyGenerator() );
     }
 
-    public String getName() {
+    public String getProfileName() {
         return "Web";
     }
 
@@ -83,10 +83,6 @@ public class WebHubProfile implements HubProfile {
         }
         xServer_.getHttpServer().stop();
         xServer_ = null;
-    }
-
-    public String toString() {
-        return getName();
     }
 
     /**

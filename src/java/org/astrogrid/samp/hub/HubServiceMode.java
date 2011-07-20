@@ -579,7 +579,7 @@ public abstract class HubServiceMode {
         ProfileToggler( HubProfile profile, Hub[] runners ) {
             profile_ = profile;
             runners_ = runners;
-            title_ = profile.getName() + " Profile";
+            title_ = profile.getProfileName() + " Profile";
             menuItemList_ = new ArrayList();
             toggleModel_ = new JToggleButton.ToggleButtonModel() {
                 public boolean isSelected() {
@@ -622,7 +622,8 @@ public abstract class HubServiceMode {
         public JMenuItem createJMenuItem() {
             JCheckBoxMenuItem item = new JCheckBoxMenuItem( title_ );
             item.setToolTipText( "Start or stop the " + title_ );
-            char chr = Character.toUpperCase( profile_.getName().charAt( 0 ) );
+            char chr = Character
+                      .toUpperCase( profile_.getProfileName().charAt( 0 ) );
             if ( chr >= 'A' && chr <= 'Z' ) {
                 item.setMnemonic( (int) chr );
             }
