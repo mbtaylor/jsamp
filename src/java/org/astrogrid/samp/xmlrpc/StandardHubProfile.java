@@ -34,11 +34,9 @@ public class StandardHubProfile implements HubProfile {
     private final SampXmlRpcServerFactory xServerFactory_;
     private final File lockfile_;
     private final String secret_;
-    private volatile boolean started_;
-    private volatile boolean shutdown_;
     private URL lockUrl_;
     private SampXmlRpcServer server_;
-    private HubXmlRpcHandler hubHandler_;
+    private volatile HubXmlRpcHandler hubHandler_;
     private LockInfo lockInfo_;
     private static final Logger logger_ =
         Logger.getLogger( StandardHubProfile.class.getName() );
@@ -73,14 +71,16 @@ public class StandardHubProfile implements HubProfile {
               createSecret() );
     }
 
-    public void start( ClientProfile profile ) throws IOException {
+    public String getName() {
+        return "Standard";
+    }
+
+    public synchronized void start( ClientProfile profile ) throws IOException {
 
         // Check state.
-        synchronized ( this ) {
-            if ( started_ ) {
-                throw new IllegalStateException( "Already started" );
-            }
-            started_ = true;
+        if ( isRunning() ) {
+            logger_.info( "Profile already started" );
+            return;
         }
 
         // Check for running hub.  If there is a running hub, bail out.
@@ -131,6 +131,7 @@ public class StandardHubProfile implements HubProfile {
                 }
                 if ( isHubAlive( xClientFactory_, lockfile_ ) ) {
                     server_.removeHandler( hubHandler_ );
+                    hubHandler_ = null;
                     throw new IOException( "A hub is already running" );
                 }
                 else {
@@ -177,17 +178,14 @@ public class StandardHubProfile implements HubProfile {
         logger_.log( isDflt ? Level.INFO : Level.WARNING, hubassign );
     }
 
-    public void shutdown() {
+    public synchronized boolean isRunning() {
+        return hubHandler_ != null;
+    }
 
-        // Check state.
-        synchronized ( this ) {
-            if ( ! started_ ) {
-                throw new IllegalStateException( "Not started" );
-            }
-            if ( shutdown_ ) {
-                return;
-            }
-            shutdown_ = true;
+    public synchronized void stop() {
+        if ( ! isRunning() ) {
+            logger_.info( "Profile already stopped" );
+            return;
         }
 
         // Delete the lockfile if it exists and if it is the one originally
@@ -235,14 +233,15 @@ public class StandardHubProfile implements HubProfile {
         // Remove the hub XML-RPC handler from the server.
         if ( hubHandler_ != null && server_ != null ) {
             server_.removeHandler( hubHandler_ );
-            server_ = null;
         }
+        server_ = null;
+        hubHandler_ = null;
         lockInfo_ = null;
     }
 
     /**
      * Returns the lockfile information associated with this object.
-     * Only present after {@link #start} has been called.
+     * Only present when running.
      *
      * @return  lock info
      */
@@ -292,6 +291,10 @@ public class StandardHubProfile implements HubProfile {
             lockUrl_ = url;
         }
         return lockUrl_;
+    }
+
+    public String toString() {
+        return getName();
     }
 
     /**

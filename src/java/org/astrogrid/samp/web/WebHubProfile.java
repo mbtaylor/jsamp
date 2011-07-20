@@ -1,7 +1,10 @@
 package org.astrogrid.samp.web;
 
 import java.io.IOException;
+import java.io.PrintStream;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.util.logging.Logger;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.httpd.HttpServer;
@@ -19,25 +22,25 @@ import org.astrogrid.samp.xmlrpc.internal.XmlLoggingInternalServer;
  */
 public class WebHubProfile implements HubProfile {
 
-    private final InternalServer xServer_;
+    private final ServerFactory serverFactory_;
     private final ClientAuthorizer auth_;
     private final KeyGenerator keyGen_;
-    private boolean started_;
-    private boolean shutdown_;
+    private InternalServer xServer_;
     private WebHubXmlRpcHandler wxHandler_;
+    private final Logger logger_ =
+        Logger.getLogger( WebHubProfile.class.getName() );
 
     /**
      * Constructs a profile with configuration options.
      *
-     * @param   xServer  server providing HTTP and XML-RPC implementation;
-     *          normally supplied from one of this class's
-     *          <code>createSampXmlRpcServer</code> methods
+     * @param   serverFactory  factory for server providing HTTP
+     *                         and XML-RPC implementation
      * @param   auth  client authorizer implementation
      * @param   keyGen  key generator for private keys
      */
-    public WebHubProfile( InternalServer xServer, ClientAuthorizer auth,
+    public WebHubProfile( ServerFactory serverFactory, ClientAuthorizer auth,
                           KeyGenerator keyGen ) {
-        xServer_ = xServer;
+        serverFactory_ = serverFactory;
         auth_ = auth;
         keyGen_ = keyGen;
     }
@@ -46,110 +49,44 @@ public class WebHubProfile implements HubProfile {
      * Constructs a profile with default configuration.
      */
     public WebHubProfile() throws IOException {
-        this( createSampXmlRpcServer( null ),
-              new HubSwingClientAuthorizer( null ),
+        this( new ServerFactory(), new HubSwingClientAuthorizer( null ),
               createKeyGenerator() );
     }
 
-    public void start( ClientProfile profile ) {
-        synchronized ( this ) {
-            if ( started_ ) {
-                throw new IllegalStateException( "Already started" );
-            }
-            started_ = true;
+    public String getName() {
+        return "Web";
+    }
+
+    public synchronized void start( ClientProfile profile ) throws IOException {
+        if ( isRunning() ) {
+            logger_.info( "Profile already running" );
+            return;
         }
+        xServer_ = serverFactory_.createSampXmlRpcServer();
         HttpServer hServer = xServer_.getHttpServer();
-        wxHandler_ = new WebHubXmlRpcHandler( profile, auth_, keyGen_,
-                                              hServer.getBaseUrl() );
-        xServer_.addHandler( wxHandler_ );
-        hServer.addHandler( wxHandler_.getUrlTranslationHandler() );
+        WebHubXmlRpcHandler wxHandler =
+            new WebHubXmlRpcHandler( profile, auth_, keyGen_,
+                                     hServer.getBaseUrl() );
+        xServer_.addHandler( wxHandler );
+        hServer.addHandler( wxHandler.getUrlTranslationHandler() );
         hServer.start();
     }
 
-    public void shutdown() {
-        synchronized ( this ) {
-            if ( ! started_ ) {
-                throw new IllegalStateException( "Not started" );
-            }
-            if ( shutdown_ ) {
-                return;
-            }
-            shutdown_ = true;
+    public synchronized boolean isRunning() {
+        return xServer_ != null;
+    }
+
+    public synchronized void stop() {
+        if ( ! isRunning() ) {
+            logger_.info( "Profile already stopped" );
+            return;
         }
-        xServer_.removeHandler( wxHandler_ );
-        wxHandler_ = null;
         xServer_.getHttpServer().stop();
+        xServer_ = null;
     }
 
-    /**
-     * Returns an InternalServer suitable for use with a WebHubProfile
-     * with choice of logging options.
-     *
-     * @param  logType  logging type;
-     *                  may be "http", "rpc", "xml", "none" or null
-     * @return   new server for use with WebHubProfile
-     */
-    public static InternalServer createSampXmlRpcServer( String logType )
-            throws IOException {
-        return createSampXmlRpcServer( logType,
-                                       new ServerSocket( WebClientProfile
-                                                        .WEBSAMP_PORT ),
-                                       WebClientProfile.WEBSAMP_PATH,
-                                       OriginAuthorizers.TRUE,
-                                       true, true );
-    }
-
-    /**
-     * Returns an InternalServer suitable for use with a WebHubProfile
-     * with various options.
-     *
-     * @param  logType  logging type;
-     *                  may be "http", "rpc", "xml", "none" or null
-     * @param  socket  socket on which HTTP server will run
-     * @param  xmlrpcPath  path on socket for XML-RPC endpoint
-     *                     (should start with "/")
-     * @param   oAuth  origin authorizer to control access at the origin level
-     * @param   allowFlash  true iff Adobe's cross-origin policy should be
-     *                      honoured
-     * @param   allowSilverlight  true iff Microsoft's Silverlight cross-origin
-     *                     policy should be honoured
-     * @return   new server for use with WebHubProfile
-     */
-    public static InternalServer
-                  createSampXmlRpcServer( String logType,
-                                          ServerSocket socket,
-                                          String xmlrpcPath,
-                                          OriginAuthorizer oAuth,
-                                          boolean allowFlash,
-                                          boolean allowSilverlight )
-            throws IOException {
-        String path = WebClientProfile.WEBSAMP_PATH;
-        CorsHttpServer hServer = "http".equals( logType )
-                               ? new LoggingCorsHttpServer( socket, oAuth,
-                                                            System.err )
-                               : new CorsHttpServer( socket, oAuth );
-        if ( allowFlash ) {
-            hServer.addHandler( OpenPolicyResourceHandler
-                               .createFlashPolicyHandler( oAuth ) );
-        }
-        if ( allowSilverlight ) {
-            hServer.addHandler( OpenPolicyResourceHandler
-                               .createSilverlightPolicyHandler( oAuth ) );
-        }
-        hServer.setDaemon( true );
-        if ( "rpc".equals( logType ) ) {
-            return new RpcLoggingInternalServer( hServer, path, System.err );
-        }
-        else if ( "xml".equals( logType ) ) {
-            return new XmlLoggingInternalServer( hServer, path, System.err );
-        }
-        else if ( "none".equals( logType ) || "http".equals( logType ) ||
-                  logType == null || logType.length() == 0 ) {
-            return new InternalServer( hServer, xmlrpcPath );
-        }
-        else {
-            throw new IllegalArgumentException( "Unknown logType " + logType );
-        }
+    public String toString() {
+        return getName();
     }
 
     /**
@@ -160,5 +97,209 @@ public class WebHubProfile implements HubProfile {
      */
     public static KeyGenerator createKeyGenerator() {
         return new KeyGenerator( "wk:", 24, KeyGenerator.createRandom() );
+    }
+
+    /**
+     * Creates and configures the HTTP server on which the Web Profile resides.
+     */
+    public static class ServerFactory {
+        private String logType_;
+        private int port_;
+        private String xmlrpcPath_;
+        private boolean allowFlash_;
+        private boolean allowSilverlight_;
+        private OriginAuthorizer oAuth_;
+
+        /**
+         * Constructs a ServerFactory with default properties.
+         */
+        public ServerFactory() {
+            logType_ = null;
+            port_ = WebClientProfile.WEBSAMP_PORT;
+            xmlrpcPath_ = WebClientProfile.WEBSAMP_PATH;
+            allowFlash_ = true;
+            allowSilverlight_ = false;
+            oAuth_ = OriginAuthorizers.TRUE;
+        }
+        
+        /**
+         * Returns a new internal server.
+         *
+         * @return   new server for use with WebHubProfile
+         */
+        public InternalServer createSampXmlRpcServer() throws IOException {
+            String path = getXmlrpcPath();
+            ServerSocket socket = createServerSocket( getPort() );
+            String logType = getLogType();
+            OriginAuthorizer oAuth = getOriginAuthorizer();
+            PrintStream logOut = System.err;
+            CorsHttpServer hServer = "http".equals( logType )
+                                   ? new LoggingCorsHttpServer( socket, oAuth,
+                                                                logOut )
+                                   : new CorsHttpServer( socket, oAuth );
+            if ( isAllowFlash() ) {
+                hServer.addHandler( OpenPolicyResourceHandler
+                                   .createFlashPolicyHandler( oAuth ) );
+            }
+            if ( isAllowSilverlight() ) {
+                hServer.addHandler( OpenPolicyResourceHandler
+                                   .createSilverlightPolicyHandler( oAuth ) );
+            }
+            hServer.setDaemon( true );
+            if ( "rpc".equals( logType ) ) {
+                return new RpcLoggingInternalServer( hServer, path, logOut );
+            }
+            else if ( "xml".equals( logType ) ) {
+                return new XmlLoggingInternalServer( hServer, path, logOut );
+            }
+            else if ( "none".equals( logType ) || "http".equals( logType ) ||
+                      logType == null || logType.length() == 0 ) {
+                return new InternalServer( hServer, path );
+            }
+            else {
+                throw new IllegalArgumentException( "Unknown logType "
+                                                  + logType );
+            }
+        }
+
+        /**
+         * Sets the type of logging to use.
+         *
+         * @param  logType  logging type;
+         *                  may be "http", "rpc", "xml", "none" or null
+         */
+        public void setLogType( String logType ) {
+            if ( logType == null ||
+                 logType.equals( "http" ) ||
+                 logType.equals( "rpc" ) ||
+                 logType.equals( "xml" ) ||
+                 logType.equals( "none" ) ) {
+                logType_ = logType;
+            }
+            else {
+                throw new IllegalArgumentException( "Unknown log type "
+                                                  + logType );
+            }
+        }
+
+        /**
+         * Returns the type of logging to use.
+         *
+         * @return  logging type; may be "http", "rpc", "xml", "none" or null
+         */
+        public String getLogType() {
+            return logType_;
+        }
+
+        /**
+         * Sets the port number the server will run on.
+         * If port=0, then an unused port will be used at run time.
+         *
+         * @param  port  port number
+         */
+        public void setPort( int port ) {
+            port_ = port;
+        }
+
+        /**
+         * Returns the port number the server will run on.
+         *
+         * @return  port number
+         */
+        public int getPort() {
+            return port_;
+        }
+
+        /**
+         * Sets the path on the HTTP server at which the XML-RPC server
+         * will reside.
+         *
+         * @param  xmlrpcPath  server path for XML-RPC server
+         */
+        public void setXmlrpcPath( String xmlrpcPath ) {
+            xmlrpcPath_ = xmlrpcPath;
+        }
+
+        /**
+         * Returns the path on the HTTP server at which the XML-RPC server
+         * will reside.
+         *
+         * @return   XML-RPC path on server
+         */
+        public String getXmlrpcPath() {
+            return xmlrpcPath_;
+        }
+
+        /**
+         * Sets whether Adobe Flash cross-domain workaround will be supported.
+         *
+         * @param  allowFlash  true iff supported
+         */
+        public void setAllowFlash( boolean allowFlash ) {
+            allowFlash_ = allowFlash;
+        }
+
+        /**
+         * Indicates whether Adobe Flash cross-domain workaround
+         * will be supported.
+         *
+         * @return  true iff supported
+         */
+        public boolean isAllowFlash() {
+            return allowFlash_;
+        }
+
+        /**
+         * Sets whether Microsoft Silverlight cross-domain workaround
+         * will be supported.
+         *
+         * @param  allowSilverlight  true iff supported
+         */
+        public void setAllowSilverlight( boolean allowSilverlight ) {
+            allowSilverlight_ = allowSilverlight;
+        }
+
+        /**
+         * Indicates whether Microsoft Silverlight cross-domain workaround
+         * will be supported.
+         *
+         * @return  true iff supported
+         */
+        public boolean isAllowSilverlight() {
+            return allowSilverlight_;
+        }
+
+        /**
+         * Sets the authorization policy for external origins.
+         *
+         * @param  oAuth  authorizer
+         */
+        public void setOriginAuthorizer( OriginAuthorizer oAuth ) {
+            oAuth_ = oAuth;
+        }
+
+        /**
+         * Returns the authorization policy for external origins.
+         *
+         * @return  authorizer
+         */
+        public OriginAuthorizer getOriginAuthorizer() {
+            return oAuth_;
+        }
+
+        /**
+         * Creates a socket on a given port to be used by the server this
+         * object produces.
+         *
+         * @param  port  port number
+         * @return  new server socket
+         */
+        protected ServerSocket createServerSocket( int port )
+                throws IOException {
+            ServerSocket sock = new ServerSocket();
+            sock.setReuseAddress( true );
+            sock.bind( new InetSocketAddress( port ) );
+            return sock;
+        }
     }
 }

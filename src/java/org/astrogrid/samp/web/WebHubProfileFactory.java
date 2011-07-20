@@ -65,9 +65,9 @@ public class WebHubProfileFactory implements HubProfileFactory {
         }
 
         // Prepare HTTP server.
-        InternalServer xServer;
+        WebHubProfile.ServerFactory sfact = new WebHubProfile.ServerFactory();
         try {
-            xServer = WebHubProfile.createSampXmlRpcServer( logType );
+            sfact.setLogType( logType );
         }
         catch ( IllegalArgumentException e ) {
             throw (IllegalArgumentException)
@@ -97,7 +97,7 @@ public class WebHubProfileFactory implements HubProfileFactory {
         }
 
         // Construct and return an appropriately configured hub profile.
-        return new WebHubProfile( xServer, clientAuth,
+        return new WebHubProfile( sfact, clientAuth,
                                   WebHubProfile.createKeyGenerator() );
     }
 
