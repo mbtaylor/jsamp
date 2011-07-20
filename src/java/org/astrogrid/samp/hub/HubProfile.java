@@ -13,6 +13,7 @@ import org.astrogrid.samp.client.ClientProfile;
  * at any time, and may be started and stopped independently of each other.
  * The connection supplier is typically a hub service running in the same
  * JVM, but may also be a client-side connection to a hub.
+ * A profile should be able to undergo multiple start/stop cycles.
  * 
  * @author   Mark Taylor
  * @since    31 Jan 2011
