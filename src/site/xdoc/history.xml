@@ -665,6 +665,8 @@ definition may change in the future.
 <li>Web profile now uses <code>map</code> argument not <code>string</code>
     argument to <code>register()</code>, as per change to Web Profile
     specification.</li>
+<li>Various changes to hub implementation and API to allow individual
+    start/stop of different hub profiles at runtime.</li>
 </ul>
 </subsection>
 
