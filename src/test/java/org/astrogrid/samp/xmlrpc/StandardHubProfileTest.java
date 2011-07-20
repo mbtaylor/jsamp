@@ -8,6 +8,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.HubService;
 
@@ -38,8 +41,16 @@ public class StandardHubProfileTest extends TestCase {
         if ( lockfile != null ) {
             assertTrue( ! lockfile.exists() );
         }
-        HubService hubService = new BasicHubService( new Random( 199099L ) );
-        hubProf.start( hubService );
+        final HubService hubService =
+            new BasicHubService( new Random( 199099L ) );
+        hubProf.start( new ClientProfile() {
+            public HubConnection register() throws SampException {
+                return hubService.register( "basic-test" );
+            }
+            public boolean isHubRunning() {
+                return hubService.isHubRunning();
+            }
+        } );
         if ( lockfile != null ) {
             assertEquals( secret,
                           LockInfo.readLockFile( SampUtils
@@ -48,7 +59,7 @@ public class StandardHubProfileTest extends TestCase {
         }
         URL lockurl = hubProf.publishLockfile();
         assertEquals( secret, LockInfo.readLockFile( lockurl ).getSecret() );
-        hubProf.shutdown();
+        hubProf.stop();
         if ( lockfile != null ) {
             assertTrue( ! lockfile.exists() );
         }

@@ -28,10 +28,24 @@ public interface HubProfile {
     void start( ClientProfile profile ) throws IOException;
 
     /**
+     * Indicates whether this profile is currently running.
+     *
+     * @return  true iff profile is running
+     */
+    boolean isRunning();
+
+    /**
      * Ends this profile's activity on behalf of the hub.
      * Any resources associated with the profile should be released.
      * This does not include messaging registered clients about profile
      * termination; that should be taken care of by the user of this profile.
      */
-    void shutdown() throws IOException;
+    void stop() throws IOException;
+
+    /**
+     * Returns the name of this profile.
+     *
+     * @return  profile name, usually one word
+     */
+    public String getName();
 }
