@@ -58,17 +58,19 @@ public class WebTestProfile extends TestProfile {
     }
 
     public HubProfile createHubProfile() throws IOException {
-        InternalServer xServer =
-            WebHubProfile
-           .createSampXmlRpcServer( null, new ServerSocket( port_ ), path_,
-                                    OriginAuthorizers.TRUE, false, false );
+        WebHubProfile.ServerFactory sxfact = new WebHubProfile.ServerFactory();
+        sxfact.setPort( port_ );
+        sxfact.setXmlrpcPath( path_ );
+        sxfact.setOriginAuthorizer( OriginAuthorizers.TRUE );
+        sxfact.setAllowFlash( false );
+        sxfact.setAllowSilverlight( false );
         ClientAuthorizer copyAuth = new ClientAuthorizer() {
             public boolean authorize( HttpServer.Request request,
                                       String appName ) {
                 return clientAuth_.authorize( request, appName );
             }
         };
-        return new WebHubProfile( xServer, copyAuth,
+        return new WebHubProfile( sxfact, copyAuth,
                                   new KeyGenerator( "wk:", 24,
                                                     createRandom() ) );
     }

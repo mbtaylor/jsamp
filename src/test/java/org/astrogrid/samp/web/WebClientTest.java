@@ -100,12 +100,18 @@ public class WebClientTest extends TestCase {
     public void testServer() throws IOException {
         ServerSocket sock = new ServerSocket( 0 );
         String path = "/";
-        InternalServer xServer =
-            WebHubProfile.createSampXmlRpcServer( null, sock, "/",
-                                                  OriginAuthorizers.TRUE,
-                                                  true, true );
-        URL surl = new URL( "http://localhost:" + sock.getLocalPort() );
+        WebHubProfile.ServerFactory sxfact =
+            new WebHubProfile.ServerFactory();
+        sxfact.setLogType( null );
+        sxfact.setPort( 0 );
+        sxfact.setXmlrpcPath( "/" );
+        sxfact.setOriginAuthorizer( OriginAuthorizers.TRUE );
+        sxfact.setAllowFlash( true );
+        sxfact.setAllowSilverlight( true );
+        InternalServer xServer = sxfact.createSampXmlRpcServer();
         HttpServer hServer = xServer.getHttpServer();
+        URL surl =
+            new URL( "http://localhost:" + hServer.getSocket().getLocalPort() );
         hServer.start();
         String xdomain = readUrl( new URL( surl, "/crossdomain.xml" ) );
         assertTrue( xdomain.indexOf( "<cross-domain-policy>" ) > 0 );
