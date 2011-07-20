@@ -1,23 +1,40 @@
 package org.astrogrid.samp.hub;
 
 import java.awt.AWTException;
+import java.awt.CheckboxMenuItem;
 import java.awt.Image;
+import java.awt.Menu;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JFrame;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.gui.ErrorDialog;
 import org.astrogrid.samp.gui.GuiHubService;
 import org.astrogrid.samp.gui.MessageTrackerHubService;
 import org.astrogrid.samp.gui.SysTray;
@@ -73,10 +90,12 @@ public abstract class HubServiceMode {
      * Returns a new HubService object.
      *
      * @param  random  random number generator
+     * @param  profiles  hub profiles
      * @param  runners  1-element array of Hubs - this should be
      *         populated with the runner once it has been constructed
      */
-    abstract HubService createHubService( Random random, Hub[] runners );
+    abstract HubService createHubService( Random random, HubProfile[] profiles,
+                                          Hub[] runners );
 
     /**
      * Indicates whether the hub service will start only daemon threads.
@@ -140,164 +159,54 @@ public abstract class HubServiceMode {
      * for GUI-type hub modes.
      *
      * @param  frame  hub window
+     * @param  profiles  profiles to run for hub
      * @param  runners  1-element array which will contain an associated
      *         hub runner object if one exists
      * @return  object which should be shutdown when the hub stops running
      */
-    private static Tidier configureHubWindow( JFrame frame, Hub[] runners ) {
+    private static Tidier configureHubWindow( JFrame frame,
+                                              HubProfile[] profiles,
+                                              Hub[] runners ) {
         SysTray sysTray = SysTray.getInstance();
         if ( sysTray.isSupported() ) {
-            Tidier tidier;
             try {
-                tidier = configureWindowForSysTray( frame, runners, sysTray );
+                SysTrayWindowConfig winConfig =
+                    new SysTrayWindowConfig( frame, profiles, runners,
+                                             sysTray );
+                winConfig.configureWindow();
+                winConfig.configureSysTray();
                 logger_.info( "Hub started in system tray" );
+                return winConfig;
             }
             catch ( AWTException e ) {
                 logger_.warning( "Failed to install in system tray: " + e );
-                tidier = configureWindowBasic( frame, runners );
+                BasicWindowConfig winConfig =
+                    new BasicWindowConfig( frame, profiles, runners );
+                winConfig.configureWindow();
+                return winConfig;
             }
-            return tidier;
         }
         else {
             logger_.info( "System tray not supported: displaying hub window" );
-            return configureWindowBasic( frame, runners );
+            BasicWindowConfig winConfig =
+                new BasicWindowConfig( frame, profiles, runners );
+            winConfig.configureWindow();
+            return winConfig;
         }
-    }
-
-    /**
-     * Performs common configuration of hub display window without
-     * system tray functionality.
-     * @param  frame  hub window
-     * @param  runners  1-element array which will contain an associated
-     *         hub runner object if one exists
-     * @return  object which should be shutdown when the hub stops running
-     */
-    private static Tidier configureWindowBasic( final JFrame frame,
-                                                final Hub[] runners ) {
-        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.addWindowListener( new WindowAdapter() {
-            public void windowClosed( WindowEvent evt ) {
-                Hub runner = runners[ 0 ];
-                if ( runner != null ) {
-                    runner.shutdown();
-                }
-            }
-        } );
-        frame.setVisible( true );
-        return new Tidier() {
-            public void tidyGui() {
-                if ( frame.isShowing() ) {
-                    frame.dispose();
-                }
-            }
-        };
-    }
-
-    /**
-     * Performs common configuration of hub display window with
-     * system tray functionality.
-     *
-     * @param  frame  hub window
-     * @param  runners  1-element array which will contain an associated
-     *         hub runner object if one exists
-     * @param  sysTray  system tray facade object
-     */
-    private static Tidier configureWindowForSysTray( final JFrame frame,
-                                                     final Hub[] runners,
-                                                     final SysTray sysTray )
-            throws AWTException {
-
-        /* Prepare the items for display in the tray icon popup menu. */
-        final MenuItem showItem;
-        final MenuItem hideItem;
-        final MenuItem stopItem;
-        MenuItem[] items = new MenuItem[] {
-            showItem = new MenuItem( "Show Hub Window" ),
-            hideItem = new MenuItem( "Hide Hub Window" ),
-            stopItem = new MenuItem( "Stop Hub" ),
-        };
-        ActionListener iconListener = new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                frame.setVisible( true );
-                showItem.setEnabled( false );
-                hideItem.setEnabled( true );
-            }
-        };
-
-        /* Construct and install the tray icon. */
-        Image im = Toolkit.getDefaultToolkit()
-                  .createImage( Client.class.getResource( "images/hub.png" ) );
-        String tooltip = "SAMP Hub";
-        PopupMenu popup = new PopupMenu();
-        final Object trayIcon =
-            sysTray.addIcon( im, tooltip, popup, iconListener );
-        final Tidier iconRemover = new Tidier() {
-            public void tidyGui() {
-                try {
-                    sysTray.removeIcon( trayIcon );
-                }
-                catch ( AWTException e ) {
-                    logger_.warning( "Can't remove system tray icon: " + e );
-                }
-                if ( frame.isShowing() ) {
-                    frame.dispose();
-                }
-            }
-        };
-
-        /* Arrange for the menu items to do something appropriate when
-         * triggered. */
-        ActionListener popListener = new ActionListener() {
-            public void actionPerformed( ActionEvent evt ) {
-                String cmd = evt.getActionCommand();
-                if ( cmd.equals( showItem.getActionCommand() ) ||
-                     cmd.equals( hideItem.getActionCommand() ) ) {
-                    boolean visible = cmd.equals( showItem.getActionCommand() );
-                    frame.setVisible( visible );
-                    showItem.setEnabled( ! visible );
-                    hideItem.setEnabled( visible );
-                }
-                else if ( cmd.equals( stopItem.getActionCommand() ) ) {
-                    Hub runner = runners[ 0 ];
-                    if ( runner != null ) {
-                        runner.shutdown();
-                    }
-                    iconRemover.tidyGui();
-                }
-            }
-        };
-        for ( int i = 0; i < items.length; i++ ) {
-            items[ i ].addActionListener( popListener );
-            popup.add( items[ i ] );
-        }
-
-        /* Arrange that a manual window close will set the action states
-         * correctly. */
-        frame.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
-        frame.addWindowListener( new WindowAdapter() {
-            public void windowClosed( WindowEvent evt ) {
-                showItem.setEnabled( true );
-                hideItem.setEnabled( false );
-            }
-        } );
-
-        /* Set to initial state. */
-        popListener.actionPerformed(
-            new ActionEvent( frame, 0, hideItem.getActionCommand() ) );
-
-        /* Return object which can tidy up. */
-        return iconRemover;
     }
 
     /**
      * Constructs a mode for BasicHubService.
      *
+     * @param   name  mode name
      * @return  non-gui mode
      */
     private static HubServiceMode createBasicHubMode( String name ) {
         try {
             return new HubServiceMode( name, true ) {
-                HubService createHubService( Random random, Hub[] runners ) {
+                HubService createHubService( Random random,
+                                             HubProfile[] profiles,
+                                             Hub[] runners ) {
                     return new BasicHubService( random );
                 }
             };
@@ -317,6 +226,7 @@ public abstract class HubServiceMode {
             GuiHubService.class.getName();
             return new HubServiceMode( name, false ) {
                 HubService createHubService( Random random,
+                                             final HubProfile[] profiles,
                                              final Hub[] runners ) {
                     return new GuiHubService( random ) {
                         Tidier tidier;
@@ -326,7 +236,7 @@ public abstract class HubServiceMode {
                                 public void run() {
                                     tidier =
                                         configureHubWindow( createHubWindow(),
-                                                            runners );
+                                                            profiles, runners );
                                 }
                             } );
                         }
@@ -359,6 +269,7 @@ public abstract class HubServiceMode {
             MessageTrackerHubService.class.getName();
             return new HubServiceMode( name, false ) {
                 HubService createHubService( Random random,
+                                             final HubProfile[] profiles,
                                              final Hub[] runners ) {
                     return new MessageTrackerHubService( random ) {
                         Tidier tidier;
@@ -368,6 +279,7 @@ public abstract class HubServiceMode {
                                 public void run() {
                                     tidier =
                                         configureHubWindow( createHubWindow(),
+                                                            profiles,
                                                             runners );
                                 }
                             } );
@@ -398,7 +310,8 @@ public abstract class HubServiceMode {
      */
     private static HubServiceMode createFacadeHubMode( String name ) {
         return new HubServiceMode( name, true ) {
-            HubService createHubService( Random random, final Hub[] runners ) {
+            HubService createHubService( Random random, HubProfile[] profiles,
+                                         final Hub[] runners ) {
                 return new FacadeHubService( DefaultClientProfile
                                             .getProfile() );
             }
@@ -422,7 +335,8 @@ public abstract class HubServiceMode {
             super( name, false );
             error_ = error;
         }
-        HubService createHubService( Random random, Hub[] runners ) {
+        HubService createHubService( Random random, HubProfile[] profiles,
+                                     Hub[] runners ) {
             throw new RuntimeException( "Hub mode " + getName()
                                       + " unavailable", error_ );
         }
@@ -439,5 +353,315 @@ public abstract class HubServiceMode {
          * May be assumed to be called on the AWT Event Dispatch Thread.
          */
         public abstract void tidyGui();
+    }
+
+    /**
+     * Class to configure a window for use as a hub control.
+     */
+    private static class BasicWindowConfig extends Tidier {
+        final JFrame frame_;
+        final Hub[] runners_;
+        final ProfileToggler[] profileTogglers_;
+        final Action exitAct_;
+
+        /**
+         * Constructor.
+         *
+         * @param  frame  hub window
+         * @param  profiles  hub profiles to run
+         * @param  runners  1-element array which will contain an associated
+         *         hub runner object if one exists
+         */
+        BasicWindowConfig( JFrame frame, HubProfile[] profiles,
+                           final Hub[] runners ) {
+            frame_ = frame;
+            runners_ = runners;
+            profileTogglers_ = new ProfileToggler[ profiles.length ];
+            for ( int ip = 0; ip < profiles.length; ip++ ) {
+                profileTogglers_[ ip ] =
+                    new ProfileToggler( profiles[ ip ], runners );
+            }
+            exitAct_ = new AbstractAction( "Stop Hub" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    if ( runners[ 0 ] != null ) {
+                        runners[ 0 ].shutdown();
+                    }
+                    tidyGui();
+                }
+            };
+            exitAct_.putValue( Action.SHORT_DESCRIPTION,
+                               "Shut down SAMP hub" );
+            exitAct_.putValue( Action.MNEMONIC_KEY,
+                               new Integer( KeyEvent.VK_T ) );
+        }
+
+        /**
+         * Perform configuration of window.
+         */
+        public void configureWindow() {
+            configureMenus();
+            frame_.setDefaultCloseOperation( JFrame.DISPOSE_ON_CLOSE );
+            frame_.setVisible( true );
+            frame_.addWindowListener( new WindowAdapter() {
+                public void windowClosed( WindowEvent evt ) {
+                    Hub runner = runners_[ 0 ];
+                    if ( runner != null ) {
+                        runner.shutdown();
+                    }
+                }
+            } );
+        }
+
+        /**
+         * Configures menus on the window.  Invoked by configureWindow.
+         */
+        protected void configureMenus() {
+            JMenuBar mbar = new JMenuBar();
+            JMenu fileMenu = new JMenu( "File" );
+            fileMenu.setMnemonic( KeyEvent.VK_F );
+            fileMenu.add( new JMenuItem( exitAct_ ) );
+            mbar.add( fileMenu );
+            JMenu profileMenu = new JMenu( "Profiles" );
+            profileMenu.setMnemonic( KeyEvent.VK_P );
+            for ( int ip = 0; ip < profileTogglers_.length; ip++ ) {
+                profileMenu.add( profileTogglers_[ ip ].createJMenuItem() );
+            }
+            mbar.add( profileMenu );
+            frame_.setJMenuBar( mbar );
+        }
+
+        public void tidyGui() {
+            if ( frame_.isDisplayable() ) {
+                frame_.dispose();
+            }
+        }
+    }
+
+    /**
+     * Takes care of hub display window configuration with system tray
+     * functionality.
+     */
+    private static class SysTrayWindowConfig extends BasicWindowConfig {
+        private final SysTray sysTray_;
+        private final Action showAct_;
+        private final Action hideAct_;
+        private final MenuItem showItem_;
+        private final MenuItem hideItem_;
+        private final MenuItem exitItem_;
+        private final ActionListener iconListener_;
+        private Object trayIcon_;
+
+        /**
+         * Constructor.
+         *
+         * @param  frame  hub window
+         * @param  profiles  hub profiles to run
+         * @param  runners  1-element array which will contain an associated
+         *         hub runner object if one exists
+         * @param  sysTray  system tray facade object
+         */
+        SysTrayWindowConfig( JFrame frame, HubProfile[] profiles, Hub[] runners,
+                             SysTray sysTray ) {
+            super( frame, profiles, runners );
+            sysTray_ = sysTray;
+            showAct_ = new AbstractAction( "Show Hub Window" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setWindowVisible( true );
+                }
+            };
+            hideAct_ = new AbstractAction( "Hide Hub Window" ) {
+                public void actionPerformed( ActionEvent evt ) {
+                    setWindowVisible( false );
+                }
+            };
+            showItem_ = toMenuItem( showAct_ );
+            hideItem_ = toMenuItem( hideAct_ );
+            exitItem_ = toMenuItem( exitAct_ );
+            iconListener_ = showAct_;
+        }
+
+        protected void configureMenus() {
+            super.configureMenus();
+            frame_.getJMenuBar().getMenu( 0 ).add( new JMenuItem( hideAct_ ) );
+        }
+
+        public void configureWindow() {
+            configureMenus();
+            frame_.setDefaultCloseOperation( JFrame.HIDE_ON_CLOSE );
+
+            // Arrange that a manual window close will set the action states
+            // correctly.
+            frame_.addWindowListener( new WindowAdapter() {
+                public void windowClosing( WindowEvent evt ) {
+                    showAct_.setEnabled( true );
+                    hideAct_.setEnabled( false );
+                }
+            } );
+            hideAct_.actionPerformed( null );
+        }
+
+        /**
+         * Performs configuration.
+         */
+        public void configureSysTray() throws AWTException {
+            Image im = Toolkit.getDefaultToolkit()
+                      .createImage( Client.class
+                                   .getResource( "images/hub.png" ) );
+            String tooltip = "SAMP Hub";
+            PopupMenu popup = new PopupMenu();
+            Menu profileMenu = new Menu( "Profiles" );
+            for ( int ip = 0; ip < profileTogglers_.length; ip++ ) {
+                profileMenu.add( profileTogglers_[ ip ].createMenuItem() );
+            }
+            popup.add( profileMenu );
+            popup.add( showItem_ );
+            popup.add( hideItem_ );
+            popup.add( exitItem_ );
+            trayIcon_ = sysTray_.addIcon( im, tooltip, popup, iconListener_ );
+        }
+
+        public void tidyGui() {
+            super.tidyGui();
+            try {
+                sysTray_.removeIcon( trayIcon_ );
+            }
+            catch ( AWTException e ) {
+                logger_.warning( "Can't remove hub system tray icon: " + e );
+            }
+        }
+
+        /**
+         * Sets visibility for the hub control window, adjusting actions
+         * as appropriate.
+         *
+         * @param  isVis  true for visible, false for invisible
+         */
+        private void setWindowVisible( boolean isVis ) {
+            frame_.setVisible( isVis );
+            showAct_.setEnabled( ! isVis );
+            hideAct_.setEnabled( isVis );
+            showItem_.setEnabled( ! isVis );
+            hideItem_.setEnabled( isVis );
+        }
+
+        /**
+         * Turns an action into an AWT menu item.
+         *
+         * @param  act  action
+         * @return  MenuItem facade
+         */
+        private MenuItem toMenuItem( Action act ) {
+            MenuItem item =
+                new MenuItem( (String) act.getValue( Action.NAME ) );
+            item.addActionListener( act );
+            return item;
+        }
+    }
+
+    /**
+     * Manages a toggle button for starting/stopping profiles.
+     * This object can supply both Swing JMenuItems and AWT MenuItems
+     * with effectively the same model (which is quite hard work).
+     */
+    private static class ProfileToggler {
+        final HubProfile profile_;
+        final Hub[] runners_;
+        final String title_;
+        final JToggleButton.ToggleButtonModel toggleModel_;
+        final List menuItemList_;
+
+        /**
+         * Constructor.
+         *
+         * @param  profile  profile to operate on
+         * @param  runners  one-element array containing hub
+         */
+        ProfileToggler( HubProfile profile, Hub[] runners ) {
+            profile_ = profile;
+            runners_ = runners;
+            title_ = profile.getName() + " Profile";
+            menuItemList_ = new ArrayList();
+            toggleModel_ = new JToggleButton.ToggleButtonModel() {
+                public boolean isSelected() {
+                    return profile_.isRunning();
+                }
+                public void setSelected( boolean on ) {
+                    Hub hub = runners_[ 0 ];
+                    if ( hub != null ) {
+                        if ( on && ! profile_.isRunning() ) {
+                            try {
+                                hub.startProfile( profile_ );
+                                super.setSelected( on );
+                            }
+                            catch ( IOException e ) {
+                                ErrorDialog
+                               .showError( null, title_ + " Start Error",
+                                           "Error starting " + title_, e );
+                                return;
+                            }
+                        }
+                        else if ( ! on && profile_.isRunning() ) {
+                            hub.shutdownProfile( profile_ );
+                        }
+                    }
+                    super.setSelected( on );
+                }
+            };
+            toggleModel_.addChangeListener( new ChangeListener() {
+                public void stateChanged( ChangeEvent evt ) {
+                    updateMenuItems();
+                }
+            } );
+        }
+
+        /**
+         * Returns a new Swing JMenuItem for start/stop toggle.
+         *
+         * @return menu item
+         */
+        public JMenuItem createJMenuItem() {
+            JCheckBoxMenuItem item = new JCheckBoxMenuItem( title_ );
+            item.setToolTipText( "Start or stop the " + title_ );
+            char chr = Character.toUpperCase( profile_.getName().charAt( 0 ) );
+            if ( chr >= 'A' && chr <= 'Z' ) {
+                item.setMnemonic( (int) chr );
+            }
+            item.setModel( toggleModel_ );
+            return item;
+        }
+
+        /**
+         * Returns a new AWT MenuItem for start/stop toggle.
+         *
+         * @return  menu item
+         */
+        public MenuItem createMenuItem() {
+            final CheckboxMenuItem item = new CheckboxMenuItem( title_ );
+            item.addItemListener( new ItemListener() {
+                 public void itemStateChanged( ItemEvent evt ) {
+                     boolean on = item.getState();
+                     toggleModel_.setSelected( on );
+                     if ( toggleModel_.isSelected() != on ) {
+                         item.setState( toggleModel_.isSelected() );
+                     }
+                 }
+            } );
+            item.setState( toggleModel_.isSelected() );
+            menuItemList_.add( item );
+            return item;
+        }
+
+        /**
+         * Updates all dispatched menu items to the current state.
+         */
+        private void updateMenuItems() {
+            for ( Iterator it = menuItemList_.iterator(); it.hasNext(); ) {
+                CheckboxMenuItem item = (CheckboxMenuItem) it.next();
+                boolean on = toggleModel_.isSelected();
+                if ( item.getState() != on ) {
+                    item.setState( on );
+                }
+            }
+        }
     }
 }
