@@ -49,7 +49,7 @@ public class GuiHubService extends BasicHubService {
      * @return   new hub viewer panel
      */
     public JComponent createHubPanel() {
-        HubView hubView = new HubView();
+        HubView hubView = new HubView( true );
         hubView.setClientListModel( getClientListModel() );
         JList jlist = hubView.getClientList();
         jlist.setCellRenderer( new ClientListCellRenderer() );

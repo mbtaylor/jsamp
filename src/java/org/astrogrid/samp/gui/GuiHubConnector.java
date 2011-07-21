@@ -367,7 +367,7 @@ public class GuiHubConnector extends HubConnector {
      * @return   new hub connection monitor component
      */
     public JComponent createMonitorPanel() {
-        HubView view = new HubView();
+        HubView view = new HubView( false );
         view.setClientListModel( getClientListModel() );
         view.getClientList().setCellRenderer( createClientListCellRenderer() );
         return view;

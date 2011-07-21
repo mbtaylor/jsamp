@@ -277,7 +277,7 @@ public class MessageTrackerHubConnector extends GuiHubConnector
         JTabbedPane tabber = new JTabbedPane();
 
         // Add client view tab.
-        HubView hubView = new HubView();
+        HubView hubView = new HubView( false );
         hubView.setClientListModel( getClientListModel() );
         hubView.getClientList()
                .setCellRenderer( createClientListCellRenderer() );

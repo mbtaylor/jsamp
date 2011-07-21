@@ -30,8 +30,11 @@ public class HubView extends JPanel {
 
     /**
      * Constructor.
+     *
+     * @param  hubLike  true if this will be displaying clients implementing
+     *                  the HubClient interface
      */
-    public HubView() {
+    public HubView( boolean hubLike ) {
         super( new BorderLayout() );
 
         // Set up a JList to display the list of clients.
@@ -73,7 +76,7 @@ public class HubView extends JPanel {
         };
 
         // Construct and place subcomponents.
-        clientPanel_ = new ClientPanel();
+        clientPanel_ = new ClientPanel( hubLike );
         JSplitPane splitter = new JSplitPane();
         splitter.setOneTouchExpandable( true );
         JScrollPane listScroller = new JScrollPane( jlist_ );

@@ -30,6 +30,7 @@ import javax.swing.border.Border;
 import org.astrogrid.samp.Client;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.hub.HubClient;
 
 /**
  * Component which displays details about a {@link org.astrogrid.samp.Client}.
@@ -40,6 +41,7 @@ import org.astrogrid.samp.Subscriptions;
 public class ClientPanel extends JPanel {
 
     private final JTextField idField_;
+    private final JTextField profileField_;
     private final Box metaBox_;
     private final JList subsList_;
     private Client client_;
@@ -49,8 +51,11 @@ public class ClientPanel extends JPanel {
 
     /**
      * Constructor.
+     *
+     * @param  hubLike  true if this will be displaying clients implementing
+     *                  the HubClient interface
      */
-    public ClientPanel() {
+    public ClientPanel( boolean hubLike ) {
         super( new BorderLayout() );
         JSplitPane splitter = new JSplitPane( JSplitPane.VERTICAL_SPLIT );
         splitter.setBorder( BorderFactory.createEmptyBorder() );
@@ -58,16 +63,29 @@ public class ClientPanel extends JPanel {
         splitter.setResizeWeight( 0.5 );
         add( splitter, BorderLayout.CENTER );
 
-        // Construct and place identity subpanel.
-        Box identBox = Box.createVerticalBox();
-        identBox.setBorder( createTitledBorder( "Identity" ) );
-        Box idBox = Box.createHorizontalBox();
+        // Construct and place registration subpanel.
+        Box regBox = Box.createVerticalBox();
+        regBox.setBorder( createTitledBorder( "Registration" ) );
+        Box idLine = Box.createHorizontalBox();
         idField_ = new JTextField();
         idField_.setEditable( false );
-        idBox.add( new JLabel( "Public ID: " ) );
-        idBox.add( idField_ );
-        identBox.add( idBox );
-        add( identBox, BorderLayout.NORTH );
+        idField_.setBorder( BorderFactory.createEmptyBorder() );
+        idLine.add( new JLabel( "Public ID: " ) );
+        idLine.add( idField_ );
+        regBox.add( idLine );
+        if ( hubLike ) {
+            profileField_ = new JTextField();
+            profileField_.setEditable( false );
+            profileField_.setBorder( BorderFactory.createEmptyBorder() );
+            Box profileLine = Box.createHorizontalBox();
+            profileLine.add( new JLabel( "Profile: " ) );
+            profileLine.add( profileField_ );
+            regBox.add( profileLine );
+        }
+        else {
+            profileField_ = null;
+        }
+        add( regBox, BorderLayout.NORTH );
 
         // Construct and place metadata subpanel.
         metaBox_ = Box.createVerticalBox();
@@ -95,6 +113,12 @@ public class ClientPanel extends JPanel {
      */
     public void setClient( Client client ) {
         idField_.setText( client == null ? null : client.getId() );
+        if ( profileField_ != null ) {
+            profileField_.setText( client instanceof HubClient
+                                       ? ((HubClient) client).getProfileToken()
+                                                             .getProfileName()
+                                       : null );
+        }
         setMetadata( client == null ? null : client.getMetadata() );
         setSubscriptions( client == null ? null : client.getSubscriptions() );
         client_ = client;
