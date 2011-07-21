@@ -271,6 +271,23 @@ The following flags are used only if the Standard Profile
         </dd>
     </dl>
     </dd>
+<dt><code>-web:[no]cors</code></dt>
+<dd>Configures whether the Web Profile HTTP server will allow access
+    from browser-based clients using W3C Cross-Origin Resource Sharing.
+    By default this is currently turned on.
+    </dd>
+<dt><code>-web:[no]flash</code></dt>
+<dd>Configures whether the Web Profile HTTP server will allow access
+    from browser-based clients using
+    Flash-style <code>crossdomain.xml</code> files.
+    By default this is currently turned on.
+    </dd>
+<dt><code>-web:[no]silverlight</code></dt>
+<dd>Configures whether the Web Profile HTTP server will allow access
+    from browser-based clients using
+    Silverlight-style <code>clientaccesspolicy.xml</code> files.
+    By default this is currently turned off.
+    </dd>
 </dl>
 <p>For convenience, the hub can also be started simply by invoking
 the jar file with no arguments (for instance clicking on it).

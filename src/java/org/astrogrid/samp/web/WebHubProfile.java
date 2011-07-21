@@ -27,7 +27,7 @@ public class WebHubProfile implements HubProfile {
     private final KeyGenerator keyGen_;
     private InternalServer xServer_;
     private WebHubXmlRpcHandler wxHandler_;
-    private final Logger logger_ =
+    private static final Logger logger_ =
         Logger.getLogger( WebHubProfile.class.getName() );
 
     /**
@@ -136,10 +136,22 @@ public class WebHubProfile implements HubProfile {
             if ( isAllowFlash() ) {
                 hServer.addHandler( OpenPolicyResourceHandler
                                    .createFlashPolicyHandler( oAuth ) );
+                logger_.info( "Web Profile HTTP server permits "
+                            + "Flash-style cross-domain access" );
+            }
+            else {
+                logger_.info( "Web Profile HTTP server does not permit "
+                            + "Flash-style cross-domain access" );
             }
             if ( isAllowSilverlight() ) {
                 hServer.addHandler( OpenPolicyResourceHandler
                                    .createSilverlightPolicyHandler( oAuth ) );
+                logger_.info( "Web Profile HTTP server permits "
+                            + "Silverlight-style cross-domain access" );
+            }
+            else {
+                logger_.info( "Web Profile HTTP server does not permit "
+                            + "Silverlight-style cross-domain access" );
             }
             hServer.setDaemon( true );
             if ( "rpc".equals( logType ) ) {

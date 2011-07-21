@@ -19,6 +19,9 @@ public class WebHubProfileFactory implements HubProfileFactory {
 
     private static final String logUsage_ = "[-web:log none|http|xml|rpc]";
     private static final String authUsage_ = "[-web:auth swing|true|false]";
+    private static final String corsUsage_ = "[-web:[no]cors]";
+    private static final String flashUsage_ = "[-web:[no]flash]";
+    private static final String silverlightUsage_ = "[-web:[no]silverlight]";
 
     /**
      * Returns "web".
@@ -31,6 +34,9 @@ public class WebHubProfileFactory implements HubProfileFactory {
         return new String[] {
             logUsage_,
             authUsage_,
+            corsUsage_,
+            flashUsage_,
+            silverlightUsage_,
         };
     }
 
@@ -39,6 +45,9 @@ public class WebHubProfileFactory implements HubProfileFactory {
         // Process flags.
         String logType = "none";
         String authType = "swing";
+        boolean useCors = true;
+        boolean useFlash = true;
+        boolean useSilverlight = false;
         for ( Iterator it = flagList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-web:log" ) ) {
@@ -62,6 +71,30 @@ public class WebHubProfileFactory implements HubProfileFactory {
                                                       + authUsage_ );
                 }
             }
+            else if ( arg.equals( "-web:cors" ) ) {
+                it.remove();
+                useCors = true;
+            }
+            else if ( arg.equals( "-web:nocors" ) ) {
+                it.remove();
+                useCors = false;
+            }
+            else if ( arg.equals( "-web:flash" ) ) {
+                it.remove();
+                useFlash = true;
+            }
+            else if ( arg.equals( "-web:noflash" ) ) {
+                it.remove();
+                useFlash = false;
+            }
+            else if ( arg.equals( "-web:silverlight" ) ) {
+                it.remove();
+                useSilverlight = true;
+            }
+            else if ( arg.equals( "-web:nosilverlight" ) ) {
+                it.remove();
+                useSilverlight = false;
+            }
         }
 
         // Prepare HTTP server.
@@ -75,6 +108,10 @@ public class WebHubProfileFactory implements HubProfileFactory {
                                               + "; Usage: " + logUsage_ )
                  .initCause( e );
         }
+        sfact.setOriginAuthorizer( useCors ? OriginAuthorizers.TRUE
+                                           : OriginAuthorizers.FALSE );
+        sfact.setAllowFlash( useFlash );
+        sfact.setAllowSilverlight( useSilverlight );
 
         // Prepare client authorizer.
         final ClientAuthorizer clientAuth;
