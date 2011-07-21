@@ -13,8 +13,15 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.hub.ProfileToken;
 
 public class StandardHubProfileTest extends TestCase {
+
+    private static final ProfileToken TEST_PROFILE = new ProfileToken() {
+        public String getProfileName() {
+            return "StandardTest";
+        }
+    };
 
     public StandardHubProfileTest() {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
@@ -45,7 +52,7 @@ public class StandardHubProfileTest extends TestCase {
             new BasicHubService( new Random( 199099L ) );
         hubProf.start( new ClientProfile() {
             public HubConnection register() throws SampException {
-                return hubService.register( "basic-test" );
+                return hubService.register( TEST_PROFILE );
             }
             public boolean isHubRunning() {
                 return hubService.isHubRunning();
