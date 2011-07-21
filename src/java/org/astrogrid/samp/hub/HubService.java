@@ -42,11 +42,10 @@ public interface HubService {
     HubConnection register( ProfileToken profileToken ) throws SampException;
 
     /**
-     * Declares that any connections created by a previous call of
+     * Forcibly terminates any connections created by a previous call of
      * {@link #register}
-     * with a particular <code>profileToken</code> should be
-     * forcibly terminated.  This causes any necessary hub events to
-     * be broadcast.
+     * with a particular <code>profileToken</code>.
+     * Any necessary hub events will be sent.
      *
      * @param  profileToken   previous argument to <code>register</code>
      */
