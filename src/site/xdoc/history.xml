@@ -666,7 +666,10 @@ definition may change in the future.
     argument to <code>register()</code>, as per change to Web Profile
     specification.</li>
 <li>Various changes to hub implementation and API to allow individual
-    start/stop of different hub profiles at runtime.</li>
+    start/stop of different hub profiles at runtime.
+    <code>Hub.runHub()</code> still works though.</li>
+<li>By default the hub now runs with the Standard Profile, with the
+    Web Profile available for starting under user control.</li>
 </ul>
 </subsection>
 

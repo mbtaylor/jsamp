@@ -39,9 +39,9 @@ public abstract class TestProfile implements ClientProfile {
                                            + "due to earlier test failure?" );
         }
         HubService service = new BasicHubService( createRandom() );
-        HubProfile hubProfile = createHubProfile();
-        hub_ = new Hub( service, new HubProfile[] { hubProfile } );
-        hub_.start();
+        hub_ = new Hub( service );
+        service.start();
+        hub_.startProfile( createHubProfile() );
     }
 
     public synchronized void stopHub() {

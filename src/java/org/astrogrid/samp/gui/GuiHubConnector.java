@@ -721,10 +721,10 @@ public class GuiHubConnector extends HubConnector {
          */
         private void attemptRunHub() throws IOException {
             if ( external_ ) {
-                Hub.runExternalHub( hubMode_, null );
+                Hub.runExternalHub( hubMode_ );
             }
             else {
-                Hub.runHub( hubMode_, null );
+                Hub.runHub( hubMode_ );
             }
             setActive( true );
         }

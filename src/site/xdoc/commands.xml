@@ -160,9 +160,16 @@ Some of the flags relate to particular profiles.
     and closing the window will shut down the hub.
     </dd>
 <dt><code>-profiles std|web|&lt;hubprofile-class&gt;[,...]</code></dt>
-<dd>Identifies what profiles to run with the hub.
+<dt><code>-extraprofiles std|web|&lt;hubprofile-class&gt;[,...]</code></dt>
+<dd>These two flags identify which profiles the hub will run.
+    The <code>-profiles</code> flag determines which profiles will be
+    running initially, and the <code>-extraprofiles</code> flag specifies
+    additional profiles which may be available to start manually, for
+    instance from the Profiles menu of the hub window.
+    In each case a comma-separated list of profile identifiers is used.
     If no <code>-profiles</code> flag is specified, then the default set
-    of profiles is used, which at present means just the Standard Profile.
+    of profiles is used; at present this is the Standard Profile for 
+    <code>profiles</code> and the Web Profile for <code>extraprofiles</code>
     The flag may be given more than once, in which case all the named profiles
     will run.
     The following options are available:
@@ -186,9 +193,12 @@ Some of the flags relate to particular profiles.
     </dl>
     This flag has a similar usage to the
     <a href="sysprops.html#jsamp_hub_profiles"
-                    ><code>jsamp.hub.profiles</code></a> system property,
-    but overrides it, and must be used to use the corresponding
-    profile-specific flags.
+                    ><code>jsamp.hub.profiles</code></a> and
+    <a href="sysprops.html#jsamp_hub_profiles_extra"
+                    ><code>jsamp.hub.profiles.extra</code></a>
+    system properties,
+    but overrides them, and must be used to take advantage of 
+    the corresponding profile-specific flags.
     </dd>
 </dl>
 <p>

@@ -58,10 +58,20 @@ detail on use.
         href="apidocs/org/astrogrid/samp/hub/Hub.html#HUBPROFILES_PROP"
                                             >Hub.HUBPROFILES_PROP</a>):
     </strong></dt>
-<dd>Defines the default profiles which a hub will run.
+<dt><strong>
+    <a name="jsamp.hub.profiles.extra"/>
+    <code>jsamp.hub.profiles.extra</code>
+    (<a target="samp-javadoc"
+        href="apidocs/org/astrogrid/samp/hub/Hub.html#EXTRAHUBPROFILES_PROP"
+                                            >Hub.EXTRAHUBPROFILES_PROP</a>):
+    </strong></dt>
+<dd>These define the default profiles which a hub will run.
     If a hub is started from within JSAMP without specifying which profiles
-    it will use, the profiles are defined by the value of this property.
-    The value is a comma-separated list, and each item may be one of:
+    it will use, the profiles are defined by the value of these properties.
+    <code>profiles</code> determines the profiles which will start when the
+    hub starts, and <code>profiles.extra</code> determines additional
+    profiles which may be started later under user control.
+    The values are comma-separated lists, and each item may be one of:
     <ul>
     <li><code>std</code>: Standard Profile</li>
     <li><code>web</code>: Web Profile</li>
@@ -72,8 +82,11 @@ detail on use.
         and has a suitable no-arg constructor.</li>
     </ul>
     If this property is not specified, a default list will be used.
-    This is currently just the Standard Profile
-    (equivalent to <code>jsamp.hub.profiles=std</code>).
+    This is currently just the Standard Profile on start,
+    with the Web Profile as an extra
+    (equivalent to
+    <code>jsamp.hub.profiles=std</code>,
+    <code>jsamp.hub.profiles.extra=web</code>).
     This property only affects how a hub is run; it has no effect on
     SAMP clients.
     </dd>
