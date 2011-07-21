@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
+import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.UtilServer;
 import org.astrogrid.samp.web.WebHubProfileFactory;
 import org.astrogrid.samp.xmlrpc.StandardHubProfile;
@@ -74,14 +77,14 @@ public class Hub {
         try {
             for ( int i = 0; i < profiles_.length; i++ ) {
                 logger_.info( "Starting hub profile " + profiles_[ i ] );
-                profiles_[ i ].start( service_ );
+                startProfile( profiles_[ i ] );
                 nStarted++;
             }
         }
         catch ( IOException e ) {
             for ( int i = 0; i < nStarted; i++ ) {
                 try {
-                    profiles_[ i ].shutdown();
+                    profiles_[ i ].stop();
                 }
                 catch ( Throwable e2 ) {
                 }
@@ -102,11 +105,43 @@ public class Hub {
         service_.shutdown();
         for ( int i = 0; i < profiles_.length; i++ ) {
             try {
-                profiles_[ i ].shutdown();
+                profiles_[ i ].stop();
             }
             catch ( IOException e ) {
             }
         }
+    }
+
+    /**
+     * Starts a profile running on behalf of this hub.
+     *
+     * @param  profile to start
+     */
+    public void startProfile( final HubProfile profile ) throws IOException {
+        profile.start( new ClientProfile() {
+            public HubConnection register() throws SampException {
+                return service_.register( profile );
+            }
+            public boolean isHubRunning() {
+                return service_.isHubRunning();
+            }
+        } );
+    }
+
+    /**
+     * Stops a profile running on behalf of this hub, and disconnects
+     * all clients registered with it.
+     *
+     * @param  profile  profile to stop
+     */
+    public void stopProfile( HubProfile profile ) {
+        try {
+            profile.stop();
+        }
+        catch ( IOException e ) {
+            logger_.log( Level.INFO, "Profile shutdown error", e );
+        }
+        service_.disconnectAll( profile );
     }
 
     /**
@@ -335,7 +370,8 @@ public class Hub {
             throws IOException {
         final Hub[] runners = new Hub[ 1 ];
         HubService hubService =
-            hubMode.createHubService( KeyGenerator.createRandom(), runners );
+            hubMode.createHubService( KeyGenerator.createRandom(),
+                                      profiles, runners );
         final Hub hub = new Hub( hubService, profiles );
         hub.start();
         runners[ 0 ] = hub;
