@@ -14,13 +14,14 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.UtilServer;
+import org.astrogrid.samp.web.WebHubProfile;
 import org.astrogrid.samp.web.WebHubProfileFactory;
 import org.astrogrid.samp.xmlrpc.StandardHubProfile;
 import org.astrogrid.samp.xmlrpc.StandardHubProfileFactory;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
 /**
- * Class which starts and stops a hub and its associated profiles.
+ * Class which manages a hub and its associated profiles.
  * Static methods are provided for starting a hub in the current or an
  * external JVM, and a <code>main()</code> method is provided for
  * use from the command line.
@@ -28,7 +29,9 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
  * <p>Some of the static methods allow you to indicate which hub profiles
  * should be used, others use a default.  The default list can be set
  * programmatically by using the {@link #setDefaultProfileClasses} method
- * or externally by using the {@value #HUBPROFILES_PROP} system property.
+ * or externally by using the 
+ * {@value #HUBPROFILES_PROP} and {@value #EXTRAHUBPROFILES_PROP}
+ * system properties.
  * So, for instance, running an application with
  * <code>-Djsamp.hub.profiles=web,std</code> will cause it to run hubs
  * using both the Standard and Web profiles if it does not explicitly choose
@@ -40,75 +43,70 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 public class Hub {
 
     private final HubService service_;
-    private final HubProfile[] profiles_;
+    private final List profileList_;
     private static Class[] defaultDefaultProfileClasses_ = {
         StandardHubProfile.class
     };
+    private static Class[] defaultDefaultExtraProfileClasses_ = {
+        WebHubProfile.class
+    };
     private static Class[] defaultProfileClasses_ =
-        createDefaultProfileClasses();
+        createDefaultProfileClasses( false );
+    private static Class[] defaultExtraProfileClasses_ =
+        createDefaultProfileClasses( true );
     private static final Logger logger_ =
         Logger.getLogger( Hub.class.getName() );
 
     /**
-     * System property name for supplying default profiles ({@value}).
+     * System property name for supplying default profiles ({@value})
+     * available at hub startup.
      * The value of this property, if any, will be fed to 
      * {@link #parseProfileList}.
      */
-    public static final String HUBPROFILES_PROP = "jsamp.hub.profiles";
+    public static final String HUBPROFILES_PROP =
+        "jsamp.hub.profiles";
+
+    /**
+     * System property name for supplying default profiles ({@value})
+     * additional to those in {@link #HUBPROFILES_PROP} which will be
+     * supported by the hub but switched off at hub startup time.
+     * The value of this property, if any, will be fed to 
+     * {@link #parseProfileList}.
+     */
+    public static final String EXTRAHUBPROFILES_PROP =
+        "jsamp.hub.profiles.extra";
 
     /**
      * Constructor.
+     * Note that this object does not start the service, it must be
+     * started explicitly, either before or after this constructor is called.
      *
      * @param   service   hub service
-     * @param   profiles   hub profiles for access from clients
      */
-    public Hub( HubService service, HubProfile[] profiles ) {
+    public Hub( HubService service ) {
         service_ = service;
-        profiles_ = profiles == null ? createDefaultProfiles() : profiles;
-    }
-
-    /**
-     * Starts this hub and its profiles running.
-     */
-    public void start() throws IOException {
-        logger_.info( "Starting hub service" );
-        service_.start();
-        int nStarted = 0;
-        try {
-            for ( int i = 0; i < profiles_.length; i++ ) {
-                logger_.info( "Starting hub profile " + profiles_[ i ] );
-                startProfile( profiles_[ i ] );
-                nStarted++;
-            }
-        }
-        catch ( IOException e ) {
-            for ( int i = 0; i < nStarted; i++ ) {
-                try {
-                    profiles_[ i ].stop();
-                }
-                catch ( Throwable e2 ) {
-                }
-            }
-            try {
-                service_.shutdown();
-            }
-            catch ( Throwable e2 ) {
-            }
-            throw e;
-        }
+        profileList_ = new ArrayList();
     }
 
     /**
      * Stops this hub and its profiles running.
      */
-    public void shutdown() {
+    public synchronized void shutdown() {
+        logger_.info( "Shutting down hub service" );
         service_.shutdown();
-        for ( int i = 0; i < profiles_.length; i++ ) {
+        for ( Iterator it = profileList_.iterator(); it.hasNext(); ) {
+            HubProfile profile = (HubProfile) it.next();
+            logger_.info( "Shutting down hub profile "
+                        + profile.getProfileName() );
             try {
-                profiles_[ i ].stop();
+                profile.stop();
             }
             catch ( IOException e ) {
+                logger_.log( Level.WARNING,
+                             "Failed to stop profile "
+                           + profile.getProfileName(), e );
             }
+            it.remove();
         }
     }
 
@@ -117,15 +115,23 @@ public class Hub {
      *
      * @param  profile to start
      */
-    public void startProfile( final HubProfile profile ) throws IOException {
-        profile.start( new ClientProfile() {
-            public HubConnection register() throws SampException {
-                return service_.register( profile );
-            }
-            public boolean isHubRunning() {
-                return service_.isHubRunning();
-            }
-        } );
+    public synchronized void startProfile( final HubProfile profile )
+            throws IOException {
+        if ( profileList_.contains( profile ) ) {
+            logger_.info( "Profile " + profile.getProfileName()
+                        + " already started in this hub" );
+        }
+        else {
+            profile.start( new ClientProfile() {
+                public HubConnection register() throws SampException {
+                    return service_.register( profile );
+                }
+                public boolean isHubRunning() {
+                    return service_.isHubRunning();
+                }
+            } );
+            profileList_.add( profile );
+        }
     }
 
     /**
@@ -134,13 +140,18 @@ public class Hub {
      *
      * @param  profile  profile to stop
      */
-    public void stopProfile( HubProfile profile ) {
+    public synchronized void stopProfile( HubProfile profile ) {
+        logger_.info( "Shutting down hub profile " + profile.getProfileName()
+                    + " and disconnecting clients" );
         try {
             profile.stop();
         }
         catch ( IOException e ) {
-            logger_.log( Level.INFO, "Profile shutdown error", e );
+            logger_.log( Level.WARNING,
+                         "Failed to stop profile "
+                       + profile.getProfileName(), e );
         }
+        profileList_.remove( profile );
         service_.disconnectAll( profile );
     }
 
@@ -164,27 +175,36 @@ public class Hub {
      * Each element should be an implementation of {@link HubProfile}
      * with a no-arg constructor.
      *
+     * @param   extra  false for starting classes, true for additional ones
      * @return   array of hub profile classes
      */
-    public static Class[] getDefaultProfileClasses() {
-        return (Class[]) defaultProfileClasses_.clone();
+    public static Class[] getDefaultProfileClasses( boolean extra ) {
+        return (Class[]) ( extra ? defaultExtraProfileClasses_
+                                 : defaultProfileClasses_ ).clone();
     }
 
     /**
      * Sets the default set of HubProfile classes.
      *
-     * @param  dfltProfileClasses  array to be returned by
-     *         getDefaultProfileClasses
+     * @param  clazzes  array to be returned by getDefaultProfileClasses
+     * @param   extra  false for starting classes, true for additional ones
      */
-    public static void setDefaultProfileClasses( Class[] dfltProfileClasses ) {
-        for ( int ip = 0; ip < dfltProfileClasses.length; ip++ ) {
-            Class clazz = dfltProfileClasses[ ip ];
+    public static void setDefaultProfileClasses( Class[] clazzes,
+                                                 boolean extra ) {
+        for ( int ip = 0; ip < clazzes.length; ip++ ) {
+            Class clazz = clazzes[ ip ];
             if ( ! HubProfile.class.isAssignableFrom( clazz ) ) {
                 throw new IllegalArgumentException( "Class " + clazz.getName()
                                                   + " not a HubProfile" );
             }
         }
-        defaultProfileClasses_ = (Class[]) dfltProfileClasses.clone();
+        clazzes = (Class[]) clazzes.clone();
+        if ( extra ) {
+            defaultExtraProfileClasses_ = clazzes;
+        }
+        else {
+            defaultProfileClasses_ = clazzes;
+        }
     }
 
     /**
@@ -194,10 +214,12 @@ public class Hub {
      * {@link #HUBPROFILES_PROP} system property is defined its value
      * is used instead.
      *
+     * @param   extra  false for starting classes, true for additional ones
      * @return  default array of hub profile classes
      */
-    private static Class[] createDefaultProfileClasses() {
-        String listTxt = System.getProperty( HUBPROFILES_PROP );
+    private static Class[] createDefaultProfileClasses( boolean extra ) {
+        String listTxt = System.getProperty( extra ? EXTRAHUBPROFILES_PROP
+                                                        : HUBPROFILES_PROP );
         if ( listTxt != null ) {
             HubProfileFactory[] facts = parseProfileList( listTxt );
             Class[] clazzes = new Class[ facts.length ];
@@ -207,7 +229,8 @@ public class Hub {
             return clazzes;
         }
         else {
-            return defaultDefaultProfileClasses_;
+            return extra ? defaultDefaultExtraProfileClasses_
+                         : defaultDefaultProfileClasses_;
         }
     }
 
@@ -318,12 +341,14 @@ public class Hub {
      * This is the result of calling the no-arg constructor
      * for each element of the result of {@link #getDefaultProfileClasses}.
      *
+     * @param   extra  false for starting profiles, true for additional ones
      * @return   array of hub profiles to use by default
      */
-    public static HubProfile[] createDefaultProfiles() {
+    public static HubProfile[] createDefaultProfiles( boolean extra ) {
+        Class[] clazzes = getDefaultProfileClasses( extra );
         List hubProfileList = new ArrayList();
-        for ( int ip = 0; ip < defaultProfileClasses_.length; ip++ ) {
-            Class clazz = defaultProfileClasses_[ ip ];
+        for ( int ip = 0; ip < clazzes.length; ip++ ) {
+            Class clazz = clazzes[ ip ];
             try {
                 hubProfileList.add( (HubProfile) clazz.newInstance() );
             }
@@ -349,8 +374,13 @@ public class Hub {
     }
 
     /**
-     * Starts a SAMP hub with a given set of profiles.
-     * The returned hub is running (<code>start</code> has been called).
+     * Starts a SAMP hub with given sets of profiles.
+     * The returned hub is running.
+     *
+     * <p>The <code>profiles</code> argument gives the profiles which will
+     * be started initially, and the <code>extraProfiles</code> argument
+     * lists more that can be started under user control later.
+     * If either or both list is given as null, suitable defaults will be used.
      *
      * <p>If the hub mode corresponds to one of the GUI options,
      * one of two things will happen.  An attempt will be made to install
@@ -362,37 +392,92 @@ public class Hub {
      * under Java 1.6 or later, and when using a suitable display manager.
      *
      * @param   hubMode  hub mode
-     * @param   profiles   SAMP profiles to support; if null a default set
-     *                     will be used
+     * @param   profiles   SAMP profiles to support on hub startup;
+     *                     if null a default set will be used
+     * @param   extraProfiles  SAMP profiles to offer for later startup under
+     *                     user control; if null a default set will be used
      * @return  running hub
      */
-    public static Hub runHub( HubServiceMode hubMode, HubProfile[] profiles )
+    public static Hub runHub( HubServiceMode hubMode, HubProfile[] profiles,
+                              HubProfile[] extraProfiles )
             throws IOException {
+
+        // Get values for the list of starting profiles, and the list of
+        // additional profiles that may be started later.
+        // If these have not been specified explicitly, use defaults.
+        if ( profiles == null ) {
+            profiles = createDefaultProfiles( false );
+        }
+        if ( extraProfiles == null ) {
+            extraProfiles = createDefaultProfiles( true );
+        }
+        List profList = new ArrayList();
+        profList.addAll( Arrays.asList( profiles ) );
+        for ( int ip = 0; ip < extraProfiles.length; ip++ ) {
+            HubProfile ep = extraProfiles[ ip ];
+            boolean gotit = false;
+            for ( int jp = 0; jp < profiles.length; jp++ ) {
+                gotit = gotit
+                     || profiles[ jp ].getClass().equals( ep.getClass() );
+            }
+            if ( ! gotit ) {
+                profList.add( ep );
+            }
+        }
+        HubProfile[] allProfiles =
+            (HubProfile[]) profList.toArray( new HubProfile[ 0 ] );
+
+        // Construct a hub service ready to use the full profile list.
         final Hub[] runners = new Hub[ 1 ];
         HubService hubService =
             hubMode.createHubService( KeyGenerator.createRandom(),
-                                      profiles, runners );
-        final Hub hub = new Hub( hubService, profiles );
-        hub.start();
+                                      allProfiles, runners );
+        final Hub hub = new Hub( hubService );
         runners[ 0 ] = hub;
+
+        // Start the starting profiles.
+        int nStarted = 0;
+        try {
+            for ( int ip = 0; ip < profiles.length; ip++ ) {
+                logger_.info( "Starting hub profile "
+                            + profiles[ ip ].getProfileName() );
+                hub.startProfile( profiles[ ip ] );
+                nStarted++;
+            }
+        }
+        catch ( IOException e ) {
+            for ( int ip = 0; ip < nStarted; ip++ ) {
+                logger_.info( "Stopping hub profile "
+                            + profiles[ ip ].getProfileName()
+                            + " because of startup error" );
+                profiles[ ip ].stop();
+            }
+            throw e;
+        }
+
+        // Start the hub service itself.
+        logger_.info( "Starting hub service" );
+        hubService.start();
         Runtime.getRuntime().addShutdownHook( new Thread( "Hub Terminator" ) {
             public void run() {
                 hub.shutdown();
             }
         } );
+
+        // Return the running hub.
         return hub;
     }
 
     /**
      * Starts a SAMP hub with a default set of profiles.
-     * This convenience method invokes <code>runHub(hubMode,null)</code>.
+     * This convenience method invokes <code>runHub(hubMode,null,null)</code>.
      *
      * @param   hubMode  hub mode
      * @return  running hub
-     * @see    #runHub(HubServiceMode,HubProfile[])
+     * @see    #runHub(HubServiceMode,HubProfile[],HubProfile[])
      */
     public static Hub runHub( HubServiceMode hubMode ) throws IOException {
-        return runHub( hubMode, null );
+        return runHub( hubMode, null, null );
     }
 
     /**
@@ -402,15 +487,21 @@ public class Hub {
      * Because of the OS interaction required, it's hard to make this
      * bulletproof, and it may fail without an exception, but we do our best.
      *
+     * <p>The classes specified by the <code>profileClasses</code> and
+     * <code>extraProfileClasses</code> arguments must implement
+     * {@link HubProfile} and must have a no-arg constructor.
+     * If null is given in either case suitable defaults, taken from the
+     * current JVM, are used.
+     *
      * @param   hubMode  hub mode
-     * @param   profileClasses  classes which implement {@link HubProfile}
-     *          and have a no-arg constructor, determining which profiles
-     *          the hub will support;  if null, the default set from
-     *          the current JVM is used
+     * @param   profileClasses  hub profile classes to start on hub startup
+     * @param   extraProfileClasses  hub profile classes which may be started
+     *          later under user control
      * @see     #checkExternalHubAvailability
      */
     public static void runExternalHub( HubServiceMode hubMode,
-                                       Class[] profileClasses )
+                                       Class[] profileClasses,
+                                       Class[] extraProfileClasses )
             throws IOException {
         String classpath = System.getProperty( "java.class.path" );
         if ( classpath == null || classpath.trim().length() == 0 ) {
@@ -426,6 +517,7 @@ public class Hub {
             UtilServer.PORT_PROP,
             SampUtils.LOCALHOST_PROP,
             HUBPROFILES_PROP,
+            EXTRAHUBPROFILES_PROP,
             "java.awt.Window.locationByPlatform",
         };
         List argList = new ArrayList();
@@ -453,6 +545,17 @@ public class Hub {
             }
             argList.add( profArg.toString() );
         }
+        if ( extraProfileClasses != null ) {
+            argList.add( "-extraprofiles" );
+            StringBuffer eprofArg = new StringBuffer();
+            for ( int ip = 0; ip < profileClasses.length; ip++ ) {
+                if ( ip > 0 ) {
+                    eprofArg.append( ',' );
+                }
+                eprofArg.append( extraProfileClasses[ ip ].getName() );
+            }
+            argList.add( eprofArg.toString() );
+        }
         String[] args = (String[]) argList.toArray( new String[ 0 ] );
         StringBuffer cmdbuf = new StringBuffer();
         for ( int iarg = 0; iarg < args.length; iarg++ ) {
@@ -470,14 +573,14 @@ public class Hub {
      * Attempts to run a hub in a new JVM with a default set of profiles.
      * The default set is taken from that in this JVM.
      * This convenience method invokes 
-     * <code>runExternalHub(hubMode,null)</code>.
+     * <code>runExternalHub(hubMode,null,null)</code>.
      *
      * @param   hubMode  hub mode
-     * @see     #runExternalHub(HubServiceMode,java.lang.Class[])
+     * @see #runExternalHub(HubServiceMode,java.lang.Class[],java.lang.Class[])
      */
     public static void runExternalHub( HubServiceMode hubMode )
             throws IOException {
-        runExternalHub( hubMode, null );
+        runExternalHub( hubMode, null, null );
     }
 
     /**
@@ -535,14 +638,13 @@ public class Hub {
 
         // Assemble usage message.
         StringBuffer pbuf = new StringBuffer();
-        pbuf.append( "-profiles " );
         for ( int ip = 0; ip < knownProfileFactories.length; ip++ ) {
             pbuf.append( knownProfileFactories[ ip ].getName() )
                 .append( '|' );
         }
         pbuf.append( "<hubprofile-class>" )
             .append( "[,...]" );
-        String profilesUsage = pbuf.toString();
+        String profUsage = pbuf.toString();
         StringBuffer ubuf = new StringBuffer();
         ubuf.append( "\n   Usage:" )
             .append( "\n      " )
@@ -562,7 +664,13 @@ public class Hub {
         ubuf.append( ']' )
             .append( "\n           " )
             .append( " [" )
-            .append( profilesUsage )
+            .append( "-profiles " )
+            .append( profUsage )
+            .append( "]" )
+            .append( "\n           " )
+            .append( " [" )
+            .append( "-extraprofiles " )
+            .append( profUsage )
             .append( "]" );
         for ( int ip = 0; ip < knownProfileFactories.length; ip++ ) {
             List pusageList =
@@ -604,6 +712,7 @@ public class Hub {
         String webLog = "none";
         boolean webRemote = false;
         String profilesTxt = null;
+        String extraProfilesTxt = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-mode" ) && it.hasNext() ) {
@@ -621,6 +730,17 @@ public class Hub {
                 it.remove();
                 if ( it.hasNext() ) {
                     profilesTxt = (String) it.next();
+                    it.remove();
+                }
+                else {
+                    System.err.println( usage );
+                    return 1;
+                }
+            }
+            else if ( arg.equals( "-extraprofiles" ) ) {
+                it.remove();
+                if ( it.hasNext() ) {
+                    extraProfilesTxt = (String) it.next();
                     it.remove();
                 }
                 else {
@@ -648,10 +768,10 @@ public class Hub {
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
-        // Assemble list of profile factories to use.
+        // Assemble list of profiles to use.
         final HubProfile[] profiles;
         if ( profilesTxt == null ) {
-            profiles = createDefaultProfiles();
+            profiles = createDefaultProfiles( false );
         }
         else {
             HubProfileFactory[] pfacts;
@@ -660,7 +780,7 @@ public class Hub {
             }
             catch ( IllegalArgumentException e ) {
                 System.err.println( e.getMessage() );
-                System.err.println( "Usage: " + profilesUsage );
+                System.err.println( "Usage: -profiles " + profUsage );
                 return 1;
             }
             profiles = new HubProfile[ pfacts.length ];
@@ -678,6 +798,34 @@ public class Hub {
              
             }
         }
+        final HubProfile[] extraProfiles;
+        if ( extraProfilesTxt == null ) {
+            extraProfiles = createDefaultProfiles( true );
+        }
+        else {
+            HubProfileFactory[] pfacts;
+            try {
+                pfacts = parseProfileList( extraProfilesTxt );
+            }
+            catch ( IllegalArgumentException e ) {
+                System.err.println( e.getMessage() );
+                System.err.println( "Usage: -extraprofiles " + profUsage );
+                return 1;
+            }
+            extraProfiles = new HubProfile[ pfacts.length ];
+            for ( int i = 0; i < pfacts.length; i++ ) {
+                HubProfileFactory pfact = pfacts[ i ];
+                try {
+                    extraProfiles[ i ] = pfact.createHubProfile( argList );
+                }
+                catch ( RuntimeException e ) {
+                    System.err.println( "Error configuring profile "
+                                      + pfact.getName() + ":\n"
+                                      + e.getMessage() );
+                    return 1;
+                }
+            }
+        }
 
         // Check all command line args have been used.
         if ( ! argList.isEmpty() ) {
@@ -687,7 +835,7 @@ public class Hub {
         }
 
         // Start hub service and install profile-specific interfaces.
-        runHub( hubMode, profiles );
+        runHub( hubMode, profiles, extraProfiles );
 
         // For non-GUI case block indefinitely otherwise the hub (which uses
         // a daemon thread) will just exit immediately.
