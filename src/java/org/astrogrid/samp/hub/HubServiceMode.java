@@ -601,7 +601,7 @@ public abstract class HubServiceMode {
                             }
                         }
                         else if ( ! on && profile_.isRunning() ) {
-                            hub.shutdownProfile( profile_ );
+                            hub.stopProfile( profile_ );
                         }
                     }
                     super.setSelected( on );
