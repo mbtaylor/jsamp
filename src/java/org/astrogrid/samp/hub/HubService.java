@@ -2,7 +2,6 @@ package org.astrogrid.samp.hub;
 
 import java.util.List;
 import java.util.Map;
-import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 
@@ -10,20 +9,11 @@ import org.astrogrid.samp.client.SampException;
  * Interface defining the work that the hub has to do.
  * This is independent of profile or transport, and just concerns
  * keeping track of clients and routing messages between them.
- * This includes sending the various <code>samp.hub.event.*</code> messages
- * to subscribed clients at the appropriate times.
- *
- * <p>Most methods are declared to throw
- * {@link org.astrogrid.samp.client.SampException} which is a catch-all
- * to indicate that the request could not be fulfilled.
- * However, it's OK for any of these methods to throw
- * unchecked exceptions if that is more convenient for the implementation -
- * the service user should catch these if they occur.
  *
  * @author   Mark Taylor
  * @since    15 Jul 2008
  */
-public interface HubService extends ClientProfile {
+public interface HubService {
 
     /**
      * Begin operation.  The {@link #register} method should not be
@@ -35,9 +25,32 @@ public interface HubService extends ClientProfile {
      * Creates a new connection to this hub service, thereby initiating
      * a new registered client.
      *
+     * <p>It is the responsibility of the returned connection, not the
+     * user of that connection, to broadcast the various 
+     * <code>samp.hub.event.*</code> notifications at the appropriate times.
+     *
+     * <p>Most of the <code>HubConnection</code> methods are  declared to
+     * throw <code>SampException</code>, however, implementations may
+     * throw unchecked exceptions if that is more convenient;
+     * users of the connection should be prepared to catch these if
+     * they occur.
+     *
+     * @param   profileToken  identifier for the profile acting as gatekeeper
+     *          for this connection
      * @return   new hub connection representing registration of a new client
      */
-    HubConnection register() throws SampException;
+    HubConnection register( ProfileToken profileToken ) throws SampException;
+
+    /**
+     * Declares that any connections created by a previous call of
+     * {@link #register}
+     * with a particular <code>profileToken</code> should be
+     * forcibly terminated.  This causes any necessary hub events to
+     * be broadcast.
+     *
+     * @param  profileToken   previous argument to <code>register</code>
+     */
+    void disconnectAll( ProfileToken profileToken );
 
     /**
      * Indicates whether this hub service is currently open for operations.

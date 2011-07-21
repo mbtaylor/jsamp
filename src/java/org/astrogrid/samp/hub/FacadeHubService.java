@@ -1,9 +1,10 @@
 package org.astrogrid.samp.hub;
 
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.RegInfo;
@@ -24,7 +25,7 @@ import org.astrogrid.samp.client.SampException;
 public class FacadeHubService implements HubService {
 
     private final ClientProfile profile_;
-    private final Set connectionSet_;
+    private final Map connectionMap_;  // FacadeHubConnection -> ProfileToken
     private static final Logger logger_ =
         Logger.getLogger( FacadeHubService.class.getName() );
 
@@ -36,14 +37,15 @@ public class FacadeHubService implements HubService {
      */
     public FacadeHubService( ClientProfile profile ) {
         profile_ = profile;
-        connectionSet_ = Collections.synchronizedSet( new HashSet() );
+        connectionMap_ = Collections.synchronizedMap( new HashMap() );
     }
 
     public boolean isHubRunning() {
         return profile_.isHubRunning();
     }
 
-    public HubConnection register() throws SampException {
+    public HubConnection register( ProfileToken profileToken )
+            throws SampException {
 
         // Mostly delegate registration to the underlying client profile,
         // but put in place machinery to keep track of which clients
@@ -63,17 +65,45 @@ public class FacadeHubService implements HubService {
                     }
                 }
                 public void unregister() throws SampException {
-                    connectionSet_.remove( hubConn );
+                    connectionMap_.keySet().remove( hubConn );
                     super.unregister();
                 }
             };
-            connectionSet_.add( conn );
+            connectionMap_.put( conn, profileToken );
             return conn;
         }
 
         // Or return null if there is no underlying hub.
         else {
             return null;
+        }
+    }
+
+    public void disconnectAll( ProfileToken profileToken ) {
+        Map.Entry[] entries = (Map.Entry[])
+                              connectionMap_.entrySet()
+                                            .toArray( new Map.Entry[ 0 ] );
+        List ejectList = new ArrayList();
+        for ( int ie = 0; ie < entries.length; ie++ ) {
+            if ( profileToken.equals( entries[ ie ].getValue() ) ) {
+                ejectList.add( entries[ ie ].getKey() );
+            }
+        }
+        FacadeHubConnection[] ejectConns =
+            (FacadeHubConnection[])
+            ejectList.toArray( new FacadeHubConnection[ 0 ] );
+        int nc = ejectConns.length;
+        Message discoMsg = new Message( "samp.hub.event.shutdown" );
+        String[] ejectIds = new String[ nc ];
+        for ( int ic = 0; ic < nc; ic++ ) {
+            FacadeHubConnection conn = ejectConns[ ic ];
+            ejectIds[ ic ] = conn.getRegInfo().getSelfId();
+            conn.hubEvent( discoMsg );
+            connectionMap_.remove( conn );
+        }
+        for ( int ic = 0; ic < nc; ic++ ) {
+            hubEvent( new Message( "samp.hub.event.unregister" )
+                     .addParam( "id", ejectIds[ ic ] ) );
         }
     }
 
@@ -85,7 +115,7 @@ public class FacadeHubService implements HubService {
 
     public void shutdown() {
         hubEvent( new Message( "samp.hub.event.shutdown" ) );
-        connectionSet_.clear();
+        connectionMap_.clear();
     }
 
     /**
@@ -98,7 +128,7 @@ public class FacadeHubService implements HubService {
         String mtype = msg.getMType();
         FacadeHubConnection[] connections =
             (FacadeHubConnection[])
-            connectionSet_.toArray( new FacadeHubConnection[ 0 ] );
+            connectionMap_.keySet().toArray( new FacadeHubConnection[ 0 ] );
         for ( int ic = 0; ic < connections.length; ic++ ) {
             connections[ ic ].hubEvent( msg );
         }

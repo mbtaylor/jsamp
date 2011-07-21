@@ -43,6 +43,11 @@ public class BasicHubService implements HubService {
     private static final char ID_DELIMITER = '_';
     private final Logger logger_ =
         Logger.getLogger( BasicHubService.class.getName() );
+    private final static ProfileToken INTERNAL_PROFILE = new ProfileToken() {
+        public String getProfileName() {
+            return "Internal";
+        }
+    };
 
     /** The maximum timeout for a synchronous call permitted in seconds.
      *  Default is 43200 = 12 hours. */
@@ -75,7 +80,7 @@ public class BasicHubService implements HubService {
 
         // Prepare and store the client object which represents the hub itself
         // (the one that apparently sends samp.hub.event.shutdown messages etc).
-        serviceClient_ = createClient( "hub" );
+        serviceClient_ = createClient( "hub", INTERNAL_PROFILE );
         serviceClientConnection_ = createConnection( serviceClient_ );
         Metadata meta = new Metadata();
         meta.setName( "Hub" );
@@ -128,10 +133,11 @@ public class BasicHubService implements HubService {
      * be used by this hub service.
      *
      * @param   publicId  client public ID
+     * @param   ptoken  connection source
      * @return   hub client
      */
-    protected HubClient createClient( String publicId ) {
-        return new HubClient( publicId );
+    protected HubClient createClient( String publicId, ProfileToken ptoken ) {
+        return new HubClient( publicId, ptoken );
     }
 
     /**
@@ -153,16 +159,29 @@ public class BasicHubService implements HubService {
         return clientSet_;
     }
 
-    public HubConnection register() throws SampException {
+    public HubConnection register( ProfileToken ptoken ) throws SampException {
         if ( ! started_ ) {
             throw new SampException( "Not started" );
         }
-        HubClient client = createClient( idGen_.next() );
+        HubClient client = createClient( idGen_.next(), ptoken );
         assert client.getId().indexOf( ID_DELIMITER ) < 0;
         clientSet_.add( client );
         hubEvent( new Message( "samp.hub.event.register" )
                      .addParam( "id", client.getId() ) );
         return createConnection( client );
+    }
+
+    public void disconnectAll( ProfileToken profileToken ) {
+        HubClient[] clients = clientSet_.getClients();
+        List profClientIdList = new ArrayList();
+        for ( int ic = 0; ic < clients.length; ic++ ) {
+            HubClient client = clients[ ic ];
+            if ( profileToken.equals( client.getProfileToken() ) ) {
+                profClientIdList.add( client.getId() );
+            }
+        }
+        disconnect( (String[]) profClientIdList.toArray( new String[ 0 ] ),
+                    new Message( "samp.hub.event.shutdown" ) );
     }
 
     /**
@@ -755,30 +774,45 @@ public class BasicHubService implements HubService {
      * @param  clientId  public-id of client to eject
      * @param  reason    short text string indicating reason for ejection
      */
-    public void disconnect( String clientId, String reason )
-            throws SampException {
-        if ( clientId.equals( serviceClient_.getId() ) ) {
-            throw new SampException( "Refuse to disconnect "
-                                   + "the hub client itself" );
+    public void disconnect( String clientId, String reason ) {
+        Message discoMsg = new Message( "samp.hub.disconnect" );
+        if ( reason != null && reason.length() > 0 ) {
+            discoMsg.addParam( "reason", reason );
         }
-        HubClient client = clientSet_.getFromPublicId( clientId );
-        String mtype = "samp.hub.disconnect";
-        if ( client.isSubscribed( mtype ) ) {
-            Message msg = new Message( mtype );
-            if ( reason != null && reason.length() > 0 ) {
-                msg.addParam( "reason", reason );
+        disconnect( new String[] { clientId }, discoMsg );
+    }
+
+    /**
+     * Forcibly disconnects a number of clients for the same reason.
+     *
+     * @param  clientIds  public-ids of clients to disconnect
+     * @param  discoMsg   message to send to clients which will effect
+     *         disconnection (samp.hub.disconnect or samp.hub.event.shutdown)
+     */
+    private void disconnect( String[] clientIds, Message discoMsg ) {
+
+        // Send the message and remove clients from client set.
+        for ( int ic = 0; ic < clientIds.length; ic++ ) {
+            String clientId = clientIds[ ic ];
+            HubClient client = clientSet_.getFromPublicId( clientId );
+            if ( client.isSubscribed( discoMsg.getMType() ) ) {
+                try {
+                    notify( serviceClient_, clientId, discoMsg );
+                }
+                catch ( SampException e ) {
+                    logger_.log( Level.INFO,
+                                 discoMsg.getMType() + " to " + client
+                               + " failed", e );
+                }
             }
-            try {
-                notify( serviceClient_, clientId, msg );
-            }
-            catch ( SampException e ) {
-                logger_.log( Level.INFO,
-                             mtype + " to " + client + " failed", e );
-            }
+            clientSet_.remove( client );
         }
-        clientSet_.remove( client );
-        hubEvent( new Message( "samp.hub.event.unregister" )
-                 .addParam( "id", clientId ) );
+
+        // Notify the remaining clients that the others have been removed.
+        for ( int ic = 0; ic < clientIds.length; ic++ ) {
+            hubEvent( new Message( "samp.hub.event.unregister" )
+                    .addParam( "id", clientIds[ ic ] ) );
+        }
     }
 
     public synchronized boolean isHubRunning() {
