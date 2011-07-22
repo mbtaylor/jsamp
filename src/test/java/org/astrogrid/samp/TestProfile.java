@@ -3,10 +3,13 @@ package org.astrogrid.samp;
 import java.io.IOException;
 import java.util.Random;
 import org.astrogrid.samp.client.ClientProfile;
+import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.hub.ProfileToken;
 import org.astrogrid.samp.web.WebTestProfile;
 import org.astrogrid.samp.xmlrpc.StandardTestProfile;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
@@ -27,10 +30,17 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 public abstract class TestProfile implements ClientProfile {
 
     private final Random random_;
+    private final ProfileToken directToken_;
     private Hub hub_;
+    private HubService service_;
 
     protected TestProfile( Random random ) {
         random_ = random;
+        directToken_ = new ProfileToken() {
+            public String getProfileName() {
+                return "<direct>";
+            }
+        };
     }
 
     public synchronized void startHub() throws IOException {
@@ -38,9 +48,9 @@ public abstract class TestProfile implements ClientProfile {
             throw new IllegalStateException( "Hub not stopped "
                                            + "due to earlier test failure?" );
         }
-        HubService service = new BasicHubService( createRandom() );
-        hub_ = new Hub( service );
-        service.start();
+        service_ = new BasicHubService( createRandom() );
+        hub_ = new Hub( service_ );
+        service_.start();
         hub_.startProfile( createHubProfile() );
     }
 
@@ -50,6 +60,11 @@ public abstract class TestProfile implements ClientProfile {
         }
         hub_.shutdown();
         hub_ = null;
+        service_ = null;
+    }
+
+    public HubConnection registerDirect() throws SampException {
+        return service_.register( directToken_ );
     }
 
     public abstract HubProfile createHubProfile() throws IOException;
@@ -75,7 +90,7 @@ public abstract class TestProfile implements ClientProfile {
             new StandardTestProfile( random, aClient, aServ, iClient, iServ ),
             new StandardTestProfile( random, iClient, iServ, aClient, aServ ),
             new StandardTestProfile( random, iClient, iServ, iClient, iServ ),
-            new WebTestProfile( random ),
+            new WebTestProfile( random, true ),
         };
     }
 }
