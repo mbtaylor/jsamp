@@ -288,6 +288,13 @@ The following flags are used only if the Standard Profile
     Silverlight-style <code>clientaccesspolicy.xml</code> files.
     By default this is currently turned off.
     </dd>
+<dt><code>-web:[no]urlcontrol</code></dt>
+<dd>Configures whether restrictions are applied to the URLs that the 
+    Web Profile translation service will translate on behalf of clients.
+    If set on, local URLs will only be translated if they have been
+    mentioned in earlier messages or responses to a web profile client.
+    By default this is currently turned on.
+    </dd>
 </dl>
 <p>For convenience, the hub can also be started simply by invoking
 the jar file with no arguments (for instance clicking on it).
