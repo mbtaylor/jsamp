@@ -44,6 +44,9 @@ class WebHubXmlRpcHandler extends ActorHandler {
      * @param  auth   client authorizer
      * @param  keyGen   key generator for private keys
      * @param  baseUrl  base URL of HTTP server, used for URL translation
+     * @param  urlTracker  tracks URLs in messages to restrict use in URL
+     *         translation service for security reasons; may be null for
+     *         no restrictions
      */
     public WebHubXmlRpcHandler( ClientProfile profile, ClientAuthorizer auth,
                                 KeyGenerator keyGen, URL baseUrl,
@@ -119,7 +122,8 @@ class WebHubXmlRpcHandler extends ActorHandler {
          * @param  auth  client authorizer
          * @param  keyGen   key generator for private keys
          * @param  baseUrl  HTTP server base URL
-         * @param  urlTracker  controls access to translated URLs
+         * @param  urlTracker  controls access to translated URLs,
+         *                     may be null for no control
          */
         public WebHubActorImpl( ClientProfile profile, ClientAuthorizer auth,
                                 KeyGenerator keyGen, URL baseUrl,
@@ -377,6 +381,8 @@ class WebHubXmlRpcHandler extends ActorHandler {
          * @param  basePath   base path for HTTP server
          * @param  keySet   set of strings which contains keys for all
          *                  currently registered clients
+         * @param  urlTracker  controls access to translated URLs,
+         *                     may be null for no control
          */
         public URLTranslationHandler( String basePath, Set keySet,
                                       UrlTracker urlTracker ) {
