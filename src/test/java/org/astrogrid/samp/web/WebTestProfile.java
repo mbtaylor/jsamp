@@ -26,22 +26,25 @@ public class WebTestProfile extends TestProfile {
     private final String path_;
     private final URL hubEndpoint_;
     private final SampXmlRpcClientFactory xClientFactory_;
+    private final boolean urlControl_;
     private final String baseAppName_;
     private ClientAuthorizer clientAuth_;
     private int regSeq_;
 
-    public WebTestProfile( Random random ) throws IOException {
+    public WebTestProfile( Random random, boolean urlControl )
+            throws IOException {
         this( random, getFreePort(), "/",
-              XmlRpcKit.getInstance().getClientFactory(), "test" );
+              XmlRpcKit.getInstance().getClientFactory(), urlControl, "test" );
     }
 
     public WebTestProfile( Random random, int port, String path,
                            SampXmlRpcClientFactory xClientFactory,
-                           String baseAppName ) {
+                           boolean urlControl, String baseAppName ) {
         super( random );
         port_ = port;
         path_ = path;
         xClientFactory_ = xClientFactory;
+        urlControl_ = urlControl;
         baseAppName_ = baseAppName;
         clientAuth_ = ClientAuthorizers.createFixedClientAuthorizer( true );
         try {
@@ -72,7 +75,8 @@ public class WebTestProfile extends TestProfile {
         };
         return new WebHubProfile( sxfact, copyAuth,
                                   new KeyGenerator( "wk:", 24,
-                                                    createRandom() ) );
+                                                    createRandom() ),
+                                  urlControl_ );
     }
 
     public boolean isHubRunning() {
