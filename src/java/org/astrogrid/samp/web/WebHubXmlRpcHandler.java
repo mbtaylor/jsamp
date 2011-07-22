@@ -46,9 +46,11 @@ class WebHubXmlRpcHandler extends ActorHandler {
      * @param  baseUrl  base URL of HTTP server, used for URL translation
      */
     public WebHubXmlRpcHandler( ClientProfile profile, ClientAuthorizer auth,
-                                KeyGenerator keyGen, URL baseUrl ) {
+                                KeyGenerator keyGen, URL baseUrl,
+                                UrlTracker urlTracker ) {
         super( WebClientProfile.WEBSAMP_HUB_PREFIX, WebHubActor.class,
-               new WebHubActorImpl( profile, auth, keyGen, baseUrl ) );
+               new WebHubActorImpl( profile, auth, keyGen, baseUrl,
+                                    urlTracker ) );
         impl_ = (WebHubActorImpl) getActor();
     }
 
@@ -108,6 +110,7 @@ class WebHubXmlRpcHandler extends ActorHandler {
         private final Map regMap_;
         private final URLTranslationHandler urlTranslator_;
         private final URL baseUrl_;
+        private final UrlTracker urlTracker_;
 
         /**
          * Constructor.
@@ -116,16 +119,20 @@ class WebHubXmlRpcHandler extends ActorHandler {
          * @param  auth  client authorizer
          * @param  keyGen   key generator for private keys
          * @param  baseUrl  HTTP server base URL
+         * @param  urlTracker  controls access to translated URLs
          */
         public WebHubActorImpl( ClientProfile profile, ClientAuthorizer auth,
-                                KeyGenerator keyGen, URL baseUrl ) {
+                                KeyGenerator keyGen, URL baseUrl,
+                                UrlTracker urlTracker ) {
             profile_ = profile;
             auth_ = auth;
             keyGen_ = keyGen;
             baseUrl_ = baseUrl;
+            urlTracker_ = urlTracker;
             regMap_ = Collections.synchronizedMap( new HashMap() );
             urlTranslator_ =
-                new URLTranslationHandler( "/proxied/", regMap_.keySet() );
+                new URLTranslationHandler( "/proxied/", regMap_.keySet(),
+                                           urlTracker );
         }
 
         /**
@@ -175,6 +182,11 @@ class WebHubXmlRpcHandler extends ActorHandler {
                 else {
                     HubConnection connection = profile_.register();
                     if ( connection != null ) {
+                        if ( urlTracker_ != null ) {
+                            connection =
+                                new UrlTrackerHubConnection( connection,
+                                                             urlTracker_ );
+                        }
                         String clientKey = keyGen_.next();
                         regMap_.put( clientKey,
                                      new Registration( connection ) );
@@ -357,6 +369,7 @@ class WebHubXmlRpcHandler extends ActorHandler {
     private static class URLTranslationHandler implements HttpServer.Handler {
         private final String basePath_;
         private final Set keySet_;
+        private final UrlTracker urlTracker_;
 
         /**
          * Constructor.
@@ -365,7 +378,8 @@ class WebHubXmlRpcHandler extends ActorHandler {
          * @param  keySet   set of strings which contains keys for all
          *                  currently registered clients
          */
-        public URLTranslationHandler( String basePath, Set keySet ) {
+        public URLTranslationHandler( String basePath, Set keySet,
+                                      UrlTracker urlTracker ) {
             if ( ! basePath.startsWith( "/" ) ) {
                 basePath = "/" + basePath;
             }
@@ -374,6 +388,7 @@ class WebHubXmlRpcHandler extends ActorHandler {
             }
             basePath_ = basePath;
             keySet_ = keySet;
+            urlTracker_ = urlTracker;
         }
 
         /**
@@ -427,6 +442,12 @@ class WebHubXmlRpcHandler extends ActorHandler {
             }
             catch ( MalformedURLException e ) {
                 return HttpServer.createErrorResponse( 400, "Bad Request" );
+            }
+
+            // Check permissions.
+            if ( urlTracker_ != null &&
+                 ! urlTracker_.isPermitted( targetUrl ) ) {
+                return HttpServer.createErrorResponse( 403, "Forbidden" );
             }
 
             // Perform the translation and return the result.
