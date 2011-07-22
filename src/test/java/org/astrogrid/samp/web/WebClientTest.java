@@ -33,13 +33,19 @@ public class WebClientTest extends TestCase {
         Logger.getLogger( "org.astrogrid.samp" ).setLevel( Level.WARNING );
         Logger.getLogger( InternalServer.class.getName() )
               .setLevel( Level.SEVERE );
+        Logger.getLogger( WebHubConnection.class.getName() )
+              .setLevel( Level.SEVERE );
+        Logger.getLogger( UrlTracker.class.getName() )
+              .setLevel( Level.SEVERE );
+        Logger.getLogger( HttpServer.class.getName() )
+              .setLevel( Level.SEVERE );
     }
 
     // Test withdrawn, multiple cycles of allowReverseCallbacks are not
     // recommended.  Code may come in useful for something else another
     // day though.
     public void doNottestCallbacks() throws IOException, InterruptedException {
-        WebTestProfile profile = new WebTestProfile( new Random( 23L ) );
+        WebTestProfile profile = new WebTestProfile( new Random( 23L ), true );
         profile.startHub();
         XmlRpcHubConnection tconn = (XmlRpcHubConnection) profile.register();
         XmlRpcHubConnection rconn = (XmlRpcHubConnection) profile.register();
@@ -65,26 +71,14 @@ public class WebClientTest extends TestCase {
         rconn.unregister();
     }
 
-
-    public void testUrlTranslator() throws IOException {
-        WebTestProfile profile = new WebTestProfile( new Random( 23L ) );
+    public void testRegistration() throws IOException {
+        WebTestProfile profile = new WebTestProfile( new Random( 23L ), true );
         profile.startHub();
         assertTrue( profile.isHubRunning() );
         HubConnection conn = profile.register();
         assertEquals( "samp.url-translator", WebClientProfile.URLTRANS_KEY );
         RegInfo regInfo = conn.getRegInfo();
         assertTrue( ((String) regInfo.get( "samp.private-key" )).length() > 0 );
-        String turl = (String) regInfo.get( WebClientProfile.URLTRANS_KEY );
-        File file = File.createTempFile( "txtfile", ".tmp" );
-        file.deleteOnExit();
-        OutputStream fout = new FileOutputStream( file );
-        String ftxt = "some\ntext\nin\na\nfile\n";
-        fout.write( ftxt.getBytes( "utf-8" ) );
-        fout.close();
-        URL furl = new URL( turl + SampUtils.fileToUrl( file ).toString() );
-        assertEquals( ftxt, readUrl( furl ) );
-        file.delete();
-
         profile.setClientAuthorizer( ClientAuthorizers
                                     .createFixedClientAuthorizer( false ) );
         try {
@@ -94,6 +88,114 @@ public class WebClientTest extends TestCase {
         catch ( SampException e ) {
             assertTrue( e.getMessage().indexOf( "denied" ) > 0 );
         }
+        profile.stopHub();
+    }
+
+    public void testControlledUrlTranslator()
+            throws IOException, InterruptedException {
+        WebTestProfile profile = new WebTestProfile( new Random( 23L ), true );
+        profile.startHub();
+        Subscriptions subs = new Subscriptions();
+        String mtype = "test.url";
+        subs.addMType( mtype );
+        String ftxt = "some\ntext\nin\na\nfile\n";
+
+        HubConnection webConn = profile.register();
+        Receiver webReceiver = new Receiver();
+        webConn.setCallable( webReceiver );
+        webConn.declareSubscriptions( subs );
+        RegInfo webReg = webConn.getRegInfo();
+        String turl = (String) webReg.get( WebClientProfile.URLTRANS_KEY );
+
+        HubConnection dirConn = profile.registerDirect();
+        Receiver dirReceiver = new Receiver();
+        dirConn.setCallable( dirReceiver );
+        dirConn.declareSubscriptions( subs );
+        RegInfo dirReg = dirConn.getRegInfo();
+
+        File file1 = File.createTempFile( "txtfile", ".tmp" );
+        file1.deleteOnExit();
+        OutputStream fout1 = new FileOutputStream( file1 );
+        fout1.write( ftxt.getBytes( "utf-8" ) );
+        fout1.close();
+        URL furl1 = SampUtils.fileToUrl( file1 );
+        URL tfurl1 = new URL( turl + furl1.toString() );
+        Message url1Msg = new Message( mtype )
+                         .addParam( "url", furl1.toString() );
+
+        // First try - blocked because it's a local URL, and no incoming
+        // reference has been seen (UrlTracker).
+        try {
+            readUrl( tfurl1 );
+            fail( "Should have blocked access to " + tfurl1 );
+        }
+        catch ( IOException e ) {
+        }
+
+        // Second try: send message out mentioning it.  This will still
+        // fail, because we're not trusted, and it will permanently block
+        // access (if we're the first one to mention it, it's probalbly
+        // not legitimante and it might provoke an echo somewhere).
+        webConn.notify( dirReg.getSelfId(), url1Msg );
+        dirReceiver.waitForMessage( 1000 );
+        try {
+            readUrl( tfurl1 );
+            fail( "Should have blocked access to " + tfurl1 );
+        }
+        catch ( IOException e ) {
+        }
+
+        // Third try: get some trusted client to mention the URL,
+        // but since it's been permanently blocked, we still can't access it.
+        dirConn.notify( webReg.getSelfId(), url1Msg );
+        webReceiver.waitForMessage( 1000 );
+        try {
+            readUrl( tfurl1 );
+            fail( "Should have blocked access to " + tfurl1 );
+        }
+        catch ( IOException e ) {
+        }
+
+        // Now try with a different file. 
+        File file2 = File.createTempFile( "txtfile", ".tmp" );
+        file2.deleteOnExit();
+        OutputStream fout2 = new FileOutputStream( file2 );
+        fout2.write( ftxt.getBytes( "utf-8" ) );
+        fout2.close();
+        URL furl2 = SampUtils.fileToUrl( file2 );
+        URL tfurl2 = new URL( turl + furl2.toString() );
+        Message url2msg = new Message( mtype )
+                         .addParam( "url", furl2.toString() );
+
+        // Get a trusted client to mention it.
+        dirConn.notify( webReg.getSelfId(), url2msg );
+        webReceiver.waitForMessage( 1000 );
+
+        // Read it.  Should be OK.
+        assertEquals( ftxt, readUrl( tfurl2 ) );
+
+        // Tidy up.
+        file1.delete();
+        file2.delete();
+        profile.stopHub();
+    }
+
+    public void testUncontrolledUrlTranslator() throws IOException {
+        WebTestProfile profile = new WebTestProfile( new Random( 29L ), false );
+        profile.startHub();
+        HubConnection webConn = profile.register();
+        RegInfo webReg = webConn.getRegInfo();
+        String turl = (String) webReg.get( WebClientProfile.URLTRANS_KEY );
+        File file = File.createTempFile( "txtfile", ".tmp" );
+        file.deleteOnExit();
+        OutputStream fout = new FileOutputStream( file );
+        String ftxt = "some\ntext\nin\na\nfile\n";
+        fout.write( ftxt.getBytes( "utf-8" ) );
+        fout.close();
+        URL furl = SampUtils.fileToUrl( file );
+        URL tfurl = new URL( turl + furl.toString() );
+        assertEquals( ftxt, readUrl( tfurl ) );
+        file.delete();
         profile.stopHub();
     }
 
