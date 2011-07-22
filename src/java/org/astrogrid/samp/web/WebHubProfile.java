@@ -25,6 +25,7 @@ public class WebHubProfile implements HubProfile {
     private final ServerFactory serverFactory_;
     private final ClientAuthorizer auth_;
     private final KeyGenerator keyGen_;
+    private final boolean controlUrls_;
     private InternalServer xServer_;
     private WebHubXmlRpcHandler wxHandler_;
     private static final Logger logger_ =
@@ -39,10 +40,11 @@ public class WebHubProfile implements HubProfile {
      * @param   keyGen  key generator for private keys
      */
     public WebHubProfile( ServerFactory serverFactory, ClientAuthorizer auth,
-                          KeyGenerator keyGen ) {
+                          KeyGenerator keyGen, boolean controlUrls ) {
         serverFactory_ = serverFactory;
         auth_ = auth;
         keyGen_ = keyGen;
+        controlUrls_ = controlUrls;
     }
 
     /**
@@ -50,7 +52,7 @@ public class WebHubProfile implements HubProfile {
      */
     public WebHubProfile() throws IOException {
         this( new ServerFactory(), new HubSwingClientAuthorizer( null ),
-              createKeyGenerator() );
+              createKeyGenerator(), true );
     }
 
     public String getProfileName() {
@@ -66,7 +68,8 @@ public class WebHubProfile implements HubProfile {
         HttpServer hServer = xServer_.getHttpServer();
         WebHubXmlRpcHandler wxHandler =
             new WebHubXmlRpcHandler( profile, auth_, keyGen_,
-                                     hServer.getBaseUrl() );
+                                     hServer.getBaseUrl(),
+                                     controlUrls_ ? new UrlTracker() : null );
         xServer_.addHandler( wxHandler );
         hServer.addHandler( wxHandler.getUrlTranslationHandler() );
         hServer.start();

@@ -22,6 +22,7 @@ public class WebHubProfileFactory implements HubProfileFactory {
     private static final String corsUsage_ = "[-web:[no]cors]";
     private static final String flashUsage_ = "[-web:[no]flash]";
     private static final String silverlightUsage_ = "[-web:[no]silverlight]";
+    private static final String urlcontrolUsage_ = "[-web:[no]urlcontrol]";
 
     /**
      * Returns "web".
@@ -37,6 +38,7 @@ public class WebHubProfileFactory implements HubProfileFactory {
             corsUsage_,
             flashUsage_,
             silverlightUsage_,
+            urlcontrolUsage_,
         };
     }
 
@@ -48,6 +50,7 @@ public class WebHubProfileFactory implements HubProfileFactory {
         boolean useCors = true;
         boolean useFlash = true;
         boolean useSilverlight = false;
+        boolean urlControl = true;
         for ( Iterator it = flagList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-web:log" ) ) {
@@ -95,6 +98,12 @@ public class WebHubProfileFactory implements HubProfileFactory {
                 it.remove();
                 useSilverlight = false;
             }
+            else if ( arg.equals( "-web:urlcontrol" ) ) {
+                urlControl = true;
+            }
+            else if ( arg.equals( "-web:nourlcontrol" ) ) {
+                urlControl = false;
+            }
         }
 
         // Prepare HTTP server.
@@ -135,7 +144,8 @@ public class WebHubProfileFactory implements HubProfileFactory {
 
         // Construct and return an appropriately configured hub profile.
         return new WebHubProfile( sfact, clientAuth,
-                                  WebHubProfile.createKeyGenerator() );
+                                  WebHubProfile.createKeyGenerator(),
+                                  urlControl );
     }
 
     public Class getHubProfileClass() {
