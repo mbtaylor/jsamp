@@ -5,9 +5,12 @@ import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.logging.Logger;
+import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.httpd.HttpServer;
+import org.astrogrid.samp.hub.ConfigHubProfile;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.KeyGenerator;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
@@ -20,14 +23,15 @@ import org.astrogrid.samp.xmlrpc.internal.XmlLoggingInternalServer;
  * @author   Mark Taylor
  * @since    2 Feb 2011
  */
-public class WebHubProfile implements HubProfile {
+public class WebHubProfile implements HubProfile, ConfigHubProfile {
 
     private final ServerFactory serverFactory_;
     private final ClientAuthorizer auth_;
     private final KeyGenerator keyGen_;
-    private final boolean controlUrls_;
+    private boolean controlUrls_;
     private InternalServer xServer_;
     private WebHubXmlRpcHandler wxHandler_;
+    private JToggleButton.ToggleButtonModel[] configModels_;
     private static final Logger logger_ =
         Logger.getLogger( WebHubProfile.class.getName() );
 
@@ -73,6 +77,15 @@ public class WebHubProfile implements HubProfile {
         xServer_.addHandler( wxHandler );
         hServer.addHandler( wxHandler.getUrlTranslationHandler() );
         hServer.start();
+        if ( configModels_ != null ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    for ( int i = 0; i < configModels_.length; i++ ) {
+                        configModels_[ i ].setEnabled( false );
+                    }
+                }
+            } );
+        }
     }
 
     public synchronized boolean isRunning() {
@@ -86,6 +99,70 @@ public class WebHubProfile implements HubProfile {
         }
         xServer_.getHttpServer().stop();
         xServer_ = null;
+        if ( configModels_ != null ) {
+            SwingUtilities.invokeLater( new Runnable() {
+                public void run() {
+                    for ( int i = 0; i < configModels_.length; i++ ) {
+                        configModels_[ i ].setEnabled( true );
+                    }
+                }
+            } );
+        }
+    }
+
+    public synchronized JToggleButton.ToggleButtonModel[] getConfigModels() {
+        if ( configModels_ == null ) {
+            configModels_ = createConfigModels();
+        }
+        return configModels_;
+    }
+
+    /**
+     * Creates and returns some toggle models for configuration.
+     * They are only enabled when the profile is not running.
+     */
+    private JToggleButton.ToggleButtonModel[] createConfigModels() {
+        ConfigModel[] models = new ConfigModel[] {
+            new ConfigModel( "URL Controls" ) {
+                void setOn( boolean on ) {
+                    controlUrls_ = on;
+                }
+                boolean isOn() {
+                    return controlUrls_;
+                }
+            },
+            new ConfigModel( "CORS cross-domain access" ) {
+                void setOn( boolean on ) {
+                    serverFactory_
+                        .setOriginAuthorizer( on ? OriginAuthorizers.TRUE
+                                                 : OriginAuthorizers.FALSE );
+                }
+                boolean isOn() {
+                    return serverFactory_.getOriginAuthorizer().authorize( "" );
+                }
+            },
+            new ConfigModel( "Flash cross-domain access" ) {
+                void setOn( boolean on ) {
+                    serverFactory_.setAllowFlash( on );
+                }
+                boolean isOn() {
+                    return serverFactory_.isAllowFlash();
+                }
+            },
+            new ConfigModel( "Silverlight cross-domain access" ) {
+                void setOn( boolean on ) {
+                    serverFactory_.setAllowSilverlight( on );
+                }
+                boolean isOn() {
+                    return serverFactory_.isAllowSilverlight();
+                }
+            },
+        };
+        boolean enabled = ! isRunning();
+        for ( int i = 0; i < models.length; i++ ) {
+            models[ i ].setEnabled( enabled );
+        }
+        return models;
     }
 
     /**
@@ -96,6 +173,50 @@ public class WebHubProfile implements HubProfile {
      */
     public static KeyGenerator createKeyGenerator() {
         return new KeyGenerator( "wk:", 24, KeyGenerator.createRandom() );
+    }
+
+    /**
+     * Helper class to generate toggle button models for hub configuration.
+     */
+    private static abstract class ConfigModel
+            extends JToggleButton.ToggleButtonModel {
+        private final String name_;
+ 
+        /**
+         * Constructor.
+         *
+         * @param  name   control name
+         */
+        public ConfigModel( String name ) {
+            name_ = name;
+        }
+ 
+        /**
+         * Indicates whether this toggle is on.
+         *
+         * @return  true iff selected
+         */
+        abstract boolean isOn();
+
+        /**
+         * Sets whether this toggle is on.
+         *
+         * @param  on  new selected value
+         */
+        abstract void setOn( boolean on );
+
+        public boolean isSelected() {
+            return isOn();
+        }
+
+        public void setSelected( boolean on ) {
+            setOn( on );
+            super.setSelected( on );
+        }
+
+        public String toString() {
+            return name_;
+        }
     }
 
     /**
