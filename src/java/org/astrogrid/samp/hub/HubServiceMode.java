@@ -362,6 +362,7 @@ public abstract class HubServiceMode {
         final JFrame frame_;
         final Hub[] runners_;
         final ProfileToggler[] profileTogglers_;
+        final ConfigHubProfile[] configProfiles_;
         final Action exitAct_;
 
         /**
@@ -377,10 +378,17 @@ public abstract class HubServiceMode {
             frame_ = frame;
             runners_ = runners;
             profileTogglers_ = new ProfileToggler[ profiles.length ];
+            List configProfileList = new ArrayList();
             for ( int ip = 0; ip < profiles.length; ip++ ) {
-                profileTogglers_[ ip ] =
-                    new ProfileToggler( profiles[ ip ], runners );
+                HubProfile profile = profiles[ ip ];
+                profileTogglers_[ ip ] = new ProfileToggler( profile, runners );
+                if ( profile instanceof ConfigHubProfile ) {
+                    configProfileList.add( (ConfigHubProfile) profile );
+                }
             }
+            configProfiles_ =
+                (ConfigHubProfile[])
+                configProfileList.toArray( new ConfigHubProfile[ 0 ] );
             exitAct_ = new AbstractAction( "Stop Hub" ) {
                 public void actionPerformed( ActionEvent evt ) {
                     if ( runners[ 0 ] != null ) {
@@ -425,6 +433,25 @@ public abstract class HubServiceMode {
             profileMenu.setMnemonic( KeyEvent.VK_P );
             for ( int ip = 0; ip < profileTogglers_.length; ip++ ) {
                 profileMenu.add( profileTogglers_[ ip ].createJMenuItem() );
+            }
+
+            // Add configuration menus - somewhat hacky, only really intended
+            // for Web Profile at present.
+            for ( int ic = 0; ic < configProfiles_.length; ic++ ) {
+                ConfigHubProfile configProfile = configProfiles_[ ic ];
+                JToggleButton.ToggleButtonModel[] configModels =
+                    configProfile.getConfigModels();
+                JMenu configMenu =
+                    new JMenu( configProfile.getProfileName()
+                             + " Profile Configuration" );
+                for ( int im = 0; im < configModels.length; im++ ) {
+                    JToggleButton.ToggleButtonModel model = configModels[ im ];
+                    JCheckBoxMenuItem menuItem =
+                        new JCheckBoxMenuItem( model.toString() );
+                    menuItem.setModel( model );
+                    configMenu.add( menuItem );
+                }
+                profileMenu.add( configMenu );
             }
             mbar.add( profileMenu );
             frame_.setJMenuBar( mbar );
