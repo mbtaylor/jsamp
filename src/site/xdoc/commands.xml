@@ -404,6 +404,8 @@ presented on standard output than in a GUI.
 <dt><code>-clientmeta &lt;metaname&gt; &lt;metavalue&gt;</code></dt>
 <dd>Specifies additional items of metadata for the sending application to
     give following registration.
+    The metavalue items may be in SAMP-friendly JSON format,
+    or just plain strings.
     </dd>
 </dl>
 
@@ -426,10 +428,9 @@ any responses received in response.
 <dt><code>-param &lt;name&gt; &lt;value&gt;</code></dt>
 <dd>Gives a named parameter for the message.
     This flag may be repeated to pass more than one parameter.
-    Currently <code>&lt;value&gt;</code> is simply interpreted as a string
-    value, so it is impossible to send SAMP <code>list</code>- or 
-    <code>map</code>-valued parameters.
-    This may be rectified in a future release.
+    <code>&lt;value&gt;</code> will be interpreted as a JSON structure
+    if possible (note double-quoted strings are the only permitted scalars),
+    otherwise the value will be interpreted as a plain string.
     </dd>
 <dt><code>-target &lt;receiverId&gt;</code></dt>
 <dd>Specifies the SAMP public ID for a client to which this message will be
@@ -451,6 +452,7 @@ any responses received in response.
 <dt><code>-sendermeta &lt;metaname&gt; &lt;metavalue&gt;</code></dt>
 <dd>Specifies additional items of metadata for the sending application to
     give following registration.
+    The <code>metavalue</code>s may be in JSON form or plain strings.
     </dd>
 </dl>
 

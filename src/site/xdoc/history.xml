@@ -670,6 +670,14 @@ definition may change in the future.
     <code>Hub.runHub()</code> still works though.</li>
 <li>By default the hub now runs with the Standard Profile, with the
     Web Profile available for starting under user control.</li>
+<li>Appropriate structures are now serialized and deserialized in JSON 
+    format where appropriate.  This means that for instance
+    the <code>messagesender</code> tool can be used with structured message
+    parameters rather than just plain strings.
+    Messages are also displayed in JSON format; in practice this means
+    there are more double quotes in these representations than before.
+    Public utility methods for JSON de/serialization are now available
+    in the <code>SampUtils</code> class.</li>
 </ul>
 </subsection>
 
