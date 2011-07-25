@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -103,6 +104,26 @@ public class SampUtilsTest extends TestCase {
         else {
             sysprops.setProperty( hprop, prop );
         }
+    }
+
+    public void testJson() {
+        Map m = new LinkedHashMap();
+        m.put( "one", "1" );
+        m.put( "two", "2" );
+        m.put( "list", Arrays.asList( new String[] { "A", "B", "C" } ) );
+        String js =
+            "{\"one\":\"1\",\"two\":\"2\",\"list\":[\"A\",\"B\",\"C\"]}";
+        assertEquals( nows( js ), nows( SampUtils.toJson( m, false ) ) );
+        assertEquals( nows( js ), nows( SampUtils.toJson( m, true ) ) );
+        assertEquals( nows( js ),
+                      nows( SampUtils.toJson( SampUtils.fromJson( js ),
+                                              true ) ) );
+        assertTrue( SampUtils.toJson( m, false ).indexOf( '\n' ) < 0 );
+        assertTrue( SampUtils.toJson( m, true ).indexOf( '\n' ) >= 0 );
+    }
+
+    private static String nows( String txt ) {
+        return txt.replaceAll( "\\s+", "" );
     }
 
     private void goodObject( Object obj ) {
