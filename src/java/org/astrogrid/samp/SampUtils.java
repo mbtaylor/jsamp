@@ -295,87 +295,13 @@ public class SampUtils {
      */
     public static String formatObject( Object obj, int indent ) {
         checkObject( obj );
-        StringBuffer sbuf = new StringBuffer();
-        formatObject( sbuf, 0, indent, obj );
-        return sbuf.toString();
-    }
-
-    /**
-     * Recursive routine which does the work for formatObject.
-     *
-     * @param   sbuf   string buffer to accumulate result
-     * @param   level  indent level (starts at 0, increments by 1)
-     * @param   indent  base block indentation (number of spaces)
-     * @param   obj  object to append to sbuf
-     */
-    private static void formatObject( StringBuffer sbuf, int level, int indent,
-                                      Object obj ) {
-        if ( obj instanceof String ) {
-            boolean top = sbuf.length() == 0;
-            String txt = (String) obj;
-            int npad = indent + level * 3;
-            String[] lines = txt.split( NEWLINE );
-            for ( int il = 0; il < lines.length; il++ ) {
-                if ( ! top ) {
-                    sbuf.append( '\n' );
-                }
-                for ( int ip = 0; ip < npad; ip++ ) {
-                    sbuf.append( ' ' );
-                }
-                sbuf.append( lines[ il ] );
-            }
-        }
-        else if ( obj instanceof List ) {
-            List list = (List) obj;
-            boolean top = sbuf.length() == 0;
-            if ( ! top ) {
-                sbuf.append( '[' );
-            }
-            for ( Iterator it = list.iterator(); it.hasNext(); ) {
-                formatObject( sbuf, level + 1, indent, it.next() );
-            }
-            if ( ! top ) {
-                if ( ! list.isEmpty() ) {
-                    sbuf.append( ' ' );
-                }
-                sbuf.append( ']' );
-            }
-        }
-        else if ( obj instanceof Map ) {
-            Map map = (Map) obj;
-            boolean top = sbuf.length() == 0;
-            if ( ! top ) {
-                sbuf.append( '{' );
-            }
-            for ( Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry entry = (Map.Entry) it.next();
-                String key = (String) entry.getKey();
-                Object value = entry.getValue();
-                if ( value instanceof String ) {
-                    formatObject( sbuf, level, indent, key + ": " + value );
-                }
-                else {
-                    formatObject( sbuf, level, indent, key + ": " );
-                    formatObject( sbuf, level + 1, indent, value );
-                }
-            }
-            if ( ! top ) {
-                if ( ! map.isEmpty() ) {
-                    sbuf.append( ' ' );
-                }
-                sbuf.append( '}' );
-            }
-        }
-        else {
-            assert false;
-        }
+        return new JsonWriter( indent, true ).toJson( obj );
     }
 
     /**
      * Parses a command-line string as a SAMP object.
-     * Currently, this just returns the same string, or null for a
-     * zero-length string, but it ought to have some method of decoding 
-     * (nested) list and maps as well (JSON?).
+     * If it can be parsed as a SAMP-friendly JSON string, that interpretation
+     * will be used.  Otherwise, the value is just the string as presented.
      *
      * @param   str   command-line argument
      * @return  SAMP object
@@ -385,6 +311,14 @@ public class SampUtils {
             return null;
         }
         else {
+            try {
+                Object obj = fromJson( str );
+                checkObject( obj );
+                return obj;
+            }
+            catch ( RuntimeException e ) {
+                logger_.info( "String not JSON (" + e + ")" );
+            }
             Object sval = str;
             checkObject( sval );
             return sval;
@@ -556,6 +490,30 @@ public class SampUtils {
         else {
             return null;
         }
+    }
+
+    /**
+     * Parses JSON text to give a SAMP object.
+     * Note that double-quoted strings are the only legal scalars
+     * (no unquoted numbers or booleans).
+     *
+     * @param  str  string to parse
+     * @return  SAMP object
+     */
+    public static Object fromJson( String str ) {
+        return new JsonReader().read( str );
+    }
+
+    /**
+     * Serializes a SAMP object to a JSON string.
+     *
+     * @param  item to serialize
+     * @param  multiline  true for formatted multiline output, false for a
+     *         single line
+     */
+    public static String toJson( Object item, boolean multiline ) {
+        checkObject( item );
+        return new JsonWriter( multiline ? 2 : -1, true ).toJson( item );
     }
 
     /**
