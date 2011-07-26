@@ -48,10 +48,14 @@ in the hub, you can do one of the following:
     which allow you to specify what profiles will be used.</li>
 </ul>
 
-<p>The Profile menu looks something like this:
+<p>The Profile menu in the hub window looks something like this:
 </p>
 <img src="images/ProfileMenu.png"
      alt="Screenshot of Profiles menu in the hub GUI window"/>
+<p>and from the system tray icon something like this:
+</p>
+<img src="images/SystrayMenu.png"
+     alt="Screenshot of Profiles menu in the system tray window"/>
 <p>Checking one of the checkboxes has the effect of turning the 
 profile in question on, and unchecking it turns it off.
 When a profile is turned off, any clients registered using that profile
@@ -121,6 +125,10 @@ The options are as follows:
 Web Profile itself is not running.
 </p>
 
+<p>You may be able to find an experimental 
+<a href="http://www.star.bristol.ac.uk/~mbt/websamp/monitor.html"
+   >Web Profile client</a> here.
+</p>
 </subsection>
 
 </section>
