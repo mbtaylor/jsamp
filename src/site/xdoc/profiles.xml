@@ -1,0 +1,128 @@
+<?xml version="1.0"?>
+<!DOCTYPE document PUBLIC
+          "-//Apache Software Foundation//DTD XDOC 1.0//EN"
+          "http://maven.apache.org/dtd/xdoc_1_0.dtd">
+<document>
+
+<properties>
+  <title>Profiles</title>
+  <author email="m.b.taylor@bristol.ac.uk">Mark Taylor</author>
+</properties>
+
+<body>
+
+<section name="Profiles">
+
+<p>The SAMP protocol is defined in two parts, as an abstract API and
+as transport-specific Profiles.
+One or more Profiles may be offered for by a SAMP hub to allow clients
+to communicate with it.
+At present, JSAMP offers two basic profiles, the Standard Profile,
+intended for normal desktop-based clients, 
+and the Web Profile, intended for browser-based clients 
+(some variants of these are also possible).
+These are described below.
+</p>
+
+<p>By default, the hub is configured with both Standard and Web profiles
+available, but only Standard Profile switched on by default.
+If you want to use the Web Profile, either configure it to start using
+command-line flags to the Hub command, or equivalent programmatic settings.
+To switch on the Web Profile as well as the Standard Profile by default
+in the hub, you can do one of the following:
+</p>
+<ul>
+<li>Run the jsamp <code>hub</code> command
+    with the <code>-profiles std,web</code> flag.</li>
+<li>Run the hub, or whatever java program is going to start a JSAMP hub
+    (e.g. TOPCAT, Aladin) with the system property flag
+    <code>-Djsamp.hub.profiles=std,web</code>.</li>
+<li>Check the checkbox in the the <b>Profiles|Web Profile</b> menu 
+    in the hub GUI window.</li>
+<li>Check the checkbox in the <b>Profiles|Web Profile</b> menu
+    provided by clicking on the hub system tray icon.</li>
+<li>If you're writing code, you can use one of the methods in the
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/hub/Hub.html"
+                                           >Hub</a> class
+    which allow you to specify what profiles will be used.</li>
+</ul>
+
+<p>The Profile menu looks something like this:
+</p>
+<img src="images/ProfileMenu.png"
+     alt="Screenshot of Profiles menu in the hub GUI window"/>
+<p>Checking one of the checkboxes has the effect of turning the 
+profile in question on, and unchecking it turns it off.
+When a profile is turned off, any clients registered using that profile
+are forcibly ejected from the hub.
+</p>
+
+<subsection name="Standard Profile">
+
+<p>The Standard Profile is intended for use by normal desktop tools.
+Clients discover the location of the hub by looking in a file named
+<code>.samp</code> in the user's home directory.
+The fact that this file is normally only readable by the user running
+the hub means that connections cannot be made by other users.
+</p>
+
+</subsection>
+
+<subsection name="Web Profile">
+
+<p>The Web Profile is intended for use by web applications, that is,
+programs or web pages running inside a web browser.
+Web applications can find the hub at a well-known port.
+When a web application wants to register, the hub will ask the user,
+by popping up a dialogue window, whether the application should be
+allowed to run.
+The dialogue window will look something like this:
+</p>
+<img src="images/WebProfilePopup.png"
+     alt="Web Profile popup dialogue screenshot"/>
+
+<p>There are a number of configuration options available for the Web Profile
+hub, connected with security.
+They may be set on the hub command line, with the various <code>-web:*</code>
+options, or using the <b>Profiles|Web Profile Configuration</b> menu.
+The options are as follows:
+</p>
+<dl>
+<dt><b>URL Controls:</b></dt>
+<dd>Whether web clients are restricted from accessing sensitive resources,
+    like local files, if they have not previously been mentioned in earlier
+    SAMP messages.  This option is experimental, but it is probably a good
+    idea to leave it on for security reasons.
+    </dd>
+<dt><b>CORS cross-domain access:</b></dt>
+<dd>Whether to allow access using the Cross-Origin Resource Sharing standard.
+    this is believed to be the safest mode of browser/hub communication,
+    so it should usually be switched on.
+    </dd>
+<dt><b>Flash cross-domain access:</b></dt>
+<dd>Whether to allow access using the Adobe Flash-based 
+    <code>crossdomain.xml</code> mechanism.
+    This may be less secure than CORS, but is required for
+    some browser/web application combinations.
+    If you use a browser that supports CORS
+    (thought to be: Chrome v2.0+, Firefox v3.5+, Safari v4.0+, IE v8+),
+    and only use JavaScript-based web SAMP applications, you may be able
+    to leave this switched off and thereby improve security.
+    </dd>
+<dt><b>Silverlight cross-domain access</b></dt>
+<dd>Whether to allow access using the Microsoft Silverlight-based
+    <code>clientaccesspolicy.xml</code> mechanism.
+    Silverlight is believed to support the Flash mechanism, so you can and
+    should probably leave this switched off.
+    </dd>
+</dl>
+<p>Note that the configuration options may only be changed when the
+Web Profile itself is not running.
+</p>
+
+</subsection>
+
+</section>
+</body>
+</document>
