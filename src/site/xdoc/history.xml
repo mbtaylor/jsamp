@@ -678,6 +678,9 @@ definition may change in the future.
     there are more double quotes in these representations than before.
     Public utility methods for JSON de/serialization are now available
     in the <code>SampUtils</code> class.</li>
+<li>New File and Profile menus in the Hub GUI window and system tray control.
+    The Profile menu allows you to start/stop different profiles individually,
+    and to set profile configuration options if available.</li>
 </ul>
 </subsection>
 
