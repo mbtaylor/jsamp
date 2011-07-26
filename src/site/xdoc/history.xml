@@ -653,34 +653,79 @@ definition may change in the future.
 <strong>Archive:</strong>
 </p>
 
+<p>Various changes relating to configurable use of profiles and the
+Web Profile in particular, to match the SAMP 1.3 WD,
+and to enable experimentation with multi-profile configurations while
+we gain experience with security options:
+</p>
 <ul>
-<li>Use <code>DefaultClientProfile</code> not
-    <code>StandardClientProfile</code> in <code>HubMonitor</code>.</li>
-<li>More helpful warning message when standard profile lockfile
-    is present but broken (suggests deleting file).</li>
+<li>The Web Profile is now available, but not switched on, by default.
+    The Web Profile (and other profiles) can be switched on or off while
+    the hub is running by using the new <b>Profile</b> menu in the
+    hub window or system tray icon.
+    There is a corresponding new <code>hub</code> command flag
+    <code>-web:extraprofiles</code> and system property
+    <code>jsamp.hub.profiles.extra</code>.
+    </li>
+<li>The Profiles menu also has a <b>Web Profile Configuration</b> submenu,
+    which allows fine control over the way the Web Profile is run.
+    This is to permit experimentation with security options;
+    this menu or some of its options may be withdrawn in future versions.
+    There are corresponding flags for the <code>hub</code> command:
+    <code>-web:[no]cors</code>,
+    <code>-web:[no]flash</code>,
+    <code>-web:[no]silverlight</code>,
+    <code>-web:[no]urlcontrol</code>.
+    </li>
+<li>The hub window also has a new <b>File</b> menu, which just allows
+    hub shutdown.
+    </li>
+<li>The Web Profile hub server now blocks non-localhost requests at
+    the HTTP level.  This should benefit security.
+    </li>
+<li>The Web Profile URL translation service now by default blocks access to
+    sensitive resources (local filesystem and localhost URLs) if they
+    have not previously been mentioned by a non-Web Profile client.
+    This should benefit security.
+    </li>
+<li>Web profile now uses <code>map</code> argument not <code>string</code>
+    argument to <code>register()</code>, as per change to Web Profile
+    specification.
+    </li>
+<li>Various related changes to the hub implementation and API to enable
+    the above.
+    The recommended entry point, <code>Hub.runHub()</code>, still works though.
+    </li>
+</ul>
+<p>JSON is now used as the standard serialization/deserialization format
+for SAMP objects in a few places:
+</p>
+<ul>
+<li>New utility methods <code>toJson</code> and <code>fromJson</code> in
+    <code>SampUtils</code> class.
+    </li>
+<li>Non-scalar message parameter contents and client metadata
+    can now be specified to 
+    the <code>messagesender</code> and <code>snooper</code> tools
+    on the command line using JSON syntax.
+    </li>
+<li>Message display, e.g. in the hub message tracker GUI, are now
+    shown in JSON format.
+    In practice this means you'll see a few more double quotes - it
+    also means they can be cut and pasted directly into other JSON-aware
+    contexts.
+    </li>
+</ul>
+<p>Minor items:
+</p>
+<ul>
 <li>Web Profile hub now fails at start time rather than during
     registration attempts if Swing client authorization is in use
     with headless graphics.</li>
-<li>Web profile hub server now blocks non-localhost requests at HTTP level.</li>
-<li>Web profile now uses <code>map</code> argument not <code>string</code>
-    argument to <code>register()</code>, as per change to Web Profile
-    specification.</li>
-<li>Various changes to hub implementation and API to allow individual
-    start/stop of different hub profiles at runtime.
-    <code>Hub.runHub()</code> still works though.</li>
-<li>By default the hub now runs with the Standard Profile, with the
-    Web Profile available for starting under user control.</li>
-<li>Appropriate structures are now serialized and deserialized in JSON 
-    format where appropriate.  This means that for instance
-    the <code>messagesender</code> tool can be used with structured message
-    parameters rather than just plain strings.
-    Messages are also displayed in JSON format; in practice this means
-    there are more double quotes in these representations than before.
-    Public utility methods for JSON de/serialization are now available
-    in the <code>SampUtils</code> class.</li>
-<li>New File and Profile menus in the Hub GUI window and system tray control.
-    The Profile menu allows you to start/stop different profiles individually,
-    and to set profile configuration options if available.</li>
+<li>More helpful warning message when standard profile lockfile
+    is present but broken (suggests deleting file).</li>
+<li>Use <code>DefaultClientProfile</code> not
+    <code>StandardClientProfile</code> in <code>HubMonitor</code>.</li>
 </ul>
 </subsection>
 
