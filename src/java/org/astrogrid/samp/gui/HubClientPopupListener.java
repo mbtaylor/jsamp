@@ -11,6 +11,7 @@ import javax.swing.SwingUtilities;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.client.HubConnection;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.HubClient;
 import org.astrogrid.samp.hub.BasicHubService;
 
@@ -123,19 +124,17 @@ class HubClientPopupListener implements MouseListener {
                       "Forcibly disconnect client " + client_ + " from hub" );
             setEnabled( ! client.getId()
                          .equals( hub_.getServiceConnection()
-                                 .getRegInfo().get( RegInfo.SELFID_KEY ) ) );
+                                 .getRegInfo().getSelfId() ) );
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            try {
-                hub_.disconnect( client_.getId(),
-                                 "GUI hub user requested ejection" );
-            }
-            catch ( Exception e ) {
-                ErrorDialog.showError( parent_, "Disconnect Error",
-                                       "Error attempting to disconnect client "
-                                     + client_, e );
-            }
+            new SampThread( parent_, "Disconnect Error",
+                            "Error disconnecting client " + client_ ) {
+                protected void sampRun() throws SampException {
+                    hub_.disconnect( client_.getId(),
+                                     "GUI hub user requested ejection" );
+                }
+            }.start();
         }
     }
 
@@ -174,22 +173,20 @@ class HubClientPopupListener implements MouseListener {
         }
 
         public void actionPerformed( ActionEvent evt ) {
-            HubConnection connection = hub_.getServiceConnection();
-            String recipientId = client_.getId();
-            try {
-                if ( isCall_ ) {
-                    connection.call( recipientId, name_ + "-tag", msg_ );
+            final HubConnection connection = hub_.getServiceConnection();
+            final String recipientId = client_.getId();
+            new SampThread( parent_, name_ + " Error",
+                            "Error attempting to send message "
+                          + msg_.getMType() + " to client " + client_ ) {
+                protected void sampRun() throws SampException {
+                    if ( isCall_ ) {
+                        connection.call( recipientId, name_ + "-tag", msg_ );
+                    }
+                    else {
+                        connection.notify( recipientId, msg_ );
+                    }
                 }
-                else {
-                    connection.notify( recipientId, msg_ );
-                }
-            }
-            catch ( Exception e ) {
-                ErrorDialog.showError( parent_, name_ + " Error",
-                                       "Error attempting to send message "
-                                     + msg_.getMType() + " to client "
-                                     + client_, e );
-            }
+            }.start();
         }
     }
 }
