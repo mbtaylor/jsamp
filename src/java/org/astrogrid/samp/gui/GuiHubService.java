@@ -157,8 +157,9 @@ public class GuiHubService extends BasicHubService {
                                 "Send ping message to all clients" );
 
         /* Single client ping action. */
+        final String pingSelectedName = "Ping selected client";
         final Action pingSelectedAction =
-                new AbstractAction( "Ping selected client" ) {
+                new AbstractAction( pingSelectedName ) {
             public void actionPerformed( ActionEvent evt ) {
                 final Client client = getSelectedClient();
                 if ( client != null ) {
@@ -176,8 +177,9 @@ public class GuiHubService extends BasicHubService {
                                      "Send ping message to selected client" );
 
         /* Single client disconnect action. */
+        final String disconnectSelectedName = "Disconnect selected client";
         final Action disconnectSelectedAction =
-                new AbstractAction( "Disconnect selected client" ) {
+                new AbstractAction( disconnectSelectedName ) {
             public void actionPerformed( ActionEvent evt ) {
                 final Client client = getSelectedClient();
                 if ( client != null ) {
@@ -207,6 +209,15 @@ public class GuiHubService extends BasicHubService {
                                && ! hubId.equals( client.getId() );
                 pingSelectedAction.setEnabled( canPing );
                 disconnectSelectedAction.setEnabled( canDisco );
+                String clientDesignation = client == null
+                                         ? ""
+                                         : ( " (" + client + ")" );
+                pingSelectedAction.putValue( Action.NAME,
+                                             pingSelectedName
+                                             + clientDesignation );
+                disconnectSelectedAction.putValue( Action.NAME,
+                                                   disconnectSelectedName
+                                                   + clientDesignation );
             }
         };
         getClientSelectionModel().addListSelectionListener( selListener );
@@ -215,8 +226,8 @@ public class GuiHubService extends BasicHubService {
         /* Prepare and return menus containing the actions. */
         JMenu clientMenu = new JMenu( "Clients" );
         clientMenu.setMnemonic( KeyEvent.VK_C );
-        clientMenu.add( new JMenuItem( pingSelectedAction ) );
         clientMenu.add( new JMenuItem( pingAllAction ) );
+        clientMenu.add( new JMenuItem( pingSelectedAction ) );
         clientMenu.add( new JMenuItem( disconnectSelectedAction ) );
         return new JMenu[] { clientMenu };
     }
