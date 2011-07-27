@@ -680,6 +680,10 @@ we gain experience with security options:
 <li>The hub window also has a new <b>File</b> menu, which just allows
     hub shutdown.
     </li>
+<li>The hub window also has a new <b>Clients</b> menu, which allows
+    pinging and disconnection of clients (this functionality duplicates
+    the existing, but not very obvious, client popup menu).
+    </li>
 <li>The Web Profile hub server now blocks non-localhost requests at
     the HTTP level.  This should benefit security.
     </li>
