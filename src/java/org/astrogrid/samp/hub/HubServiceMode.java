@@ -162,17 +162,19 @@ public abstract class HubServiceMode {
      * @param  profiles  profiles to run for hub
      * @param  runners  1-element array which will contain an associated
      *         hub runner object if one exists
+     * @param  hubService  object providing hub services
      * @return  object which should be shutdown when the hub stops running
      */
     private static Tidier configureHubWindow( JFrame frame,
                                               HubProfile[] profiles,
-                                              Hub[] runners ) {
+                                              Hub[] runners,
+                                              GuiHubService hubService ) {
         SysTray sysTray = SysTray.getInstance();
         if ( sysTray.isSupported() ) {
             try {
                 SysTrayWindowConfig winConfig =
                     new SysTrayWindowConfig( frame, profiles, runners,
-                                             sysTray );
+                                             hubService, sysTray );
                 winConfig.configureWindow();
                 winConfig.configureSysTray();
                 logger_.info( "Hub started in system tray" );
@@ -181,7 +183,8 @@ public abstract class HubServiceMode {
             catch ( AWTException e ) {
                 logger_.warning( "Failed to install in system tray: " + e );
                 BasicWindowConfig winConfig =
-                    new BasicWindowConfig( frame, profiles, runners );
+                    new BasicWindowConfig( frame, profiles, runners,
+                                           hubService );
                 winConfig.configureWindow();
                 return winConfig;
             }
@@ -189,7 +192,7 @@ public abstract class HubServiceMode {
         else {
             logger_.info( "System tray not supported: displaying hub window" );
             BasicWindowConfig winConfig =
-                new BasicWindowConfig( frame, profiles, runners );
+                new BasicWindowConfig( frame, profiles, runners, hubService );
             winConfig.configureWindow();
             return winConfig;
         }
@@ -231,12 +234,14 @@ public abstract class HubServiceMode {
                     return new GuiHubService( random ) {
                         Tidier tidier;
                         public void start() {
+                            final GuiHubService service = this;
                             super.start();
                             SwingUtilities.invokeLater( new Runnable() {
                                 public void run() {
                                     tidier =
                                         configureHubWindow( createHubWindow(),
-                                                            profiles, runners );
+                                                            profiles, runners,
+                                                            service );
                                 }
                             } );
                         }
@@ -275,12 +280,13 @@ public abstract class HubServiceMode {
                         Tidier tidier;
                         public void start() {
                             super.start();
+                            final MessageTrackerHubService service = this;
                             SwingUtilities.invokeLater( new Runnable() {
                                 public void run() {
                                     tidier =
                                         configureHubWindow( createHubWindow(),
                                                             profiles,
-                                                            runners );
+                                                            runners, service );
                                 }
                             } );
                         }
@@ -361,6 +367,7 @@ public abstract class HubServiceMode {
     private static class BasicWindowConfig extends Tidier {
         final JFrame frame_;
         final Hub[] runners_;
+        final GuiHubService hubService_;
         final ProfileToggler[] profileTogglers_;
         final ConfigHubProfile[] configProfiles_;
         final Action exitAct_;
@@ -372,11 +379,13 @@ public abstract class HubServiceMode {
          * @param  profiles  hub profiles to run
          * @param  runners  1-element array which will contain an associated
          *         hub runner object if one exists
+         * @param  hubService  object providing hub services
          */
         BasicWindowConfig( JFrame frame, HubProfile[] profiles,
-                           final Hub[] runners ) {
+                           final Hub[] runners, GuiHubService hubService ) {
             frame_ = frame;
             runners_ = runners;
+            hubService_ = hubService;
             profileTogglers_ = new ProfileToggler[ profiles.length ];
             List configProfileList = new ArrayList();
             for ( int ip = 0; ip < profiles.length; ip++ ) {
@@ -429,6 +438,10 @@ public abstract class HubServiceMode {
             fileMenu.setMnemonic( KeyEvent.VK_F );
             fileMenu.add( new JMenuItem( exitAct_ ) );
             mbar.add( fileMenu );
+            JMenu[] serviceMenus = hubService_.createMenus();
+            for ( int im = 0; im < serviceMenus.length; im++ ) {
+                mbar.add( serviceMenus[ im ] );
+            }
             JMenu profileMenu = new JMenu( "Profiles" );
             profileMenu.setMnemonic( KeyEvent.VK_P );
             for ( int ip = 0; ip < profileTogglers_.length; ip++ ) {
@@ -485,11 +498,12 @@ public abstract class HubServiceMode {
          * @param  profiles  hub profiles to run
          * @param  runners  1-element array which will contain an associated
          *         hub runner object if one exists
+         * @param  hubService  object providing hub services
          * @param  sysTray  system tray facade object
          */
         SysTrayWindowConfig( JFrame frame, HubProfile[] profiles, Hub[] runners,
-                             SysTray sysTray ) {
-            super( frame, profiles, runners );
+                             GuiHubService hubService, SysTray sysTray ) {
+            super( frame, profiles, runners, hubService );
             sysTray_ = sysTray;
             showAct_ = new AbstractAction( "Show Hub Window" ) {
                 public void actionPerformed( ActionEvent evt ) {
