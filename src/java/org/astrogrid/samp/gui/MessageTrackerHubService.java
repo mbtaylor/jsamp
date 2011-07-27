@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Random;
 import javax.swing.ImageIcon;
 import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JFrame;
@@ -45,8 +46,8 @@ public class MessageTrackerHubService extends GuiHubService
     private final int tableRemoveDelay_;
     private final int tableMaxRows_;
     private MessageTrackerClientSet clientSet_;
+    private ListSelectionModel selectionModel_;
 
-   
     /**
      * Constructs a hub service with default message tracker GUI expiry times.
      *
@@ -105,6 +106,7 @@ public class MessageTrackerHubService extends GuiHubService
         JList jlist = hubView.getClientList();
         jlist.setCellRenderer( new MessageTrackerListCellRenderer( this ) );
         jlist.addMouseListener( new HubClientPopupListener( this ) );
+        selectionModel_ = jlist.getSelectionModel();
         tabber.add( "Clients", hubView );
 
         // Add messages tab.
@@ -114,6 +116,10 @@ public class MessageTrackerHubService extends GuiHubService
         JComponent panel = new JPanel( new BorderLayout() );
         panel.add( tabber, BorderLayout.CENTER );
         return panel;
+    }
+
+    public ListSelectionModel getClientSelectionModel() {
+        return selectionModel_;
     }
 
     /**
