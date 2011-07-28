@@ -93,21 +93,42 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
         }
 
         List lineList = new ArrayList();
-        lineList.addAll( Arrays.asList( authContent.appIntroductionLines() ) );
+        lineList.addAll( toLineList( authContent.appIntroductionLines() ) );
         lineList.add( "\n" );
         lineList.add( "    " + authContent.nameWord() + ": " + appName );
         lineList.add( "    " + authContent.originWord() + ": " + origin );
         lineList.add( "\n" );
-        String[] pfmtLines = authContent.privilegeWarningFormatLines();
+        String[] pfmtLines =
+            toLines( authContent.privilegeWarningFormatLines() );
         String user = System.getProperty( "user.name" );
         for ( int il = 0; il < pfmtLines.length; il++ ) {
             lineList.add( MessageFormat.format( pfmtLines[ il ],
                                                 new Object[] { user } ) );
         }
         lineList.add( "\n" );
-        lineList.addAll( Arrays.asList( authContent.adviceLines() ) );
+        lineList.addAll( toLineList( authContent.adviceLines() ) );
         lineList.add( "\n" );
         lineList.add( authContent.questionLine() );
         return (String[]) lineList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Turns a multi-line string into an array of strings.
+     *
+     * @param  linesTxt  string perhaps with embedded \n characters
+     * @return  array of lines
+     */
+    private static String[] toLines( String linesTxt ) {
+        return linesTxt.split( "\\n" );
+    }
+
+    /**
+     * Turns a multi-line string into a List of strings.
+     *
+     * @param  linesTxt  string perhaps with embedded \n characters
+     * @return  list of String lines
+     */
+    private static List toLineList( String linesTxt ) {
+        return Arrays.asList( toLines( linesTxt ) );
     }
 }
