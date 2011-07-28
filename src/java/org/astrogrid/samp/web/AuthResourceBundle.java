@@ -163,7 +163,27 @@ public class AuthResourceBundle extends ResourceBundle {
         try {
             String value = (String) method.invoke( content, new Object[ 0 ] );
             value = value.replaceAll( "\n", "\\\\n" );
-            return method.getName() + "=" + value;
+            StringBuffer sbuf = new StringBuffer();
+            sbuf.append( method.getName() )
+                .append( '=' );
+            for ( int i = 0; i < value.length(); i++ ) {
+                char c = value.charAt( i );
+                if ( c == '\n' ) {
+                    sbuf.append( "\\n" );
+                }
+                else if ( c >= 32 && c < 128 ) {
+                    sbuf.append( c );
+                }
+                else {
+                    String xs = Integer.toHexString( (int) c );
+                    sbuf.append( "\\u" );
+                    for ( int j = xs.length(); j < 4; j++ ) {
+                        sbuf.append( '0' );
+                    }
+                    sbuf.append( xs );
+                }
+            }
+            return sbuf.toString();
         }
         catch ( IllegalAccessException e ) {
             throw (RuntimeException)
@@ -199,7 +219,8 @@ public class AuthResourceBundle extends ResourceBundle {
                           + "of the English version." );
         System.out.println( "# Long lines should be broken up with return "
                           + "characters (\\n)." );
-        System.out.println( "# See java.util.Properties docs for detailed "
+        System.out.println( "# Encoding is ISO 8859-1; "
+                          + "see java.util.Properties docs for detailed "
                           + "syntax." );
         System.out.println( "#" );
         System.out.println( "# Alternatively, implement "
@@ -229,6 +250,11 @@ public class AuthResourceBundle extends ResourceBundle {
      * property resource file is used to supply the content.
      */
     public static interface Content {
+
+        /**
+         * Returns the title for the confirmation window.
+         */
+        String windowTitle();
 
         /**
          * Returns lines introducing the registration request.
