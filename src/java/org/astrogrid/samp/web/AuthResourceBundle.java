@@ -36,7 +36,7 @@ public class AuthResourceBundle extends ResourceBundle {
      */
     protected AuthResourceBundle( Content content ) {
         map_ = new Hashtable();
-        Method[] methods = Content.class.getMethods();
+        Method[] methods = getContentMethods();
         Object[] noArgs = new Object[ 0 ];
         for ( int im = 0; im < methods.length; im++ ) {
             Method method = methods[ im ];
@@ -95,9 +95,6 @@ public class AuthResourceBundle extends ResourceBundle {
                 if ( String.class.equals( rclazz ) ) {
                     return bundle.getString( key );
                 }
-                else if ( String[].class.equals( rclazz ) ) {
-                    return bundle.getStringArray( key );
-                }
                 else {
                     throw new RuntimeException( "Unsuitable return type "
                                               + rclazz.getName()
@@ -112,18 +109,28 @@ public class AuthResourceBundle extends ResourceBundle {
     }
 
     /**
+     * Returns all the methods of the Content interface which correspond
+     * to AuthResourceBundle entries.
+     *
+     * @return  resource bundle methods, all have no arguments and return String
+     */
+    static Method[] getContentMethods() {
+        return Content.class.getMethods();
+    }
+
+    /**
      * Determines if a bundle has all the required keys for this class.
      *
      * @param  bundle  bundle to test
      * @return   true iff bundle has all required keys
      */
-    private static void checkHasAllKeys( ResourceBundle bundle ) {
+    static void checkHasAllKeys( ResourceBundle bundle ) {
         Collection bkeys = new HashSet();
         for ( Enumeration en = bundle.getKeys(); en.hasMoreElements(); ) {
             bkeys.add( en.nextElement() );
         }
         Collection mnames = new HashSet();
-        Method[] methods = Content.class.getMethods();
+        Method[] methods = getContentMethods();
         for ( int im = 0; im < methods.length; im++ ) {
             mnames.add( methods[ im ].getName() );
         }
@@ -146,12 +153,77 @@ public class AuthResourceBundle extends ResourceBundle {
     }
 
     /**
+     * Returns a string suitable for entry into a .properties file
+     * for a given Method of a given Content object.
+     *
+     * @param  content  auth resource content
+     * @param  method   Content method (public String x())
+     */
+    private static String toPropertyString( Content content, Method method ) {
+        try {
+            String value = (String) method.invoke( content, new Object[ 0 ] );
+            value = value.replaceAll( "\n", "\\\\n" );
+            return method.getName() + "=" + value;
+        }
+        catch ( IllegalAccessException e ) {
+            throw (RuntimeException)
+                  new RuntimeException( "Failed to call method "
+                                      + method.getName() )
+                .initCause( e );
+        }
+        catch ( InvocationTargetException e ) {
+            throw (RuntimeException)
+                  new RuntimeException( "Failed to call method "
+                                      + method.getName() )
+                .initCause( e );
+        }
+    }
+
+    /**
+     * Writes a template .properties file.  Sensitive to the locale.
+     */
+    public static void main( String[] args ) {
+        ResourceBundle lBundle =
+            ResourceBundle.getBundle( AuthResourceBundle.class.getName() );
+        Content lContent = getAuthContent( lBundle );
+        Content dContent = getDefaultContent();
+        Method[] methods = getContentMethods();
+        System.out.println( "# Template for "
+                          + AuthResourceBundle.class.getName()
+                          + "_xx.properties file," );
+        System.out.println( "# giving localised text "
+                          + "for Web Profile client authorization dialogue." );
+        System.out.println( "# Please fill in language-specific values for "
+                          + "each key, as in the example." );
+        System.out.println( "# Follow the capitalization and punctuation "
+                          + "of the English version." );
+        System.out.println( "# Long lines should be broken up with return "
+                          + "characters (\\n)." );
+        System.out.println( "# See java.util.Properties docs for detailed "
+                          + "syntax." );
+        System.out.println( "#" );
+        System.out.println( "# Alternatively, implement "
+                          + AuthResourceBundle.class.getName() + "_xx" );
+        System.out.println( "# using " + AuthResourceBundle_en.class.getName()
+                          + " as an example." );
+        System.out.println();
+        for ( int im = 0; im < methods.length; im++ ) {
+            Method method = methods[ im ];
+            System.out.println( "# " + toPropertyString( dContent, method ) );
+            System.out.println( toPropertyString( lContent, method ) );
+        }
+    }
+
+    /**
      * Defines the keys and value types required for a bundle of this class.
      * See the English language implementation,
      * {link AuthResourceBundle_en.EnglishContent} for example text.
      *
-     * <p>All methods should return one or more strings which will be
-     * used as displayed screen lines, so they shouldn't be too long.
+     * <p>All methods have no arguments and return a String.
+     * The methods with names
+     * that end "<code>Lines</code>" should return text which contains
+     * line breaks (<code>\n</code> characters).  Each such line will
+     * be displayed as it stands in the GUI, so it shouldn't be too long.
      *
      * <p>The method names define the keys which can be used if a
      * property resource file is used to supply the content.
@@ -161,7 +233,7 @@ public class AuthResourceBundle extends ResourceBundle {
         /**
          * Returns lines introducing the registration request.
          */
-        String[] appIntroductionLines();
+        String appIntroductionLines();
 
         /**
          * Returns the word meaning "Name" (initial capitalised).
@@ -183,12 +255,12 @@ public class AuthResourceBundle extends ResourceBundle {
          * the privileges that a registered client will have.
          * The token "{0}" will be replaced with the name of the current user.
          */
-        String[] privilegeWarningFormatLines();
+        String privilegeWarningFormatLines();
 
         /**
          * Returns lines with advice on whether you should accept or decline.
          */
-        String[] adviceLines();
+        String adviceLines();
 
         /**
          * Returns a line asking whether to authorize (yes/no).
