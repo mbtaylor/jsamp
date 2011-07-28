@@ -56,7 +56,7 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
             new JOptionPane( qmsg, JOptionPane.WARNING_MESSAGE,
                              JOptionPane.YES_NO_OPTION, null,
                              new String[] { noOpt, yesOpt }, noOpt );
-        JDialog dialog = jop.createDialog( parent_, "SAMP Hub Security" );
+        JDialog dialog = jop.createDialog( parent_, authContent.windowTitle() );
         dialog.setAlwaysOnTop( true );
         dialog.setModal( true );
         dialog.setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );

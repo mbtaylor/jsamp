@@ -19,6 +19,9 @@ public class AuthResourceBundle_en extends AuthResourceBundle {
      * Content implementation for English.
      */
     public static class EnglishContent implements Content {
+        public String windowTitle() {
+            return "SAMP Hub Security";
+        }
         public String appIntroductionLines() {
             return "The following application, probably running in a browser,\n"
                  + "is requesting SAMP Hub registration:";
