@@ -815,7 +815,7 @@ public class BasicHubService implements HubService {
         }
     }
 
-    public synchronized boolean isHubRunning() {
+    public boolean isHubRunning() {
         return started_ && ! shutdown_;
     }
 
