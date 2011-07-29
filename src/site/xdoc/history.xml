@@ -723,6 +723,8 @@ for SAMP objects in a few places:
 <p>Minor items:
 </p>
 <ul>
+<li>The Web Profile registration dialogue is now somewhat internationalised.
+    Thanks to Luigi Paioro for the the Italian translation.</li>
 <li>Web Profile hub now fails at start time rather than during
     registration attempts if Swing client authorization is in use
     with headless graphics.</li>
