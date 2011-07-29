@@ -3,8 +3,8 @@ package org.astrogrid.samp.web;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
-import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import org.astrogrid.samp.Metadata;
@@ -14,6 +14,7 @@ import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.DefaultClientProfile;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
+import org.astrogrid.samp.xmlrpc.SampXmlRpcClient;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 
@@ -99,9 +100,9 @@ public class WebClientProfile implements ClientProfile {
 
     public boolean isHubRunning() {
         try {
-            Socket sock = new Socket( hubEndpoint_.getHost(),
-                                      hubEndpoint_.getPort() );
-            sock.close();
+            SampXmlRpcClient xClient =
+                xClientFactory_.createClient( hubEndpoint_ );
+            xClient.callAndWait( WEBSAMP_HUB_PREFIX + "ping", new ArrayList() );
             return true;
         }
         catch ( IOException e ) {

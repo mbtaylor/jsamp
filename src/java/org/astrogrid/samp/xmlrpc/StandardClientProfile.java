@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 import org.astrogrid.samp.DataException;
 import org.astrogrid.samp.Platform;
@@ -61,7 +62,17 @@ public class StandardClientProfile implements ClientProfile {
 
     public boolean isHubRunning() {
         try {
-            return getLockInfo() != null;
+            LockInfo lockInfo = getLockInfo();
+            if ( lockInfo == null ) {
+                return false;
+            }
+            URL xurl = lockInfo.getXmlrpcUrl();
+            if ( xurl == null ) {
+                return false;
+            }
+            SampXmlRpcClient xClient = xClientFactory_.createClient( xurl );
+            xClient.callAndWait( "samp.hub.ping", new ArrayList() );
+            return true;
         }
         catch ( IOException e ) {
             return false;

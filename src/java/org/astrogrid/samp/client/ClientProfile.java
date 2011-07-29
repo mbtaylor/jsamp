@@ -32,10 +32,8 @@ public interface ClientProfile {
 
     /**
      * Indicates whether a hub contactable by this profile appears to be
-     * running.  This method is intended to provide a best guess and
-     * to execute reasonably quickly.  An appropriate implementation for
-     * the Standard Profile might be to check the existence of the lockfile,
-     * but not to attempt contact or registration with the hub.
+     * running.  This is intended to execute reasonably quickly.
+     * It should not go as far as registering.
      *
      * @return  true iff it looks like a hub is running
      */

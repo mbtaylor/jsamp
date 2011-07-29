@@ -720,12 +720,15 @@ for SAMP objects in a few places:
     contexts.
     </li>
 </ul>
-<p>Minor items:
+<p>Other items:
 </p>
 <ul>
+<li>The <code>ClientProfile.isHubRunning</code> method now probes more
+    agressively for a hub.  This is a change to both the API and the
+    implementations.</li>
 <li>The Web Profile registration dialogue is now somewhat internationalised.
     Thanks to Luigi Paioro for the the Italian translation.</li>
-<li>Web Profile hub now fails at start time rather than during
+<li>The Web Profile hub now fails at start time rather than during
     registration attempts if Swing client authorization is in use
     with headless graphics.</li>
 <li>More helpful warning message when standard profile lockfile
