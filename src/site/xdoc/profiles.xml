@@ -48,7 +48,7 @@ in the hub, you can do one of the following:
     which allow you to specify what profiles will be used.</li>
 </ul>
 
-<p>The Profile menu in the hub window looks something like this:
+<p>The <b>Profiles</b> menu in the hub window looks something like this:
 </p>
 <img src="images/ProfileMenu.png"
      alt="Screenshot of Profiles menu in the hub GUI window"/>
@@ -129,6 +129,70 @@ Web Profile itself is not running.
 <a href="http://www.star.bristol.ac.uk/~mbt/websamp/monitor.html"
    >Web Profile client</a> here.
 </p>
+
+</subsection>
+
+<subsection name="Web Profile Security">
+
+<p>The JSAMP 1.3 Working Draft discusses security in relation to the 
+Web profile to some extent, but notes that there are outstanding
+security concerns, and that experimentation will continue in hub
+implementations around this issue.
+</p>
+
+<p>The security measures taken by the JSAMP Web Profile implementation
+relating to the Web Profile are:
+</p>
+<ul>
+<li>In the default configuration, the Web Profile is switched off.
+    Users can switch it on during hub operation using the <b>Profiles</b>
+    menu from the hub GUI (if present).  It can also be switched on
+    from the command-line or programatically at hub startup.
+    The fact that it's off by default means that web clients will not be
+    able to register unless the user has explicitly opted in, so only
+    users who have some idea what the Web Profile is will be exposed to it
+    at this stage.  This policy may be changed (Web Profile on by default)
+    in future releases depending on how thinking on security progresses.
+    </li>
+<li>If the Web Profile is switched off during operation using
+    the <b>Profiles|Web Profile</b> menu item in the hub GUI,
+    any clients registered through the Web Profile will be 
+    disconnected immediately.  A user can therefore eject Web Profile clients
+    if there are suspicions about their behaviour.  Single clients can
+    be ejected as well using the <b>Clients|Disconnect Selected Client</b>
+    menu item.
+    </li>
+<li>The HTTP server on which the Web Profile runs rejects any access
+    attempts from hosts other than the local host, as recommended by
+    the SAMP 1.3 document.
+    </li>
+<li>The Web Profile URL translation service (Section 5.2.6 of SAMP 1.3)
+    is, by default, selective about what URLs it will proxy.
+    URLs are identified as local or non local; local ones are those using
+    the file: protocol, or those using the http: protocol which point to
+    the local host.  Non-local URLs are proxied without restriction.
+    Local URL translation is only performed for a local URL if it has
+    previously been mentioned (as the value of a Message or Response
+    argument) by a non-Web Profile client; translation requests which
+    do not meet this criterion are met with a 403 Forbidden response.
+    This means for instance that a Web Profile client cannot simply
+    request, e.g., the content of <code>file:///etc/passwd</code>.
+    This policy does not constitute bulletproof protection of local
+    resources to malicious web-profile clients, but it does guard against
+    some straightforward attacks.
+    This policy is on by default, but can be switched off and on using
+    the <b>Profiles|Web Profile Configuration|URL Controls</b> menu item from
+    the hub GUI, or with the <code>-web:[no]urlcontrol</code> hub
+    command-line switch.
+    </li>
+<li>The details of which cross-domain workarounds are used can be controlled
+    from the <b>Profiles|Web Profile Configuration</b> menu or from the
+    hub command line.  The different workarounds can be switched on and off
+    independently, though only while the Web Profile is not running.
+    By default CORS and Flash are switched on, and Silverlight is switched off.
+    </li>
+</ul>
+
 </subsection>
 
 </section>
