@@ -93,12 +93,6 @@ options, or using the <b>Profiles|Web Profile Configuration</b> menu.
 The options are as follows:
 </p>
 <dl>
-<dt><b>URL Controls:</b></dt>
-<dd>Whether web clients are restricted from accessing sensitive resources,
-    like local files, if they have not previously been mentioned in earlier
-    SAMP messages.  This option is experimental, but it is probably a good
-    idea to leave it on for security reasons.
-    </dd>
 <dt><b>CORS cross-domain access:</b></dt>
 <dd>Whether to allow access using the Cross-Origin Resource Sharing standard.
     this is believed to be the safest mode of browser/hub communication,
@@ -119,6 +113,12 @@ The options are as follows:
     <code>clientaccesspolicy.xml</code> mechanism.
     Silverlight is believed to support the Flash mechanism, so you can and
     should probably leave this switched off.
+    </dd>
+<dt><b>URL Controls:</b></dt>
+<dd>Whether web clients are restricted from accessing sensitive resources,
+    like local files, if they have not previously been mentioned in earlier
+    SAMP messages.  This option is experimental, but it is probably a good
+    idea to leave it on for security reasons.
     </dd>
 </dl>
 <p>Note that the configuration options may only be changed when the

@@ -123,14 +123,6 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
      */
     private JToggleButton.ToggleButtonModel[] createConfigModels() {
         ConfigModel[] models = new ConfigModel[] {
-            new ConfigModel( "URL Controls" ) {
-                void setOn( boolean on ) {
-                    controlUrls_ = on;
-                }
-                boolean isOn() {
-                    return controlUrls_;
-                }
-            },
             new ConfigModel( "CORS cross-domain access" ) {
                 void setOn( boolean on ) {
                     serverFactory_
@@ -155,6 +147,14 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
                 }
                 boolean isOn() {
                     return serverFactory_.isAllowSilverlight();
+                }
+            },
+            new ConfigModel( "URL Controls" ) {
+                void setOn( boolean on ) {
+                    controlUrls_ = on;
+                }
+                boolean isOn() {
+                    return controlUrls_;
                 }
             },
         };
