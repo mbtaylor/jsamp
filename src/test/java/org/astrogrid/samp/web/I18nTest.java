@@ -14,11 +14,11 @@ public class I18nTest extends TestCase {
 
     private static final Locale[] locales_ = new Locale[] {
         Locale.ENGLISH,
-        Locale.FRENCH,
         Locale.ITALIAN,
+        Locale.GERMAN,
     };
     private static final String[] suffixes_ = new String[] {
-        "_en", "_fr", "_it",
+        "_en", "_it", "_de",
     };
     private static final Method[] contentMethods_ =
         AuthResourceBundle.getContentMethods();
