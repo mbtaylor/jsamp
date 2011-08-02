@@ -61,6 +61,7 @@ public class LoggingCorsHttpServer extends CorsHttpServer {
         appendHeaders( sbuf, request.getHeaderMap() );
         byte[] body = request.getBody();
         if ( body != null && body.length > 0 ) {
+            sbuf.append( '\n' );
             try {
                 sbuf.append( new String( request.getBody(), "utf-8" ) );
             }
