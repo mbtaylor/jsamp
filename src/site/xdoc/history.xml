@@ -19,6 +19,7 @@
 <li><a href="#Version_1_0"  >Version 1.0</a></li>
 <li><a href="#Version_1_1"  >Version 1.1</a></li>
 <li><a href="#Version_1_2"  >Version 1.2</a></li>
+<li><a href="#Version_1_3"  >Version 1.3</a></li>
 </ul>
 
 <subsection name="Version 0.1">
@@ -428,7 +429,7 @@ to a minimum following this release.
 <subsection name="Version 1.1">
 <p>
 <strong>Date:</strong> 21 July 2010<br/>
-<strong>Archive:</strong> <a href="../1.1">Version 1.1</a>
+<strong>Archive:</strong> <a href="../1.1/">Version 1.1</a>
 </p>
 
 <p>Protocol extension:</p>
@@ -535,7 +536,7 @@ to a minimum following this release.
 <subsection name="Version 1.2">
 <p>
 <strong>Date:</strong> 15 Feb 2011<br/>
-<strong>Archive:</strong> <a href="../1.2">Version 1.2</a>
+<strong>Archive:</strong> <a href="../1.2/">Version 1.2</a>
 </p>
 
 <p>The two main changes at this release are generalisation of the
@@ -647,21 +648,23 @@ definition may change in the future.
 </ul>
 </subsection>
 
-<subsection name="Next version">
+<subsection name="Version 1.3">
 <p>
-<strong>Date:</strong><br/>
-<strong>Archive:</strong>
+<strong>Date:</strong> 2 Aug 2011<br/>
+<strong>Archive:</strong> <a href="../1.3/">Version 1.3</a>
 </p>
 
 <p>Various changes relating to configurable use of profiles and the
 Web Profile in particular, to match the SAMP 1.3 WD,
 and to enable experimentation with multi-profile configurations while
-we gain experience with security options:
+we gain experience with security options.
+There is more discussion in the new <a href="profiles.html">Profiles</a> page, 
+but the main changes are:
 </p>
 <ul>
 <li>The Web Profile is now available, but not switched on, by default.
     The Web Profile (and other profiles) can be switched on or off while
-    the hub is running by using the new <b>Profile</b> menu in the
+    the hub is running by using the new <b>Profiles</b> menu in the
     hub window or system tray icon.
     There is a corresponding new <code>hub</code> command flag
     <code>-web:extraprofiles</code> and system property
@@ -677,13 +680,6 @@ we gain experience with security options:
     <code>-web:[no]silverlight</code>,
     <code>-web:[no]urlcontrol</code>.
     </li>
-<li>The hub window also has a new <b>File</b> menu, which just allows
-    hub shutdown.
-    </li>
-<li>The hub window also has a new <b>Clients</b> menu, which allows
-    pinging and disconnection of clients (this functionality duplicates
-    the existing, but not very obvious, client popup menu).
-    </li>
 <li>The Web Profile hub server now blocks non-localhost requests at
     the HTTP level.  This should benefit security.
     </li>
@@ -692,21 +688,34 @@ we gain experience with security options:
     have not previously been mentioned by a non-Web Profile client.
     This should benefit security.
     </li>
-<li>Web profile now uses <code>map</code> argument not <code>string</code>
-    argument to <code>register()</code>, as per change to Web Profile
-    specification.
+<li>Web profile now uses a <code>map</code> argument and not a
+    <code>string</code> argument to <code>register()</code>,
+    as per the change to the Web Profile specification.
     </li>
-<li>Various related changes to the hub implementation and API to enable
-    the above.
+<li>Various related changes to the hub implementation and API have been
+    made to enable the above.
     The recommended entry point, <code>Hub.runHub()</code>, still works though.
     </li>
 </ul>
+
+<p>The Hub GUI window now has menus:
+</p>
+<ul>
+<li><b>File</b> menu, which just allows hub shutdown.</li>
+<li><b>Clients</b> menu, which allows pinging and disconnection of clients
+    (this functionality duplicates the existing, but not very obvious,
+    client popup menu).</li>
+<li><b>Profiles</b> menu, as described above.</li>
+</ul>
+
 <p>JSON is now used as the standard serialization/deserialization format
 for SAMP objects in a few places:
 </p>
 <ul>
 <li>New utility methods <code>toJson</code> and <code>fromJson</code> in
-    <code>SampUtils</code> class.
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/SampUtils.html"
+                                       >SampUtils</a> class.
     </li>
 <li>Non-scalar message parameter contents and client metadata
     can now be specified to 
@@ -724,18 +733,26 @@ for SAMP objects in a few places:
 </p>
 <ul>
 <li>The <code>ClientProfile.isHubRunning</code> method now probes more
-    agressively for a hub.  This is a change to both the API and the
-    implementations.</li>
+    agressively for a hub (for instance in the Standard Profile it pings
+    rather than just looking for the .samp file).
+    This is a change to both the API and the implementations.</li>
 <li>The Web Profile registration dialogue is now somewhat internationalised.
     Thanks to Luigi Paioro and Markus Demleitner for providing
-    translations.</li>
+    translations.  This can be extended by providing further instances of
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/web/AuthResourceBundle.html"
+                                           >AuthResourceBundle</a>
+    class or supplying a suitable
+    <code>org.astrogrid.samp.web.AuthResourceBundle_xx.properties</code>
+    resource; run AuthResourceBundle.main() for example output.</li>
 <li>The Web Profile hub now fails at start time rather than during
     registration attempts if Swing client authorization is in use
     with headless graphics.</li>
 <li>More helpful warning message when standard profile lockfile
     is present but broken (suggests deleting file).</li>
-<li>Use <code>DefaultClientProfile</code> not
-    <code>StandardClientProfile</code> in <code>HubMonitor</code>.</li>
+<li><code>HubMonitor</code> now correctly uses
+    <code>DefaultClientProfile</code> rather than
+    <code>StandardClientProfile</code>.</li>
 </ul>
 </subsection>
 
