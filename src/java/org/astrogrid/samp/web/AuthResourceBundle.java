@@ -25,6 +25,9 @@ public class AuthResourceBundle extends ResourceBundle {
     private static final Logger logger_ =
         Logger.getLogger( AuthResourceBundle.class.getName() );
 
+    /**
+     * Constructs default (English) instance.
+     */
     public AuthResourceBundle() {
         this( getDefaultContent() );
     }
