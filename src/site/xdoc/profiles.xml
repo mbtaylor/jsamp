@@ -15,7 +15,7 @@
 
 <p>The SAMP protocol is defined in two parts, as an abstract API and
 as transport-specific Profiles.
-One or more Profiles may be offered for by a SAMP hub to allow clients
+One or more Profiles may be offered by a SAMP hub to allow clients
 to communicate with it.
 At present, JSAMP offers two basic profiles, the Standard Profile,
 intended for normal desktop-based clients, 
@@ -33,7 +33,7 @@ in the hub, you can do one of the following:
 </p>
 <ul>
 <li>Run the jsamp <code>hub</code> command
-    with the <code>-profiles std,web</code> flag.</li>
+    with the flag "<code>-profiles std,web</code>".</li>
 <li>Run the hub, or whatever java program is going to start a JSAMP hub
     (e.g. TOPCAT, Aladin) with the system property flag
     <code>-Djsamp.hub.profiles=std,web</code>.</li>
