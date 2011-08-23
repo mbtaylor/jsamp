@@ -16,9 +16,10 @@ public class I18nTest extends TestCase {
         Locale.ENGLISH,
         Locale.ITALIAN,
         Locale.GERMAN,
+        Locale.FRENCH,
     };
     private static final String[] suffixes_ = new String[] {
-        "_en", "_it", "_de",
+        "_en", "_it", "_de", "_fr",
     };
     private static final Method[] contentMethods_ =
         AuthResourceBundle.getContentMethods();
