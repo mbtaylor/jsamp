@@ -756,6 +756,18 @@ for SAMP objects in a few places:
 </ul>
 </subsection>
 
+<subsection name="Next version">
+<p>
+<strong>Date:</strong><br/>
+<strong>Archive:</strong>
+</p>
+
+<ul>
+<li>Add French translation for Web SAMP confirmation dialogue
+    (thanks to Thomas Boch).</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>
