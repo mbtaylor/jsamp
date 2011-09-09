@@ -2,8 +2,10 @@ package org.astrogrid.samp.httpd;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -68,7 +70,12 @@ public class ResourceHandler implements HttpServer.Handler {
                                          ServerResource resource ) {
         String path = basePath_ + Integer.toString( ++iRes_ ) + "/";
         if ( name != null ) {
-            path += name;
+            try {
+                path += URLEncoder.encode( name, "utf-8" );
+            }
+            catch ( UnsupportedEncodingException e ) {
+                logger_.warning( "No utf-8?? No cosmetic path name then" );
+            }
         }
         resourceMap_.put( path, resource );
         try {

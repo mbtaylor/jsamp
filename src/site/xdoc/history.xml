@@ -765,6 +765,8 @@ for SAMP objects in a few places:
 <ul>
 <li>Add French translation for Web SAMP confirmation dialogue
     (thanks to Thomas Boch).</li>
+<li>URL encode argument of <code>ResourceHandler.addResource</code>
+    (thanks to Omar Laurino).</li>
 </ul>
 </subsection>
 
