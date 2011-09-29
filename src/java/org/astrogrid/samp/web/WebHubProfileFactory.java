@@ -18,7 +18,8 @@ import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 public class WebHubProfileFactory implements HubProfileFactory {
 
     private static final String logUsage_ = "[-web:log none|http|xml|rpc]";
-    private static final String authUsage_ = "[-web:auth swing|true|false]";
+    private static final String authUsage_ =
+        "[-web:auth swing|true|false|extreme]";
     private static final String corsUsage_ = "[-web:[no]cors]";
     private static final String flashUsage_ = "[-web:[no]flash]";
     private static final String silverlightUsage_ = "[-web:[no]silverlight]";
@@ -129,6 +130,12 @@ public class WebHubProfileFactory implements HubProfileFactory {
                         .createLoggingClientAuthorizer(
                              new HubSwingClientAuthorizer( null ),
                              Level.INFO, Level.INFO );
+        }
+        else if ( "extreme".equalsIgnoreCase( authType ) ) {
+            clientAuth = ClientAuthorizers
+                        .createLoggingClientAuthorizer(
+                             new ExtremeSwingClientAuthorizer( null ),
+                             Level.WARNING, Level.INFO );
         }
         else if ( "true".equalsIgnoreCase( authType ) ) {
             clientAuth = ClientAuthorizers.TRUE;

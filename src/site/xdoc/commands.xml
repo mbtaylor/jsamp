@@ -249,7 +249,7 @@ The following flags are used only if the Standard Profile
          </dd>
     </dl>
     </dd>
-<dt><code>-web:auth swing|true|false</code></dt>
+<dt><code>-web:auth swing|true|false|extreme</code></dt>
 <dd>Configures how the Web Profile hub determines whether clients are
     permitted to connect.  The options are:
     <dl>
@@ -268,6 +268,11 @@ The following flags are used only if the Standard Profile
     <dd>All requests to register are refused without reference to the user.
         This rather silly option means that no clients can register via the
         Web Profile.
+        </dd>
+    <dt><code>extreme</code></dt>
+    <dd>Solicits confirmation via a popup dialogue from the user as for
+        <code>swing</code>, but takes extra measures to try to discourage
+        the user from accepting requests.
         </dd>
     </dl>
     </dd>

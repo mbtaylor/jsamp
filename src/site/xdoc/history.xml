@@ -767,6 +767,7 @@ for SAMP objects in a few places:
     (thanks to Thomas Boch).</li>
 <li>URL encode argument of <code>ResourceHandler.addResource</code>
     (thanks to Omar Laurino).</li>
+<li>Add <code>-web:auth extreme</code> mode to hub.</li>
 </ul>
 </subsection>
 
