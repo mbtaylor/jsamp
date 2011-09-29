@@ -768,6 +768,9 @@ for SAMP objects in a few places:
 <li>URL encode argument of <code>ResourceHandler.addResource</code>
     (thanks to Omar Laurino).</li>
 <li>Add <code>-web:auth extreme</code> mode to hub.</li>
+<li>Web hub profile now throws
+    <code>SampException</code> not <code>SecurityException</code>
+    on registration failure; this makes failures less verbose in hub.</li>
 </ul>
 </subsection>
 

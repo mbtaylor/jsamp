@@ -1,6 +1,5 @@
 package org.astrogrid.samp.web;
 
-import java.lang.SecurityException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -159,7 +158,7 @@ class WebHubXmlRpcHandler extends ActorHandler {
          * @return  registration information if registration is successful
          */
         public RegInfo register( HttpServer.Request request, Map securityMap )
-                throws SecurityException, SampException {
+                throws SampException {
             if ( profile_.isHubRunning() ) {
                 if ( ! CorsHttpServer
                       .isLocalHost( request.getRemoteAddress() ) ) {
@@ -167,7 +166,7 @@ class WebHubXmlRpcHandler extends ActorHandler {
                         "Registration attempt from non-local remote host - "
                       + "should have been blocked earlier by HTTP server";
                     logger_.severe( alert );
-                    throw new SecurityException( alert );
+                    throw new SampException( alert );
                 }
                 Object appNameObj = securityMap.get( Metadata.NAME_KEY );
                 final String appName;
@@ -181,7 +180,7 @@ class WebHubXmlRpcHandler extends ActorHandler {
                 }
                 boolean isAuth = auth_.authorize( request, appName );
                 if ( ! isAuth ) {
-                    throw new SecurityException( "Registration denied" );
+                    throw new SampException( "Registration denied" );
                 }
                 else {
                     HubConnection connection = profile_.register();
