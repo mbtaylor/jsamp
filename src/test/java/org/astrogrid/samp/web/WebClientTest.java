@@ -222,6 +222,25 @@ public class WebClientTest extends TestCase {
         hServer.stop();
     }
 
+    public void testSubscriptionMask() {
+        SubscriptionMask allMask = ListSubscriptionMask.ALL;
+        SubscriptionMask noneMask = ListSubscriptionMask.NONE;
+        SubscriptionMask dfltMask = ListSubscriptionMask.DEFAULT;
+        SubscriptionMask testMask =
+            new ListSubscriptionMask( true, new String[] { "test.*" } );
+        SubscriptionMask notestMask =
+            new ListSubscriptionMask( false, new String[] { "test.*" } );
+        assertTrue( allMask.isMTypePermitted( "system.exec" ) );
+        assertTrue( ! noneMask.isMTypePermitted( "system.exec" ) );
+        assertTrue( ! dfltMask.isMTypePermitted( "system.exec" ) );
+        assertTrue( ! testMask.isMTypePermitted( "system.exec" ) );
+        assertTrue( notestMask.isMTypePermitted( "system.exec" ) );
+
+        assertTrue( dfltMask.isMTypePermitted( "table.load.votable" ) );
+        assertTrue( new ListSubscriptionMask( true, new String[] { "do.what" } )
+                   .isMTypePermitted( "do.what" ) );
+    }
+
     private static String readUrl( URL url ) throws IOException {
         StringBuffer ubuf = new StringBuffer();
         InputStream in = url.openStream();
