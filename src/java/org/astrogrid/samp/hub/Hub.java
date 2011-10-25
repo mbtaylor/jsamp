@@ -45,10 +45,10 @@ public class Hub {
     private final HubService service_;
     private final List profileList_;
     private static Class[] defaultDefaultProfileClasses_ = {
-        StandardHubProfile.class
+        StandardHubProfile.class,
+        WebHubProfile.class,
     };
     private static Class[] defaultDefaultExtraProfileClasses_ = {
-        WebHubProfile.class
     };
     private static Class[] defaultProfileClasses_ =
         createDefaultProfileClasses( false );
