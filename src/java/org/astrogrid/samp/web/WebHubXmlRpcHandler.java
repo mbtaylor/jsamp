@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Subscriptions;
@@ -41,6 +42,7 @@ class WebHubXmlRpcHandler extends ActorHandler {
      *
      * @param  profile  hub connection factory
      * @param  auth   client authorizer
+     * @param  subsMask  mask for permitted outward MTypes
      * @param  keyGen   key generator for private keys
      * @param  baseUrl  base URL of HTTP server, used for URL translation
      * @param  urlTracker  tracks URLs in messages to restrict use in URL
@@ -48,10 +50,10 @@ class WebHubXmlRpcHandler extends ActorHandler {
      *         no restrictions
      */
     public WebHubXmlRpcHandler( ClientProfile profile, ClientAuthorizer auth,
-                                KeyGenerator keyGen, URL baseUrl,
-                                UrlTracker urlTracker ) {
+                                SubscriptionMask subsMask, KeyGenerator keyGen,
+                                URL baseUrl, UrlTracker urlTracker ) {
         super( WebClientProfile.WEBSAMP_HUB_PREFIX, WebHubActor.class,
-               new WebHubActorImpl( profile, auth, keyGen, baseUrl,
+               new WebHubActorImpl( profile, auth, subsMask, keyGen, baseUrl,
                                     urlTracker ) );
         impl_ = (WebHubActorImpl) getActor();
     }
@@ -108,6 +110,7 @@ class WebHubXmlRpcHandler extends ActorHandler {
 
         private final ClientProfile profile_;
         private final ClientAuthorizer auth_;
+        private final SubscriptionMask subsMask_;
         private final KeyGenerator keyGen_;
         private final Map regMap_;
         private final URLTranslationHandler urlTranslator_;
@@ -119,16 +122,19 @@ class WebHubXmlRpcHandler extends ActorHandler {
          *
          * @param  profile   hub connection factory
          * @param  auth  client authorizer
+         * @param  subsMask  mask for permitted outward MTypes
          * @param  keyGen   key generator for private keys
          * @param  baseUrl  HTTP server base URL
          * @param  urlTracker  controls access to translated URLs,
          *                     may be null for no control
          */
         public WebHubActorImpl( ClientProfile profile, ClientAuthorizer auth,
+                                SubscriptionMask subsMask,
                                 KeyGenerator keyGen, URL baseUrl,
                                 UrlTracker urlTracker ) {
             profile_ = profile;
             auth_ = auth;
+            subsMask_ = subsMask;
             keyGen_ = keyGen;
             baseUrl_ = baseUrl;
             urlTracker_ = urlTracker;
@@ -288,28 +294,33 @@ class WebHubXmlRpcHandler extends ActorHandler {
    
         public void notify( String clientKey, String recipientId, Map msg )
                 throws SampException {
+            checkPermittedMessage( msg );
             getConnection( clientKey ).notify( recipientId, msg );
         }
 
         public List notifyAll( String clientKey, Map msg )
                 throws SampException {
+            checkPermittedMessage( msg );
             return getConnection( clientKey ).notifyAll( msg );
         }
 
         public String call( String clientKey, String recipientId, String msgTag,
                             Map msg )
                 throws SampException {
+            checkPermittedMessage( msg );
             return getConnection( clientKey ).call( recipientId, msgTag, msg );
         }
 
         public Map callAll( String clientKey, String msgTag, Map msg )
                 throws SampException {
+            checkPermittedMessage( msg );
             return getConnection( clientKey ).callAll( msgTag, msg );
         }
 
         public Map callAndWait( String clientKey, String recipientId, Map msg,
                                 String timeout )
                 throws SampException {
+            checkPermittedMessage( msg );
             return getConnection( clientKey )
                   .callAndWait( recipientId, msg,
                                 SampUtils.decodeInt( timeout ) );
@@ -362,6 +373,23 @@ class WebHubXmlRpcHandler extends ActorHandler {
         private HubConnection getConnection( String privateKey )
                 throws SampException {
             return getRegistration( privateKey ).connection_;
+        }
+
+        /**
+         * Checks whether the given message is legal for sending from a
+         * Web Profile client.  If the current subscription mask blocks the
+         * message's MType, then a SampException is thrown.
+         * Otherwise, no action is taken.
+         *
+         * @param  msg  candidate message to send
+         * @throws SampException if blocked
+         */
+        private void checkPermittedMessage( Map msg ) throws SampException {
+            String mtype = Message.asMessage( msg ).getMType();
+            if ( ! subsMask_.isMTypePermitted( mtype ) ) {
+                throw new SampException( "MType " + mtype
+                                       + " blocked for Web Profile client" );
+            }
         }
     }
 

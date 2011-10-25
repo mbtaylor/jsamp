@@ -28,6 +28,7 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
     private final ServerFactory serverFactory_;
     private final ClientAuthorizer auth_;
     private final KeyGenerator keyGen_;
+    private SubscriptionMask subsMask_;
     private boolean controlUrls_;
     private InternalServer xServer_;
     private WebHubXmlRpcHandler wxHandler_;
@@ -41,12 +42,16 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
      * @param   serverFactory  factory for server providing HTTP
      *                         and XML-RPC implementation
      * @param   auth  client authorizer implementation
+     * @param   subsMask  mask for permitted outward MTypes
      * @param   keyGen  key generator for private keys
+     * @param   controlUrls  true iff access to local URLs is to be restricted
      */
     public WebHubProfile( ServerFactory serverFactory, ClientAuthorizer auth,
+                          SubscriptionMask subsMask,
                           KeyGenerator keyGen, boolean controlUrls ) {
         serverFactory_ = serverFactory;
         auth_ = auth;
+        subsMask_ = subsMask;
         keyGen_ = keyGen;
         controlUrls_ = controlUrls;
     }
@@ -56,7 +61,7 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
      */
     public WebHubProfile() throws IOException {
         this( new ServerFactory(), new HubSwingClientAuthorizer( null ),
-              createKeyGenerator(), true );
+              ListSubscriptionMask.DEFAULT, createKeyGenerator(), true );
     }
 
     public String getProfileName() {
@@ -71,7 +76,7 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
         xServer_ = serverFactory_.createSampXmlRpcServer();
         HttpServer hServer = xServer_.getHttpServer();
         WebHubXmlRpcHandler wxHandler =
-            new WebHubXmlRpcHandler( profile, auth_, keyGen_,
+            new WebHubXmlRpcHandler( profile, auth_, subsMask_, keyGen_,
                                      hServer.getBaseUrl(),
                                      controlUrls_ ? new UrlTracker() : null );
         xServer_.addHandler( wxHandler );
@@ -155,6 +160,15 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
                 }
                 boolean isOn() {
                     return controlUrls_;
+                }
+            },
+            new ConfigModel( "MType Restrictions" ) {
+                void setOn( boolean on ) {
+                    subsMask_ = on ? ListSubscriptionMask.DEFAULT
+                                   : ListSubscriptionMask.ALL;
+                }
+                boolean isOn() {
+                    return subsMask_ != ListSubscriptionMask.ALL;
                 }
             },
         };

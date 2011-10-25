@@ -24,6 +24,8 @@ public class WebHubProfileFactory implements HubProfileFactory {
     private static final String flashUsage_ = "[-web:[no]flash]";
     private static final String silverlightUsage_ = "[-web:[no]silverlight]";
     private static final String urlcontrolUsage_ = "[-web:[no]urlcontrol]";
+    private static final String restrictMtypeUsage_ =
+        "[-web:[no]restrictmtypes]";
 
     /**
      * Returns "web".
@@ -40,6 +42,7 @@ public class WebHubProfileFactory implements HubProfileFactory {
             flashUsage_,
             silverlightUsage_,
             urlcontrolUsage_,
+            restrictMtypeUsage_,
         };
     }
 
@@ -52,6 +55,7 @@ public class WebHubProfileFactory implements HubProfileFactory {
         boolean useFlash = true;
         boolean useSilverlight = false;
         boolean urlControl = true;
+        boolean restrictMtypes = true;
         for ( Iterator it = flagList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-web:log" ) ) {
@@ -105,6 +109,12 @@ public class WebHubProfileFactory implements HubProfileFactory {
             else if ( arg.equals( "-web:nourlcontrol" ) ) {
                 urlControl = false;
             }
+            else if ( arg.equals( "-web:restrictmtypes" ) ) {
+                restrictMtypes = true;
+            }
+            else if ( arg.equals( "-web:norestrictmtypes" ) ) {
+                restrictMtypes = false;
+            }
         }
 
         // Prepare HTTP server.
@@ -149,8 +159,13 @@ public class WebHubProfileFactory implements HubProfileFactory {
                                               + authUsage_ );
         }
 
+        // Prepare subscriptions mask.
+        SubscriptionMask subsMask = restrictMtypes
+                                  ? ListSubscriptionMask.DEFAULT
+                                  : ListSubscriptionMask.ALL;
+
         // Construct and return an appropriately configured hub profile.
-        return new WebHubProfile( sfact, clientAuth,
+        return new WebHubProfile( sfact, clientAuth, subsMask,
                                   WebHubProfile.createKeyGenerator(),
                                   urlControl );
     }
