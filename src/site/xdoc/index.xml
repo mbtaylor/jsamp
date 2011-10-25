@@ -34,7 +34,7 @@ It provides the following components:
 <p>The toolkit's design aims are, in rough order of priority:
 </p>
 <ul>
-<li>Correctness according to the SAMP standard</li>
+<li>Correctness and completeness according to the SAMP standard</li>
 <li>Robustness</li>
 <li>Ease of use for client application authors</li>
 <li>Ease of deployment within third-party applications (few dependencies)</li>
