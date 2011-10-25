@@ -37,9 +37,9 @@ public class AuthResourceBundle_de extends AuthResourceBundle {
             return "Nicht gegeben";
         }
         public String privilegeWarningLines() {
-            return "Wenn Sie dies zulassen, kann der Dienst auf\n"
-                 + "lokale Dateien und andere Ressourcen auf\n"
-                 + "Ihrem Rechner zugreifen.";
+            return "Wenn Sie dies zulassen, k\u00f6nnte der Dienst unter\n"
+                 + "Umst\u00e4nden auf Dateien oder andere Resourcen auf\n"
+                 + "Ihrem Rechner zugreifen k\u00f6nnen.";
         }
         public String adviceLines() {
             return "Lassen Sie die Verbindung nur zu, wenn Sie gerade\n"
