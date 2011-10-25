@@ -36,11 +36,9 @@ public class AuthResourceBundle_it extends AuthResourceBundle {
         public String undeclaredWord() {
             return "non dichiarato";
         }
-        public String privilegeWarningFormatLines() {
-            return "Se ne consentite la registrazione, "
-                 + "esso avr\u00e0 i privilegi\n"
-                 + "di accesso dell''utente {0}, come, ad esempio,\n"
-                 + "leggere e scrivere files.";
+        public String privilegeWarningLines() {
+            return "Se ne consentite la registrazione, esso potrebbe accedere\n"
+                 + "ai files locali e ad altre risorse del vostro computer.";
         }
         public String adviceLines() {
             return "Il vostro consenso dovrebbe essere dato solo se avete\n"

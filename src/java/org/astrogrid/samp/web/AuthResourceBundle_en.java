@@ -18,7 +18,7 @@ public class AuthResourceBundle_en extends AuthResourceBundle {
     /**
      * Content implementation for English.
      */
-    public static class EnglishContent implements Content {
+    static class EnglishContent implements Content {
         public String windowTitle() {
             return "SAMP Hub Security";
         }
@@ -35,9 +35,9 @@ public class AuthResourceBundle_en extends AuthResourceBundle {
         public String undeclaredWord() {
             return "undeclared";
         }
-        public String privilegeWarningFormatLines() {
-            return "If you permit this, it will have most of the privileges\n"
-                 + "of user {0}, such as file read/write.";
+        public String privilegeWarningLines() {
+            return "If you permit this, it may be able to access local files\n"
+                 + "and other resources on your computer.";
         }
         public String adviceLines() {
             return "You should only accept if you have just performed\n"

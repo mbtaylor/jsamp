@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
-import java.text.MessageFormat;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import org.astrogrid.samp.httpd.HttpServer;
@@ -98,13 +97,7 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
         lineList.add( "    " + authContent.nameWord() + ": " + appName );
         lineList.add( "    " + authContent.originWord() + ": " + origin );
         lineList.add( "\n" );
-        String[] pfmtLines =
-            toLines( authContent.privilegeWarningFormatLines() );
-        String user = System.getProperty( "user.name" );
-        for ( int il = 0; il < pfmtLines.length; il++ ) {
-            lineList.add( MessageFormat.format( pfmtLines[ il ],
-                                                new Object[] { user } ) );
-        }
+        lineList.addAll( toLineList( authContent.privilegeWarningLines() ) );
         lineList.add( "\n" );
         lineList.addAll( toLineList( authContent.adviceLines() ) );
         lineList.add( "\n" );

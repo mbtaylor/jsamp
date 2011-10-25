@@ -36,10 +36,10 @@ public class AuthResourceBundle_de extends AuthResourceBundle {
         public String undeclaredWord() {
             return "Nicht gegeben";
         }
-        public String privilegeWarningFormatLines() {
-            return "Wenn Sie dies erlauben, hat das Programm im\n"
-                 + "Wesentlichen alle Rechte des Benutzers {0}.\n"
-                 + "Es kann insbesondere Dateien lesen und schreiben.";
+        public String privilegeWarningLines() {
+            return "Wenn Sie dies zulassen, kann der Dienst auf\n"
+                 + "lokale Dateien und andere Ressourcen auf\n"
+                 + "Ihrem Rechner zugreifen.";
         }
         public String adviceLines() {
             return "Lassen Sie die Verbindung nur zu, wenn Sie gerade\n"

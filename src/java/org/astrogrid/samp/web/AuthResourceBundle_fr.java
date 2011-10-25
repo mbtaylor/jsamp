@@ -25,8 +25,9 @@ public class AuthResourceBundle_fr extends AuthResourceBundle {
         }
         public String appIntroductionLines() {
             return "L'application suivante, qui s'ex\u00e9cute probablement "
-                 + "depuis un navigateur,\n"
-                 + "demande \u00e0 s'enregistrer aupr\u00e8s du hub SAMP:";
+                 + "depuis un\n"
+                 + "navigateur, demande \u00e0 s'enregistrer "
+                 + "aupr\u00e8s du hub SAMP:";
         }
         public String nameWord() {
             return "Nom";
@@ -37,11 +38,10 @@ public class AuthResourceBundle_fr extends AuthResourceBundle {
         public String undeclaredWord() {
             return "Inconnue";
         }
-        public String privilegeWarningFormatLines() {
-            return "Si vous l''autorisez, elle aura les privil\u00e8ges "
-                 + "de l''utiliseur {0},\n"
-                 + "et pourra par exemple lire et \u00e9crire les fichiers "
-                 + "locaux.";
+        public String privilegeWarningLines() {
+            return "Si vous l'autorisez, elle pourra acc\u00e9der aux "
+                 + "fichiers locaux\n"
+                 + "et autres ressources de votre ordinateur.";
         }
         public String adviceLines() {
             return "Acceptez uniquement si vous venez d'effectuer dans le "

@@ -280,11 +280,10 @@ public class AuthResourceBundle extends ResourceBundle {
         String undeclaredWord();
 
         /**
-         * Returns lines suitable for use as a MessageFormat explaining
-         * the privileges that a registered client will have.
-         * The token "{0}" will be replaced with the name of the current user.
+         * Returns lines suitable explaining the privileges that a
+         * registered client will have.
          */
-        String privilegeWarningFormatLines();
+        String privilegeWarningLines();
 
         /**
          * Returns lines with advice on whether you should accept or decline.
