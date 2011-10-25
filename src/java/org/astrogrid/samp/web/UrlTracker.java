@@ -103,7 +103,7 @@ class UrlTracker {
      * @param  url  URL to assess
      * @return   true iff permission to access is appropriate
      */
-    public synchronized boolean isPermitted( URL url ) {
+    public synchronized boolean isUrlPermitted( URL url ) {
         if ( isSensitive( url ) ) {
             if ( permittedSet_.contains( url ) ) {
                 logger_.config( "Translation permitted for marked URL " + url );

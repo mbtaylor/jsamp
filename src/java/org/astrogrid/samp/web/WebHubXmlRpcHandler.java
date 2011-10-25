@@ -479,7 +479,7 @@ class WebHubXmlRpcHandler extends ActorHandler {
 
             // Check permissions.
             if ( urlTracker_ != null &&
-                 ! urlTracker_.isPermitted( targetUrl ) ) {
+                 ! urlTracker_.isUrlPermitted( targetUrl ) ) {
                 return HttpServer.createErrorResponse( 403, "Forbidden" );
             }
 
