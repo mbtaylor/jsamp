@@ -25,28 +25,17 @@ These are described below.
 </p>
 
 <p>By default, the hub is configured with both Standard and Web profiles
-available, but only Standard Profile switched on by default.
-If you want to use the Web Profile, either configure it to start using
-command-line flags to the Hub command, or equivalent programmatic settings.
-To switch on the Web Profile as well as the Standard Profile by default
-in the hub, you can do one of the following:
+running.
+You can turn them on and off while the hub is running using
+the <b>Profiles</b> menu.
+You can configure which profiles are run on startup using the
+hub <code>-profiles</code> and <code>-extraprofiles</code> flags or the
+<code>jsamp.hub.profiles</code> and <code>jsamp.hub.profiles.extra</code>
+system properties, or if you're writing code with one of the methods in the
+<a target="samp-javadoc"
+   href="apidocs/org/astrogrid/samp/hub/Hub.html"
+                                       >Hub</a> class.
 </p>
-<ul>
-<li>Run the jsamp <code>hub</code> command
-    with the flag "<code>-profiles std,web</code>".</li>
-<li>Run the hub, or whatever java program is going to start a JSAMP hub
-    (e.g. TOPCAT, Aladin) with the system property flag
-    <code>-Djsamp.hub.profiles=std,web</code>.</li>
-<li>Check the checkbox in the the <b>Profiles|Web Profile</b> menu 
-    in the hub GUI window.</li>
-<li>Check the checkbox in the <b>Profiles|Web Profile</b> menu
-    provided by clicking on the hub system tray icon.</li>
-<li>If you're writing code, you can use one of the methods in the
-    <a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/hub/Hub.html"
-                                           >Hub</a> class
-    which allow you to specify what profiles will be used.</li>
-</ul>
 
 <p>The <b>Profiles</b> menu in the hub window looks something like this:
 </p>
@@ -120,6 +109,15 @@ The options are as follows:
     SAMP messages.  This option is experimental, but it is probably a good
     idea to leave it on for security reasons.
     </dd>
+<dt><b>MType Restrictions:</b></dt>
+<dd>Whether the messages web clients are permitted to send are restricted.
+    If this option is selected, only MTypes matching a well-known list
+    of harmless ones are permitted - this includes all the common MTypes
+    to exchange tables, images, spectra etc.
+    This option is experimental, and you may need to switch it off if
+    a web client has to send messages with unusual MTypes, but otherwise
+    if is a good idea to leave it on for security reasons.
+    </dd>
 </dl>
 <p>Note that the configuration options may only be changed when the
 Web Profile itself is not running.
@@ -144,15 +142,10 @@ implementations around this issue.
 relating to the Web Profile are:
 </p>
 <ul>
-<li>In the default configuration, the Web Profile is switched off.
-    Users can switch it on during hub operation using the <b>Profiles</b>
-    menu from the hub GUI (if present).  It can also be switched on
-    from the command-line or programatically at hub startup.
-    The fact that it's off by default means that web clients will not be
-    able to register unless the user has explicitly opted in, so only
-    users who have some idea what the Web Profile is will be exposed to it
-    at this stage.  This policy may be changed (Web Profile on by default)
-    in future releases depending on how thinking on security progresses.
+<li>The Web Profile may be switched off.  Users can switch it on and off
+    during hub operation using the <b>Profiles</b>
+    menu from the hub GUI (if present).
+    Since version 1.3-1 it is switched on in the default configuration.
     </li>
 <li>If the Web Profile is switched off during operation using
     the <b>Profiles|Web Profile</b> menu item in the hub GUI,
@@ -184,6 +177,21 @@ relating to the Web Profile are:
     the <b>Profiles|Web Profile Configuration|URL Controls</b> menu item from
     the hub GUI, or with the <code>-web:[no]urlcontrol</code> hub
     command-line switch.
+    </li>
+<li>The MTypes which a web client is permitted to send may be restricted.
+    In this way, web clients can be restricted to sending messages known
+    to have harmless semantics, and blocked, for instance, from sending
+    messages which cause scripts to be executed on desktop clients,
+    which have more potential for dangerous effects.
+    By default, only MTypes matching a well-known list of wildcards 
+    are allowed; this includes <code>samp.*</code>, <code>table.*</code>,
+    <code>image.*</code>, and others which are used for the normal
+    exchange of data.  This restriction can be switched off and on using
+    the <b>Profiles|Web Profile Configuration|MType Restrictions</b>
+    menu item from the hub GUI, or with the
+    <code>-web:[no]restrictmtypes</code> hub command-line switch.
+    Finer control can be achieved programmatically by providing a custom
+    implementation of the <code>SubscriptionMask</code> interface.
     </li>
 <li>The details of which cross-domain workarounds are used can be controlled
     from the <b>Profiles|Web Profile Configuration</b> menu or from the
