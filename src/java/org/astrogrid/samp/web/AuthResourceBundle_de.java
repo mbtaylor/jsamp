@@ -19,7 +19,7 @@ public class AuthResourceBundle_de extends AuthResourceBundle {
     /**
      * Content implementation for English.
      */
-    public static class GermanContent implements Content {
+    private static class GermanContent implements Content {
         public String windowTitle() {
             return "SAMP Zugriffskontrolle";
         }

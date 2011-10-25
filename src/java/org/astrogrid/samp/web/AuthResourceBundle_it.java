@@ -19,7 +19,7 @@ public class AuthResourceBundle_it extends AuthResourceBundle {
     /**
      * Content implementation for Italian.
      */
-    public static class ItalianContent implements Content {
+    private static class ItalianContent implements Content {
         public String windowTitle() {
             return "Sicurezza del SAMP Hub";
         }

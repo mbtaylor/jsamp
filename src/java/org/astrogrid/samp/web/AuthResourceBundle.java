@@ -240,8 +240,8 @@ public class AuthResourceBundle extends ResourceBundle {
 
     /**
      * Defines the keys and value types required for a bundle of this class.
-     * See the English language implementation,
-     * {link AuthResourceBundle_en.EnglishContent} for example text.
+     * See the English language implementation in
+     * {@link AuthResourceBundle_en} for example text.
      *
      * <p>All methods have no arguments and return a String.
      * The methods with names

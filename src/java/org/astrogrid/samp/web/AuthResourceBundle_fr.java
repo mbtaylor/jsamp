@@ -19,7 +19,7 @@ public class AuthResourceBundle_fr extends AuthResourceBundle {
     /**
      * Content implementation for French.
      */
-    public static class FrenchContent implements Content {
+    private static class FrenchContent implements Content {
         public String windowTitle() {
             return "Avertissement de s\u00e9curit\u00e9 du hub SAMP";
         }
