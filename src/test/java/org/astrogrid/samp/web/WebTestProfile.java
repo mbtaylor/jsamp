@@ -73,7 +73,8 @@ public class WebTestProfile extends TestProfile {
                 return clientAuth_.authorize( request, appName );
             }
         };
-        return new WebHubProfile( sxfact, copyAuth,
+        SubscriptionMask subsMask = ListSubscriptionMask.ALL;
+        return new WebHubProfile( sxfact, copyAuth, subsMask,
                                   new KeyGenerator( "wk:", 24,
                                                     createRandom() ),
                                   urlControl_ );
