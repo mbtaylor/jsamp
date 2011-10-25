@@ -82,9 +82,15 @@ public abstract class SampMap extends AbstractMap {
                 else if ( ! f1 && f2 ) {
                     return +1;
                 }
-                else {
-                    return s1.compareTo( s2 );
+                boolean g1 = s1.startsWith( "x-samp." );
+                boolean g2 = s2.startsWith( "x-samp." );
+                if ( g1 && ! g2 ) {
+                    return -1;
                 }
+                else if ( ! g1 && g2 ) {
+                    return +1;
+                }
+                return s1.compareTo( s2 );
             }
         } );
     }
