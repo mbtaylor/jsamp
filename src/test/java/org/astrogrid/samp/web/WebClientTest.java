@@ -203,6 +203,59 @@ public class WebClientTest extends TestCase {
         profile.stopHub();
     }
 
+    public void testRestrictMTypes() throws IOException, InterruptedException {
+        assertTrue( passMessage( ListSubscriptionMask.ALL, "test.hello" ) );
+        assertTrue( ! passMessage( ListSubscriptionMask.NONE, "test.hello" ) );
+        assertTrue( passMessage( singleSubsMask( true, "test.hello" ),
+                                 "test.hello" ) );
+        assertTrue( ! passMessage( singleSubsMask( true, "test.goodbye" ),
+                                   "test.hello" ) );
+        assertTrue( passMessage( singleSubsMask( false, "test.goodbye" ),
+                                 "test.hello" ) );
+        assertTrue( ! passMessage( singleSubsMask( false, "test.goodbye" ),
+                                   "test.goodbye" ) );
+        assertTrue( passMessage( singleSubsMask( true, "test.*" ),
+                                 "test.hello" ) );
+        assertTrue( ! passMessage( singleSubsMask( true, "test.*" ),
+                    "hello" ) );
+    }
+
+    private SubscriptionMask singleSubsMask( boolean allow, String mtype ) {
+        return new ListSubscriptionMask( allow, new String[] { mtype } );
+    }
+
+    private boolean passMessage( SubscriptionMask subsMask, String mtype )
+            throws IOException, InterruptedException {
+        Message msg0 = new Message( mtype );
+        WebTestProfile profile =
+            new WebTestProfile( new Random( 1019L ), false, subsMask );
+        profile.startHub();
+        HubConnection tconn = profile.register();
+        HubConnection rconn = profile.register();
+        String tid = tconn.getRegInfo().getSelfId();
+        String rid = rconn.getRegInfo().getSelfId();
+        Subscriptions subs = new Subscriptions();
+        subs.addMType( mtype );
+        Receiver rcvr = new Receiver();
+        rconn.setCallable( rcvr );
+        rconn.declareSubscriptions( subs );
+        boolean sent;
+        try {
+            tconn.notify( rid, msg0 );
+            sent = true;
+        }
+        catch ( SampException e ) {
+            sent = false;
+        }
+        if ( sent ) {
+            Message msg1 = rcvr.waitForMessage( 1000 );
+            assertEquals( msg0, msg1 );
+        }
+        tconn.unregister();
+        rconn.unregister();
+        return sent;
+    }
+
     public void testServer() throws IOException {
         ServerSocket sock = new ServerSocket( 0 );
         String path = "/";
