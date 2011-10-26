@@ -20,7 +20,7 @@
 <li><a href="#Version_1_1"  >Version 1.1</a></li>
 <li><a href="#Version_1_2"  >Version 1.2</a></li>
 <li><a href="#Version_1_3"  >Version 1.3</a></li>
-<li><a href="#Version_1_3_1">Version 1.3-1</a></li>
+<li><a href="#Version_1_3-1">Version 1.3-1</a></li>
 </ul>
 
 <subsection name="Version 0.1">
@@ -768,6 +768,9 @@ for SAMP objects in a few places:
 <li>Web Profile has a new configuration option, which restricts permitted
     MTypes that a Web Profile client can send.  This is switched on
     by default.</li>
+<li>Tone down warning in the Web SAMP confirmation dialogue slightly
+    to reflect improved security measures in default Web Profile
+    configuration.</li>
 <li>Add French translation for Web SAMP confirmation dialogue
     (thanks to Thomas Boch).</li>
 <li>URL encode argument of <code>ResourceHandler.addResource</code>
