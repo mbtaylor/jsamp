@@ -771,6 +771,9 @@ for SAMP objects in a few places:
 <li>Tone down warning in the Web SAMP confirmation dialogue slightly
     to reflect improved security measures in default Web Profile
     configuration.</li>
+<li>The <code>messagesender</code> command-line tool has new flags
+    <code>-targetname</code> and <code>-targetid</code> which replace the
+    previous <code>-target</code> flag.</li>
 <li>Add French translation for Web SAMP confirmation dialogue
     (thanks to Thomas Boch).</li>
 <li>URL encode argument of <code>ResourceHandler.addResource</code>

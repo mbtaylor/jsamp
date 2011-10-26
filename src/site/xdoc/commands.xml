@@ -446,10 +446,25 @@ any responses received in response.
     if possible (note double-quoted strings are the only permitted scalars),
     otherwise the value will be interpreted as a plain string.
     </dd>
-<dt><code>-target &lt;receiverId&gt;</code></dt>
-<dd>Specifies the SAMP public ID for a client to which this message will be
-    sent.  This flag may be repeated to send the same messsage to more than
-    one recipient.  If omitted, the message is <em>broadcast</em> to all
+<dt><code>-targetid &lt;receiverId&gt;</code></dt>
+<dd>Specifies the SAMP public ID for a client to which this message
+    will be sent.
+    This flag may be repeated, or combined with <code>-targetname</code>,
+    to send the same messsage to more than one recipient.
+    If neither this nor <code>-targetname</code> is supplied,
+    the message is <em>broadcast</em> to all
+    clients which are subscribed to the MType.
+    </dd>
+<dt><code>-targetname &lt;receiverName&gt;</code></dt>
+<dd>Specifies an application name (<code>samp.name</code> metadata item)
+    identifying a client to which this message will be sent.
+    Names are matched case-insensitively.
+    If multiple clients with the same name are registered, only one
+    will be messaged.
+    This flag may be repeated, or combined with <code>-targetid</code>,
+    to send the same messsage to more than one recipient.
+    If neither this nor <code>-targetid</code> is supplied,
+    the message is <em>broadcast</em> to all
     clients which are subscribed to the MType.
     </dd>
 <dt><code>-mode sync|async|notify</code></dt>
