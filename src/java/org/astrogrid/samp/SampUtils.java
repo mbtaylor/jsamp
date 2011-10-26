@@ -317,7 +317,7 @@ public class SampUtils {
                 return obj;
             }
             catch ( RuntimeException e ) {
-                logger_.info( "String not JSON (" + e + ")" );
+                logger_.config( "String not JSON (" + e + ")" );
             }
             Object sval = str;
             checkObject( sval );
