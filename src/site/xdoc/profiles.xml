@@ -29,9 +29,11 @@ running.
 You can turn them on and off while the hub is running using
 the <b>Profiles</b> menu.
 You can configure which profiles are run on startup using the
-hub <code>-profiles</code> and <code>-extraprofiles</code> flags or the
+<code>-profiles</code> and <code>-extraprofiles</code> 
+<a href="commands.html#Hub">hub flags</a> or the
 <code>jsamp.hub.profiles</code> and <code>jsamp.hub.profiles.extra</code>
-system properties, or if you're writing code with one of the methods in the
+<a href="sysprops.html">system properties</a>,
+or if you're writing code with one of the methods in the
 <a target="samp-javadoc"
    href="apidocs/org/astrogrid/samp/hub/Hub.html"
                                        >Hub</a> class.
@@ -77,8 +79,10 @@ The dialogue window will look something like this:
 
 <p>There are a number of configuration options available for the Web Profile
 hub, connected with security.
-They may be set on the hub command line, with the various <code>-web:*</code>
-options, or using the <b>Profiles|Web Profile Configuration</b> menu.
+They may be set on the 
+<a href="commands.html#Hub">hub command line</a>,
+with the various <code>-web:*</code> options,
+or using the <b>Profiles|Web Profile Configuration</b> menu.
 The options are as follows:
 </p>
 <dl>
@@ -184,7 +188,7 @@ relating to the Web Profile are:
     messages which cause scripts to be executed on desktop clients,
     which have more potential for dangerous effects.
     By default, only MTypes matching a well-known list of wildcards 
-    are allowed; this includes <code>samp.*</code>, <code>table.*</code>,
+    are allowed; this includes <code>samp.app.*</code>, <code>table.*</code>,
     <code>image.*</code>, and others which are used for the normal
     exchange of data.  This restriction can be switched off and on using
     the <b>Profiles|Web Profile Configuration|MType Restrictions</b>
@@ -200,6 +204,16 @@ relating to the Web Profile are:
     By default CORS and Flash are switched on, and Silverlight is switched off.
     </li>
 </ul>
+
+<p>The upshot of all this is that in the default configuration, even if a
+hostile web application connects to the hub, it is most unlikely to
+be able to do anything worse than, for instance, send unwanted FITS
+images to your image viewer.  If such a hostile client is oberved, it
+can be forcibly disconnected, either individually or by shutting down
+the Web Profile (or the Hub itself).  Such a hostile (or indeed friendly)
+client can of course only ever connect to the Hub following explicit
+authorisation by the user (clicking Yes on the registration popup dialogue).
+</p>
 
 </subsection>
 
