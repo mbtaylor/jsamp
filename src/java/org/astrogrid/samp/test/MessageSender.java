@@ -6,6 +6,7 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,6 +85,50 @@ public abstract class MessageSender {
     }
 
     /**
+     * Translates an array of client names to client IDs.
+     * If some or all cannot be identified, an exception is thrown.
+     *
+     * @param  conn  hub connection
+     * @param  names   array of client names, interpreted case-insensitively
+     * @return   array of client ids corresponding to <code>names</code>
+     */
+    private static String[] namesToIds( HubConnection conn, String[] names )
+            throws SampException {
+        int count = names.length;
+        if ( count == 0 ) {
+            return new String[ 0 ];
+        }
+        String[] ids = new String[ count ];
+        BitSet flags = new BitSet( count );
+        String[] allIds = conn.getRegisteredClients();
+        for ( int ic = 0; ic < allIds.length; ic++ ) {
+            String id = allIds[ ic ];
+            Metadata meta = conn.getMetadata( id );
+            String name = meta.getName();
+            for ( int in = 0; in < count; in++ ) {
+                if ( names[ in ].equalsIgnoreCase( name ) ) {
+                    ids[ in ] = id;
+                    flags.set( in );
+                }
+            }
+            if ( flags.cardinality() == count ) {
+                return ids;
+            }
+        }
+        assert flags.cardinality() < count;
+        List unknownList = new ArrayList();
+        for ( int in = 0; in < count; in++ ) {
+            if ( ids[ in ] == null ) {
+                unknownList.add( names[ in ] );
+            }
+        }
+        throw new SampException( "Unknown client "
+                               + ( unknownList.size() == 1
+                                 ? ( "name " + unknownList.get( 0  ) )
+                                 : ( "names " + unknownList ) ) );
+    }
+
+    /**
      * Main method.
      * Use -help flag for documentation.
      */
@@ -109,9 +154,10 @@ public abstract class MessageSender {
             .append( "\n           " )
             .append( " -mtype <mtype>" )
             .append( " [-param <name> <value> ...]" )
-            .append( "\n           " )
-            .append( " [-target <receiverId> ...]" )
             .append( " [-mode sync|async|notify]" )
+            .append( "\n           " )
+            .append( " [-targetid <receiverId> ...]" )
+            .append( " [-targetname <receiverName> ...]" )
             .append( "\n           " )
             .append( " [-sendername <appname>]" )
             .append( " [-sendermeta <metaname> <metavalue>]" )
@@ -120,7 +166,8 @@ public abstract class MessageSender {
 
         // Set up variables which can be set or changed by the argument list.
         String mtype = null;
-        List targetList = new ArrayList();
+        List targetIdList = new ArrayList();
+        List targetNameList = new ArrayList();
         Map paramMap = new HashMap();
         String mode = "sync";
         Metadata meta = new Metadata();
@@ -140,9 +187,14 @@ public abstract class MessageSender {
                 mtype = (String) it.next();
                 it.remove();
             }
-            else if ( arg.equals( "-target" ) && it.hasNext() ) {
+            else if ( arg.equals( "-targetid" ) && it.hasNext() ) {
                 it.remove();
-                targetList.add( (String) it.next() );
+                targetIdList.add( (String) it.next() );
+                it.remove();
+            }
+            else if ( arg.equals( "-targetname" ) && it.hasNext() ) {
+                it.remove();
+                targetNameList.add( (String) it.next() );
                 it.remove();
             }
             else if ( arg.equals( "-param" ) && it.hasNext() ) {
@@ -252,9 +304,6 @@ public abstract class MessageSender {
 
         // Prepare to send the message.
         Message msg = new Message( mtype, paramMap );
-        String[] targets = targetList.isEmpty()
-                         ? null
-                         : (String[]) targetList.toArray( new String[ 0 ] );
 
         // Register.
         HubConnection connection = profile.register();
@@ -263,6 +312,15 @@ public abstract class MessageSender {
             return 1;
         }
         connection.declareMetadata( meta );
+
+        // Assemble target list.
+        String[] targetNames =
+            (String[]) targetNameList.toArray( new String[ 0 ] );
+        targetIdList.addAll( Arrays.asList( namesToIds( connection,
+                                                        targetNames ) ) );
+        String[] targets = targetIdList.isEmpty()
+                         ? null
+                         : (String[]) targetIdList.toArray( new String[ 0 ] );
 
         // Send the message, displaying the results on System.out.
         sender.showResults( connection, msg, targets, System.out );
