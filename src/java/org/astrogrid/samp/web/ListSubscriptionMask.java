@@ -21,10 +21,11 @@ public class ListSubscriptionMask implements SubscriptionMask {
     public static final SubscriptionMask NONE =
         new ListSubscriptionMask( true, new String[ 0 ] );
 
-    /** Permits a default list of MTypes - includes samp.*, table.*, etc. */
+    /** Permits a default list of MTypes - includes samp.app.*, table.*, etc. */
     public static final SubscriptionMask DEFAULT =
         new ListSubscriptionMask( true, new String[] {
-            "samp.*", "table.*", "image.*", "coord.*", "spectrum.*",
+            "samp.app.*", "samp.msg.progress",
+            "table.*", "image.*", "coord.*", "spectrum.*",
             "bibcode.*", "voresource.*",
         } );
 
