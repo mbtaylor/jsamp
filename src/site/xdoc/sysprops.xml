@@ -82,11 +82,10 @@ detail on use.
         and has a suitable no-arg constructor.</li>
     </ul>
     If this property is not specified, a default list will be used.
-    This is currently just the Standard Profile on start,
-    with the Web Profile as an extra
+    This is currently the Standard and Web Profiles on start, with no extras
     (equivalent to
-    <code>jsamp.hub.profiles=std</code>,
-    <code>jsamp.hub.profiles.extra=web</code>).
+    <code>jsamp.hub.profiles=std,web</code>,
+    <code>jsamp.hub.profiles.extra=""</code>).
     This property only affects how a hub is run; it has no effect on
     SAMP clients.
     </dd>
