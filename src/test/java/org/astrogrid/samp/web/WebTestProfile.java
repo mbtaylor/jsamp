@@ -27,24 +27,29 @@ public class WebTestProfile extends TestProfile {
     private final URL hubEndpoint_;
     private final SampXmlRpcClientFactory xClientFactory_;
     private final boolean urlControl_;
+    private final SubscriptionMask subsMask_;
     private final String baseAppName_;
     private ClientAuthorizer clientAuth_;
     private int regSeq_;
 
-    public WebTestProfile( Random random, boolean urlControl )
+    public WebTestProfile( Random random, boolean urlControl,
+                           SubscriptionMask subsMask )
             throws IOException {
         this( random, getFreePort(), "/",
-              XmlRpcKit.getInstance().getClientFactory(), urlControl, "test" );
+              XmlRpcKit.getInstance().getClientFactory(),
+              urlControl, subsMask, "test" );
     }
 
     public WebTestProfile( Random random, int port, String path,
                            SampXmlRpcClientFactory xClientFactory,
-                           boolean urlControl, String baseAppName ) {
+                           boolean urlControl, SubscriptionMask subsMask,
+                           String baseAppName ) {
         super( random );
         port_ = port;
         path_ = path;
         xClientFactory_ = xClientFactory;
         urlControl_ = urlControl;
+        subsMask_ = subsMask == null ? ListSubscriptionMask.ALL : subsMask;
         baseAppName_ = baseAppName;
         clientAuth_ = ClientAuthorizers.createFixedClientAuthorizer( true );
         try {
@@ -73,8 +78,7 @@ public class WebTestProfile extends TestProfile {
                 return clientAuth_.authorize( request, appName );
             }
         };
-        SubscriptionMask subsMask = ListSubscriptionMask.ALL;
-        return new WebHubProfile( sxfact, copyAuth, subsMask,
+        return new WebHubProfile( sxfact, copyAuth, subsMask_,
                                   new KeyGenerator( "wk:", 24,
                                                     createRandom() ),
                                   urlControl_ );

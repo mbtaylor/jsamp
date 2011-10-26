@@ -90,7 +90,7 @@ public abstract class TestProfile implements ClientProfile {
             new StandardTestProfile( random, aClient, aServ, iClient, iServ ),
             new StandardTestProfile( random, iClient, iServ, aClient, aServ ),
             new StandardTestProfile( random, iClient, iServ, iClient, iServ ),
-            new WebTestProfile( random, true ),
+            new WebTestProfile( random, true, null ),
         };
     }
 }

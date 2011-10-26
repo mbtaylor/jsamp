@@ -45,7 +45,8 @@ public class WebClientTest extends TestCase {
     // recommended.  Code may come in useful for something else another
     // day though.
     public void doNottestCallbacks() throws IOException, InterruptedException {
-        WebTestProfile profile = new WebTestProfile( new Random( 23L ), true );
+        WebTestProfile profile =
+            new WebTestProfile( new Random( 23L ), true, null );
         profile.startHub();
         XmlRpcHubConnection tconn = (XmlRpcHubConnection) profile.register();
         XmlRpcHubConnection rconn = (XmlRpcHubConnection) profile.register();
@@ -72,7 +73,8 @@ public class WebClientTest extends TestCase {
     }
 
     public void testRegistration() throws IOException {
-        WebTestProfile profile = new WebTestProfile( new Random( 23L ), true );
+        WebTestProfile profile =
+            new WebTestProfile( new Random( 23L ), true, null );
         profile.startHub();
         assertTrue( profile.isHubRunning() );
         HubConnection conn = profile.register();
@@ -93,7 +95,8 @@ public class WebClientTest extends TestCase {
 
     public void testControlledUrlTranslator()
             throws IOException, InterruptedException {
-        WebTestProfile profile = new WebTestProfile( new Random( 23L ), true );
+        WebTestProfile profile =
+            new WebTestProfile( new Random( 23L ), true, null );
         profile.startHub();
         Subscriptions subs = new Subscriptions();
         String mtype = "test.url";
@@ -181,7 +184,8 @@ public class WebClientTest extends TestCase {
     }
 
     public void testUncontrolledUrlTranslator() throws IOException {
-        WebTestProfile profile = new WebTestProfile( new Random( 29L ), false );
+        WebTestProfile profile =
+            new WebTestProfile( new Random( 29L ), false, null );
         profile.startHub();
         HubConnection webConn = profile.register();
         RegInfo webReg = webConn.getRegInfo();
