@@ -168,10 +168,10 @@ Some of the flags relate to particular profiles.
     instance from the Profiles menu of the hub window.
     In each case a comma-separated list of profile identifiers is used.
     If no <code>-profiles</code> flag is specified, then the default set
-    of profiles is used; at present this is the Standard Profile for 
-    <code>profiles</code> and the Web Profile for <code>extraprofiles</code>
-    The flag may be given more than once, in which case all the named profiles
-    will run.
+    of profiles is used; at present this equivalent to 
+    <code>-profiles std,web</code> and no <code>-extraprofiles</code>.
+    The flags may be given more than once,
+    in which case all the named profiles will run.
     The following options are available:
     <dl>
     <dt><code>std</code></dt>
@@ -191,7 +191,7 @@ Some of the flags relate to particular profiles.
         that profile is run.
         </dd>
     </dl>
-    This flag has a similar usage to the
+    These flags have a similar usage to the
     <a href="sysprops.html#jsamp_hub_profiles"
                     ><code>jsamp.hub.profiles</code></a> and
     <a href="sysprops.html#jsamp_hub_profiles_extra"
@@ -298,6 +298,15 @@ The following flags are used only if the Standard Profile
     Web Profile translation service will translate on behalf of clients.
     If set on, local URLs will only be translated if they have been
     mentioned in earlier messages or responses to a web profile client.
+    By default this is currently turned on.
+    </dd>
+<dt><code>-web:[no]restrictmtypes</code></dt>
+<dd>Configures whether restrictions are applied to the MTypes that
+    Web Profile clients are permitted to send.
+    If set on, only common MTypes with known semantics are permitted
+    (this includes <code>samp.app.*</code>, <code>table.*</code>,
+    <code>image.*</code> etc); attempts to send messages with unknown
+    MTypes (with possibly harmful semantics) are blocked by the hub.
     By default this is currently turned on.
     </dd>
 </dl>
