@@ -79,6 +79,10 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
             new WebHubXmlRpcHandler( profile, auth_, subsMask_, keyGen_,
                                      hServer.getBaseUrl(),
                                      controlUrls_ ? new UrlTracker() : null );
+        logger_.info( "Web Profile URL controls: "
+                    + ( controlUrls_ ? "on" : "off" ) );
+        logger_.info( "Web Profile MType restrictions: "
+                    + subsMask_ );
         xServer_.addHandler( wxHandler );
         hServer.addHandler( wxHandler.getUrlTranslationHandler() );
         hServer.start();
