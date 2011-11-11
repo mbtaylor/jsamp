@@ -3,6 +3,7 @@ package org.astrogrid.samp.web;
 import java.awt.Component;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +57,7 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
                              JOptionPane.YES_NO_OPTION, null,
                              new String[] { noOpt, yesOpt }, noOpt );
         JDialog dialog = jop.createDialog( parent_, authContent.windowTitle() );
-        dialog.setAlwaysOnTop( true );
+        attemptSetAlwaysOnTop( dialog, true );
         dialog.setModal( true );
         dialog.setDefaultCloseOperation( JDialog.DISPOSE_ON_CLOSE );
 
@@ -123,5 +124,24 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
      */
     private static List toLineList( String linesTxt ) {
         return Arrays.asList( toLines( linesTxt ) );
+    }
+
+    /**
+     * Tries to set the always-on-top property of a window.
+     * This is only possible in JRE1.5 and later, so it's done here by
+     * reflection.  If it fails, a logging message is emitted.
+     *
+     * @param   win  window to set
+     * @param  isOnTop  true for on top, false for not
+     */
+    private static void attemptSetAlwaysOnTop( Window win, boolean isOnTop ) {
+        try {
+            Window.class.getMethod( "setAlwaysOnTop",
+                                    new Class[] { boolean.class } )
+                  .invoke( win, new Object[] { Boolean.valueOf( isOnTop ) } );
+        }
+        catch ( Throwable e ) {
+            logger_.info( "Can't set window on top, not J2SE5" );
+        }
     }
 }

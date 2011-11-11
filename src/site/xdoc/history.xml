@@ -785,6 +785,17 @@ for SAMP objects in a few places:
 </ul>
 </subsection>
 
+<subsection name="Next Version">
+<p>
+<strong>Date:</strong> <br/>
+<strong>Archive:</strong> 
+</p>
+
+<ul>
+<li>Remove some code which used API introduced at J2SE1.5.</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>

@@ -446,7 +446,8 @@ public class SampUtils {
      */
     public static String uriDecode( String text ) {
         try {
-            return URLDecoder.decode( text.replace( "+", "%2B" ), "UTF-8" );
+            return URLDecoder.decode( replaceChar( text, '+', "%2B" ),
+                                      "UTF-8" );
         }
         catch ( UnsupportedEncodingException e ) {
             throw new AssertionError( "UTF-8 unsupported??" );
@@ -464,7 +465,8 @@ public class SampUtils {
      */
     public static String uriEncode( String text ) {
         try {
-            return URLEncoder.encode( text, "UTF-8" ).replace( "+", "%20" );
+            return replaceChar( URLEncoder.encode( text, "UTF-8" ),
+                                '+', "%20" );
         }
         catch ( UnsupportedEncodingException e ) {
             throw new AssertionError( "UTF-8 unsupported??" );
@@ -582,6 +584,31 @@ public class SampUtils {
         catch ( SecurityException e ) {
             return "\n";
         }
+    }
+
+    /**
+     * Replaces all occurrences of a single character with a given replacement
+     * string.
+     *
+     * @param   in  input string
+     * @param  oldChar  character to replace
+     * @param  newText  replacement string
+     * @return   modified string
+     */
+    private static String replaceChar( String in, char oldChar,
+                                       String newTxt ) {
+        int len = in.length();
+        StringBuffer sbuf = new StringBuffer( len );
+        for ( int i = 0; i < len; i++ ) {
+            char c = in.charAt( i );
+            if ( c == oldChar ) {
+                sbuf.append( newTxt );
+            }
+            else {
+                sbuf.append( c );
+            }
+        }
+        return sbuf.toString();
     }
 
     /**

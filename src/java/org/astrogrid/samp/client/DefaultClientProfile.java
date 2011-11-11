@@ -77,8 +77,10 @@ public class DefaultClientProfile {
                     clazz = Class.forName( cname );
                 }
                 catch ( ClassNotFoundException e ) {
-                    throw new IllegalArgumentException( "No profile class "
-                                                      + cname, e );
+                    throw (IllegalArgumentException)
+                          new IllegalArgumentException( "No profile class "
+                                                      + cname )
+                         .initCause( e );
                 }
                 try {
                     profile = (ClientProfile) clazz.newInstance();
