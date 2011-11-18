@@ -123,15 +123,18 @@ class UrlTracker {
 
     /**
      * Indicates whether a given URL is potentially sensitive.
-     * The current implementation works out if it looks like the resource
-     * is local to the current host.
+     * The current implementation always returns true.
+     * This is probably correct, since it's not in general possible
+     * to tell whether or not a given URL accords privileges to
+     * requests from the local host.  But if this ends up letting
+     * too much through, identifying only file URLs and http/https
+     * ones on the local domain would probably be OK.
      *
      * @param  url   URL to assess
      * @return  true iff access should be restricted
      */
     protected boolean isSensitive( URL url ) {
-        return "file".equals( url.getProtocol() )
-            || isLocalHost( url.getHost() );
+        return true;
     }
 
     /**
