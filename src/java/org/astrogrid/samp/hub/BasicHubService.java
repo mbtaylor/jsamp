@@ -511,7 +511,8 @@ public class BasicHubService implements HubService {
         List sentList = new ArrayList();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
-            if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
+            if ( recipient != caller && recipient.isSubscribed( mtype ) &&
+                 clientSet_.containsClient( recipient ) ) {
                 try {
                     recipient.getCallable()
                              .receiveNotification( caller.getId(), msg );
@@ -548,7 +549,8 @@ public class BasicHubService implements HubService {
         Map sentMap = new HashMap();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
-            if ( recipient != caller && recipient.isSubscribed( mtype ) ) {
+            if ( recipient != caller && recipient.isSubscribed( mtype ) &&
+                 clientSet_.containsClient( recipient ) ) {
                 try {
                     recipient.getCallable()
                              .receiveCall( caller.getId(), msgId, msg );
@@ -791,17 +793,19 @@ public class BasicHubService implements HubService {
         for ( int ic = 0; ic < clientIds.length; ic++ ) {
             String clientId = clientIds[ ic ];
             HubClient client = clientSet_.getFromPublicId( clientId );
-            if ( client.isSubscribed( discoMsg.getMType() ) ) {
-                try {
-                    notify( serviceClient_, clientId, discoMsg );
+            if ( client != null ) {
+                if ( client.isSubscribed( discoMsg.getMType() ) ) {
+                    try {
+                        notify( serviceClient_, clientId, discoMsg );
+                    }
+                    catch ( SampException e ) {
+                        logger_.log( Level.INFO,
+                                     discoMsg.getMType() + " to " + client
+                                   + " failed", e );
+                    }
                 }
-                catch ( SampException e ) {
-                    logger_.log( Level.INFO,
-                                 discoMsg.getMType() + " to " + client
-                               + " failed", e );
-                }
+                clientSet_.remove( client );
             }
-            clientSet_.remove( client );
         }
 
         // Notify the remaining clients that the others have been removed.
