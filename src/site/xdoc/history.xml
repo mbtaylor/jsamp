@@ -795,6 +795,8 @@ for SAMP objects in a few places:
 <li>Remove some code which used API introduced at J2SE1.5.</li>
 <li>Web Profile URL control now controls all URLs not just local ones.
     All maps passing through the hub connection are now scanned for URLs.</li>
+<li>Reduce logging for message send failures, partly by reducing failures
+    themselves.</li>
 </ul>
 </subsection>
 
