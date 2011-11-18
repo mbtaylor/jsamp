@@ -44,27 +44,33 @@ class UrlTrackerHubConnection implements HubConnection {
     /**
      * Recursively scans a SAMP map for items that look like URLs,
      * and notifies the tracker that they are incoming.
+     * As a convenience the input map is returned.
      *
      * @param  map  map to scan
+     * @return  the input map, unchanged
      */
-    private void scanIncoming( Map map ) {
+    private Map scanIncoming( Map map ) {
         URL[] urls = scanForUrls( map );
         for ( int iu = 0; iu < urls.length; iu++ ) {
             urlTracker_.noteIncomingUrl( urls[ iu ] );
         }
+        return map;
     }
 
     /**
      * Recursively scans a SAMP map for items that look like URLs,
      * and notifies the tracker that they are outgoing.
+     * As a convenience the input map is returned.
      *
      * @param  map  map to scan
+     * @return  the input map, unchanged
      */
-    private void scanOutgoing( Map map ) {
+    private Map scanOutgoing( Map map ) {
         URL[] urls = scanForUrls( map );
         for ( int iu = 0; iu < urls.length; iu++ ) {
             urlTracker_.noteOutgoingUrl( urls[ iu ] );
         }
+        return map;
     }
 
     /**
@@ -136,41 +142,36 @@ class UrlTrackerHubConnection implements HubConnection {
     }
 
     public void notify( String recipientId, Map msg ) throws SampException {
-        scanOutgoing( Message.asMessage( msg ).getParams() );
-        base_.notify( recipientId, msg );
+        base_.notify( recipientId, scanOutgoing( msg ) );
     }
 
     public List notifyAll( Map msg ) throws SampException {
-        scanOutgoing( Message.asMessage( msg ).getParams() );
-        return base_.notifyAll( msg );
+        return base_.notifyAll( scanOutgoing( msg ) );
     }
 
     public String call( String recipientId, String msgTag, Map msg )
             throws SampException {
-        scanOutgoing( Message.asMessage( msg ).getParams() );
-        return base_.call( recipientId, msgTag, msg );
+        return base_.call( recipientId, msgTag, scanOutgoing( msg ) );
     }
 
     public Map callAll( String msgTag, Map msg ) throws SampException {
-        scanOutgoing( Message.asMessage( msg ).getParams() );
-        return base_.callAll( msgTag, msg );
+        return base_.callAll( msgTag, scanOutgoing( msg ) );
     }
 
     public Response callAndWait( String recipientId, Map msg, int timeout )
             throws SampException {
-        scanOutgoing( Message.asMessage( msg ).getParams() );
-        Response response = base_.callAndWait( recipientId, msg, timeout );
-        scanIncoming( response.getResult() );
-        return response;
+        return (Response)
+               scanIncoming( base_.callAndWait( recipientId,
+                                                scanOutgoing( msg ),
+                                                timeout ) );
     }
 
     public void reply( String msgId, Map response ) throws SampException {
-        scanOutgoing( Response.asResponse( response ).getResult() );
-        base_.reply( msgId, response );
+        base_.reply( msgId, scanOutgoing( response ) );
     }
 
     public RegInfo getRegInfo() {
-        return base_.getRegInfo();
+        return (RegInfo) scanIncoming( base_.getRegInfo() );
     }
 
     public void ping() throws SampException {
@@ -182,20 +183,21 @@ class UrlTrackerHubConnection implements HubConnection {
     }
 
     public void declareMetadata( Map meta ) throws SampException {
-        base_.declareMetadata( meta );
+        base_.declareMetadata( scanOutgoing( meta ) );
     }
 
     public Metadata getMetadata( String clientId ) throws SampException {
-        return base_.getMetadata( clientId );
+        return (Metadata) scanIncoming( base_.getMetadata( clientId ) );
     }
 
     public void declareSubscriptions( Map subs ) throws SampException {
-        base_.declareSubscriptions( subs );
+        base_.declareSubscriptions( scanOutgoing( subs ) );
     }
 
     public Subscriptions getSubscriptions( String clientId )
             throws SampException {
-        return base_.getSubscriptions( clientId );
+        return (Subscriptions)
+               scanIncoming( base_.getSubscriptions( clientId ) );
     }
 
     public String[] getRegisteredClients() throws SampException {
@@ -203,7 +205,7 @@ class UrlTrackerHubConnection implements HubConnection {
     }
 
     public Map getSubscribedClients( String mtype ) throws SampException {
-        return base_.getSubscribedClients( mtype );
+        return scanIncoming( base_.getSubscribedClients( mtype ) );
     }
 
     /**
@@ -225,21 +227,22 @@ class UrlTrackerHubConnection implements HubConnection {
 
         public void receiveCall( String senderId, String msgId, Message msg )
                 throws Exception {
-            scanIncoming( msg.getParams() );
-            baseCallable_.receiveCall( senderId, msgId, msg );
+            baseCallable_.receiveCall( senderId, msgId,
+                                       (Message) scanIncoming( msg ) );
         }
 
         public void receiveNotification( String senderId, Message msg )
                 throws Exception {
-            scanIncoming( msg.getParams() );
-            baseCallable_.receiveNotification( senderId, msg );
+            baseCallable_.receiveNotification( senderId,
+                                               (Message) scanIncoming( msg ) );
         }
 
         public void receiveResponse( String responderId, String msgTag,
                                      Response response )
                 throws Exception {
-            scanIncoming( response.getResult() );
-            baseCallable_.receiveResponse( responderId, msgTag, response );
+            baseCallable_.receiveResponse( responderId, msgTag,
+                                           (Response)
+                                           scanIncoming( response ) );
         }
     }
 }
