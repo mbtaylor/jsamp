@@ -132,7 +132,8 @@ public class Message extends SampMap {
             return param;
         }
         else {
-            throw new DataException( "Missing parameter " + name );
+            throw new DataException( "Required parameter \"" + name
+                                   + "\" is missing" );
         }
     }
 
