@@ -1,11 +1,9 @@
 package org.astrogrid.samp.hub;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.astrogrid.samp.ErrInfo;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
@@ -21,30 +19,17 @@ import org.astrogrid.samp.client.SampException;
  */
 class HubCallableClient implements CallableClient {
 
-    private final HubClient client_;
     private final HubConnection connection_;
-    private final MessageHandler[] handlers_;
-
-    /**
-     * Constructs a HubCallableClient with a default set of handlers.
-     *
-     * @param  client  hub client object
-     * @param  connection  connection to hub service
-     */
-    public HubCallableClient( HubClient client, HubConnection connection ) {
-        this( client, connection, createDefaultHandlers() );
-    }
+    private final AbstractMessageHandler[] handlers_;
 
     /**
      * Constructs a HubCallableClient with a given set of handlers.
      *
-     * @param  client  hub client object
      * @param  connection  connection to hub service
      * @param  handlers  array of message handlers
      */
-    private HubCallableClient( HubClient client, HubConnection connection,
-                               MessageHandler[] handlers ) {
-        client_ = client;
+    public HubCallableClient( HubConnection connection,
+                              AbstractMessageHandler[] handlers ) {
         connection_ = connection;
         handlers_ = handlers;
     } 
@@ -52,38 +37,15 @@ class HubCallableClient implements CallableClient {
     public void receiveCall( String senderId, String msgId, Message msg ) 
             throws SampException {
         msg.check();
-        String mtype = msg.getMType();
-        for ( int i = 0; i < handlers_.length; i++ ) {
-            MessageHandler handler = handlers_[ i ];
-            if ( mtype.equals( handler.getMType() ) ) {
-                Response response;
-                try {
-                    Map result = handler.processCall( senderId, msg );
-                    result = result == null ? new HashMap() : result;
-                    response = Response.createSuccessResponse( result );
-                }
-                catch ( Exception e ) {
-                    response = Response.createErrorResponse( new ErrInfo( e ) );
-                }
-                connection_.reply( msgId, response );
-                return;
-            }
-        }
-        throw new SampException( "Unsubscribed MType " + mtype );
+        getHandler( msg.getMType() )
+           .receiveCall( connection_, senderId, msgId, msg );
     }
 
     public void receiveNotification( String senderId, Message msg )
             throws SampException {
         msg.check();
-        String mtype = msg.getMType();
-        for ( int i = 0; i < handlers_.length; i++ ) {
-            MessageHandler handler = handlers_[ i ];
-            if ( mtype.equals( handler.getMType() ) ) {
-                handler.processCall( senderId, msg );
-                return;
-            }
-        }
-        throw new SampException( "Unsubscribed MType " + mtype );
+        getHandler( msg.getMType() )
+           .receiveNotification( connection_, senderId, msg );
     }
 
     public void receiveResponse( String responderId, String msgTag,
@@ -99,63 +61,29 @@ class HubCallableClient implements CallableClient {
     public Subscriptions getSubscriptions() {
         Subscriptions subs = new Subscriptions();
         for ( int i = 0; i < handlers_.length; i++ ) {
-            subs.addMType( handlers_[ i ].getMType() );
+            subs.putAll( handlers_[ i ].getSubscriptions() );
         }
         return subs;
     }
 
     /**
-     * Constructs a default list of MessageHandlers to use for a HubReceiver.
+     * Returns a handler owned by this callable client which can handle
+     * a given MType.  If more than one applies, the first one encountered
+     * is returned.
      *
-     * @return   default handler list
+     * @param  mtype   MType to handle
+     * @return  handler for <code>mtype</code>
+     * @throws  SampException  if no suitable handler exists
      */
-    private static MessageHandler[] createDefaultHandlers() {
-        return new MessageHandler[] {
-            new MessageHandler( "samp.app.ping" ) {
-                Map processCall( String senderId, Message msg ) {
-                    return new HashMap();
-                }
-            },
-//          new MessageHandler( "app.echo" ) {
-//              Map processCall( String senderId, Message msg ) {
-//                  return msg.getParams();
-//              }
-//          },
-        };
-    }
-
-    /**
-     * Abstract class which encapsulates processing of a given MType.
-     */
-    private static abstract class MessageHandler {
-        private final String mtype_;
-
-        /**
-         * Constructor.
-         *
-         * @param  mtype  MType
-         */
-        MessageHandler( String mtype ) {
-            mtype_ = mtype;
+    private AbstractMessageHandler getHandler( String mtype )
+            throws SampException {
+        for ( int i = 0; i < handlers_.length; i++ ) {
+            AbstractMessageHandler handler = handlers_[ i ];
+            if ( Subscriptions.asSubscriptions( handler.getSubscriptions() )
+                              .isSubscribed( mtype ) ) {
+                return handler;
+            }
         }
-
-        /**
-         * Returns the MType processed by this handler.
-         *
-         * @return  mtype
-         */
-        public String getMType() {
-            return mtype_;
-        }
-
-        /**
-         * Does the work for processing a message with the MType of this
-         * handler.
-         *
-         * @param   senderId  sender public id
-         * @param   msg   message map with the correct MType
-         * @return  <code>samp.result</code> part of a SAMP-encoded response map
-         */
-        abstract Map processCall( String senderId, Message msg );
+        throw new SampException( "Not subscribed to " + mtype );
     }
 }

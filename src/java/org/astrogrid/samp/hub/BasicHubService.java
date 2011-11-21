@@ -15,6 +15,7 @@ import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
 import org.astrogrid.samp.Subscriptions;
+import org.astrogrid.samp.client.AbstractMessageHandler;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
@@ -94,7 +95,8 @@ public class BasicHubService implements HubService {
         meta.setDescriptionText( getClass().getName() );
         serviceClient_.setMetadata( meta );
         HubCallableClient hubCallable =
-            new HubCallableClient( serviceClient_, serviceClientConnection_ );
+            new HubCallableClient( serviceClientConnection_,
+                                   createHubMessageHandlers() );
         serviceClient_.setCallable( hubCallable );
         serviceClient_.setSubscriptions( hubCallable.getSubscriptions() );
         clientSet_.add( serviceClient_ );
@@ -134,6 +136,19 @@ public class BasicHubService implements HubService {
      */
     protected HubClient createClient( String publicId, ProfileToken ptoken ) {
         return new HubClient( publicId, ptoken );
+    }
+
+    /**
+     * Constructs a list of MessageHandlers to use for the client
+     * provided by the Hub.
+     *
+     * @return   hub message handler list
+     */
+    protected AbstractMessageHandler[] createHubMessageHandlers() {
+        return new AbstractMessageHandler[] {
+            new PingMessageHandler(),
+            new MetaQueryMessageHandler( getClientSet() ),
+        };
     }
 
     /**
