@@ -407,9 +407,19 @@ presented on standard output than in a GUI.
 <dl>
 <dt><code>-mtype &lt;pattern&gt;</code></dt>
 <dd>Gives an MType or wildcarded MType pattern to subscribe to.
+    Subscription to the given MType is with an empty annotation map,
+    so this is identical to "<code>-subs &lt;pattern&gt; {}</code>".
     This flag may be repeated to subscribe to several different MType patterns.
-    If omitted, a value of "<code>*</code>", i.e. subscription to all MTypes,
+    If both this and the <code>-subs</code> flags are omitted,
+    a value of "<code>*</code>", i.e. subscription to all MTypes,
     will be assumed.
+    </dd>
+<dt><code>-subs &lt;pattern&gt; &lt;subsinfo&gt;</code></dt>
+<dd>Allows subscription with a given MType or wildcarded MType pattern
+    and a non-empty annotation map.
+    The <code>&lt;subsinfo&gt;</code> parameter should be a JSON representation
+    of a map representing the annotation of the MType(s) given by
+    <code>&lt;pattern&gt;</code>.
     </dd>
 <dt><code>-clientname &lt;appname&gt;</code></dt>
 <dd>Specifies the <code>samp.name</code> metadata item which the sending

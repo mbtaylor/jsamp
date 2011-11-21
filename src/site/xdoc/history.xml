@@ -800,6 +800,7 @@ for SAMP objects in a few places:
 <li>Hub implements <code>x-samp.query.by-meta</code> MType.</li>
 <li>New methods on <code>Hub</code> class to determine whether the hub
     is running and with what profiles.</li>
+<li>Added <code>-subs</code> flag to Snooper tool.</li>
 </ul>
 </subsection>
 

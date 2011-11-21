@@ -206,6 +206,7 @@ public class Snooper {
             .append( " [-clientmeta <metaname> <metavalue>]" )
             .append( "\n         " )
             .append( " [-mtype <pattern>]" )
+            .append( " [-subs <pattern> <subsinfo>]" )
             .append( "\n" )
             .toString();
         List argList = new ArrayList( Arrays.asList( args ) );
@@ -219,6 +220,22 @@ public class Snooper {
                 String mpat = (String) it.next();
                 it.remove();
                 subs.addMType( mpat );
+            }
+            else if ( arg.equals( "-subs" ) && it.hasNext() ) {
+                it.remove();
+                String mpat = (String) it.next();
+                it.remove();
+                String substr;
+                if ( it.hasNext() ) {
+                    substr = (String) it.next();
+                    it.remove();
+                }
+                else {
+                    System.err.println( usage );
+                    return 1;
+                }
+                Object subsInfo = SampUtils.fromJson( substr );
+                subs.put( mpat, subsInfo );
             }
             else if ( arg.equals( "-clientname" ) && it.hasNext() ) {
                 it.remove();
