@@ -797,6 +797,7 @@ for SAMP objects in a few places:
     All maps passing through the hub connection are now scanned for URLs.</li>
 <li>Reduce logging for message send failures, partly by reducing failures
     themselves.</li>
+<li>Hub implements <code>x-samp.query.by-meta</code> MType.</li>
 </ul>
 </subsection>
 
