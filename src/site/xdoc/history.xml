@@ -798,6 +798,8 @@ for SAMP objects in a few places:
 <li>Reduce logging for message send failures, partly by reducing failures
     themselves.</li>
 <li>Hub implements <code>x-samp.query.by-meta</code> MType.</li>
+<li>New methods on <code>Hub</code> class to determine whether the hub
+    is running and with what profiles.</li>
 </ul>
 </subsection>
 
