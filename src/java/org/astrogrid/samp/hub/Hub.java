@@ -156,6 +156,24 @@ public class Hub {
     }
 
     /**
+     * Returns the hub service associated with this hub.
+     *
+     * @return  hub service
+     */
+    public HubService getHubService() {
+        return service_;
+    }
+
+    /**
+     * Returns the hub profiles currently running on behalf of this hub.
+     *
+     * @return  profiles that have been started and not yet stopped by this hub
+     */
+    public HubProfile[] getRunningProfiles() {
+        return (HubProfile[]) profileList_.toArray( new HubProfile[ 0 ] );
+    }
+
+    /**
      * Returns a standard list of known HubProfileFactories.
      * This is used when parsing hub profile lists
      * ({@link #parseProfileList} to supply the well-known named profiles.
