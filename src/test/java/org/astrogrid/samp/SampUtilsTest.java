@@ -120,6 +120,10 @@ public class SampUtilsTest extends TestCase {
                                               true ) ) );
         assertTrue( SampUtils.toJson( m, false ).indexOf( '\n' ) < 0 );
         assertTrue( SampUtils.toJson( m, true ).indexOf( '\n' ) >= 0 );
+        assertEquals( new HashMap(), SampUtils.fromJson("{}") );
+        assertEquals( new HashMap(), SampUtils.fromJson("{ }") );
+        assertEquals( new ArrayList(), SampUtils.fromJson("[]") );
+        assertEquals( new ArrayList(), SampUtils.fromJson("[ ]") );
     }
 
     private static String nows( String txt ) {
