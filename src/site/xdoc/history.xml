@@ -801,6 +801,8 @@ for SAMP objects in a few places:
 <li>New methods on <code>Hub</code> class to determine whether the hub
     is running and with what profiles.</li>
 <li>Added <code>-subs</code> flag to Snooper tool.</li>
+<li>Fixed bug in JSON parser
+    (wouldn't recognise empty objects "<code>{}</code>").</li>
 </ul>
 </subsection>
 
