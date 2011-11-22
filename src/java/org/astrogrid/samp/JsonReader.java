@@ -36,8 +36,8 @@ import java.util.Map;
 /**
  * Simple JSON parser which only copes with SAMP-friendly JSON,
  * that is strings, lists and objects.
- * This code is a stripped-down copy of the mjson libraray written
- * by Borislav Iordanov, from
+ * This code is a stripped-down and somewhat fixed copy of the mjson
+ * libraray written by Borislav Iordanov, from
  * <a href="http://www.sharegov.org/mjson/Json.java"
  *         >http://www.sharegov.org/mjson/Json.java</a>.
  *
@@ -45,10 +45,10 @@ import java.util.Map;
  * @author Mark Taylor
  */
 class JsonReader {
-    private static final Object OBJECT_END = new Object();
-    private static final Object ARRAY_END = new Object();
-    private static final Object COLON = new Object();
-    private static final Object COMMA = new Object();
+    private static final Object OBJECT_END = new Token("OBJECT_END");
+    private static final Object ARRAY_END = new Token("ARRAY_END");
+    private static final Object COLON = new Token("COLON");
+    private static final Object COMMA = new Token("COMMA");
     public static final int FIRST = 0;
     public static final int CURRENT = 1;
     public static final int NEXT = 2;
@@ -167,34 +167,31 @@ class JsonReader {
         return token;
     }
     
-    private String readObjectKey()
-    {
-        Object key = read();
-        if ( key instanceof String ) {
-            return (String) key;
-        }
-        else {
-            throw new DataException("Missing/illegal object key");
-        }
-    }
-    
     private Map readObject() 
     {
         Map ret = new LinkedHashMap();
-        String key = readObjectKey();
-        while (token != OBJECT_END) 
-        {
-            read(); // should be a colon
-            if (token != OBJECT_END) 
-            {
-                Object value = read();
-                ret.put(key, value);
-                if (read() == COMMA) {
-                    key = readObjectKey();
-                }
+        read();
+        while (true) {
+            if (token == OBJECT_END) {
+                return ret;
+            }
+            if (!(token instanceof String)) {
+                throw new DataException("Missing/illegal object key");
+            }
+            String key = (String) token;
+            if (read() != COLON) {
+                throw new DataException("Missing colon in JSON object");
+            }
+            Object value = read();
+            ret.put(key, value);
+            read();
+            if (token == COMMA) {
+                read();
+            }
+            else if (token != OBJECT_END) {
+                throw new DataException("Unexpected token " + token);
             }
         }
-        return ret;
     }
 
     private List readArray() 
@@ -273,5 +270,18 @@ class JsonReader {
             }
         }
         return (char) value;
+    }
+
+    /**
+     * Named object.
+     */
+    private static class Token {
+        private final String name;
+        Token(String name) {
+            this.name = name;
+        }
+        public String toString() {
+            return this.name;
+        }
     }
 }
