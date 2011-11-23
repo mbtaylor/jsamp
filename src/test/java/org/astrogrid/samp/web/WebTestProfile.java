@@ -16,6 +16,7 @@ import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.KeyGenerator;
+import org.astrogrid.samp.hub.MessageRestriction;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcClientFactory;
 import org.astrogrid.samp.xmlrpc.XmlRpcKit;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
@@ -27,29 +28,29 @@ public class WebTestProfile extends TestProfile {
     private final URL hubEndpoint_;
     private final SampXmlRpcClientFactory xClientFactory_;
     private final boolean urlControl_;
-    private final SubscriptionMask subsMask_;
+    private final MessageRestriction mrestrict_;
     private final String baseAppName_;
     private ClientAuthorizer clientAuth_;
     private int regSeq_;
 
     public WebTestProfile( Random random, boolean urlControl,
-                           SubscriptionMask subsMask )
+                           MessageRestriction mrestrict )
             throws IOException {
         this( random, getFreePort(), "/",
               XmlRpcKit.getInstance().getClientFactory(),
-              urlControl, subsMask, "test" );
+              urlControl, mrestrict, "test" );
     }
 
     public WebTestProfile( Random random, int port, String path,
                            SampXmlRpcClientFactory xClientFactory,
-                           boolean urlControl, SubscriptionMask subsMask,
+                           boolean urlControl, MessageRestriction mrestrict,
                            String baseAppName ) {
         super( random );
         port_ = port;
         path_ = path;
         xClientFactory_ = xClientFactory;
         urlControl_ = urlControl;
-        subsMask_ = subsMask == null ? ListSubscriptionMask.ALL : subsMask;
+        mrestrict_ = mrestrict;
         baseAppName_ = baseAppName;
         clientAuth_ = ClientAuthorizers.createFixedClientAuthorizer( true );
         try {
@@ -78,7 +79,7 @@ public class WebTestProfile extends TestProfile {
                 return clientAuth_.authorize( request, appName );
             }
         };
-        return new WebHubProfile( sxfact, copyAuth, subsMask_,
+        return new WebHubProfile( sxfact, copyAuth, mrestrict_,
                                   new KeyGenerator( "wk:", 24,
                                                     createRandom() ),
                                   urlControl_ );

@@ -9,7 +9,9 @@ import java.net.ServerSocket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -24,6 +26,7 @@ import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.HttpServer;
+import org.astrogrid.samp.hub.MessageRestriction;
 import org.astrogrid.samp.xmlrpc.XmlRpcHubConnection;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 
@@ -204,31 +207,38 @@ public class WebClientTest extends TestCase {
     }
 
     public void testRestrictMTypes() throws IOException, InterruptedException {
-        assertTrue( passMessage( ListSubscriptionMask.ALL, "test.hello" ) );
-        assertTrue( ! passMessage( ListSubscriptionMask.NONE, "test.hello" ) );
-        assertTrue( passMessage( singleSubsMask( true, "test.hello" ),
+        assertTrue( passMessage( ListMessageRestriction.ALLOW_ALL,
                                  "test.hello" ) );
-        assertTrue( ! passMessage( singleSubsMask( true, "test.goodbye" ),
+        assertTrue( ! passMessage( ListMessageRestriction.DENY_ALL,
                                    "test.hello" ) );
-        assertTrue( passMessage( singleSubsMask( false, "test.goodbye" ),
+        assertTrue( passMessage( singleMessageRestriction( true, "test.hello" ),
                                  "test.hello" ) );
-        assertTrue( ! passMessage( singleSubsMask( false, "test.goodbye" ),
+        assertTrue( ! passMessage( singleMessageRestriction( true,
+                                                             "test.goodbye" ),
+                                   "test.hello" ) );
+        assertTrue( passMessage( singleMessageRestriction( false,
+                                                           "test.goodbye" ),
+                                 "test.hello" ) );
+        assertTrue( ! passMessage( singleMessageRestriction( false,
+                                                             "test.goodbye" ),
                                    "test.goodbye" ) );
-        assertTrue( passMessage( singleSubsMask( true, "test.*" ),
+        assertTrue( passMessage( singleMessageRestriction( true, "test.*" ),
                                  "test.hello" ) );
-        assertTrue( ! passMessage( singleSubsMask( true, "test.*" ),
+        assertTrue( ! passMessage( singleMessageRestriction( true, "test.*" ),
                     "hello" ) );
     }
 
-    private SubscriptionMask singleSubsMask( boolean allow, String mtype ) {
-        return new ListSubscriptionMask( allow, new String[] { mtype } );
+    private MessageRestriction singleMessageRestriction( final boolean allow,
+                                                         String mtype ) {
+        return new ListMessageRestriction( allow, new String[] { mtype },
+                                           true );
     }
 
-    private boolean passMessage( SubscriptionMask subsMask, String mtype )
+    private boolean passMessage( MessageRestriction mrestrict, String mtype )
             throws IOException, InterruptedException {
         Message msg0 = new Message( mtype );
         WebTestProfile profile =
-            new WebTestProfile( new Random( 1019L ), false, subsMask );
+            new WebTestProfile( new Random( 1019L ), false, mrestrict );
         profile.startHub();
         HubConnection tconn = profile.register();
         HubConnection rconn = profile.register();
@@ -279,23 +289,25 @@ public class WebClientTest extends TestCase {
         hServer.stop();
     }
 
-    public void testSubscriptionMask() {
-        SubscriptionMask allMask = ListSubscriptionMask.ALL;
-        SubscriptionMask noneMask = ListSubscriptionMask.NONE;
-        SubscriptionMask dfltMask = ListSubscriptionMask.DEFAULT;
-        SubscriptionMask testMask =
-            new ListSubscriptionMask( true, new String[] { "test.*" } );
-        SubscriptionMask notestMask =
-            new ListSubscriptionMask( false, new String[] { "test.*" } );
-        assertTrue( allMask.isMTypePermitted( "system.exec" ) );
-        assertTrue( ! noneMask.isMTypePermitted( "system.exec" ) );
-        assertTrue( ! dfltMask.isMTypePermitted( "system.exec" ) );
-        assertTrue( ! testMask.isMTypePermitted( "system.exec" ) );
-        assertTrue( notestMask.isMTypePermitted( "system.exec" ) );
-
-        assertTrue( dfltMask.isMTypePermitted( "table.load.votable" ) );
-        assertTrue( new ListSubscriptionMask( true, new String[] { "do.what" } )
-                   .isMTypePermitted( "do.what" ) );
+    public void testMessageRestriction() {
+        MessageRestriction allMr = ListMessageRestriction.ALLOW_ALL;
+        MessageRestriction noneMr = ListMessageRestriction.DENY_ALL;
+        MessageRestriction dfltMr = ListMessageRestriction.DEFAULT;
+        MessageRestriction testMr =
+            new ListMessageRestriction( true, new String[] { "test.*" }, true );
+        MessageRestriction notestMr =
+            new ListMessageRestriction( false, new String[] { "test.*" },
+                                        true );
+        assertTrue( allMr.permitSend( "system.exec", new HashMap() ) );
+        assertTrue( ! noneMr.permitSend( "system.exec", new HashMap() ) );
+        assertTrue( ! dfltMr.permitSend( "system.exec", new HashMap() ) );
+        assertTrue( ! testMr.permitSend( "system.exec", new HashMap() ) );
+        assertTrue( notestMr.permitSend( "system.exec", new HashMap() ) );
+        assertTrue( dfltMr.permitSend( "table.load.votable", new HashMap() ) );
+        assertTrue( new ListMessageRestriction( true,
+                                                new String[] { "do.what" },
+                                                true )
+                   .permitSend( "do.what", new HashMap() ) );
     }
 
     private static String readUrl( URL url ) throws IOException {
