@@ -13,6 +13,7 @@ import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.hub.ConfigHubProfile;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.KeyGenerator;
+import org.astrogrid.samp.hub.MessageRestriction;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 import org.astrogrid.samp.xmlrpc.internal.RpcLoggingInternalServer;
 import org.astrogrid.samp.xmlrpc.internal.XmlLoggingInternalServer;
@@ -28,7 +29,7 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
     private final ServerFactory serverFactory_;
     private final ClientAuthorizer auth_;
     private final KeyGenerator keyGen_;
-    private SubscriptionMask subsMask_;
+    private MessageRestriction mrestrict_;
     private boolean controlUrls_;
     private InternalServer xServer_;
     private WebHubXmlRpcHandler wxHandler_;
@@ -42,16 +43,16 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
      * @param   serverFactory  factory for server providing HTTP
      *                         and XML-RPC implementation
      * @param   auth  client authorizer implementation
-     * @param   subsMask  mask for permitted outward MTypes
+     * @param   mrestrict  restriction for permitted outward MTypes
      * @param   keyGen  key generator for private keys
      * @param   controlUrls  true iff access to local URLs is to be restricted
      */
     public WebHubProfile( ServerFactory serverFactory, ClientAuthorizer auth,
-                          SubscriptionMask subsMask,
+                          MessageRestriction mrestrict,
                           KeyGenerator keyGen, boolean controlUrls ) {
         serverFactory_ = serverFactory;
         auth_ = auth;
-        subsMask_ = subsMask;
+        mrestrict_ = mrestrict;
         keyGen_ = keyGen;
         controlUrls_ = controlUrls;
     }
@@ -61,11 +62,15 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
      */
     public WebHubProfile() throws IOException {
         this( new ServerFactory(), new HubSwingClientAuthorizer( null ),
-              ListSubscriptionMask.DEFAULT, createKeyGenerator(), true );
+              ListMessageRestriction.DEFAULT, createKeyGenerator(), true );
     }
 
     public String getProfileName() {
         return "Web";
+    }
+
+    public MessageRestriction getMessageRestriction() {
+        return mrestrict_;
     }
 
     public synchronized void start( ClientProfile profile ) throws IOException {
@@ -76,13 +81,13 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
         xServer_ = serverFactory_.createSampXmlRpcServer();
         HttpServer hServer = xServer_.getHttpServer();
         WebHubXmlRpcHandler wxHandler =
-            new WebHubXmlRpcHandler( profile, auth_, subsMask_, keyGen_,
+            new WebHubXmlRpcHandler( profile, auth_, keyGen_,
                                      hServer.getBaseUrl(),
                                      controlUrls_ ? new UrlTracker() : null );
         logger_.info( "Web Profile URL controls: "
                     + ( controlUrls_ ? "on" : "off" ) );
         logger_.info( "Web Profile MType restrictions: "
-                    + subsMask_ );
+                    + mrestrict_ );
         xServer_.addHandler( wxHandler );
         hServer.addHandler( wxHandler.getUrlTranslationHandler() );
         hServer.start();
@@ -168,11 +173,11 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
             },
             new ConfigModel( "MType Restrictions" ) {
                 void setOn( boolean on ) {
-                    subsMask_ = on ? ListSubscriptionMask.DEFAULT
-                                   : ListSubscriptionMask.ALL;
+                    mrestrict_ = on ? ListMessageRestriction.DEFAULT
+                                    : null;
                 }
                 boolean isOn() {
-                    return subsMask_ != ListSubscriptionMask.ALL;
+                    return mrestrict_ != null;
                 }
             },
         };

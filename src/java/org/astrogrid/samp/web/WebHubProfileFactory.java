@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.HubProfileFactory;
 import org.astrogrid.samp.hub.KeyGenerator;
+import org.astrogrid.samp.hub.MessageRestriction;
 import org.astrogrid.samp.xmlrpc.internal.InternalServer;
 
 /**
@@ -160,12 +161,12 @@ public class WebHubProfileFactory implements HubProfileFactory {
         }
 
         // Prepare subscriptions mask.
-        SubscriptionMask subsMask = restrictMtypes
-                                  ? ListSubscriptionMask.DEFAULT
-                                  : ListSubscriptionMask.ALL;
+        MessageRestriction mrestrict = restrictMtypes
+                                     ? ListMessageRestriction.DEFAULT
+                                     : null;
 
         // Construct and return an appropriately configured hub profile.
-        return new WebHubProfile( sfact, clientAuth, subsMask,
+        return new WebHubProfile( sfact, clientAuth, mrestrict,
                                   WebHubProfile.createKeyGenerator(),
                                   urlControl );
     }
