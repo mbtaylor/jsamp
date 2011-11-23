@@ -194,8 +194,11 @@ relating to the Web Profile are:
     the <b>Profiles|Web Profile Configuration|MType Restrictions</b>
     menu item from the hub GUI, or with the
     <code>-web:[no]restrictmtypes</code> hub command-line switch.
-    Finer control can be achieved programmatically by providing a custom
-    implementation of the <code>SubscriptionMask</code> interface.
+    There are ways from both the hub and the (non-Web) client side of
+    achieving finer control: see the documentation of the
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/web/ListMessageRestriction.html"
+                                           >ListMessageRestriction</a> class.
     </li>
 <li>The details of which cross-domain workarounds are used can be controlled
     from the <b>Profiles|Web Profile Configuration</b> menu or from the
