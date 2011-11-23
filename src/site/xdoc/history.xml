@@ -803,6 +803,18 @@ for SAMP objects in a few places:
 <li>Added <code>-subs</code> flag to Snooper tool.</li>
 <li>Fixed bug in JSON parser
     (wouldn't recognise empty objects "<code>{}</code>").</li>
+<li>The implementation of MType restrictions for Web Profile clients
+    has been changed.  Blocked MTypes are now completely hidden from
+    Web Profile clients.  There is still a list of blocked MTypes
+    (ones with known harmless semantics), but subscribing clients may
+    override this, i.e. note MTypes that they subscribe to as
+    known to be either harmless or harmful by annotating the subscription
+    (populating the map value corresponding to the MType key)
+    with a key "<code>x-samp.mostly-harmless</code>" and a value of
+    "1" (harmless) or "0" (harmful).</li>
+<li>The Web Profile registration dialogue now reports the apparent URL of
+    the registering client (as determined from the Referer header)
+    if available.</li>
 </ul>
 </subsection>
 
