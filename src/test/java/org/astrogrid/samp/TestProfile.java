@@ -9,6 +9,7 @@ import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.hub.MessageRestriction;
 import org.astrogrid.samp.hub.ProfileToken;
 import org.astrogrid.samp.web.WebTestProfile;
 import org.astrogrid.samp.xmlrpc.StandardTestProfile;
@@ -39,6 +40,9 @@ public abstract class TestProfile implements ClientProfile {
         directToken_ = new ProfileToken() {
             public String getProfileName() {
                 return "<direct>";
+            }
+            public MessageRestriction getMessageRestriction() {
+                return null;
             }
         };
     }

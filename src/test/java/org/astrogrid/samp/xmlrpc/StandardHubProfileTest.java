@@ -13,6 +13,7 @@ import org.astrogrid.samp.client.HubConnection;
 import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.hub.BasicHubService;
 import org.astrogrid.samp.hub.HubService;
+import org.astrogrid.samp.hub.MessageRestriction;
 import org.astrogrid.samp.hub.ProfileToken;
 
 public class StandardHubProfileTest extends TestCase {
@@ -20,6 +21,9 @@ public class StandardHubProfileTest extends TestCase {
     private static final ProfileToken TEST_PROFILE = new ProfileToken() {
         public String getProfileName() {
             return "StandardTest";
+        }
+        public MessageRestriction getMessageRestriction() {
+            return null;
         }
     };
 
