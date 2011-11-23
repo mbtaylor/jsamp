@@ -4,9 +4,12 @@ import java.awt.Component;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.awt.Window;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import javax.swing.JDialog;
@@ -84,26 +87,76 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
     private String[] getMessageLines( HttpServer.Request request,
                                       String appName,
                                       AuthResourceBundle.Content authContent ) {
+        Map headerMap = request.getHeaderMap();
+
         // Application origin (see http://www.w3.org/TR/cors/,
-        // http://tools.ietf.org/html/draft-abarth-origin).
-        String origin =
-            HttpServer.getHeader( request.getHeaderMap(), "Origin" );
-        if ( origin == null ) {
-            origin = authContent.undeclaredWord();
-        }
+        // http://tools.ietf.org/html/draft-abarth-origin);
+        // present if CORS is in use.
+        String origin = HttpServer.getHeader( headerMap, "Origin" );
+
+        // Referer header (RFC2616 sec 14.36) - present at whim of browser.
+        String referer = HttpServer.getHeader( headerMap, "Referer" );
 
         List lineList = new ArrayList();
         lineList.addAll( toLineList( authContent.appIntroductionLines() ) );
         lineList.add( "\n" );
         lineList.add( "    " + authContent.nameWord() + ": " + appName );
-        lineList.add( "    " + authContent.originWord() + ": " + origin );
+        lineList.add( "    " + authContent.originWord() + ": "
+                    + ( origin == null ? authContent.undeclaredWord()
+                                       : origin ) );
+        lineList.add( "    " + "URL" + ": "
+                    + ( referer == null ? authContent.undeclaredWord()
+                                        : referer ) );
         lineList.add( "\n" );
+        if ( referer != null && origin != null &&
+             ! origin.equals( getOrigin( referer ) ) ) {
+            logger_.warning( "Origin/Referer header mismatch: "
+                           + "\"" + origin + "\" != "
+                           + "\"" + getOrigin( referer ) + "\"" );
+            lineList.add( "WARNING: Origin/Referer header mismatch!" );
+            lineList.add( "WARNING: This looks suspicious." );
+            lineList.add( "\n" );
+        }
         lineList.addAll( toLineList( authContent.privilegeWarningLines() ) );
         lineList.add( "\n" );
         lineList.addAll( toLineList( authContent.adviceLines() ) );
         lineList.add( "\n" );
         lineList.add( authContent.questionLine() );
         return (String[]) lineList.toArray( new String[ 0 ] );
+    }
+
+    /**
+     * Returns the serialized origin for a given URI string.
+     * @see <a href="http://tools.ietf.org/html/draft-abarth-origin-09"
+     *         >The Web Origin Concept</a>
+     *
+     * @param  uri  URI
+     * @return  origin of <code>uri</code>,
+     *          <code>null</code> (note: not "null") if it cannot be determined
+     */
+    private String getOrigin( String uri ) {
+        if ( uri == null ) {
+            return null;
+        }
+        URL url;
+        try {
+            url = new URL( uri );
+        }
+        catch ( MalformedURLException e ) {
+            return null;
+        }
+        String scheme = url.getProtocol();
+        String host = url.getHost();
+        int portnum = url.getPort();
+        StringBuffer sbuf = new StringBuffer()
+            .append( scheme )
+            .append( "://" )
+            .append( host );
+        if ( portnum >= 0 && portnum != url.getDefaultPort() ) {
+            sbuf.append( ":" )
+                .append( Integer.toString( portnum ) );
+        }
+        return sbuf.toString().toLowerCase();
     }
 
     /**
