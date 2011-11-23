@@ -27,6 +27,7 @@ import org.astrogrid.samp.hub.Hub;
 import org.astrogrid.samp.hub.HubService;
 import org.astrogrid.samp.hub.KeyGenerator;
 import org.astrogrid.samp.hub.LockWriter;
+import org.astrogrid.samp.hub.MessageRestriction;
 import org.astrogrid.samp.hub.ProfileToken;
 import org.astrogrid.samp.httpd.ServerResource;
 import org.astrogrid.samp.httpd.UtilServer;
@@ -57,6 +58,9 @@ public class HubRunner {
     private final static ProfileToken STANDARD_PROFILE = new ProfileToken() {
         public String getProfileName() {
             return "Standard";
+        }
+        public MessageRestriction getMessageRestriction() {
+            return null;
         }
     };
     private final static Logger logger_ =

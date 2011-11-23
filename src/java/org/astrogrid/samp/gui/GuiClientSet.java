@@ -11,6 +11,7 @@ import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import org.astrogrid.samp.hub.BasicClientSet;
 import org.astrogrid.samp.hub.HubClient;
+import org.astrogrid.samp.hub.MessageRestriction;
 import org.astrogrid.samp.hub.ProfileToken;
 
 /**
@@ -29,6 +30,9 @@ class GuiClientSet extends BasicClientSet implements ListModel {
                        new ProfileToken() {
                            public String getProfileName() {
                                return "<no-profile>";
+                           }
+                           public MessageRestriction getMessageRestriction() {
+                               return null;
                            }
                        } );
 

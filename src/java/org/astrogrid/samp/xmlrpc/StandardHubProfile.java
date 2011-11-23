@@ -21,6 +21,7 @@ import org.astrogrid.samp.httpd.UtilServer;
 import org.astrogrid.samp.hub.HubProfile;
 import org.astrogrid.samp.hub.KeyGenerator;
 import org.astrogrid.samp.hub.LockWriter;
+import org.astrogrid.samp.hub.MessageRestriction;
 
 /**
  * HubProfile implementation for the SAMP Standard Profile.
@@ -73,6 +74,10 @@ public class StandardHubProfile implements HubProfile {
 
     public String getProfileName() {
         return "Standard";
+    }
+
+    public MessageRestriction getMessageRestriction() {
+        return null;
     }
 
     public synchronized void start( ClientProfile profile ) throws IOException {
