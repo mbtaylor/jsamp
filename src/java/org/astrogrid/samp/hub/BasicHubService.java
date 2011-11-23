@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -43,6 +44,9 @@ public class BasicHubService implements HubService {
     private final static ProfileToken INTERNAL_PROFILE = new ProfileToken() {
         public String getProfileName() {
             return "Internal";
+        }
+        public MessageRestriction getMessageRestriction() {
+            return null;
         }
     };
 
@@ -236,7 +240,7 @@ public class BasicHubService implements HubService {
             public Metadata getMetadata( String clientId )
                     throws SampException {
                 checkCaller();
-                return service.getMetadata( clientId );
+                return service.getMetadata( caller, clientId );
             }
             public void declareSubscriptions( Map subs )
                     throws SampException {
@@ -246,7 +250,7 @@ public class BasicHubService implements HubService {
             public Subscriptions getSubscriptions( String clientId )
                     throws SampException {
                 checkCaller();
-                return service.getSubscriptions( clientId );
+                return service.getSubscriptions( caller, clientId );
             }
             public String[] getRegisteredClients() throws SampException {
                 checkCaller();
@@ -348,11 +352,13 @@ public class BasicHubService implements HubService {
      * Does the work for the <code>getMetadata</code> method of connections
      * registered with this service.
      *
+     * @param   caller  calling client
      * @param  clientId  id of client being queried
      * @return   metadata for client
      * @see  org.astrogrid.samp.client.HubConnection#getMetadata
      */
-    protected Metadata getMetadata( String clientId ) throws SampException {
+    protected Metadata getMetadata( HubClient caller, String clientId )
+            throws SampException {
         return getClient( clientId ).getMetadata();
     }
 
@@ -366,15 +372,35 @@ public class BasicHubService implements HubService {
      */
     protected void declareSubscriptions( HubClient caller, Map subscriptions )
             throws SampException {
-        if ( caller.isCallable() ) {
-            Subscriptions.asSubscriptions( subscriptions ).check();
-            caller.setSubscriptions( subscriptions );
-            hubEvent( new Message( "samp.hub.event.subscriptions" )
-                         .addParam( "id", caller.getId() )
-                         .addParam( "subscriptions", subscriptions ) );
-        }
-        else {
+        if ( ! caller.isCallable() ) {
             throw new SampException( "Client is not callable" );
+        }
+        Subscriptions subs = Subscriptions.asSubscriptions( subscriptions );
+        subs.check();
+        caller.setSubscriptions( subs );
+        String callerId = caller.getId();
+        String serviceId = serviceClient_.getId();
+        String mtype = "samp.hub.event.subscriptions";
+        HubClient[] recipients = clientSet_.getClients();
+        for ( int ic = 0; ic < recipients.length; ic++ ) {
+            HubClient recipient = recipients[ ic ];
+            if ( recipient != serviceClient_ &&
+                 canSend( serviceClient_, recipient, mtype ) &&
+                 clientSet_.containsClient( recipient ) ) {
+                Message msg = new Message( mtype );
+                msg.addParam( "id", callerId );
+                msg.addParam( "subscriptions",
+                              getSubscriptionsFor( recipient, subs ) );
+                try {
+                    recipient.getCallable()
+                             .receiveNotification( serviceId, msg );
+                }
+                catch ( Exception e ) {
+                    logger_.log( Level.WARNING,
+                                 "Notification " + caller + " -> " + recipient
+                               + " failed: " + e, e );
+                }
+            }
         }
     }
 
@@ -382,13 +408,16 @@ public class BasicHubService implements HubService {
      * Does the work for the <code>getSubscriptions</code> method of connections
      * registered with this service.
      *
+     * @param  caller  calling client
      * @param   clientId  id of client being queried
      * @return   subscriptions for client
      * @see  org.astrogrid.samp.client.HubConnection#getSubscriptions
      */
-    protected Subscriptions getSubscriptions( String clientId )
+    protected Subscriptions getSubscriptions( HubClient caller,
+                                              String clientId )
             throws SampException {
-        return getClient( clientId ).getSubscriptions();
+        return getSubscriptionsFor( caller, 
+                                    getClient( clientId ).getSubscriptions() );
     }
 
     /**
@@ -429,7 +458,7 @@ public class BasicHubService implements HubService {
             HubClient client = clients[ ic ];
             if ( ! client.equals( caller ) ) {
                 Map sub = client.getSubscriptions().getSubscription( mtype );
-                if ( sub != null ) {
+                if ( sub != null && canSend( caller, client, mtype ) ) {
                     subMap.put( client.getId(), sub );
                 }
             }
@@ -452,21 +481,15 @@ public class BasicHubService implements HubService {
         msg.check();
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
-        if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
-            try {
-                recipient.getCallable()
-                         .receiveNotification( caller.getId(), msg );
-            }
-            catch ( SampException e ) {
-                throw e;
-            }
-            catch ( Exception e ) {
-                throw new SampException( e.getMessage(), e );
-            }
+        checkSend( caller, recipient, mtype );
+        try {
+            recipient.getCallable().receiveNotification( caller.getId(), msg );
         }
-        else {
-            throw new SampException( "Client " + recipient
-                                   + " not subscribed to " + mtype );
+        catch ( SampException e ) {
+            throw e;
+        }
+        catch ( Exception e ) {
+            throw new SampException( e.getMessage(), e );
         }
     }
 
@@ -489,21 +512,15 @@ public class BasicHubService implements HubService {
         String mtype = msg.getMType();
         HubClient recipient = getClient( recipientId );
         String msgId = MessageId.encode( caller, msgTag, false );
-        if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
-            try {
-                recipient.getCallable()
-                         .receiveCall( caller.getId(), msgId, msg );
-            }
-            catch ( SampException e ) {
-                throw e;
-            }
-            catch ( Exception e ) {
-                throw new SampException( e.getMessage(), e );
-            }
+        checkSend( caller, recipient, mtype );
+        try {
+            recipient.getCallable().receiveCall( caller.getId(), msgId, msg );
         }
-        else {
-            throw new SampException( "Client " + recipient
-                                   + " not subscribed to " + mtype );
+        catch ( SampException e ) {
+            throw e;
+        }
+        catch ( Exception e ) {
+            throw new SampException( e.getMessage(), e );
         }
         return msgId;
     }
@@ -526,7 +543,7 @@ public class BasicHubService implements HubService {
         List sentList = new ArrayList();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
-            if ( recipient != caller && recipient.isSubscribed( mtype ) &&
+            if ( recipient != caller && canSend( caller, recipient, mtype ) &&
                  clientSet_.containsClient( recipient ) ) {
                 try {
                     recipient.getCallable()
@@ -564,7 +581,7 @@ public class BasicHubService implements HubService {
         Map sentMap = new HashMap();
         for ( int ic = 0; ic < recipients.length; ic++ ) {
             HubClient recipient = recipients[ ic ];
-            if ( recipient != caller && recipient.isSubscribed( mtype ) &&
+            if ( recipient != caller && canSend( caller, recipient, mtype ) &&
                  clientSet_.containsClient( recipient ) ) {
                 try {
                     recipient.getCallable()
@@ -658,104 +675,97 @@ public class BasicHubService implements HubService {
         MessageId hubMsgId =
             new MessageId( caller.getId(), keyGen_.next(), true );
         long start = System.currentTimeMillis();
-        if ( recipient.getSubscriptions().isSubscribed( mtype ) ) {
-            synchronized ( waiterMap_ ) {
+        checkSend( caller, recipient, mtype );
+        synchronized ( waiterMap_ ) {
 
-                // If the number of pending synchronous calls exceeds the 
-                // permitted maximum, remove the oldest calls until there is
-                // space for the new one.
-                if ( MAX_WAITERS > 0 && waiterMap_.size() >= MAX_WAITERS ) {
-                    int excess = waiterMap_.size() - MAX_WAITERS + 1;
-                    List keyList = new ArrayList( waiterMap_.keySet() );
-                    Collections.sort( keyList, MessageId.AGE_COMPARATOR );
-                    logger_.warning( "Pending synchronous calls exceeds limit "
-                                   + MAX_WAITERS + " - giving up on " + excess
-                                   + " oldest" );
-                    for ( int ie = 0; ie < excess; ie++ ) {
-                        Object removed = waiterMap_.remove( keyList.get( ie ) );
-                        assert removed != null;
-                    }
-                    waiterMap_.notifyAll();
+            // If the number of pending synchronous calls exceeds the 
+            // permitted maximum, remove the oldest calls until there is
+            // space for the new one.
+            if ( MAX_WAITERS > 0 && waiterMap_.size() >= MAX_WAITERS ) {
+                int excess = waiterMap_.size() - MAX_WAITERS + 1;
+                List keyList = new ArrayList( waiterMap_.keySet() );
+                Collections.sort( keyList, MessageId.AGE_COMPARATOR );
+                logger_.warning( "Pending synchronous calls exceeds limit "
+                               + MAX_WAITERS + " - giving up on " + excess
+                               + " oldest" );
+                for ( int ie = 0; ie < excess; ie++ ) {
+                    Object removed = waiterMap_.remove( keyList.get( ie ) );
+                    assert removed != null;
                 }
-
-                // Place an entry for this synchronous call in the waiterMap.
-                waiterMap_.put( hubMsgId, null );
+                waiterMap_.notifyAll();
             }
 
-            // Make the call asynchronously to the receiver.
-            try {
-                recipient.getCallable()
-                         .receiveCall( caller.getId(), hubMsgId.toString(),
-                                       msg );
-            }
-            catch ( SampException e ) {
-                throw e;
-            }
-            catch ( Exception e ) {
-                throw new SampException( e.getMessage(), e );
-            }
-
-            // Wait until either the timeout expires, or the response to the
-            // message turns up in the waiter map (placed there on another
-            // thread by this the reply() method).
-            timeout = Math.min( Math.max( 0, timeout ),
-                                Math.max( 0, MAX_TIMEOUT ) );
-            long finish = timeout > 0
-                        ? System.currentTimeMillis() + timeout * 1000
-                        : Long.MAX_VALUE;  // 3e8 years
-            synchronized ( waiterMap_ ) {
-                while ( waiterMap_.containsKey( hubMsgId ) &&
-                        waiterMap_.get( hubMsgId ) == null &&
-                        System.currentTimeMillis() < finish ) {
-                    long millis = finish - System.currentTimeMillis();
-                    if ( millis > 0 ) {
-                        try {
-                            waiterMap_.wait( millis );
-                        }
-                        catch ( InterruptedException e ) {
-                            throw new SampException( "Wait interrupted", e );
-                        }
-                    }
-                }
-
-                // If the response is there, return it to the caller of this
-                // method (the sender of the message).
-                if ( waiterMap_.containsKey( hubMsgId ) ) {
-                    Response response =
-                        (Response) waiterMap_.remove( hubMsgId );
-                    if ( response != null ) {
-                        return response;
-                    }
-
-                    // Otherwise, it must have timed out.  Exit with an error.
-                    else {
-                        assert System.currentTimeMillis() >= finish;
-                        String millis =
-                            Long.toString( System.currentTimeMillis() - start );
-                        String emsg = new StringBuffer()
-                            .append( "Synchronous call timeout after " )
-                            .append( millis.substring( 0,
-                                                       millis.length() - 3 ) )
-                            .append( '.' )
-                            .append( millis.substring( millis.length() - 3 ) )
-                            .append( '/' )
-                            .append( timeout )
-                            .append( " sec" )
-                            .toString();
-                        throw new SampException( emsg );
-                    }
-                }
-                else {
-                    throw new SampException(
-                        "Synchronous call aborted"
-                      + " - server load exceeded maximum of " + MAX_WAITERS
-                      + "?" );
-                }
-            }
+            // Place an entry for this synchronous call in the waiterMap.
+            waiterMap_.put( hubMsgId, null );
         }
-        else {
-            throw new SampException( "Client " + recipient
-                                   + " not subscribed to " + mtype );
+
+        // Make the call asynchronously to the receiver.
+        try {
+            recipient.getCallable()
+                     .receiveCall( caller.getId(), hubMsgId.toString(), msg );
+        }
+        catch ( SampException e ) {
+            throw e;
+        }
+        catch ( Exception e ) {
+            throw new SampException( e.getMessage(), e );
+        }
+
+        // Wait until either the timeout expires, or the response to the
+        // message turns up in the waiter map (placed there on another
+        // thread by this the reply() method).
+        timeout = Math.min( Math.max( 0, timeout ),
+                            Math.max( 0, MAX_TIMEOUT ) );
+        long finish = timeout > 0
+                    ? System.currentTimeMillis() + timeout * 1000
+                    : Long.MAX_VALUE;  // 3e8 years
+        synchronized ( waiterMap_ ) {
+            while ( waiterMap_.containsKey( hubMsgId ) &&
+                    waiterMap_.get( hubMsgId ) == null &&
+                    System.currentTimeMillis() < finish ) {
+                long millis = finish - System.currentTimeMillis();
+                if ( millis > 0 ) {
+                    try {
+                        waiterMap_.wait( millis );
+                    }
+                    catch ( InterruptedException e ) {
+                        throw new SampException( "Wait interrupted", e );
+                    }
+                }
+            }
+
+            // If the response is there, return it to the caller of this
+            // method (the sender of the message).
+            if ( waiterMap_.containsKey( hubMsgId ) ) {
+                Response response =
+                    (Response) waiterMap_.remove( hubMsgId );
+                if ( response != null ) {
+                    return response;
+                }
+
+                // Otherwise, it must have timed out.  Exit with an error.
+                else {
+                    assert System.currentTimeMillis() >= finish;
+                    String millis =
+                        Long.toString( System.currentTimeMillis() - start );
+                    String emsg = new StringBuffer()
+                        .append( "Synchronous call timeout after " )
+                        .append( millis.substring( 0,
+                                                   millis.length() - 3 ) )
+                        .append( '.' )
+                        .append( millis.substring( millis.length() - 3 ) )
+                        .append( '/' )
+                        .append( timeout )
+                        .append( " sec" )
+                        .toString();
+                    throw new SampException( emsg );
+                }
+            }
+            else {
+                throw new SampException(
+                    "Synchronous call aborted"
+                  + " - server load exceeded maximum of " + MAX_WAITERS + "?" );
+            }
         }
     }
 
@@ -879,6 +889,95 @@ public class BasicHubService implements HubService {
             throw new SampException( "No registered client with ID \""
                                    + id + "\"" );
         }
+    }
+
+    /**
+     * Checks if a given send is permitted.  Throws an exception if not.
+     *
+     * @param  sender  sending client
+     * @param  recipient  receiving client
+     * @param  mtype   MType
+     * @throws  SampException  if the send is not permitted
+     */
+    private void checkSend( HubClient sender, HubClient recipient,
+                            String mtype ) throws SampException {
+        String errmsg = getSendError( sender, recipient, mtype );
+        if ( errmsg != null ) {
+            throw new SampException( errmsg );
+        }
+    }
+
+    /**
+     * Indicates whether a given send is permitted.
+     *
+     * @param  sender  sending client
+     * @param  recipient  receiving client
+     * @param  mtype   MType
+     * @return  true iff send OK
+     */
+    private boolean canSend( HubClient sender, HubClient recipient,
+                             String mtype ) {
+        return getSendError( sender, recipient, mtype ) == null;
+    }
+
+    /**
+     * Does the work to determine whether a given sending client is
+     * permitted to send a message with a given MType to a given recipient.
+     * Returns null if allowed, a useful message if not.
+     * Not intended for direct use, see {@link #canSend} and {@link #checkSend}.
+     *
+     * @param  sender  sending client
+     * @param  recipient  receiving client
+     * @param  mtype   MType
+     * @return  null if send OK, otherwise explanation message
+     */
+    private String getSendError( HubClient sender, HubClient recipient,
+                                 String mtype ) {
+        if ( ! recipient.isCallable() ) {
+            return "Client " + recipient + " is not callable";
+        }
+        Subscriptions subs = recipient.getSubscriptions();
+        if ( ! subs.isSubscribed( mtype ) ) {
+            return "Client " + recipient + " is not subscribed to " + mtype;
+        }
+        ProfileToken ptoken = sender.getProfileToken();
+        MessageRestriction mrestrict = ptoken.getMessageRestriction();
+        if ( mrestrict != null ) {
+            Map subsInfo = subs.getSubscription( mtype );
+            if ( ! mrestrict.permitSend( mtype, subsInfo ) ) {
+                return "MType " + mtype + " blocked from "
+                     + ptoken + " profile";
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns the view of a given subscriptions map to be presented to
+     * a sending client.  The result may be affected by any message
+     * restrictions in force for the client.
+     *
+     * @param  client  client to view subscriptions
+     * @param  subs  basic subscription map
+     * @return  view of subscription map for <code>client</code>
+     */
+    private Subscriptions getSubscriptionsFor( HubClient client,
+                                               Subscriptions subs ) {
+        MessageRestriction mrestrict =
+            client.getProfileToken().getMessageRestriction();
+        if ( mrestrict == null ) {
+            return subs;
+        }
+        Subscriptions csubs = new Subscriptions();
+        for ( Iterator it = subs.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry) it.next();
+            String mtype = (String) entry.getKey();
+            Map note = (Map) entry.getValue();
+            if ( mrestrict.permitSend( mtype, note ) ) {
+                csubs.put( mtype, note );
+            }
+        }
+        return csubs;
     }
 
     /**
