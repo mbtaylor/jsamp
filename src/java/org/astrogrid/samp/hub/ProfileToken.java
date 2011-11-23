@@ -16,4 +16,13 @@ public interface ProfileToken {
      * @return  profile identifier, usually one word
      */
     String getProfileName();
+
+    /**
+     * Returns a MessageRestriction object which controls what messages
+     * may be sent by clients registering under ths profile.
+     * If null is returned, any messages may be sent.
+     *
+     * @return  message restriction, or null
+     */
+    MessageRestriction getMessageRestriction();
 }
