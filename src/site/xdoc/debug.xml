@@ -70,9 +70,6 @@ but you don't have another one to hand which can generate such
 messages, you can use the
 <a href="commands.html#MessageSender">MessageSender</a> tool
 to generate messages to order and send them from the command line.
-Note MessageSender cannot currently generate list and map parameters
-properly - if this is something you need, get in touch and I can 
-maybe add it.
 </p>
 
 </subsection>
