@@ -21,6 +21,7 @@
 <li><a href="#Version_1_2"  >Version 1.2</a></li>
 <li><a href="#Version_1_3"  >Version 1.3</a></li>
 <li><a href="#Version_1_3-1">Version 1.3-1</a></li>
+<li><a href="#Version_1.3-2">Version 1.3-2</a></li>
 </ul>
 
 <subsection name="Version 0.1">
@@ -785,14 +786,14 @@ for SAMP objects in a few places:
 </ul>
 </subsection>
 
-<subsection name="Next Version">
+<subsection name="Version 1.3-2">
 <p>
-<strong>Date:</strong> <br/>
-<strong>Archive:</strong> 
+<strong>Date:</strong> 12 Dec 2011 <br/>
+<strong>Archive: <a href="../1.3-2">Version 1.3-2</a></strong> 
 </p>
 
 <ul>
-<li>Remove some code which used API introduced at J2SE1.5.</li>
+<li>Remove some code which was not compatible with J2S1.4.</li>
 <li>Web Profile URL control now controls all URLs not just local ones.
     All maps passing through the hub connection are now scanned for URLs.</li>
 <li>Reduce logging for message send failures, partly by reducing failures
