@@ -136,8 +136,8 @@ Web Profile itself is not running.
 
 <subsection name="Web Profile Security">
 
-<p>The JSAMP 1.3 Working Draft discusses security in relation to the 
-Web profile to some extent, but notes that there are outstanding
+<p>The JSAMP 1.3 Proposed Recommendation discusses security in relation to the 
+Web Profile, but notes that there remain some
 security concerns, and that experimentation will continue in hub
 implementations around this issue.
 </p>
@@ -146,6 +146,50 @@ implementations around this issue.
 relating to the Web Profile are:
 </p>
 <ul>
+<li>The HTTP server on which the Web Profile runs rejects any access
+    attempts from hosts other than the local host, as recommended by
+    the SAMP 1.3 document.
+    </li>
+<li>The Web Profile URL translation service (Section 5.2.6 of SAMP 1.3)
+    is, by default, selective about what URLs it will proxy.
+    URL translation is only performed for a URL which has previously
+    been mentioned (for instance as the value of a Message or Response
+    argument or a declared Metadata map) in a SAMP communication
+    from a trusted (non-Web Profile) client.
+    Translation requests which do not meet this criterion are met
+    witha 403 Forbidden response.
+    This means for instance that a Web Profile client cannot simply
+    request, e.g., the content of <code>file:///etc/passwd</code>.
+    This policy is on by default, but can be switched off and on using
+    the <b>Profiles|Web Profile Configuration|URL Controls</b> menu item from
+    the hub GUI, or with the <code>-web:[no]urlcontrol</code> hub
+    command-line switch.
+    </li>
+<li>The MTypes which a web client is permitted to send is, by default,
+    restricted.
+    In this way, web clients can be restricted to sending messages known
+    to have harmless semantics, and blocked, for instance, from sending
+    messages which cause scripts to be executed on desktop clients,
+    which have more potential for dangerous effects.
+    By default, only MTypes matching a "whitelist"  of wildcards 
+    are allowed; this includes <code>samp.app.*</code>, <code>table.*</code>,
+    <code>image.*</code>, and others which are used for the normal
+    exchange of data.  This restriction can be switched off and on using
+    the <b>Profiles|Web Profile Configuration|MType Restrictions</b>
+    menu item from the hub GUI, or with the
+    <code>-web:[no]restrictmtypes</code> hub command-line switch.
+    There are ways from both the hub and the (non-Web) client side of
+    achieving finer control.
+    In particular non-Web clients may annotate their MType subscriptions list
+    using the key "<code>x-samp.mostly-harmless</code>";
+    setting this to 1 or 0 adds the MType to or removes it from the whitelist
+    for that particular subscribing client.
+    See the documentation of the
+    <a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/web/ListMessageRestriction.html"
+                                           >ListMessageRestriction</a> class
+    for more detail.
+    </li>
 <li>The Web Profile may be switched off.  Users can switch it on and off
     during hub operation using the <b>Profiles</b>
     menu from the hub GUI (if present).
@@ -158,47 +202,6 @@ relating to the Web Profile are:
     if there are suspicions about their behaviour.  Single clients can
     be ejected as well using the <b>Clients|Disconnect Selected Client</b>
     menu item.
-    </li>
-<li>The HTTP server on which the Web Profile runs rejects any access
-    attempts from hosts other than the local host, as recommended by
-    the SAMP 1.3 document.
-    </li>
-<li>The Web Profile URL translation service (Section 5.2.6 of SAMP 1.3)
-    is, by default, selective about what URLs it will proxy.
-    URLs are identified as local or non local; local ones are those using
-    the file: protocol, or those using the http: protocol which point to
-    the local host.  Non-local URLs are proxied without restriction.
-    Local URL translation is only performed for a local URL if it has
-    previously been mentioned (as the value of a Message or Response
-    argument) by a non-Web Profile client; translation requests which
-    do not meet this criterion are met with a 403 Forbidden response.
-    This means for instance that a Web Profile client cannot simply
-    request, e.g., the content of <code>file:///etc/passwd</code>.
-    This policy does not constitute bulletproof protection of local
-    resources to malicious web-profile clients, but it does guard against
-    some straightforward attacks.
-    This policy is on by default, but can be switched off and on using
-    the <b>Profiles|Web Profile Configuration|URL Controls</b> menu item from
-    the hub GUI, or with the <code>-web:[no]urlcontrol</code> hub
-    command-line switch.
-    </li>
-<li>The MTypes which a web client is permitted to send may be restricted.
-    In this way, web clients can be restricted to sending messages known
-    to have harmless semantics, and blocked, for instance, from sending
-    messages which cause scripts to be executed on desktop clients,
-    which have more potential for dangerous effects.
-    By default, only MTypes matching a well-known list of wildcards 
-    are allowed; this includes <code>samp.app.*</code>, <code>table.*</code>,
-    <code>image.*</code>, and others which are used for the normal
-    exchange of data.  This restriction can be switched off and on using
-    the <b>Profiles|Web Profile Configuration|MType Restrictions</b>
-    menu item from the hub GUI, or with the
-    <code>-web:[no]restrictmtypes</code> hub command-line switch.
-    There are ways from both the hub and the (non-Web) client side of
-    achieving finer control: see the documentation of the
-    <a target="samp-javadoc"
-       href="apidocs/org/astrogrid/samp/web/ListMessageRestriction.html"
-                                           >ListMessageRestriction</a> class.
     </li>
 <li>The details of which cross-domain workarounds are used can be controlled
     from the <b>Profiles|Web Profile Configuration</b> menu or from the
@@ -215,7 +218,7 @@ images to your image viewer.  If such a hostile client is oberved, it
 can be forcibly disconnected, either individually or by shutting down
 the Web Profile (or the Hub itself).  Such a hostile (or indeed friendly)
 client can of course only ever connect to the Hub following explicit
-authorisation by the user (clicking Yes on the registration popup dialogue).
+authorisation by the user (clicking "Yes" on the registration popup dialogue).
 </p>
 
 </subsection>
