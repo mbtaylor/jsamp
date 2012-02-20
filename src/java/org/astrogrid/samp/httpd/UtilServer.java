@@ -208,8 +208,8 @@ public class UtilServer {
                     sock = new ServerSocket( port );
                 }
                 catch ( BindException e ) {
-                    logger_.warning( "Can't open socket on port " + port + "(" 
-                                   + e + ") - use another one" );
+                    logger_.warning( "Can't open socket on port " + port
+                                   + " (" + e + ") - use another one" );
                 }
             }
             if ( sock == null ) {
