@@ -453,24 +453,32 @@ public class Hub {
         final Hub hub = new Hub( hubService );
         runners[ 0 ] = hub;
 
-        // Start the starting profiles.
+        // Start the initial profiles.
         int nStarted = 0;
-        try {
-            for ( int ip = 0; ip < profiles.length; ip++ ) {
-                logger_.info( "Starting hub profile "
-                            + profiles[ ip ].getProfileName() );
-                hub.startProfile( profiles[ ip ] );
+        IOException error1 = null;
+        for ( int ip = 0; ip < profiles.length; ip++ ) {
+            HubProfile prof = profiles[ ip ];
+            String pname = prof.getProfileName();
+            try {
+                logger_.info( "Starting hub profile " + pname );
+                hub.startProfile( prof );
                 nStarted++;
             }
-        }
-        catch ( IOException e ) {
-            for ( int ip = 0; ip < nStarted; ip++ ) {
-                logger_.info( "Stopping hub profile "
-                            + profiles[ ip ].getProfileName()
-                            + " because of startup error" );
-                profiles[ ip ].stop();
+            catch ( IOException e ) {
+                if ( error1 == null ) {
+                    error1 = e;
+                }
+                logger_.log( Level.WARNING,
+                             "Failed to start SAMP hub profile " + pname, e );
             }
-            throw e;
+        }
+        logger_.info( "Started " + nStarted + "/" + profiles.length
+                   + " SAMP profiles" );
+        if ( nStarted == 0 && profiles.length > 0 ) {
+            assert error1 != null;
+            throw (IOException)
+                  new IOException( "No SAMP profiles started: " + error1 )
+                 .initCause( error1 );
         }
 
         // Start the hub service itself.

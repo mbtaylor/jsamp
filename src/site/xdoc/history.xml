@@ -819,6 +819,20 @@ for SAMP objects in a few places:
 </ul>
 </subsection>
 
+<subsection name="Next Version">
+<p>
+<strong>Date:</strong> <br/>
+<strong>Archive:</strong>
+</p>
+
+<ul>
+<li>Failure to start some profiles no longer prevents the hub from starting
+    up at all.  This means that default configuration (Standard + Web profile) 
+    hub startup no longer fails on a machine that already has a web profile
+    hub running on it.</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>
