@@ -831,6 +831,8 @@ for SAMP objects in a few places:
     hub startup no longer fails on a machine that already has a web profile
     hub running on it.</li>
 <li>Reported standard version is now 1.3 REC.</li>
+<li>Fixed some broken command-line hub options
+    (<tt>[no]restrictmtypes</tt> and <tt>[no]urlcontrol</tt>).</li>
 </ul>
 </subsection>
 

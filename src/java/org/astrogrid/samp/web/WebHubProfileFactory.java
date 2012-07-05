@@ -105,15 +105,19 @@ public class WebHubProfileFactory implements HubProfileFactory {
                 useSilverlight = false;
             }
             else if ( arg.equals( "-web:urlcontrol" ) ) {
+                it.remove();
                 urlControl = true;
             }
             else if ( arg.equals( "-web:nourlcontrol" ) ) {
+                it.remove();
                 urlControl = false;
             }
             else if ( arg.equals( "-web:restrictmtypes" ) ) {
+                it.remove();
                 restrictMtypes = true;
             }
             else if ( arg.equals( "-web:norestrictmtypes" ) ) {
+                it.remove();
                 restrictMtypes = false;
             }
         }
