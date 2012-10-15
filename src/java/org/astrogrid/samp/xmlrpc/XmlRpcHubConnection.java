@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import org.astrogrid.samp.Metadata;
 import org.astrogrid.samp.RegInfo;
 import org.astrogrid.samp.Response;
+import org.astrogrid.samp.ShutdownManager;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.Subscriptions;
 import org.astrogrid.samp.client.HubConnection;
@@ -23,6 +24,7 @@ import org.astrogrid.samp.client.SampException;
  * calls are mapped on to SAMP hub interface calls.
  *
  * @author   Mark Taylor
+ * @author   Sylvain Lafrasse
  * @since    16 Jul 2008
  */
 public abstract class XmlRpcHubConnection implements HubConnection {
@@ -56,16 +58,13 @@ public abstract class XmlRpcHubConnection implements HubConnection {
         else {
             throw new SampException( "Bad return value from hub register method"                                   + " - not a map" );
         }
-        try {
-            Runtime.getRuntime().addShutdownHook( new Thread() {
-                public void run() {
-                    finish();
-                }
-            } );
-        }
-        catch ( SecurityException e ) {
-            logger_.warning( "Can't add unregister shutdown hook: " + e );
-        }
+        ShutdownManager.getInstance()
+                       .registerHook( this, ShutdownManager.CLIENT_SEQUENCE,
+                                      new Runnable() {
+            public void run() {
+                finish();
+            }
+        } );
     }
 
     public RegInfo getRegInfo() {
@@ -78,6 +77,7 @@ public abstract class XmlRpcHubConnection implements HubConnection {
 
     public void unregister() throws SampException {
         exec( "unregister", new Object[ 0 ] );
+        ShutdownManager.getInstance().unregisterHook( this );
         unregistered_ = true;
     }
 

@@ -104,15 +104,6 @@ public class BasicHubService implements HubService {
         serviceClient_.setCallable( hubCallable );
         serviceClient_.setSubscriptions( hubCallable.getSubscriptions() );
         clientSet_.add( serviceClient_ );
-
-        // Ensure that things are tidied up (importantly, shutdown messages
-        // get sent) in the case of a JVM termination.
-        Runtime.getRuntime().addShutdownHook(
-                new Thread( "HubService shutdown" ) {
-            public void run() {
-                shutdown();
-            }
-        } );
         started_ = true;
     }
 

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.astrogrid.samp.ShutdownManager;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.client.HubConnection;
@@ -40,6 +41,7 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
  * profiles.
  *
  * @author   Mark Taylor
+ * @author   Sylvan Lafrasse
  * @since    31 Jan 2011
  */
 public class Hub {
@@ -117,6 +119,7 @@ public class Hub {
         synchronized ( hubList_ ) {
             hubList_.remove( this );
         }
+        ShutdownManager.getInstance().unregisterHook( this );
     }
 
     /**
@@ -493,7 +496,9 @@ public class Hub {
         // Start the hub service itself.
         logger_.info( "Starting hub service" );
         hubService.start();
-        Runtime.getRuntime().addShutdownHook( new Thread( "Hub Terminator" ) {
+        ShutdownManager.getInstance()
+                       .registerHook( hub, ShutdownManager.HUB_SEQUENCE,
+                                      new Runnable() {
             public void run() {
                 hub.shutdown();
             }
