@@ -833,6 +833,10 @@ for SAMP objects in a few places:
 <li>Reported standard version is now 1.3 REC.</li>
 <li>Fixed some broken command-line hub options
     (<tt>[no]restrictmtypes</tt> and <tt>[no]urlcontrol</tt>).</li>
+<li>Added <code>Hub.getRunningHubs</code> static method to locate hubs
+    running in current JVM, as suggested by JMMC.</li>
+<li>Improved shutdown sequence, shutting down clients first and then hubs,
+    following contribution from JMMC.</li>
 </ul>
 </subsection>
 
