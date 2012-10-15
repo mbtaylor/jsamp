@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.astrogrid.samp.SampUtils;
@@ -54,6 +56,7 @@ public class Hub {
         createDefaultProfileClasses( false );
     private static Class[] defaultExtraProfileClasses_ =
         createDefaultProfileClasses( true );
+    private static final Map hubList_ = new WeakHashMap();
     private static final Logger logger_ =
         Logger.getLogger( Hub.class.getName() );
 
@@ -86,6 +89,9 @@ public class Hub {
     public Hub( HubService service ) {
         service_ = service;
         profileList_ = new ArrayList();
+        synchronized ( hubList_ ) {
+            hubList_.put( this, null );
+        }
     }
 
     /**
@@ -107,6 +113,9 @@ public class Hub {
                            + profile.getProfileName(), e );
             }
             it.remove();
+        }
+        synchronized ( hubList_ ) {
+            hubList_.remove( this );
         }
     }
 
@@ -473,7 +482,7 @@ public class Hub {
             }
         }
         logger_.info( "Started " + nStarted + "/" + profiles.length
-                   + " SAMP profiles" );
+                    + " SAMP profiles" );
         if ( nStarted == 0 && profiles.length > 0 ) {
             assert error1 != null;
             throw (IOException)
@@ -607,6 +616,26 @@ public class Hub {
     public static void runExternalHub( HubServiceMode hubMode )
             throws IOException {
         runExternalHub( hubMode, null, null );
+    }
+
+    /**
+     * Returns an array of all the instances of this class which are
+     * currently running.
+     *
+     * @return   running hubs
+     */
+    public static Hub[] getRunningHubs() {
+        List list;
+        synchronized ( hubList_ ) {
+            list = new ArrayList( hubList_.keySet() );
+        }
+        for ( Iterator it = list.iterator(); it.hasNext(); ) {
+            Hub hub = (Hub) it.next();
+            if ( ! hub.getHubService().isHubRunning() ) {
+                it.remove();
+            }
+        }
+        return (Hub[]) list.toArray( new Hub[ 0 ] );
     }
 
     /**
