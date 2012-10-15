@@ -24,6 +24,7 @@ import org.astrogrid.samp.Subscriptions;
  * (for instance declareMetadata before registration or after unregistration).
  *
  * @author   Mark Taylor
+ * @author   Laurent Bourges
  * @since    16 Jul 2008
  */
 class ClientTracker extends AbstractMessageHandler {
@@ -453,6 +454,10 @@ class ClientTracker extends AbstractMessageHandler {
          */
         public synchronized void clear() {
             opList_.clear();
+            if ( tidyTimer_ != null ) {
+                tidyTimer_.cancel();
+                tidyTimer_ = null;
+            }
         }
 
         /**

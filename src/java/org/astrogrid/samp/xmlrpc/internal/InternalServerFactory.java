@@ -13,9 +13,6 @@ import org.astrogrid.samp.xmlrpc.SampXmlRpcServerFactory;
  * @since    26 Aug 2008
  */
 public class InternalServerFactory implements SampXmlRpcServerFactory {
-
-    private InternalServer server_;
-
     public synchronized SampXmlRpcServer getServer() throws IOException {
         return new InternalServer();
     }

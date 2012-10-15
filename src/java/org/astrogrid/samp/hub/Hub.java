@@ -41,7 +41,7 @@ import org.astrogrid.samp.xmlrpc.XmlRpcKit;
  * profiles.
  *
  * @author   Mark Taylor
- * @author   Sylvan Lafrasse
+ * @author   Sylvain Lafrasse
  * @since    31 Jan 2011
  */
 public class Hub {

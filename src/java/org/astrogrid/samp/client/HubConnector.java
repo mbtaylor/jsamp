@@ -566,6 +566,9 @@ public class HubConnector {
     public void call( String recipientId, Map msg, ResultHandler resultHandler,
                       int timeout ) throws SampException {
         HubConnection connection = getConnection();
+        if ( connection == null ) {
+            throw new SampException( "Not connected" );
+        } 
         String tag = createTag( this );
         callHandler_.registerHandler( tag, resultHandler, timeout );
         try {
@@ -598,6 +601,9 @@ public class HubConnector {
     public void callAll( Map msg, ResultHandler resultHandler, int timeout )
             throws SampException {
         HubConnection connection = getConnection();
+        if ( connection == null ) {
+            throw new SampException( "Not connected" );
+        }
         String tag = createTag( this );
         callHandler_.registerHandler( tag, resultHandler, timeout );
         try {
