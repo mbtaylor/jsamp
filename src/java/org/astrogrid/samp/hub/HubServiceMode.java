@@ -87,14 +87,15 @@ public abstract class HubServiceMode {
     }
 
     /**
-     * Returns a new HubService object.
+     * Creates and returns a new hub service object.
      *
      * @param  random  random number generator
      * @param  profiles  hub profiles
      * @param  runners  1-element array of Hubs - this should be
      *         populated with the runner once it has been constructed
+     * @return  object containing the hub service and possibly a window
      */
-    abstract HubService createHubService( Random random, HubProfile[] profiles,
+    abstract ServiceGui createHubService( Random random, HubProfile[] profiles,
                                           Hub[] runners );
 
     /**
@@ -207,10 +208,12 @@ public abstract class HubServiceMode {
     private static HubServiceMode createBasicHubMode( String name ) {
         try {
             return new HubServiceMode( name, true ) {
-                HubService createHubService( Random random,
+                ServiceGui createHubService( Random random,
                                              HubProfile[] profiles,
                                              Hub[] runners ) {
-                    return new BasicHubService( random );
+                    ServiceGui serviceGui = new ServiceGui();
+                    serviceGui.service_ = new BasicHubService( random );
+                    return serviceGui;
                 }
             };
         }
@@ -228,20 +231,23 @@ public abstract class HubServiceMode {
         try {
             GuiHubService.class.getName();
             return new HubServiceMode( name, false ) {
-                HubService createHubService( Random random,
+                ServiceGui createHubService( Random random,
                                              final HubProfile[] profiles,
                                              final Hub[] runners ) {
-                    return new GuiHubService( random ) {
+                    final ServiceGui serviceGui = new ServiceGui();
+                    serviceGui.service_ = new GuiHubService( random ) {
                         Tidier tidier;
                         public void start() {
                             final GuiHubService service = this;
                             super.start();
                             SwingUtilities.invokeLater( new Runnable() {
                                 public void run() {
-                                    tidier =
-                                        configureHubWindow( createHubWindow(),
-                                                            profiles, runners,
-                                                            service );
+                                    JFrame window = createHubWindow();
+                                    tidier = configureHubWindow( window,
+                                                                 profiles,
+                                                                 runners,
+                                                                 service );
+                                    serviceGui.window_ = window;
                                 }
                             } );
                         }
@@ -256,6 +262,7 @@ public abstract class HubServiceMode {
                             } );
                         }
                     };
+                    return serviceGui;
                 }
             };
         }
@@ -273,20 +280,24 @@ public abstract class HubServiceMode {
         try {
             MessageTrackerHubService.class.getName();
             return new HubServiceMode( name, false ) {
-                HubService createHubService( Random random,
+                ServiceGui createHubService( Random random,
                                              final HubProfile[] profiles,
                                              final Hub[] runners ) {
-                    return new MessageTrackerHubService( random ) {
+                    final ServiceGui serviceGui = new ServiceGui();
+                    serviceGui.service_ =
+                            new MessageTrackerHubService( random ) {
                         Tidier tidier;
                         public void start() {
                             super.start();
                             final MessageTrackerHubService service = this;
                             SwingUtilities.invokeLater( new Runnable() {
                                 public void run() {
-                                    tidier =
-                                        configureHubWindow( createHubWindow(),
-                                                            profiles,
-                                                            runners, service );
+                                    JFrame window = createHubWindow();
+                                    tidier = configureHubWindow( window,
+                                                                 profiles,
+                                                                 runners,
+                                                                 service );
+                                    serviceGui.window_ = window;
                                 }
                             } );
                         }
@@ -301,6 +312,7 @@ public abstract class HubServiceMode {
                             } );
                         }
                     };
+                    return serviceGui;
                 }
             };
         }
@@ -316,10 +328,12 @@ public abstract class HubServiceMode {
      */
     private static HubServiceMode createFacadeHubMode( String name ) {
         return new HubServiceMode( name, true ) {
-            HubService createHubService( Random random, HubProfile[] profiles,
+            ServiceGui createHubService( Random random, HubProfile[] profiles,
                                          final Hub[] runners ) {
-                return new FacadeHubService( DefaultClientProfile
-                                            .getProfile() );
+                ServiceGui serviceGui = new ServiceGui();
+                serviceGui.service_ =
+                    new FacadeHubService( DefaultClientProfile.getProfile() );
+                return serviceGui;
             }
         };
     }
@@ -341,7 +355,7 @@ public abstract class HubServiceMode {
             super( name, false );
             error_ = error;
         }
-        HubService createHubService( Random random, HubProfile[] profiles,
+        ServiceGui createHubService( Random random, HubProfile[] profiles,
                                      Hub[] runners ) {
             throw new RuntimeException( "Hub mode " + getName()
                                       + " unavailable", error_ );
@@ -359,6 +373,32 @@ public abstract class HubServiceMode {
          * May be assumed to be called on the AWT Event Dispatch Thread.
          */
         void tidyGui();
+    }
+
+    /**
+     * Aggregates a HubService and an associated monitor/control window.
+     */
+    static class ServiceGui {
+        private volatile HubService service_;
+        private JFrame window_;
+
+        /**
+         * Returns the hub service.
+         *
+         * @return  hub service object
+         */
+        public HubService getHubService() {
+            return service_;
+        }
+
+        /**
+         * Returns a monitor/control window for this service, if available.
+         *
+         * @return  window, or null
+         */
+        public JFrame getWindow() {
+            return window_;
+        }
     }
 
     /**

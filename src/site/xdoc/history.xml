@@ -839,6 +839,7 @@ for SAMP objects in a few places:
     following contribution from JMMC.</li>
 <li>Auxiliary threads in HubConnector now cancelled on
     <code>setActive(false)</code>.</li>
+<li>Added <code>Hub.getWindow()</code> method.</li>
 </ul>
 </subsection>
 

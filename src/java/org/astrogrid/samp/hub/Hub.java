@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import org.astrogrid.samp.ShutdownManager;
 import org.astrogrid.samp.SampUtils;
 import org.astrogrid.samp.client.ClientProfile;
@@ -183,6 +184,18 @@ public class Hub {
      */
     public HubProfile[] getRunningProfiles() {
         return (HubProfile[]) profileList_.toArray( new HubProfile[ 0 ] );
+    }
+
+    /**
+     * Returns a window for user monitoring and control of this hub,
+     * if available.
+     * The default implementation returns null, but this may be overridden
+     * depending on how this hub was instantiated.
+     *
+     * @return   hub monitor/control window, or null
+     */
+    public JFrame getWindow() {
+        return null;
     }
 
     /**
@@ -459,10 +472,15 @@ public class Hub {
 
         // Construct a hub service ready to use the full profile list.
         final Hub[] runners = new Hub[ 1 ];
-        HubService hubService =
+        final HubServiceMode.ServiceGui serviceGui =
             hubMode.createHubService( KeyGenerator.createRandom(),
                                       allProfiles, runners );
-        final Hub hub = new Hub( hubService );
+        HubService hubService = serviceGui.getHubService();
+        final Hub hub = new Hub( hubService ) {
+            public JFrame getWindow() {
+                return serviceGui.getWindow();
+            }
+        };
         runners[ 0 ] = hub;
 
         // Start the initial profiles.
