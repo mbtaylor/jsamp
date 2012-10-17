@@ -352,19 +352,19 @@ public abstract class HubServiceMode {
      * Utility abstract class to define an object which can be tidied up
      * on hub shutdown.
      */
-    private static abstract class Tidier {
+    private interface Tidier {
 
         /**
          * Performs any required tidying operations.
          * May be assumed to be called on the AWT Event Dispatch Thread.
          */
-        public abstract void tidyGui();
+        void tidyGui();
     }
 
     /**
      * Class to configure a window for use as a hub control.
      */
-    private static class BasicWindowConfig extends Tidier {
+    private static class BasicWindowConfig implements Tidier {
         final JFrame frame_;
         final Hub[] runners_;
         final GuiHubService hubService_;
