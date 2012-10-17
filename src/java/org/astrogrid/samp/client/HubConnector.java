@@ -753,6 +753,7 @@ public class HubConnector {
         boolean wasConnected = connection_ != null;
         connection_ = null;
         clientTracker_.clear();
+        callHandler_.stopTimeouter();
         synchronized ( responseMap_ ) {
             responseMap_.clear();
             responseMap_.notifyAll();
@@ -934,7 +935,7 @@ public class HubConnector {
      */
     private class CallHandler implements ResponseHandler {
         private final SortedMap tagMap_;
-        private final Thread timeouter_;
+        private Thread timeouter_;
 
         /**
          * Constructor.
@@ -945,16 +946,38 @@ public class HubConnector {
             // responses we are expecting.  They are arranged in order of
             // which is going to time out soonest.
             tagMap_ = new TreeMap();
+        }
 
-            // Set up a thread to wake up when the next timeout has 
-            // (or at least might have) happened.
-            timeouter_ = new Thread( "ResultHandler timeout watcher" ) {
-                public void run() {
-                    watchTimeouts();
+        /**
+         * Ensures that a thread is running to wake up when the next timeout
+         * has (or at least might have) happened.
+         */
+        private void readyTimeouter() {
+            synchronized ( tagMap_ ) {
+                if ( timeouter_ == null ) {
+                    timeouter_ = new Thread( "ResultHandler timeout watcher" ) {
+                        public void run() {
+                            watchTimeouts();
+                        }
+                    };
+                    timeouter_.setDaemon( true );
+                    timeouter_.start();
                 }
-            };
-            timeouter_.setDaemon( true );
-            timeouter_.start();
+            }
+        }
+
+        /**
+         * Stops any current timeout watcher operating on behalf of this
+         * handler and tidies up associated resources.
+         */
+        private void stopTimeouter() {
+            synchronized ( tagMap_ ) {
+                if ( timeouter_ != null ) {
+                    timeouter_.interrupt();
+                }
+                timeouter_ = null;
+                tagMap_.clear();
+            }
         }
 
         /**
@@ -962,7 +985,7 @@ public class HubConnector {
          * have occurred.
          */
         private void watchTimeouts() {
-            while ( true ) {
+            while ( ! Thread.currentThread().isInterrupted() ) {
                 synchronized ( tagMap_ ) {
 
                     // Wait until the next scheduled timeout is expected.
@@ -977,6 +1000,7 @@ public class HubConnector {
                             tagMap_.wait( delay );
                         }
                         catch ( InterruptedException e ) {
+                            Thread.currentThread().interrupt();
                         }
                     }
 
@@ -1011,6 +1035,7 @@ public class HubConnector {
             CallItem item = new CallItem( handler, finish );
             if ( ! item.isDone() ) {
                 synchronized ( tagMap_ ) {
+                    readyTimeouter();
                     tagMap_.put( tag, item );
                     tagMap_.notifyAll();
                 }
