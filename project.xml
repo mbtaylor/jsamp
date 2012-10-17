@@ -77,9 +77,8 @@
   </developers>
 
   <repository>
-    <connection>scm:cvs:pserver:anonymous@cvs2.astrogrid.org:/astrogrid:devel/astrogrid/samp</connection>
-    <developerConnection>scm:cvs:ext:${maven.username}@cvs.astrogrid.org:/devel:astrogrid/samp</developerConnection>
-    <url>http://www.astrogrid.org/viewcvs/astrogrid/samp/</url>
+    <connection>scm:svn:http://bragi.roe.ac.uk/svn_devel</connection>
+    <url>http://bragi.roe.ac.uk/websvn/astrogrid/samp/</url>
   </repository>
 
 </project>

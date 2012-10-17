@@ -69,6 +69,7 @@
         description="Deploy built archives to repository"
         prereqs="jar:jar,source-zip">
     <echo message="Do this:"/>
+    <echo message="    jarsigner -keystore /export/home/mbt/certs/mbtstore -tsa https://timestamp.geotrust.com/tsa target/jsamp-${pom.currentVersion}.jar mbt-phys-bris"/>
     <echo message="    scp target/jsamp-${pom.currentVersion}.jar target/jsamp_src-${pom.currentVersion}.zip maven.astrogrid.org:/maven/org.astrogrid/jars/"/>
     <echo message="edit maven.astrogrid.org:/software/doc/versions.html"/>
     <echo message="and make sure you do a matching maven site:deploy too"/>

@@ -837,6 +837,8 @@ for SAMP objects in a few places:
     running in current JVM, as suggested by JMMC.</li>
 <li>Improved shutdown sequence, shutting down clients first and then hubs,
     following contribution from JMMC.</li>
+<li>HubConnector timer thread now cancelled on
+    <code>setActive(false)</code>.</li>
 </ul>
 </subsection>
 

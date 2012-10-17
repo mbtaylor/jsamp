@@ -269,6 +269,16 @@ public class HubConnector {
      */
     public synchronized void setAutoconnect( int autoSec ) {
         autoSec_ = autoSec;
+        configureRegisterTimer( autoSec_ );
+    }
+
+    /**
+     * Configures a timer thread to attempt registration periodically.
+     *
+     * @param  autoSec  number of seconds between attempts;
+     *                  &lt;=0 means no automatic connections are attempted
+     */
+    private synchronized void configureRegisterTimer( int autoSec ) {
 
         // Cancel and remove any existing auto-connection timer.
         if ( regTimer_ != null ) {
@@ -470,6 +480,7 @@ public class HubConnector {
                                  "Hub connection attempt failed", e );
                 }
             }
+            configureRegisterTimer( autoSec_ );
         }
         else { 
             HubConnection connection = connection_;
@@ -482,6 +493,7 @@ public class HubConnector {
                     logger_.log( Level.INFO, "Unregister attempt failed", e );
                 }
             }
+            configureRegisterTimer( 0 );
         }
     }
 
