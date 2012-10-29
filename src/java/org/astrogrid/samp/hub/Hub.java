@@ -789,8 +789,8 @@ public class Hub {
         String webAuth = "swing";
         String webLog = "none";
         boolean webRemote = false;
-        String profilesTxt = null;
-        String extraProfilesTxt = null;
+        String profilesTxt = "std,web";
+        String extraProfilesTxt = "";
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-mode" ) && it.hasNext() ) {
@@ -846,63 +846,18 @@ public class Hub {
         Logger.getLogger( "org.astrogrid.samp" )
               .setLevel( Level.parse( Integer.toString( logLevel ) ) );
 
-        // Assemble list of profiles to use.
-        final HubProfile[] profiles;
-        if ( profilesTxt == null ) {
-            profiles = createDefaultProfiles( false );
+        // Assemble lists of profiles to use.
+        HubProfile[] profiles =
+            getProfiles( profilesTxt, argList,
+                         "-profiles " + profUsage );
+        if ( profiles == null ) {
+            return 1;
         }
-        else {
-            HubProfileFactory[] pfacts;
-            try {
-                pfacts = parseProfileList( profilesTxt );
-            }
-            catch ( IllegalArgumentException e ) {
-                System.err.println( e.getMessage() );
-                System.err.println( "Usage: -profiles " + profUsage );
-                return 1;
-            }
-            profiles = new HubProfile[ pfacts.length ];
-            for ( int i = 0; i < pfacts.length; i++ ) {
-                HubProfileFactory pfact = pfacts[ i ];
-                try {
-                    profiles[ i ] = pfact.createHubProfile( argList );
-                }
-                catch ( RuntimeException e ) {
-                    System.err.println( "Error configuring profile "
-                                      + pfact.getName() + ":\n"
-                                      + e.getMessage() );
-                    return 1;
-                }
-             
-            }
-        }
-        final HubProfile[] extraProfiles;
-        if ( extraProfilesTxt == null ) {
-            extraProfiles = createDefaultProfiles( true );
-        }
-        else {
-            HubProfileFactory[] pfacts;
-            try {
-                pfacts = parseProfileList( extraProfilesTxt );
-            }
-            catch ( IllegalArgumentException e ) {
-                System.err.println( e.getMessage() );
-                System.err.println( "Usage: -extraprofiles " + profUsage );
-                return 1;
-            }
-            extraProfiles = new HubProfile[ pfacts.length ];
-            for ( int i = 0; i < pfacts.length; i++ ) {
-                HubProfileFactory pfact = pfacts[ i ];
-                try {
-                    extraProfiles[ i ] = pfact.createHubProfile( argList );
-                }
-                catch ( RuntimeException e ) {
-                    System.err.println( "Error configuring profile "
-                                      + pfact.getName() + ":\n"
-                                      + e.getMessage() );
-                    return 1;
-                }
-            }
+        HubProfile[] extraProfiles =
+            getProfiles( extraProfilesTxt, argList,
+                         "-extraprofiles " + profUsage );
+        if ( profiles == null ) {
+            return 1;
         }
 
         // Check all command line args have been used.
@@ -930,6 +885,46 @@ public class Hub {
 
         // Success return.
         return 0;
+    }
+
+    /**
+     * Parses profile list command-line argument and associated
+     * command-line arguments to construct a list of required profiles.
+     * If there is an argument processing error, an error message will
+     * be written to standard error and a null value will be returned.
+     *
+     * @param   profTxt  string value of profiles parameter (may be null)
+     * @param   argList  complete list of other so far unused command line
+     *                   args
+     * @param   usage    profile flag usage string, used for error messages
+     * @return   profiles array, or null
+     */
+    private static HubProfile[] getProfiles( String profTxt, List argList,
+                                             String usage )
+            throws IOException {
+        HubProfileFactory[] pfacts;
+        try {
+            pfacts = parseProfileList( profTxt );
+        }
+        catch ( IllegalArgumentException e ) {
+            System.err.println( e.getMessage() );
+            System.err.println( usage );
+            return null;
+        }
+        HubProfile[] profiles = new HubProfile[ pfacts.length ];
+        for ( int i = 0; i < pfacts.length; i++ ) {
+            HubProfileFactory pfact = pfacts[ i ];
+            try {
+                profiles[ i ] = pfact.createHubProfile( argList );
+            }
+            catch ( RuntimeException e ) {
+                System.err.println( "Error configuring profile "
+                                  + pfact.getName() + ":\n"
+                                  + e.getMessage() );
+                return null;
+            }
+        }
+        return profiles;
     }
 
     /**
