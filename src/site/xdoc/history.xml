@@ -840,6 +840,9 @@ for SAMP objects in a few places:
 <li>Auxiliary threads in HubConnector now cancelled on
     <code>setActive(false)</code>.</li>
 <li>Added <code>Hub.getWindow()</code> method.</li>
+<li>Command line <code>-web:*</code> and <code>-std:*</code> flags are now
+    used even when <code>-profiles</code> flag is not used
+    (where possible).</li>
 </ul>
 </subsection>
 
