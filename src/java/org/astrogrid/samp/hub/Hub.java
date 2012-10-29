@@ -789,8 +789,8 @@ public class Hub {
         String webAuth = "swing";
         String webLog = "none";
         boolean webRemote = false;
-        String profilesTxt = "std,web";
-        String extraProfilesTxt = "";
+        String profilesTxt = null;
+        String extraProfilesTxt = null;
         for ( Iterator it = argList.iterator(); it.hasNext(); ) {
             String arg = (String) it.next();
             if ( arg.equals( "-mode" ) && it.hasNext() ) {
@@ -848,13 +848,13 @@ public class Hub {
 
         // Assemble lists of profiles to use.
         HubProfile[] profiles =
-            getProfiles( profilesTxt, argList,
+            getProfiles( profilesTxt, argList, false,
                          "-profiles " + profUsage );
         if ( profiles == null ) {
             return 1;
         }
         HubProfile[] extraProfiles =
-            getProfiles( extraProfilesTxt, argList,
+            getProfiles( extraProfilesTxt, argList, true,
                          "-extraprofiles " + profUsage );
         if ( profiles == null ) {
             return 1;
@@ -896,12 +896,26 @@ public class Hub {
      * @param   profTxt  string value of profiles parameter (may be null)
      * @param   argList  complete list of other so far unused command line
      *                   args
+     * @param   isExtra  true for extraProfiles, false for main ones
      * @param   usage    profile flag usage string, used for error messages
      * @return   profiles array, or null
      */
     private static HubProfile[] getProfiles( String profTxt, List argList,
-                                             String usage )
+                                             boolean isExtra, String usage )
             throws IOException {
+        if ( profTxt == null ) {
+            Class[] dflts =  isExtra ? defaultDefaultExtraProfileClasses_
+                                     : defaultDefaultProfileClasses_;
+            if ( Arrays.equals( createDefaultProfileClasses( isExtra ),
+                                dflts ) ) {
+                profTxt = isExtra ? "" : "std,web";
+            } 
+            else {
+                logger_.warning( "Non-default profiles set external to flags; "
+                               + "web: and std: flags will be ignored" );
+                return createDefaultProfiles( isExtra );
+            }
+        }
         HubProfileFactory[] pfacts;
         try {
             pfacts = parseProfileList( profTxt );
