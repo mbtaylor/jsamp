@@ -39,6 +39,7 @@ public class InternalServer implements SampXmlRpcServer {
     private final HttpServer server_;
     private final URL endpoint_;
     private final List handlerList_;
+    private final HttpServer.Handler serverHandler_;
     private static final HttpServer.Response GET_RESPONSE =
         createInfoResponse( true );
     private static final HttpServer.Response HEAD_RESPONSE =
@@ -59,7 +60,7 @@ public class InternalServer implements SampXmlRpcServer {
         server_ = httpServer;
         endpoint_ = new URL( server_.getBaseUrl(), path );
         handlerList_ = Collections.synchronizedList( new ArrayList() );
-        server_.addHandler( new HttpServer.Handler() {
+        serverHandler_ = new HttpServer.Handler() {
             public HttpServer.Response serveRequest( HttpServer.Request req ) {
                 if ( req.getUrl().equals( path ) ) {
                     String method = req.getMethod();
@@ -82,7 +83,7 @@ public class InternalServer implements SampXmlRpcServer {
                     return null;
                 }
             }
-        } );
+        };
     }
 
     /**
@@ -109,11 +110,21 @@ public class InternalServer implements SampXmlRpcServer {
     }
 
     public void addHandler( SampXmlRpcHandler handler ) {
-        handlerList_.add( handler );
+        synchronized ( handlerList_ ) {
+            if ( handlerList_.isEmpty() ) {
+                server_.addHandler( serverHandler_ );
+            }
+            handlerList_.add( handler );
+        }
     }
 
     public void removeHandler( SampXmlRpcHandler handler ) {
-        handlerList_.remove( handler );
+        synchronized ( handlerList_ ) {
+            handlerList_.remove( handler );
+            if ( handlerList_.isEmpty() ) {
+                server_.removeHandler( serverHandler_ );
+            }
+        }
     }
 
     /**
