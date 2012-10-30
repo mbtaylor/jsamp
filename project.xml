@@ -77,8 +77,8 @@
   </developers>
 
   <repository>
-    <connection>scm:svn:http://bragi.roe.ac.uk/svn_devel</connection>
-    <url>http://bragi.roe.ac.uk/websvn/astrogrid/samp/</url>
+    <connection>scm:svn:http://astrogrid.google.com/svn</connection>
+    <url>http://code.google.com/p/astrogrid/</url>
   </repository>
 
 </project>
