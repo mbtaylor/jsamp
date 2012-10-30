@@ -127,16 +127,15 @@ The options are as follows:
 Web Profile itself is not running.
 </p>
 
-<p>You may be able to find an experimental 
-<a href="http://www.star.bristol.ac.uk/~mbt/websamp/monitor.html"
-   >Web Profile client</a> here.
+<p>You may be able to find some web profile clients in the
+   <a href="http://astrojs.github.com/sampjs/">sampjs</a> project.
 </p>
 
 </subsection>
 
 <subsection name="Web Profile Security">
 
-<p>The JSAMP 1.3 Proposed Recommendation discusses security in relation to the 
+<p>The JSAMP 1.3 Recommendation discusses security in relation to the 
 Web Profile, but notes that there remain some
 security concerns, and that experimentation will continue in hub
 implementations around this issue.

@@ -22,6 +22,7 @@
 <li><a href="#Version_1_3"  >Version 1.3</a></li>
 <li><a href="#Version_1_3-1">Version 1.3-1</a></li>
 <li><a href="#Version_1.3-2">Version 1.3-2</a></li>
+<li><a href="#Version_1.3-3">Version 1.3-3</a></li>
 </ul>
 
 <subsection name="Version 0.1">
@@ -819,10 +820,10 @@ for SAMP objects in a few places:
 </ul>
 </subsection>
 
-<subsection name="Next Version">
+<subsection name="Version 1.3-3">
 <p>
-<strong>Date:</strong> <br/>
-<strong>Archive:</strong>
+<strong>Date:</strong> ??<br/>
+<strong>Archive:</strong> <a href="../1.3-3">Version 1.3-3</a>
 </p>
 
 <ul>
@@ -832,19 +833,24 @@ for SAMP objects in a few places:
     hub running on it.</li>
 <li>Reported standard version is now 1.3 REC.</li>
 <li>Fixed some broken command-line hub options
-    (<tt>[no]restrictmtypes</tt> and <tt>[no]urlcontrol</tt>).</li>
+    (<tt>-[no]restrictmtypes</tt> and <tt>-[no]urlcontrol</tt>).</li>
+<li>Command line <code>-web:*</code> and <code>-std:*</code> flags are now
+    used even when <code>-profiles</code> flag is not supplied explicitly
+    (where possible).</li>
 <li>Added <code>Hub.getRunningHubs</code> static method to locate hubs
-    running in current JVM, as suggested by JMMC.</li>
+    running in current JVM, as requested by JMMC.</li>
+<li>Added <code>Hub.getWindow()</code> method, as requested by JMMC.</li>
 <li>Improved shutdown sequence, shutting down clients first and then hubs,
     following contribution from JMMC.</li>
-<li>Plugged resource leaks associated with unregistering callable clients
-    running XML-RPC servers, as suggested by JMMC.</li>
-<li>Auxiliary threads in HubConnector now cancelled on
-    <code>setActive(false)</code>.</li>
-<li>Added <code>Hub.getWindow()</code> method.</li>
-<li>Command line <code>-web:*</code> and <code>-std:*</code> flags are now
-    used even when <code>-profiles</code> flag is not used
-    (where possible).</li>
+<li>Plugged several resource leaks
+    (cancel auxiliary threads in HubConnector on <code>setActive(false)</code>,
+    free XML-RPC servers associated with callable clients on unregister)
+    following contribution from JMMC.</li>
+<li>The distributed jar file is now <em>signed</em> with a Thawte 
+    code-signing certificate (owned by the University of Bristol).
+    This means that you can provide a JNLP file to start a hub using
+    WebStart which will not complain to the user about not being able
+    to authenticate the publisher's identity.</li>
 </ul>
 </subsection>
 
