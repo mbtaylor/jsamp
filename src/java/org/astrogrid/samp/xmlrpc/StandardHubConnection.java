@@ -40,8 +40,8 @@ class StandardHubConnection extends XmlRpcHubConnection {
     public void setCallable( CallableClient callable ) throws SampException {
         if ( callableServer_ == null ) {
             try {
-                callableServer_ = CallableClientServer
-                                 .getInstance( serverFactory_.getServer() );
+                callableServer_ =
+                    CallableClientServer.getInstance( serverFactory_ );
             }
             catch ( IOException e ) {
                 throw new SampException( "Can't start client XML-RPC server",

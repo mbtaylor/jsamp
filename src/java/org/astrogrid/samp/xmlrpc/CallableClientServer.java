@@ -18,7 +18,8 @@ import org.astrogrid.samp.client.HubConnection;
 class CallableClientServer {
 
     private final URL url_;
-    private final ClientXmlRpcHandler clientHandler_;
+    private SampXmlRpcServer server_;
+    private ClientXmlRpcHandler clientHandler_;
 
     private static final Map serverMap_ = new HashMap();
 
@@ -27,10 +28,11 @@ class CallableClientServer {
      *
      * @param  server  XML-RPC server hosting this client server
      */
-    public CallableClientServer( SampXmlRpcServer server) throws IOException {
+    public CallableClientServer( SampXmlRpcServer server ) throws IOException {
+        server_ = server;
         clientHandler_ = new ClientXmlRpcHandler();
-        server.addHandler( clientHandler_ );
-        url_ = server.getEndpoint();
+        server_.addHandler( clientHandler_ );
+        url_ = server_.getEndpoint();
     }
 
     /**
@@ -50,6 +52,9 @@ class CallableClientServer {
      * @param   callable   callable client object
      */
     public void addClient( HubConnection connection, CallableClient callable ) {
+        if ( clientHandler_ == null ) {
+            throw new IllegalStateException( "Closed" );
+        } 
         clientHandler_.addClient( connection, callable );
     }
 
@@ -63,6 +68,25 @@ class CallableClientServer {
     }
 
     /**
+     * Tidies up resources.  Following a call to this method, no further
+     * clients can be added.
+     */
+    public void close() {
+        server_.removeHandler( clientHandler_ );
+        server_ = null;
+        clientHandler_ = null;
+    }
+
+    /**
+     * Indicates whether this server currently has any clients.
+     *
+     * @return  true iff there are clients
+     */
+    boolean hasClients() {
+        return clientHandler_ != null && clientHandler_.getClientCount() > 0;
+    }
+
+    /**
      * Returns an instance of CallableClientServer for use with a given
      * XML-RPC server.  Because of the implementation, only one 
      * CallableClientServer is permitted per XML-RPC server, so if one 
@@ -70,15 +94,32 @@ class CallableClientServer {
      * that one will be returned.  Otherwise a new one will be constructed,
      * installed and returned.
      *
+     * <p>To prevent memory leaks, once any clients added to the returned
+     * server have been removed (the client count drops to zero), the
+     * server will be closed and cannot be re-used.
+     *
      * @param  server  XML-RPC server
      * @return   new or re-used CallableClientServer which is installed on
      *           <code>server</code>
      */
     public static synchronized CallableClientServer
-                               getInstance( SampXmlRpcServer server )
+                               getInstance( SampXmlRpcServerFactory serverFact )
             throws IOException {
+        final SampXmlRpcServer server = serverFact.getServer();
         if ( ! serverMap_.containsKey( server ) ) {
-            serverMap_.put( server, new CallableClientServer( server ) );
+            CallableClientServer clientServer =
+                new CallableClientServer( server ) {
+                    public void removeClient( HubConnection connection ) {
+                        super.removeClient( connection );
+                        if ( ! hasClients() ) {
+                            close();
+                            synchronized ( CallableClientServer.class ) {
+                                serverMap_.remove( server );
+                            }
+                        }
+                    }
+                };
+            serverMap_.put( server, clientServer );
         }
         return (CallableClientServer) serverMap_.get( server );
     }

@@ -56,6 +56,15 @@ class ClientXmlRpcHandler extends ActorHandler {
                     .remove( connection.getRegInfo().getPrivateKey() );
     }
 
+    /**
+     * Returns the number of clients currently owned by this handler.
+     *
+     * @return   client count
+     */
+    public int getClientCount() {
+        return clientActor_.entryMap_.size();
+    }
+
     protected Object invokeMethod( Method method, Object obj, Object[] args )
             throws IllegalAccessException, InvocationTargetException {
         return method.invoke( obj, args );

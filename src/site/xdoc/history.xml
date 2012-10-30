@@ -837,6 +837,8 @@ for SAMP objects in a few places:
     running in current JVM, as suggested by JMMC.</li>
 <li>Improved shutdown sequence, shutting down clients first and then hubs,
     following contribution from JMMC.</li>
+<li>Plugged resource leaks associated with unregistering callable clients
+    running XML-RPC servers, as suggested by JMMC.</li>
 <li>Auxiliary threads in HubConnector now cancelled on
     <code>setActive(false)</code>.</li>
 <li>Added <code>Hub.getWindow()</code> method.</li>
