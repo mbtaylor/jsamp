@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="UTF-8"?>
+   <!-- $Id: pom.xml,v 1.14 2011-09-13 13:26:47 pah Exp $ -->
+   <!--
+           This is the official maven 2 base pom - use as a parent pom in components
+      pah
+   -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.astrogrid</groupId>
+   <artifactId>astrogrid-base</artifactId>
+   <name>Astrogrid Master Maven POM</name>
+   <version>2011.1</version>
+   <packaging>pom</packaging>
+   <parent>
+      <groupId>org.astrogrid</groupId>
+      <artifactId>astrogrid-versions</artifactId>
+      <version>2011.1</version>
+   </parent>
+   <!--
+      this is the desired layout of the site and - will have to be
+      repeated in the projects unfortunately until fixes to
+      http://jira.codehaus.org/browse/MNG-2915 are available
+   -->
+   <url>${astrogrid_doc_URL_root}/p/${astrogrid_name}/${project.version}</url>
+   <scm>
+      <connection>scm:cvs:pserver:anonymous:@cvs2.astrogrid.org:/astrogrid:devel/astrogrid/${astrogrid_name}/</connection>
+      <developerConnection>scm:cvs:ext:${maven.username}@cvs.astrogrid.org:/devel:astrogrid/${astrogrid_name}/</developerConnection>
+      <url>http://www.astrogrid.org/viewcvs/astrogrid/${astrogrid_name}/</url>
+   </scm>
+   <build>
+      <defaultGoal>install</defaultGoal>
+      <sourceDirectory>src/java</sourceDirectory>
+      <testSourceDirectory>test/java</testSourceDirectory>
+      <resources>
+         <resource>
+            <directory>${basedir}/src/java</directory>
+            <includes>
+               <include>**/*.properties</include>
+               <include>**/*.xml</include>
+               <include>**/*.xsl</include>
+            </includes>
+         </resource>
+      </resources>
+      <testResources>
+         <testResource>
+            <directory>${basedir}/test/java</directory>
+            <includes>
+               <include>**/*.properties</include>
+               <include>**/*.xml</include>
+               <include>**/*.xsl</include>
+            </includes>
+         </testResource>
+      </testResources>
+      <plugins>
+         <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+               <argLine>-ea</argLine>
+               <testFailureIgnore>true</testFailureIgnore>
+               <includes>
+                  <include>**/*Test.java</include>
+               </includes>
+            </configuration>
+         </plugin>
+         <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+               <showDeprecation>true</showDeprecation>
+               <source>1.5</source>
+               <target>1.5</target>
+               <verbose>false</verbose>
+            </configuration>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <configuration>
+               <encoding>UTF-8</encoding>
+            </configuration>
+         </plugin>
+         <plugin>
+            <artifactId>maven-war-plugin</artifactId>
+            <configuration>
+               <warSourceDirectory>${basedir}/src/webapp</warSourceDirectory> <!-- consistent with current 1.0 practice -->
+            </configuration>
+         </plugin>
+         <plugin>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <version>2.4</version>
+         </plugin>
+         <plugin>
+            <artifactId>maven-eclipse-plugin</artifactId>
+            <configuration>
+               <downloadSources>true</downloadSources>
+               <downloadJavadocs>false</downloadJavadocs>
+            </configuration>
+         </plugin>
+         <plugin>
+            <!--
+               make sure that the source jar is created - early in build
+               at verify..
+            -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+               <execution>
+                  <id>attach-sources</id>
+                  <phase>verify</phase>
+                  <goals>
+                     <goal>jar</goal>
+                  </goals>
+               </execution>
+            </executions>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <version>2.0</version>
+         </plugin>
+         <plugin> <!-- this plug-in makes appropriate links in the astrogrid doc site when a site is deployed -->
+            <groupId>org.astrogrid</groupId>
+            <artifactId>maven-agrelease-plugin</artifactId>
+            <version>0.4</version>
+            <executions>
+                <execution>
+            <id>agrel</id>
+            <phase>site-deploy</phase>
+            <goals>
+              <goal>release</goal>
+            </goals>
+            <inherited>true</inherited>
+            <configuration>
+            </configuration>
+          </execution>
+            </executions>
+         </plugin>
+         <!--
+            need to create a tomcat config first (as in instructions for
+            $CATALINA_BASE then point $tomcat.config.dir in you local
+            settings to that... <plugin>
+            <groupId>org.codehaus.cargo</groupId>
+            <artifactId>cargo-maven2-plugin</artifactId> <configuration>
+            <container> <containerId>tomcat5x</containerId>
+            <home>${env.CATALINA_HOME}</home> </container>
+            <configuration> <type>existing</type>
+            <home>${tomcat.config.dir}</home> <properties>
+            <cargo.remote.username>boss</cargo.remote.username>
+            <cargo.remote.password>boss</cargo.remote.password>
+            </properties> </configuration> <deployer> <type>local</type>
+            <deployables> <deployable> <groupId>${pom.groupId}</groupId>
+            <artifactId>${pom.artifactId}</artifactId> <type>war</type>
+            </deployable> </deployables> </deployer> </configuration>
+            </plugin> <plugin> <groupId>org.apache.maven.scm</groupId>
+            <artifactId>maven-scm-plugin</artifactId>
+            <version>1.0-beta-4</version> <configuration>
+            <connectionType>connection</connectionType> </configuration>
+            </plugin>
+         -->
+      </plugins>
+   </build>
+   <repositories>
+      <repository>
+         <id>agMaven2</id>
+         <name>Astrogrid Maven 2 repository</name>
+         <url>http://www.astrogrid.org/maven2</url>
+         <snapshots>
+            <enabled>false</enabled>
+         </snapshots>
+      </repository>
+      <repository> <!-- this should be retired once we have migrated fully to maven 2 -->
+         <id>agMaven1</id>
+         <name>Astrogrid Maven1 repository</name>
+         <url>http://www.astrogrid.org/maven/onlyastrogrid/</url>
+         <layout>legacy</layout>
+         <snapshots>
+            <enabled>false</enabled>
+         </snapshots>
+      </repository>
+   </repositories>
+   <dependencies>
+      <dependency>
+         <groupId>commons-logging</groupId>
+         <artifactId>commons-logging</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>junit</groupId>
+         <artifactId>junit</artifactId>
+      </dependency>
+      <dependency>
+         <groupId>log4j</groupId>
+         <artifactId>log4j</artifactId>
+      </dependency>
+   </dependencies>
+   <reporting>
+      <plugins>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-report-plugin</artifactId>
+         </plugin>
+         <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-changes-plugin</artifactId>
+            <configuration>
+               <issueLinkTemplate>%URL%/show_bug.cgi?id=%ISSUE%</issueLinkTemplate>
+        </configuration>
+        
+      </plugin>
+      
+ <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+            <!-- reintroduce later perhaps
+               <links>
+               </links>  -->
+               <source>1.5</source>
+               <tags>
+                  <tag>
+                     <head>To Do:</head>
+                     <name>todo</name>
+                     <placement>a</placement>
+                  </tag>
+                  <tag>
+                     <head>Future:</head>
+                     <name>future</name>
+                  </tag>
+                  <tag>
+                     <head>Modified:</head>
+                     <name>modified</name>
+                     <placement>a</placement>
+                  </tag>
+                  <tag>
+                     <head>To be Refactored:</head>
+                     <name>IMPL</name>
+                  </tag>
+               </tags>
+               <overview>src/java/overview.html</overview>
+            </configuration>
+         </plugin>
+       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <configuration>
+            <linkJavadoc>true</linkJavadoc>
+        </configuration>
+         <reportSets>
+            <reportSet>
+               <reports>
+              <report>jxr</report>
+              <report>test-jxr</report>
+            </reports>
+           </reportSet>
+          </reportSets>
+        
+      </plugin>
+        <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>taglist-maven-plugin</artifactId>
+            <configuration>
+            <tags>
+            <tag>FIXME</tag>
+            <tag>TODO</tag>
+            <tag>@todo</tag>
+            <tag>IMPL</tag>
+            <tag>@deprecated</tag>
+            </tags>
+            </configuration>
+         </plugin>
+       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>javancss-maven-plugin</artifactId>
+        <version>2.0-beta-2</version>
+      </plugin>
+      
+      
+        
+      </plugins>
+   </reporting>
+   
+   
+    <distributionManagement>
+    <site>
+      <id>agsite</id>   <!-- this is the desired layout of the site and - will have to be repeated in the  projects unfortunately until fixes to http://jira.codehaus.org/browse/MNG-2915 are available  -->
+ 
+      <name>Default Site</name>
+      <url>${astrogrid_doc_server_root}/p/${astrogrid_name}/${project.version}</url>
+      <!-- terror.star.le.ac.uk/ -->
+    </site>
+    
+   
+  </distributionManagement>
+    <profiles>
+      <profile>
+         <id>ag</id>
+         <activation><activeByDefault>true</activeByDefault></activation>
+         <properties>
+            <astrogrid.server>software.astrogrid.org</astrogrid.server>
+          </properties>
+      </profile>
+      <profile>
+        <id>fullsite</id>
+        <activation><activeByDefault>false</activeByDefault></activation>
+      <reporting>
+      <plugins>
+      <plugin>
+         <groupId>org.apache.maven.plugins</groupId>
+         <artifactId>maven-changelog-plugin</artifactId>
+         <version>2.1</version><!-- this version avoids http://jira.codehaus.org/browse/MCHANGELOG-56 - was not automatically being picked up for me...-->
+         <configuration>
+          <type>date</type>
+          <dates>
+            <date implementation="java.lang.String">2009-07-01</date>
+            <date implementation="java.lang.String">2011-07-01</date>
+          </dates>
+          <connectionType>developerConnection</connectionType>
+         </configuration>
+       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>jdepend-maven-plugin</artifactId>
+      </plugin>
+       </plugins>
+        </reporting>
+        
+      </profile>
+      <profile>
+        <id>codestyle</id>
+        <activation><activeByDefault>false</activeByDefault></activation>
+        <reporting>
+           <plugins>
+                 <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <configuration>
+           <targetJdk>1.5</targetJdk>
+        </configuration>
+      </plugin>
+       <plugin>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+             <configuration>
+               <configLocation>http://www.astrogrid.org/viewcvs/astrogrid/maven-base/checkstyle.xml?view=co</configLocation>
+            </configuration>
+            
+          </plugin>
+         </plugins>
+        </reporting>
+          
+      </profile>
+   </profiles>
+ 
+</project>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.1//EN" "http://www.puppycrawl.com/dtds/configuration_1_1.dtd">
+<module name="Checker">
+    <module name="TreeWalker">
+        <module name="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocStyleCheck">
+            <property name="checkFirstSentence" value="true"/>
+            <property name="checkHtml" value="true"/>
+            <property name="scope" value="private"/>
+            <property name="severity" value="warning"/>
+            <property name="tokens" value="INTERFACE_DEF, CLASS_DEF, METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/>
+        </module>
+        <module name="com.puppycrawl.tools.checkstyle.checks.javadoc.JavadocTypeCheck">
+            <property name="scope" value="private"/>
+            <property name="severity" value="error"/>
+            <property name="tokens" value="CLASS_DEF, INTERFACE_DEF"/>
+        </module>
+<module name="GenericIllegalRegexp">
+    <property name="format" value="System\.(out|err)\.print"/>
+    <property name="message" value="should this be using commons logging?"/>
+</module>
+
+    </module>
+</module>

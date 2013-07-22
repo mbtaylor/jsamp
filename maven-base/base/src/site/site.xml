@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- $Id: site.xml,v 1.3 2009-06-30 20:15:33 pah Exp $ -->
+<!-- this is a minimal site.xml to be inherited by projects that do not specify their own 
+   Note also for projects that specify their own, they should really only specify the breadcrumb and menus within the body and allow the rest to be inherited -->
+<project xmlns="http://maven.apache.org/DECORATION/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.0 http://maven.apache.org/xsd/decoration-1.0.0.xsd">
+  <bannerRight> <!-- find something else??? - composite of ivoa/eurovo/ etc.... -->
+    <name>AstroGrid</name>
+    <src>http://www.astrogrid.org/images/AGlogo.png</src>
+    <href>http://www.astrogrid.org/</href>
+  </bannerRight>
+   
+<publishDate position="navigation-top" format="yyyy-MM-dd"/> 
+  <version position="left"/>
+ <!-- need to get a nicer powered by logo... -->
+  <poweredBy>
+    <logo name="Complies with IVOA Standards" href="http://www.ivoa.net/" 
+          img="http://www.ivoa.net/icons/ivoa_logo_small.jpg"/>
+  </poweredBy>
+  <body>
+    <links>
+      <item name="Astrogrid" href="http://www.astrogrid.org/" />
+      <item name="IVOA" href="http://www.ivoa.net/"/>
+      <item name="Developing" href="${astrogrid_doc_URL_root}/${astrogrid_release}/devel/index.html"/>
+      <item name="Deploying" href="http://deployer.astrogrid.org/"/>
+    </links>
+    <breadcrumbs>
+       <item name="Software Home " href="${astrogrid_doc_URL_root}/${astrogrid_release}/devel/index.html"/>
+    </breadcrumbs>
+    <menu ref="reports"></menu>
+  </body>
+  
+</project>

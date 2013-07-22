@@ -1,0 +1,553 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- $Id: pom.xml,v 1.23 2011-09-13 13:26:39 pah Exp $ -->
+   <!--
+      This pom is intended to contain the "version" information for the astrogrid (and other commonly used) components.
+      In addition it contains the basic project information - however it *must not* contain any specific build information - this is contained in the
+      various subprojects of this project. 
+      
+      For instance, a standard library project should declare the org.astrogrid:astrogrid-base project as its parent.
+   -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+   <modelVersion>4.0.0</modelVersion>
+   <groupId>org.astrogrid</groupId>
+   <artifactId>astrogrid-versions</artifactId>
+   <name>Astrogrid Master Version POM</name>
+   <version>2011.1</version>
+   <properties>
+     <!-- note properties use _ rather than . as a word separator so that they can be used as substitution variables in velocity docs -->
+     <astrogrid_release>2011.1</astrogrid_release>
+     <astrogrid_doc_server_root>scpexe://maven.astrogrid.org/software/doc/</astrogrid_doc_server_root>
+     <astrogrid_doc_URL_root>http://software.astrogrid.org/doc/</astrogrid_doc_URL_root>
+     
+     <!-- edit the versions below to  upgrade a version for release - do not use ${pom.version} here, as it will pick up the version of the inheriting project-->
+     <astrogrid_adql1_version>2008.1.03sx</astrogrid_adql1_version>
+     <astrogrid_adql1_beans_version>1.2-b000xmlbeans</astrogrid_adql1_beans_version>
+     <astrogrid_adql2_version>2009.1</astrogrid_adql2_version>
+     <astrogrid_common_version>2009.1</astrogrid_common_version>
+     <astrogrid_community_version>2009.1</astrogrid_community_version>
+     <astrogrid_contracts_version>2011.3</astrogrid_contracts_version>
+     <astrogrid_cea_version>2.0</astrogrid_cea_version>
+     <astrogrid_desktop_version>1.3.2</astrogrid_desktop_version>
+     <astrogrid_dsa_version>2010.2</astrogrid_dsa_version>
+     <astrogrid_ivoaobj_version>1.1</astrogrid_ivoaobj_version>
+     <astrogrid_registry_version>2009.1</astrogrid_registry_version>
+     <astrogrid_samp_version>1.3</astrogrid_samp_version>
+     <astrogrid_security_version>2010.1</astrogrid_security_version>
+     <astrogrid_vospace_version>2009.1</astrogrid_vospace_version>
+   </properties>
+   
+   <packaging>pom</packaging>
+   <modules>
+      <module>ws</module>
+      <module>base</module>
+      <module>site-skin</module> 
+   </modules>
+   <url>${astrogrid_doc_URL_root}/p/${astrogrid_name}/${astrogrid_release}</url>
+   <issueManagement>
+      <system>Bugzilla</system>
+      <url>http://www.astrogrid.org/bugzilla/</url>
+   </issueManagement>
+   <inceptionYear>2002</inceptionYear>
+   <!--
+      DEAD <mailingLists> <mailingList> <name>Astrogrid Forum</name>
+      <subscribe>http://forum.astrogrid.org</subscribe>
+      <archive>http://forum.astrogrid.org</archive> </mailingList>
+      </mailingLists>
+   -->
+   
+  <organization>
+      <name>AstroGrid</name>
+      <url>http://www.astrogrid.org</url>
+   </organization>
+   <licenses>
+      <license><name>Academic Free License version 2.1</name>
+        <distribution>repo</distribution>
+        <url>http://www.astrogrid.org/viewcvs/astrogrid/maven-base/LICENSE.txt?view=co</url>
+      </license>
+   </licenses>
+   <!-- versions below represent the "release" version of the particular component - note that some of these are quite old now -->
+   <dependencyManagement>
+      <dependencies>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-contracts</artifactId>
+            <version>${astrogrid_contracts_version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-common</artifactId>
+            <version>${astrogrid_common_version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-registry-client-lite</artifactId>
+            <version>2008.2.01</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-registry-common</artifactId>
+            <version>2008.2.01</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-pal-oldquery</artifactId>
+            <version>2007.2pl</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-xml</artifactId>
+            <version>2007.2xml</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-utils</artifactId>
+            <version>2007.2ut</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-community-common</artifactId>
+            <version>2008.0.01</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-community-server</artifactId>
+            <version>${astrogrid_community_version}</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-community-resolver</artifactId>
+            <version>2008.0.01</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-community-client</artifactId>
+            <version>2008.0.01</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-filemanager-client</artifactId>
+            <version>2008.0b2</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-filemanager-contract</artifactId>
+            <version>2007.2.01fm</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-filestore-client</artifactId>
+            <version>2007.2.01fs</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-filestore-common</artifactId>
+            <version>2007.2.01fs</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-jes-delegate</artifactId>
+            <version>2006.4j</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-workflow-objects</artifactId>
+            <version>2007.2wo</version>
+         </dependency>
+         <dependency>
+            <groupId>org.astrogrid</groupId>
+            <artifactId>astrogrid-security</artifactId>
+            <version>${astrogrid_security_version}</version>
+         </dependency>
+         <dependency>
+	        <groupId>org.astrogrid</groupId>
+	        <artifactId>jsamp</artifactId>
+            <version>${astrogrid_samp_version}</version>
+         </dependency>
+         <dependency>
+            <groupId>net.ivoa</groupId>
+            <artifactId>ivoa-objects</artifactId>
+            <version>${astrogrid_ivoaobj_version}</version>
+         </dependency>
+        <dependency> 
+              <groupId>org.astrogrid</groupId>
+              <artifactId>astrogrid-vospace-delegate</artifactId>
+              <version>${astrogrid_vospace_version}</version>
+         </dependency>
+         
+    <dependency>
+      <groupId>org.astrogrid</groupId>
+      <artifactId>acr-interface</artifactId>
+      <version>${astrogrid_desktop_version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.astrogrid</groupId>
+      <artifactId>vodesktop</artifactId>
+      <version>${astrogrid_desktop_version}</version>
+    </dependency>
+         
+        <!--
+            assuming that we will be using tomcat for the web container,
+            so we need this for the automated tomcat tasks...
+         -->
+         <dependency>
+            <groupId>tomcat</groupId>
+            <artifactId>catalina-ant</artifactId>
+            <version>5.5.15</version>
+         </dependency>
+         <dependency>
+            <groupId>picocontainer</groupId>
+            <artifactId>picocontainer</artifactId>
+            <version>1.1</version>
+         </dependency>
+         <dependency>
+            <groupId>concurrent</groupId>
+            <artifactId>concurrent</artifactId>
+            <version>1.3.1</version>
+         </dependency>
+         <dependency>
+            <groupId>org.codehaus.castor</groupId>
+            <artifactId>castor</artifactId>
+            <version>1.1.2.1</version>
+            <exclusions>
+               <exclusion>
+                  <groupId>xerces</groupId>
+                  <artifactId>xerces</artifactId>
+               </exclusion>
+            </exclusions>
+         </dependency>
+         <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.8.0</version>
+         </dependency>
+         <dependency>
+            <groupId>regexp</groupId>
+            <artifactId>regexp</artifactId>
+            <version>1.3</version>
+         </dependency>
+         <dependency>
+            <groupId>oro</groupId>
+            <artifactId>oro</artifactId>
+            <version>2.0.7</version>
+         </dependency>
+         <dependency>
+            <artifactId>commons-jxpath</artifactId>
+            <groupId>commons-jxpath</groupId>
+            <version>1.2</version>
+            <exclusions>
+               <!--
+                  this includes a really old version of xerces...before
+                  the split into the xercesImpl jar -v.bad...
+               -->
+               <exclusion>
+                  <artifactId>xerces</artifactId>
+                  <groupId>xerces</groupId>
+               </exclusion>
+               <exclusion>
+                  <artifactId>xml-apis</artifactId>
+                  <groupId>xml-apis</groupId>
+               </exclusion>
+            </exclusions>
+         </dependency>
+         <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.0</version>
+         </dependency>
+         <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.6.1</version>
+         </dependency>
+         <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.4</version>
+         </dependency>
+         <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.15</version>
+         </dependency>
+         <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.1</version>
+         </dependency>
+         <dependency>
+            <groupId>xmlunit</groupId>
+            <artifactId>xmlunit</artifactId>
+            <version>1.0</version>
+         </dependency>
+         <!--
+            libs for ws attachments - both sun libs, so they will
+            probably not be on ibiblio, but are in opur local repository
+         -->
+         <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1</version>
+         </dependency>
+         <dependency><!-- might need the transports as well ... -->
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4</version>
+         </dependency>
+         <dependency>
+            <artifactId>hibernate</artifactId>
+            <groupId>org.hibernate</groupId>
+            <version>3.2.1.ga</version>
+         </dependency>
+         <dependency>
+            <artifactId>acegi-security</artifactId>
+            <groupId>org.acegisecurity</groupId>
+            <version>1.0.3</version>
+         </dependency>
+         <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.4</version>
+            <scope>provided</scope>
+         </dependency>
+     <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>jstl</artifactId>
+      <version>1.1.2</version>
+    </dependency>
+     <dependency>
+      <groupId>taglibs</groupId>
+      <artifactId>standard</artifactId>
+      <version>1.1.2</version>
+    </dependency>
+         <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.1</version>
+         </dependency>
+       <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.1.12</version>
+        </dependency>
+ 
+      </dependencies>
+   </dependencyManagement>
+   <developers>
+      <developer>
+         <id>ael</id>
+         <name>Tony Linde</name>
+         <email>ael@star.le.ac.uk</email>
+         <organization>Leicester</organization>
+         <roles>
+            <role>Programme Manager</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>ktn</id>
+         <name>Keith Noddle</name>
+         <email>ktn@star.le.ac.uk</email>
+         <organization>Leicester</organization>
+         <roles>
+            <role>Project Manager</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>gtr</id>
+         <name>Guy Rixon</name>
+         <email>gtr@ast.cam.ac.uk</email>
+         <organization>Cambridge</organization>
+         <roles>
+            <role>Architect</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>clq2</id>
+         <name>Catherine Qin</name>
+         <email>clq2@star.le.ac.uk</email>
+         <organization>Leicester</organization>
+         <roles>
+            <role>Integration and Release WGL</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>cgp</id>
+         <name>Clive Page</name>
+         <email>cgp@star.le.ac.uk</email>
+         <organization>Leicester</organization>
+         <roles>
+            <role>Grid Research Software Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>dave</id>
+         <name>Dave Morris</name>
+         <email>maven-report@codon.demon.co.uk</email>
+         <organization>Cambridge</organization>
+         <roles>
+            <role>Community Developer</role>
+            <role>MySpace Developer</role>
+            <role>filestore Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>eca</id>
+         <name>Elizabeth Auden</name>
+         <email>eca@mssl.ucl.ac.uk</email>
+         <organization>MSSL</organization>
+         <roles>
+            <role>Grid Research Software Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>jl99</id>
+         <name>Jeff Lusted</name>
+         <email>jl99@star.le.ac.uk</email>
+         <organization>Leicester</organization>
+         <roles>
+            <role>Presentation WGL</role>
+            <role>Portal Developer</role>
+            <role>Workflow Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>jdt</id>
+         <name>John Taylor</name>
+         <email>jdt@roe.ac.uk</email>
+         <organization>ROE</organization>
+         <roles>
+            <role>Integration, Release, Testing</role>
+            <role>Common Execution Architecture Developer</role>
+            <role>Portal Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>KevinBenson</id>
+         <name>Kevin Benson</name>
+         <email>kmb@mssl.ucl.ac.uk</email>
+         <organization>MSSL</organization>
+         <roles>
+            <role>Data WGL</role>
+            <role>Registry Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>kea</id>
+         <name>Kona Andrews</name>
+         <email>kea@ast.cam.ac.uk</email>
+         <organization>Cambridge</organization>
+         <roles>
+            <role>Grid Research WGL</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>mch</id>
+         <name>Martin Hill</name>
+         <email>mch@roe.ac.uk</email>
+         <organization>ROE</organization>
+         <roles>
+            <role>PAL/Datacenter Developer</role>
+            <role>MySpace Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>nw</id>
+         <name>Noel Winstanley</name>
+         <email>nw@jb.man.ac.uk</email>
+         <organization>Jodrell</organization>
+         <roles>
+            <role>Workbench/ACR Developer</role>
+            <role>Common Execution Architecture Developer</role>
+            <role>JES/Workflow Developer</role>
+            <role>MySpace Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>pah</id>
+         <name>Paul Harrison</name>
+         <email>pah@jb.man.ac.uk</email>
+         <organization>JBCA University of Manchester</organization>
+         <roles>
+            <role>Common Execution Architecture Developer</role>
+            <role>AR Developer</role>
+            <role>VOSpace Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>pjn3</id>
+         <name>Phil Nicolson</name>
+         <email>pjn3@star.le.ac.uk</email>
+         <organization>Leicester</organization>
+         <roles>
+            <role>Workbench Developer</role>
+            <role>Portal Developer</role>
+            <role>Workflow Developer</role>
+         </roles>
+      </developer>
+      <developer>
+         <id>mbt</id>
+         <name>Mark Taylor</name>
+         <organization>Bristol University</organization>
+         <email>m.b.taylor@bris.ac.uk</email>
+         <roles>
+         <role>TOPCAT</role>
+         <role>SAMP</role></roles>
+      </developer>
+   </developers>
+   <contributors>
+   
+   <contributor>
+      <name>Andy Lawrence</name>
+      <organization>Institute for Astronomy, University of Edinburgh </organization>
+      <roles><role>Project Lead</role></roles>
+   </contributor>
+   <contributor>
+      <name>Nicholas Walton</name>
+      <organization>IoA, University of Cambridge</organization>
+      <roles><role>Project Scientist</role></roles>
+   </contributor>
+   <contributor>
+      <name>Anita Richards</name>
+      <organization>JBCA, University of Manchester</organization>
+      <roles><role>Scientist</role></roles>
+   </contributor>
+   <contributor>
+      <name>Eduardo Gonzalez Solares</name>
+      <organization>IoA, University of Cambridge</organization>
+      <roles><role>Scientist</role></roles>
+   </contributor>
+   <contributor>
+      <name>Jonathan Tedds</name>
+      <organization>University of Leicester</organization>
+      <roles><role>Scientist</role></roles>
+   </contributor>
+ 
+   
+   </contributors>
+   <distributionManagement>
+    <repository>
+       <id>agrepo</id>
+       <name>Astrogrid Maven 2 Repository</name>
+       <url>scpexe://katatjuta.star.le.ac.uk/maven2/</url> <!-- also known as maven.astrogrid.org -->
+    </repository>
+    <snapshotRepository>
+        <id>ag-snapshot</id>
+        <name>Astrogrid Maven 2 Snapshot repository</name>
+        <url>http://agdevel.jb.man.ac.uk:8080/nexus/content/repositories/snapshots/</url>
+        <uniqueVersion>true</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
+    <profiles>
+      <profile>
+         <id>ag</id>
+         <activation><activeByDefault>true</activeByDefault></activation>
+         <properties>
+            <astrogrid.server>software.astrogrid.org</astrogrid.server>
+            <maven.base.dir>/this/needs/to/be set to directory containing this pom in your settings.xml</maven.base.dir>
+         </properties>
+      </profile>
+      
+   </profiles>
+  
+</project>
