@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/3.0.0
                              http://maven.apache.org/maven-v3_0_0.xsd">
 
-  <extend>../maven-base/project.xml</extend>
+  <extend>maven-base/project.xml</extend>
   <artifactId>jsamp</artifactId>
   <currentVersion>${astrogrid.jsamp.version}</currentVersion>
   <inceptionYear>2008</inceptionYear>
