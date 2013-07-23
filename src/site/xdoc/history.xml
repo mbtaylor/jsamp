@@ -854,6 +854,19 @@ for SAMP objects in a few places:
 </ul>
 </subsection>
 
+<subsection name="Next version">
+<p>
+<strong>Date:</strong> ??<br/>
+<strong>Archive:</strong> ??
+</p>
+
+<ul>
+<li>JSAMP has been rehosted.  The source can now be found on github at
+    <a href="https://github.com/mbtaylor/jsamp"
+            >https://github.com/mbtaylor/jsamp</a>.</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>
