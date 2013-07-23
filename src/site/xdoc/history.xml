@@ -23,6 +23,7 @@
 <li><a href="#Version_1_3-1">Version 1.3-1</a></li>
 <li><a href="#Version_1.3-2">Version 1.3-2</a></li>
 <li><a href="#Version_1.3-3">Version 1.3-3</a></li>
+<li><a href="#Next version">next version</a></li>
 </ul>
 
 <subsection name="Version 0.1">
@@ -866,6 +867,9 @@ for SAMP objects in a few places:
             >https://github.com/mbtaylor/jsamp</a>.</li>
 <li>Fixed the Web Profile hub to work with HTTPS-based web pages as
     well as HTTP-based ones.</li>
+<li>Add new system property <code>jsamp.web.extrahosts</code> to allow
+    trusted non-local hosts to register with the Web Profile
+    (for instance near-local mobile devices).</li>
 </ul>
 </subsection>
 

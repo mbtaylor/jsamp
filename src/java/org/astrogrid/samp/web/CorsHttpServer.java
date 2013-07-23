@@ -8,8 +8,13 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.astrogrid.samp.httpd.HttpServer;
@@ -51,6 +56,23 @@ public class CorsHttpServer extends HttpServer {
         Logger.getLogger( CorsHttpServer.class.getName() );
 
     /**
+     * System property ({@value}) which can be used to supply host addresses
+     * explicitly permitted to connect via the Web Profile alongside
+     * the local host.
+     * Normally any non-local host is blocked from access to the CORS
+     * web server for security reasons.  However, any host specified
+     * by hostname or IP number as one element of a comma-separated
+     * list in the value of this system property will also be allowed.
+     * This might be used to allow access from a "friendly" near-local
+     * host like a tablet.
+     */
+    public static final String EXTRAHOSTS_PROP = "jsamp.web.extrahosts";
+
+    /** Set of permitted InetAddrs along side localhost. */
+    private static final Set extraAddrSet_ =
+        new HashSet( Arrays.asList( getExtraHostAddresses() ) );
+
+    /**
      * Constructor.
      *
      * @param  socket  socket hosting the service
@@ -64,7 +86,7 @@ public class CorsHttpServer extends HttpServer {
     }
 
     public Response serve( Request request ) {
-        if ( ! isLocalHost( request.getRemoteAddress() ) ) {
+        if ( ! isPermittedHost( request.getRemoteAddress() ) ) {
             return createNonLocalErrorResponse( request );
         }
         Map hdrMap = request.getHeaderMap();
@@ -189,18 +211,24 @@ public class CorsHttpServer extends HttpServer {
     }
 
     /**
-     * Indicates whether a network address is known to represent the local host.
+     * Indicates whether a network address is known to represent
+     * a host permitted to access this server.
+     * That generally means the local host, but "extra" hosts may be
+     * permitted as well.
      *
      * @param   address  socket address
-     * @return  true  iff address is known to be local
+     * @return  true  iff address is known to be permitted
      */
-    public static boolean isLocalHost( SocketAddress address ) {
+    public boolean isPermittedHost( SocketAddress address ) {
         if ( address instanceof InetSocketAddress ) {
             InetAddress iAddress = ((InetSocketAddress) address).getAddress();
             if ( iAddress == null ) {
                 return false;
             }
             else if ( iAddress.isLoopbackAddress() ) {
+                return true;
+            }
+            else if ( isExtraHost( iAddress ) ) {
                 return true;
             }
             else {
@@ -216,6 +244,57 @@ public class CorsHttpServer extends HttpServer {
             logger_.warning( "Socket address not from internet? " + address );
             return false;
         }
+    }
+
+    /**
+     * Acquires and returns a list of permitted non-local hosts from the
+     * environment.
+     *
+     * @return  list of addresses for non-local hosts permitted to access
+     *          CORS web servers in this JVM
+     */
+    private static InetAddress[] getExtraHostAddresses() {
+        String list;
+        try {
+            list = System.getProperty( EXTRAHOSTS_PROP );
+        }
+        catch ( SecurityException e ) {
+            list = null;
+        }
+        String[] names;
+        if ( list != null ) {
+            list = list.trim();
+            names = list.length() > 0 ? list.split( ", *" ) : new String[ 0 ];
+        }
+        else {
+            names = new String[ 0 ];
+        }
+        int naddr = names.length;
+        List addrList = new ArrayList();
+        for ( int i = 0; i < naddr; i++ ) {
+            String name = names[ i ];
+            try {
+                addrList.add( InetAddress.getByName( name ) );
+                logger_.warning( "Adding web hub exception for host "
+                               + "\"" + name + "\"" );
+            }
+            catch ( UnknownHostException e ) {
+                logger_.warning( "Unknown host \"" + name + "\""
+                               + " - not adding web hub exception" );
+            }
+        }
+        return (InetAddress[]) addrList.toArray( new InetAddress[ 0 ] );
+    }
+
+    /**
+     * Indicates whether a given address represents one of the "extra" hosts
+     * permitted to access this server alongside the localhost.
+     *
+     * @param  iaddr   address of non-local host to test
+     * @return  true iff host is permitted to access this server
+     */
+    private static boolean isExtraHost( InetAddress iaddr ) {
+        return extraAddrSet_.contains( iaddr );
     }
 
     /**

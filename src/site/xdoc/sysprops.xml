@@ -129,6 +129,21 @@ detail on use.
     </dd>
 
 <dt><strong>
+    <a name="jsamp.web.extrahosts"/>
+    <code>jsamp.web.extrahosts</code>
+    (<a target="samp-javadoc"
+       href="apidocs/org/astrogrid/samp/web/CorsHttpServer.html#EXTRAHOSTS_PROP"
+                                           >CorsHttpServer.EXTRAHOSTS_PROP</a>):
+    </strong></dt>
+<dd>Gives a comma-separated list of names (host names or IP numbers)
+    of hosts that are permitted to use the Web Profile alongside the
+    localhost.  Normally web profile access is only allowed to the local host
+    for security reasons, but trusted "near-local" hosts may be added here
+    if required.  One possibility is to add the address of a mobile device
+    to be used for external application control.
+    </dd>
+
+<dt><strong>
     <a name="jsamp.xmlrpc.impl"/>
     <code>jsamp.xmlrpc.impl</code>
     (<a target="samp-javadoc"

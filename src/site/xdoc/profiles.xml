@@ -142,9 +142,15 @@ implementations around this issue.
 relating to the Web Profile are:
 </p>
 <ul>
-<li>The HTTP server on which the Web Profile runs rejects any access
+<li>The HTTP server on which the Web Profile runs
+    will normally reject any access
     attempts from hosts other than the local host, as recommended by
     the SAMP 1.3 document.
+    However, access by additional trusted hosts may be enabled if
+    they are explicitly named using the
+    <a href="sysprops.html#jsamp_web_extrahosts"
+                    ><code>jsamp.web.extrahosts</code></a>
+    system property.
     </li>
 <li>The Web Profile URL translation service (Section 5.2.6 of SAMP 1.3)
     is, by default, selective about what URLs it will proxy.

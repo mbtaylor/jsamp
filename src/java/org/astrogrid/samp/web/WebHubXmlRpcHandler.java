@@ -160,14 +160,6 @@ class WebHubXmlRpcHandler extends ActorHandler {
         public RegInfo register( HttpServer.Request request, Map securityMap )
                 throws SampException {
             if ( profile_.isHubRunning() ) {
-                if ( ! CorsHttpServer
-                      .isLocalHost( request.getRemoteAddress() ) ) {
-                    String alert =
-                        "Registration attempt from non-local remote host - "
-                      + "should have been blocked earlier by HTTP server";
-                    logger_.severe( alert );
-                    throw new SampException( alert );
-                }
                 Object appNameObj = securityMap.get( Metadata.NAME_KEY );
                 final String appName;
                 if ( appNameObj instanceof String ) {
