@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE document PUBLIC
-          "-//Apache Software Foundation//DTD XDOC 1.0//EN"
-          "http://maven.apache.org/dtd/xdoc_1_0.dtd" [
+<!DOCTYPE document [
   <!ENTITY jsamp-usage SYSTEM
            "../../../target/docs/org.astrogrid.samp.JSamp.usage">
   <!ENTITY hub-usage SYSTEM
