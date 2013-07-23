@@ -864,6 +864,8 @@ for SAMP objects in a few places:
 <li>JSAMP has been rehosted.  The source can now be found on github at
     <a href="https://github.com/mbtaylor/jsamp"
             >https://github.com/mbtaylor/jsamp</a>.</li>
+<li>Fixed the Web Profile hub to work with HTTPS-based web pages as
+    well as HTTP-based ones.</li>
 </ul>
 </subsection>
 

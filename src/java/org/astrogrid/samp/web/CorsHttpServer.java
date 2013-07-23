@@ -45,7 +45,7 @@ public class CorsHttpServer extends HttpServer {
     private static final String ALLOW_HEADERS_KEY =
         "Access-Control-Allow-Headers";
     private static final Pattern ORIGIN_REGEX =
-        Pattern.compile( "http://[a-zA-Z0-9_-]+"
+        Pattern.compile( "https?://[a-zA-Z0-9_-]+"
                        + "(\\.[a-zA-Z0-9_-]+)*(:[0-9]+)?" );
     private static final Logger logger_ =
         Logger.getLogger( CorsHttpServer.class.getName() );
