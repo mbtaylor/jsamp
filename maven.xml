@@ -67,15 +67,23 @@
 
   <goal name="samp-deploy"
         description="Deploy built archives to repository"
-        prereqs="jar:jar,source-zip">
+        prereqs="jar:jar,source-zip,site">
     <echo message="Do this:"/>
-    <echo message="    jarsigner -keystore /export/home/mbt/certs/mbtstore -tsa https://timestamp.geotrust.com/tsa target/jsamp-${pom.currentVersion}.jar mbt-phys-bris"/>
-    <echo message="    scp target/jsamp-${pom.currentVersion}.jar target/jsamp_src-${pom.currentVersion}.zip maven.astrogrid.org:/maven/org.astrogrid/jars/"/>
-    <echo message="edit maven.astrogrid.org:/software/doc/versions.html"/>
-    <echo message="and make sure you do a matching maven site:deploy too"/>
-    <!-- The following reminder is for something that would get done 
-     !   automatically by maven 2, but needs to be done by hand for maven 1. -->
-    <echo message="and update file on maven.astrogrid.org: /software/doc/latest/samp/.htaccess"/>
+    <echo message="    /usr/java/latest/bin/jarsigner -keystore /export/home/mbt/certs/mbtstore -tsa https://timestamp.geotrust.com/tsa -signedjar target/jsamp_signed-${pom.currentVersion}.jar target/jsamp-${pom.currentVersion}.jar mbt-phys-bris"/>
+    <ant:delete dir="${astrogrid.jsamp.deploydir}"/>
+    <ant:mkdir dir="${astrogrid.jsamp.deploydir}"/>
+    <ant:copy file="target/jsamp-${pom.currentVersion}.jar"
+              tofile="${astrogrid.jsamp.deploydir}/jsamp.jar"
+              failonerror="true"/>
+    <ant:copy file="target/jsamp_signed-${pom.currentVersion}.jar"
+              tofile="${astrogrid.jsamp.deploydir}/jsamp_signed.jar"
+              failonerror="true"/>
+    <ant:copy file="target/jsamp_src-${pom.currentVersion}.zip"
+              tofile="${astrogrid.jsamp.deploydir}/jsamp_src.zip"
+              failonerror="true"/>
+    <ant:copy todir="${astrogrid.jsamp.deploydir}" failonerror="true">
+      <fileset dir="target/docs"/>
+    </ant:copy>
   </goal>
 
   <goal name="command-usage"

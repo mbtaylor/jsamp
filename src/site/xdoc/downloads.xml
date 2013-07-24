@@ -9,48 +9,43 @@
 
 <body>
 <section name="Downloads">
+
 <dl>
-<dt>Jar file:</dt>
-<dd><ul>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.3-3.jar">jsamp-1.3-3.jar</a> (signed)</li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.3-2.jar">jsamp-1.3-2.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.3-1.jar">jsamp-1.3-1.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.3.jar">jsamp-1.3.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.2.jar">jsamp-1.2.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.1.jar">jsamp-1.1.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-1.0.jar">jsamp-1.0.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.3-1.jar">jsamp-0.3-1.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.3.jar">jsamp-0.3.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.2-1.jar">jsamp-0.2-1.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.2.jar">jsamp-0.2.jar</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp-0.1.jar">jsamp-0.1.jar</a></li>
-    </ul>
+<dt>Current Version:</dt>
+
+<dd><dl>
+    <dt>Unsigned jar file:</dt>
+    <dd><a href="jsamp.jar">jsamp.jar</a></dd>
+    <dt>Signed jar file:</dt>
+    <dd><a href="jsamp_signed.jar">jsamp_signed.jar</a></dd>
+    <dt>Sources zip file:</dt>
+    <dd><a href="jsamp_src.zip">jsamp_src.zip</a></dd>
+    </dl>
     </dd>
-<dt>Sources:</dt>
-<dd><ul>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.3-3.zip">jsamp_src-1.3-3.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.3-2.zip">jsamp_src-1.3-2.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.3-1.zip">jsamp_src-1.3-1.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.3.zip">jsamp_src-1.3.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.2.zip">jsamp_src-1.2.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.1.zip">jsamp_src-1.1.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-1.0.zip">jsamp_src-1.0.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.3-1.zip">jsamp_src-0.3-1.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.3.zip">jsamp_src-0.3.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.2-1.zip">jsamp_src-0.2-1.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.2.zip">jsamp_src-0.2.zip</a></li>
-    <li><a href="http://www.astrogrid.org/maven/org.astrogrid/jars/jsamp_src-0.1.zip">jsamp_src-0.1.zip</a></li>
-    </ul>
-    (See also <a href="cvs-usage.html">CVS access</a>)
-    </dd>
+
+<dt>Previous versions:</dt>
+<dd>FTP archive at
+<a href="ftp://andromeda.star.bristol.ac.uk/pub/star/jsamp/"
+        >ftp://andromeda.star.bristol.ac.uk/pub/star/jsamp</a>
+</dd>
+
+<dt>Source code:</dt>
+<dd>The source code is available on github at
+<a href="https://github.com/mbtaylor/jsamp/"
+        >https://github.com/mbtaylor/jsamp/</a>.
+</dd>
+
 <dt>Dependencies:</dt>
-<dd><a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
-       >xmlrpc-1.2-b1.jar</a>.
-    Note this library is not necessary for using JSAMP, it is only required
-    if you want to use the Apache XML-RPC implementation.  If you want to
-    use the internal XML-RPC implementation instead, then no extenal libraries
-    are required.
+<dd>The only (non-J2SE) external library which is sometimes used by JSAMP
+    is Apache XML-RPC:
+    <a href="http://www.astrogrid.org/maven/xmlrpc/jars/xmlrpc-1.2-b1.jar"
+                                                       >xmlrpc-1.2-b1.jar</a>.
+    Note however that this library is not necessary for using JSAMP,
+    it is only required if you want to use the Apache XML-RPC implementation.
+    If you want to use the internal XML-RPC implementation instead,
+    which is generally recommended, then no extenal libraries are required.
     </dd>
+
 </dl>
 </section>
 

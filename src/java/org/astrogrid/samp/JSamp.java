@@ -272,7 +272,7 @@ public class JSamp {
            .append( "\n   " )
            .append( "WWW:" )
            .append( "\n      " )
-           .append( "http://software.astrogrid.org/doc/jsamp/" )
+           .append( "http://www.star.bristol.ac.uk/~mbt/jsamp" )
            .toString();
     }
 

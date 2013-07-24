@@ -76,9 +76,9 @@
     </developer>
   </developers>
 
-  <repository>
-    <connection>scm:svn:http://astrogrid.google.com/svn</connection>
-    <url>http://code.google.com/p/astrogrid/</url>
+  <repository> <!-- connection syntax may be wrong -->
+    <connection>scm:git:https://github.com/mbtaylor/jsamp</connection>
+    <url>https://github.com/mbtaylor/jsamp/</url>
   </repository>
 
 </project>
