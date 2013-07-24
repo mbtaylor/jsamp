@@ -11,22 +11,32 @@
 <section name="Downloads">
 
 <dl>
-<dt>Current Version:</dt>
+<dt>Current Version ([SAMP-VERSION]):</dt>
 
 <dd><dl>
     <dt>Unsigned jar file:</dt>
-    <dd><a href="jsamp.jar">jsamp.jar</a></dd>
+    <dd><a href="jsamp-[SAMP-VERSION].jar"
+                >jsamp-[SAMP-VERSION].jar</a></dd>
     <dt>Signed jar file:</dt>
-    <dd><a href="jsamp_signed.jar">jsamp_signed.jar</a></dd>
+    <dd><a href="jsamp_signed-[SAMP-VERSION].jar"
+                >jsamp_signed-[SAMP-VERSION].jar</a></dd>
     <dt>Sources zip file:</dt>
-    <dd><a href="jsamp_src.zip">jsamp_src.zip</a></dd>
+    <dd><a href="jsamp_src-[SAMP-VERSION].zip"
+                >jsamp_src-[SAMP-VERSION].zip</a></dd>
     </dl>
     </dd>
 
-<dt>Previous versions:</dt>
-<dd>FTP archive at
+<dt>Other versions:</dt>
+<dd>All previous releases are available from the FTP archive at
 <a href="ftp://andromeda.star.bristol.ac.uk/pub/star/jsamp/"
-        >ftp://andromeda.star.bristol.ac.uk/pub/star/jsamp</a>
+        >ftp://andromeda.star.bristol.ac.uk/pub/star/jsamp</a>.
+This may also contain
+<a href="ftp://andromeda.star.bristol.ac.uk/pub/star/jsamp/pre/"
+   >pre-release</a> versions.
+Older versions are also still available from their historical home
+on the
+<a href="http://www.astrogrid.org/maven/org.astrogrid/jars/"
+        >Astrogrid Maven server</a>.
 </dd>
 
 <dt>Source code:</dt>

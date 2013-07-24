@@ -862,7 +862,11 @@ for SAMP objects in a few places:
 </p>
 
 <ul>
-<li>JSAMP has been rehosted.  The source can now be found on github at
+<li>JSAMP has been rehosted, and no longer lives on AstroGrid sites.
+    The distribution web site is now at
+    <a href="http://www.star.bristol.ac.uk/~mbt/jsamp/"
+            >http://www.star.bristol.ac.uk/~mbt/jsamp/</a>,
+    and the source can be found on github at
     <a href="https://github.com/mbtaylor/jsamp"
             >https://github.com/mbtaylor/jsamp</a>.</li>
 <li>Fixed the Web Profile hub to work with HTTPS-based web pages as

@@ -73,17 +73,21 @@
     <ant:delete dir="${astrogrid.jsamp.deploydir}"/>
     <ant:mkdir dir="${astrogrid.jsamp.deploydir}"/>
     <ant:copy file="target/jsamp-${pom.currentVersion}.jar"
-              tofile="${astrogrid.jsamp.deploydir}/jsamp.jar"
+              todir="${astrogrid.jsamp.deploydir}"
               failonerror="true"/>
     <ant:copy file="target/jsamp_signed-${pom.currentVersion}.jar"
-              tofile="${astrogrid.jsamp.deploydir}/jsamp_signed.jar"
+              todir="${astrogrid.jsamp.deploydir}"
               failonerror="true"/>
     <ant:copy file="target/jsamp_src-${pom.currentVersion}.zip"
-              tofile="${astrogrid.jsamp.deploydir}/jsamp_src.zip"
+              todir="${astrogrid.jsamp.deploydir}"
               failonerror="true"/>
     <ant:copy todir="${astrogrid.jsamp.deploydir}" failonerror="true">
       <fileset dir="target/docs"/>
     </ant:copy>
+    <ant:replace dir="${astrogrid.jsamp.deploydir}"
+                 includes="downloads.html">
+      <replaceFilter token="[SAMP-VERSION]" value="${pom.currentVersion}"/>
+    </ant:replace>
   </goal>
 
   <goal name="command-usage"
