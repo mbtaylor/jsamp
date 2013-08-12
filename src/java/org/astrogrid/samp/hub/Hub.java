@@ -102,7 +102,12 @@ public class Hub {
      */
     public synchronized void shutdown() {
         logger_.info( "Shutting down hub service" );
-        service_.shutdown();
+        try {
+            service_.shutdown();
+        }
+        catch ( Throwable e ) {
+            logger_.log( Level.WARNING, "Service shutdown error: " + e, e );
+        }
         for ( Iterator it = profileList_.iterator(); it.hasNext(); ) {
             HubProfile profile = (HubProfile) it.next();
             logger_.info( "Shutting down hub profile "
