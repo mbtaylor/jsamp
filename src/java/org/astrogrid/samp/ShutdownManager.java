@@ -89,7 +89,8 @@ public class ShutdownManager {
                 hooks[ ih ].runnable_.run();
             }
             catch ( RuntimeException e ) {
-                logger_.log( Level.WARNING, "Shutdown hook failure:" + e, e );
+                forceLog( logger_, Level.WARNING, "Shutdown hook failure: " + e,
+                          e );
             }
         }
         logger_.info( "SAMP shutdown end" );
@@ -102,6 +103,33 @@ public class ShutdownManager {
      */
     public static ShutdownManager getInstance() {
         return instance_;
+    }
+
+    /**
+     * Writes a log-like message directly to standard error if it has
+     * an appropriate level.
+     * This method is only intended for use during the shutdown process,
+     * when the logging system may be turned off so that normal logging
+     * calls may get ignored (this behaviour is not as far as I know
+     * documented, but seems reliable in for example Oracle JRE1.5).
+     * There may be some good reason for logging services to be withdrawn
+     * during shutdown, so it's not clear that using this method is
+     * a good idea at all even apart from bypassing the logging system;
+     * therefore use it sparingly.
+     *
+     * @param   logger  logger
+     * @param   level   level of message to log
+     * @param   msg    text of logging message
+     * @param   error  associated throwable if any; may be null
+     */
+    public static void forceLog( Logger logger, Level level, String msg,
+                                 Throwable error ) {
+        if ( logger.isLoggable( level ) ) {
+            System.err.println( level + ": " + msg );
+            if ( error != null ) {
+                error.printStackTrace( System.err );
+            }
+        }
     }
 
     /**
