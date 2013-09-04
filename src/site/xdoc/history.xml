@@ -874,6 +874,8 @@ for SAMP objects in a few places:
 <li>Add new system property <code>jsamp.web.extrahosts</code> to allow
     trusted non-local hosts to register with the Web Profile
     (for instance near-local mobile devices).</li>
+<li>Improve shutdown behaviour somewhat, now less prone to fail to
+    delete <code>.samp</code> file in JNLP shutdown.</li>
 </ul>
 </subsection>
 
