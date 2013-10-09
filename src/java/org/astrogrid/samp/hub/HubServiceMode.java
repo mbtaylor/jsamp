@@ -229,37 +229,51 @@ public abstract class HubServiceMode {
      */
     private static HubServiceMode createGuiHubMode( String name ) {
         try {
+
+            /* Check GuiHubService class is present; if GUI classes are
+             * missing in a stripped-down installation find out now
+             * (mode creation time) rather than service creation time. */
             GuiHubService.class.getName();
+
+            /* Create and return the service. */
             return new HubServiceMode( name, false ) {
                 ServiceGui createHubService( Random random,
                                              final HubProfile[] profiles,
                                              final Hub[] runners ) {
                     final ServiceGui serviceGui = new ServiceGui();
                     serviceGui.service_ = new GuiHubService( random ) {
-                        Tidier tidier;
+                        volatile Runnable tidierCallback;
                         public void start() {
                             final GuiHubService service = this;
                             super.start();
                             SwingUtilities.invokeLater( new Runnable() {
                                 public void run() {
                                     JFrame window = createHubWindow();
-                                    tidier = configureHubWindow( window,
-                                                                 profiles,
-                                                                 runners,
-                                                                 service );
+                                    final Tidier tidier =
+                                        configureHubWindow( window, profiles,
+                                                            runners, service );
+                                    tidierCallback = new Runnable() {
+                                        public void run() {
+                                            tidier.tidyGui();
+                                        }
+                                    };
                                     serviceGui.window_ = window;
                                 }
                             } );
                         }
                         public void shutdown() {
                             super.shutdown();
-                            SwingUtilities.invokeLater( new Runnable() {
-                                public void run() {
-                                    if ( tidier != null ) {
-                                        tidier.tidyGui();
-                                    }
-                                }
-                            } );
+
+                            /* It is (apparently) necessary under some
+                             * circumstances to call an existing Runnable here
+                             * rather than creating a new one because of
+                             * weird (buggy?) shutdown behaviour
+                             * in the JNLP class loader (fails with
+                             * IllegalStateException: zip file closed).
+                             * Report and fix provided by Laurent Bourges. */
+                            if ( tidierCallback != null ) {
+                                SwingUtilities.invokeLater( tidierCallback );
+                            };
                         }
                     };
                     return serviceGui;
