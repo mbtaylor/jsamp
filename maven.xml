@@ -69,13 +69,13 @@
         description="Deploy built archives to repository"
         prereqs="jar:jar,source-zip,site">
     <echo message="Do this:"/>
-    <echo message="    /usr/java/latest/bin/jarsigner -keystore /export/home/mbt/certs/mbtstore -tsa https://timestamp.geotrust.com/tsa -signedjar target/jsamp_signed-${pom.currentVersion}.jar target/jsamp-${pom.currentVersion}.jar mbt-phys-bris"/>
+    <echo message="    /usr/java/latest/bin/jarsigner -keystore /export/home/mbt/certs/mbtstore -tsa https://timestamp.geotrust.com/tsa -signedjar target/jsamp-${pom.currentVersion}_signed.jar target/jsamp-${pom.currentVersion}.jar mbt-phys-bris"/>
     <ant:delete dir="${astrogrid.jsamp.deploydir}"/>
     <ant:mkdir dir="${astrogrid.jsamp.deploydir}"/>
     <ant:copy file="target/jsamp-${pom.currentVersion}.jar"
               todir="${astrogrid.jsamp.deploydir}"
               failonerror="true"/>
-    <ant:copy file="target/jsamp_signed-${pom.currentVersion}.jar"
+    <ant:copy file="target/jsamp-${pom.currentVersion}_signed.jar"
               todir="${astrogrid.jsamp.deploydir}"
               failonerror="true"/>
     <ant:copy file="target/jsamp_src-${pom.currentVersion}.zip"
