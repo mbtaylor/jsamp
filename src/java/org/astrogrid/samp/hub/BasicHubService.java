@@ -528,6 +528,11 @@ public class BasicHubService implements HubService {
     protected List notifyAll( HubClient caller, Map message )
             throws SampException {
         Message msg = Message.asMessage( message );
+        
+        /* LBO: broadcast flag */
+        /* System.out.println("broadcast [" + msg.getMType() + "]@" + System.identityHashCode(message)); */
+        msg.addParam("x-samp.broadcast", "true");
+        
         msg.check();
         String mtype = msg.getMType();
         HubClient[] recipients = clientSet_.getClients();
@@ -565,6 +570,11 @@ public class BasicHubService implements HubService {
     protected Map callAll( HubClient caller, String msgTag, Map message )
             throws SampException {
         Message msg = Message.asMessage( message );
+        
+        /* LBO: broadcast flag */
+        /* System.out.println("broadcast [" + msg.getMType() + "]@" + System.identityHashCode(message)); */
+        msg.addParam("x-samp.broadcast", "true");
+        
         msg.check();
         String mtype = msg.getMType();
         String msgId = MessageId.encode( caller, msgTag, false );
