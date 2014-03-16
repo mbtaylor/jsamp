@@ -1,22 +1,4 @@
 <?xml version="1.0"?>
-<!DOCTYPE document [
-  <!ENTITY jsamp-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.JSamp.usage">
-  <!ENTITY hub-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.hub.Hub.usage">
-  <!ENTITY hubmonitor-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.gui.HubMonitor.usage">
-  <!ENTITY snooper-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.test.Snooper.usage">
-  <!ENTITY messagesender-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.test.MessageSender.usage">
-  <!ENTITY hubtester-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.test.HubTester.usage">
-  <!ENTITY calcstorm-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.test.CalcStorm.usage">
-  <!ENTITY bridge-usage SYSTEM
-           "../../../target/docs/org.astrogrid.samp.bridge.Bridge.usage">
-]>
 <document>
 
 <properties>
@@ -67,7 +49,10 @@ flag on the command line will print a usage message.
 
 <p>The JSamp usage message (<code>java -jar jsamp.jar -help</code>) says:
 </p>
-<source>&jsamp-usage;</source>
+<macro name="snippet">
+  <param name="file" value="./target/docs/org.astrogrid.samp.JSamp.usage"/>
+</macro>
+
 
 <p>The individual command-line applications are described below.
 They have their own specific command-line flags to control use,
@@ -118,7 +103,10 @@ Some of the flags relate to particular profiles.
 
 <p>Hub usage is:
 </p>
-<source>&hub-usage;</source>
+<macro name="snippet">
+  <param name="file" value="./target/docs/org.astrogrid.samp.hub.Hub"/>
+</macro>
+
 <dl>
 <dt><code>-mode no-gui|client-gui|msg-gui|facade</code></dt>
 <dd>Determines what hub implementation is used; currently this affects
@@ -348,7 +336,9 @@ See the source code for details.
 
 <p>HubMonitor usage is:
 </p>
-<source>&hubmonitor-usage;</source>
+<macro name="snippet">
+  <param name="file" value="./target/docs/org.astrogrid.samp.gui.HubMonitor.usage"/>
+</macro>
 <dl>
 <dt><code>-/+verbose</code></dt>
 <dd>See above for the description of verbosity setting.
@@ -401,7 +391,10 @@ presented on standard output than in a GUI.
 
 <p>Snooper usage is:
 </p>
-<source>&snooper-usage;</source>
+<macro name="snippet">
+  <param name="file" value="./target/docs/org.astrogrid.samp.test.Snooper.usage"/>
+</macro>
+
 <dl>
 <dt><code>-mtype &lt;pattern&gt;</code></dt>
 <dd>Gives an MType or wildcarded MType pattern to subscribe to.
@@ -442,7 +435,9 @@ any responses received in response.
 
 <p>MessageSender usage is:
 </p>
-<source>&messagesender-usage;</source>
+<macro name="snippet">
+  <param name="file" value="./target/docs/org.astrogrid.samp.test.MessageSender.usage"/>
+</macro>
 <dl>
 <dt><code>-mtype &lt;mtype&gt;</code></dt>
 <dd>Gives the MType for the message to send.
@@ -523,7 +518,9 @@ spurious test failures.
 
 <p>HubTester usage is:
 </p>
-<source>&hubtester-usage;</source>
+<macro name="snippet">
+  <param name="file" value="./target/docs/org.astrogrid.samp.test.HubTester.usage"/>
+</macro>
 <dl>
 <dt><code>-gui</code></dt>
 <dd>If supplied, a HubMonitor window will be shown for the duration of the test.
@@ -548,7 +545,9 @@ for a given hub implementation.
 
 <p>CalcStorm usage is:
 </p>
-<source>&calcstorm-usage;</source>
+<macro name="snippet">
+  <param name="file" value="./target/docs/org.astrogrid.samp.test.CalcStorm.usage"/>
+</macro>
 <dl>
 <dt><code>-nclient &lt;n&gt;</code></dt>
 <dd>Gives the number of clients which will run at once.
@@ -594,7 +593,9 @@ by using one or more of the command-line options described below.
 
 <p>Bridge usage is:
 </p>
-<source>&bridge-usage;</source>
+<macro name="snippet">
+  <param name="file" value="./target/docs/org.astrogrid.samp.bridge.Bridge.usage"/>
+</macro>
 <dl>
 <dt><code>-exporturls/-noexporturls</code></dt>
 <dd>With <code>-exporturls</code>, an attempt is made to translate URLs
