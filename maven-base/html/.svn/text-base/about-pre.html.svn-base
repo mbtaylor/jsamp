@@ -1,7 +1,0 @@
-<html>
-    <body>
-       About @ABOUT-NAME@<br/>
-       Built @ABOUT-NOW@<br/>
-       Version @ABOUT-VERSION@<br/>
-    </body>
-</html>

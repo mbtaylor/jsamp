@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.astrogrid</groupId>
+  <artifactId>jsamp</artifactId>
+  <version>1.3-4+</version> <!-- not a maven compatible version http://docs.codehaus.org/display/MAVEN/Versioning -->
+  <name>JSAMP</name>
+  <url>http://www.star.bristol.ac.uk/~mbt/jsamp/</url>
+  <scm>
+    <connection>scm:git:https://github.com/mbtaylor/jsamp.git</connection>
+    <developerConnection>scm:git:git@github.com:mbtaylor/jsamp.git</developerConnection>
+  </scm>
+  <description>Various components used for developing and deploying
+    Simple Applications Messaging Protocol-compliant 
+    applications and middleware.
+  </description>
+  <inceptionYear>2008</inceptionYear>
+   <developers>
+    <developer>
+      <id>mbt</id>
+      <name>Mark Taylor</name>
+      <email>m.b.taylor@bristol.ac.uk</email>
+      <url>http://www.star.bristol.ac.uk/~mbt/</url>
+      <organization>Bristol University</organization>
+    </developer>
+  </developers>
+
+  <properties>
+    <builddocdir>${project.build.directory}/docs</builddocdir>
+    <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss</maven.build.timestamp.format>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+ 
+  <distributionManagement>
+    <site>
+      <id>www.star.bristol.ac.uk</id>
+      <url>file://localhost/homeb/mbt/public_html/~mbt/jsamp/</url>
+    </site>
+  </distributionManagement>
+
+  <build>
+    <sourceDirectory>src/java</sourceDirectory>
+    <testSourceDirectory>src/test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>src/resources</directory>
+        <filtering>true</filtering>
+      </resource>
+    </resources>
+
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.16</version>
+        <configuration>
+          <argLine>-ea</argLine>
+          <testFailureIgnore>false</testFailureIgnore>
+          <useFile>false</useFile>
+          <includes>
+            <include>org/astrogrid/samp/**/*Test.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.4</source>
+          <target>1.4</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+              <mainClass>org.astrogrid.samp.JSamp</mainClass>
+            </manifest>
+            <manifestEntries>
+              <BuildTime>${maven.build.timestamp}</BuildTime>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <!-- Write command usage for command-line tools to files. -->
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>pre-site</phase>
+            <configuration>
+              <tasks>
+                <taskdef resource="net/sf/antcontrib/antlib.xml"
+                         classpathref="maven.plugin.classpath"/>
+                <mkdir dir="${project.build.directory}/docs"/>
+                <echo>Generating command usage strings</echo>
+                <for param="command" trim="true"
+                     list="org.astrogrid.samp.JSamp,
+                           org.astrogrid.samp.hub.Hub,
+                           org.astrogrid.samp.gui.HubMonitor,
+                           org.astrogrid.samp.test.Snooper,
+                           org.astrogrid.samp.test.MessageSender,
+                           org.astrogrid.samp.test.CalcStorm,
+                           org.astrogrid.samp.test.HubTester,
+                           org.astrogrid.samp.bridge.Bridge">
+                  <sequential>
+                    <echo>   @{command}</echo>
+                    <java classname="@{command}" 
+                          output="${project.build.directory}/docs/@{command}.usage"
+                          fork="true" failonerror="true">
+                      <classpath>
+                        <pathelement
+                             location="${project.build.outputDirectory}"/>
+                      </classpath>
+                      <arg value="-help"/>
+                    </java>
+                  </sequential>
+                  
+                </for>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.6.5</version>
+          </dependency>
+          <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>ant-contrib</artifactId>
+            <version>1.0b2</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>2.8.1</version>
+      </plugin>
+
+    </plugins>
+  </build>
+    
+  <reporting>
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <links>
+            <link>http://docs.oracle.com/javase/6/docs/api/</link>
+            <link>http://ws.apache.org/xmlrpc/xmlrpc2/apidocs/</link>
+          </links> 
+          <offlineLinks>
+            <offlineLink>
+              <url>http://docs.oracle.com/javase/6/docs/api/</url>
+              <location>${project.build.sourceDirectory}/../docs/packagelists/j2se</location>
+            </offlineLink>
+            <offlineLink>
+              <url>http://ws.apache.org/xmlrpc/xmlrpc2/apidocs/</url>
+              <location>${project.build.sourceDirectory}/../docs/packagelists/xmlrpc</location>
+            </offlineLink>
+          </offlineLinks>
+          <source>1.4</source>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.7</version>
+        <configuration>
+          <webAccessUrl>https://github.com/mbtaylor/jsamp</webAccessUrl>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </reporting>
+
+  <dependencies>
+    <dependency>
+      <groupId>xmlrpc</groupId>
+      <artifactId>xmlrpc</artifactId>
+      <version>1.2-b1</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  
+</project>

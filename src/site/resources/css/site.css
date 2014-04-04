@@ -1,0 +1,8 @@
+/* For some reason, the maven-theme.css file that maven puts in place
+ * includes "p {font-size: small;}".  This is just stupid as far as I
+ * can see (presumably happened to look good on Mr Maven's screen/browser
+ * combination), and it looks terrible when P and UL/OL/DL elements
+ * appear adjacently.  So, reset it to normality here. */
+p {
+  font-size: inherit;
+}

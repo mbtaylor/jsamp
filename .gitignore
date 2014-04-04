@@ -1,2 +1,6 @@
 target
 velocity.log
+/.settings
+/.classpath
+/.project
+.DS_Store
