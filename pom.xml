@@ -84,6 +84,11 @@
               <mainClass>org.astrogrid.samp.JSamp</mainClass>
             </manifest>
             <manifestEntries>
+
+              <!-- Permissions and Application-Name attributes are required
+               !   for WebStart if this jar is signed, for java 7u51+. -->
+              <Permissions>all-permissions</Permissions>
+              <Application-Name>JSAMP</Application-Name>
               <BuildTime>${maven.build.timestamp}</BuildTime>
             </manifestEntries>
           </archive>
