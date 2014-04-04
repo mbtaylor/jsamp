@@ -104,7 +104,7 @@ Some of the flags relate to particular profiles.
 <p>Hub usage is:
 </p>
 <macro name="snippet">
-  <param name="file" value="./target/docs/org.astrogrid.samp.hub.Hub"/>
+  <param name="file" value="./target/docs/org.astrogrid.samp.hub.Hub.usage"/>
 </macro>
 
 <dl>
