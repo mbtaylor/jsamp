@@ -59,18 +59,21 @@ at
 It was originally developed within the UK's 
 <a href="http://www.astrogrid.org/">AstroGrid</a> project,
 and has also been supported by <a href="http://www.stfc.ac.uk/">STFC</a> 
-grants ST/H008470/1 and ST/I00176X/1 and by 
+grants ST/H008470/1, ST/I00176X/1 and ST/J001414/1, and by 
 <a href="http://research.microsoft.com/">Microsoft Research</a>.
 All of this support is gratefully acknowledged.
 Many members of the SAMP community have provided valuable input and
 help with development; special mentions go to Thomas Boch,
 Laurent Bourg&#xe8;s, Sylvain Lafrasse,
-Jonathan Fay, Luigi Paioro, John Taylor and
+Jonathan Fay, Paul Harrison, Luigi Paioro, John Taylor and
 Ivan Zolotukhin.
 </p>
 
-<p>Queries, bug reports, suggestions etc may be mailed to the author,
-or raised on the 
+<p>Queries, bug reports, suggestions should generally be mailed to the
+author.
+Alternatively they can be addressed at the
+<a href="source-repository.html">source respository</a>
+or, if of general interest raised on the 
 <a href="http://www.ivoa.net/pipermail/apps-samp/">apps-samp@ivoa.net</a>
 mailing list.
 </p>

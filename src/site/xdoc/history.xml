@@ -871,6 +871,22 @@ for SAMP objects in a few places:
 </ul>
 </subsection>
 
+<subsection name="next version">
+<p>
+<strong>Date:</strong> ??<br/>
+</p>
+
+<ul>
+<li>The build is now done using maven 3.
+    Thanks to Paul Harrison for doing most of the work on this.
+    As a consequence, the version numbering system has changed - it's now
+    a.b.c instead of a.b-c.</li>
+<li>The jar file now contains "Permissions" and "Application-Name" attributes,
+    which are required when running the hub as a signed jar under
+    WebStart at java 7u51+.</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>
