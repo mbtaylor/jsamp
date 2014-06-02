@@ -1,8 +1,12 @@
 package org.astrogrid.samp.web;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.HeadlessException;
+import java.awt.Insets;
 import java.awt.Window;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -20,6 +24,8 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import org.astrogrid.samp.httpd.HttpServer;
 
 /**
@@ -32,6 +38,7 @@ import org.astrogrid.samp.httpd.HttpServer;
 public class HubSwingClientAuthorizer implements ClientAuthorizer {
 
     private final Component parent_;
+    private static final int MAX_POPUP_WIDTH = 500;
     private static final Logger logger_ =
         Logger.getLogger( HubSwingClientAuthorizer.class.getName() );
 
@@ -140,15 +147,46 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
      */
     private JComponent createLabelledFields( Map infoMap,
                                              String undeclaredWord ) {
-        JComponent box = Box.createVerticalBox();
+        GridBagLayout layer = new GridBagLayout();
+        JComponent box = new JPanel( layer ) {
+            public Dimension getPreferredSize() {
+                Dimension size = super.getPreferredSize();
+                return new Dimension( Math.min( size.width, MAX_POPUP_WIDTH ),
+                                      size.height );
+            }
+        };
+        GridBagConstraints keyCons = new GridBagConstraints();
+        GridBagConstraints valCons = new GridBagConstraints();
+        keyCons.gridy = 0;
+        valCons.gridy = 0;
+        keyCons.gridx = 0;
+        valCons.gridx = 1;
+        keyCons.anchor = GridBagConstraints.WEST;
+        valCons.anchor = GridBagConstraints.WEST;
+        keyCons.fill = GridBagConstraints.NONE;
+        valCons.fill = GridBagConstraints.HORIZONTAL;
+        keyCons.weighty = 1;
+        valCons.weighty = 1;
+        keyCons.weightx = 0;
+        valCons.weightx = 1;
+        valCons.insets = new Insets( 1, 1, 1, 1 );
+
+        JComponent stack = Box.createVerticalBox();
         for ( Iterator it = infoMap.keySet().iterator(); it.hasNext(); ) {
             String key = (String) it.next();
             String value = (String) infoMap.get( key );
-            String txt = key + ": "
-                       + ( value == null ? undeclaredWord : value );
-            box.add( new JLabel( txt ) );
+            String valtxt = value == null ? undeclaredWord : value;
+            JComponent keyComp = new JLabel( key + ": " );
+            JTextField valueField = new JTextField( valtxt );
+            valueField.setEditable( false );
+            layer.setConstraints( keyComp, keyCons );
+            layer.setConstraints( valueField, valCons );
+            box.add( keyComp );
+            box.add( valueField );
+            keyCons.gridy++;
+            valCons.gridy++;
         }
-        box.setBorder( BorderFactory.createEmptyBorder( 0, 20, 0, 0 ) );
+        box.setBorder( BorderFactory.createEmptyBorder( 0, 0, 0, 0 ) );
         return box;
     }
 

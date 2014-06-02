@@ -884,6 +884,9 @@ for SAMP objects in a few places:
 <li>The jar file now contains "Permissions" and "Application-Name" attributes,
     which are required when running the hub as a signed jar under
     WebStart at java 7u51+.</li>
+<li>The Web Profile security dialogue has been adjusted so that long strings
+    transmitted as application Name, Origin or URL do not extend the width
+    of the popup window indefinitely.</li>
 </ul>
 </subsection>
 
