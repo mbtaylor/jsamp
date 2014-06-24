@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.astrogrid.samp.Message;
 import org.astrogrid.samp.Response;
+import org.astrogrid.samp.ShutdownManager;
 import org.astrogrid.samp.client.CallableClient;
 import org.astrogrid.samp.client.SampException;
 
@@ -19,6 +20,17 @@ class XmlRpcCallableClient implements CallableClient {
 
     private final SampXmlRpcClient xClient_;
     private final String privateKey_;
+    private static volatile boolean isShutdown_;
+    static {
+        ShutdownManager.getInstance()
+                       .registerHook( XmlRpcCallableClient.class,
+                                      ShutdownManager.PREPARE_SEQUENCE,
+                                      new Runnable() {
+            public void run() {
+                isShutdown_ = true;
+            }
+        } );
+    }
 
     /**
      * Constructor.
@@ -79,14 +91,18 @@ class XmlRpcCallableClient implements CallableClient {
      */
     private void rawExec( String fqName, List paramList ) throws IOException {
 
-        // callAndForget might seem adequate here.  However, any implementation
-        // I've come up with for it presents problems (for instance incomplete
-        // HTTP connections when run from a shutdown hook thread,
-        // so hub fails to warn all clients of impending shutdown, though
-        // hacks around this are possible).
-        // It seems least problematic, and not dramatically slower,
-        // just to do synchronous calls here.  This could cause trouble
-        // if clients hang onto HTTP connections for long though.
-        xClient_.callAndWait( fqName, paramList );
+        // In most cases, callAndForget is adequate.
+        // However, if the JVM is in the process of shutting down, the
+        // hub shutdown that this triggers will attempt to message clients
+        // to tell them so, and the threads that callAndForget uses to
+        // handle those calls will die during the communications, meaning
+        // that the clients are not properly informed of shutdown.
+        // So in the case of shutdown, do it synchronously.
+        if ( isShutdown_ ) {
+            xClient_.callAndWait( fqName, paramList );
+        }
+        else {
+            xClient_.callAndForget( fqName, paramList );
+        }
     }
 }

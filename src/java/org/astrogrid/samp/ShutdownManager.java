@@ -15,6 +15,9 @@ import java.util.logging.Logger;
  */
 public class ShutdownManager {
 
+    /** Shutdown sequence for preparatory hooks. */
+    public static final int PREPARE_SEQUENCE = 0;
+
     /** Shutdown sequence value for client hooks. */
     public static final int CLIENT_SEQUENCE = 100;
 
