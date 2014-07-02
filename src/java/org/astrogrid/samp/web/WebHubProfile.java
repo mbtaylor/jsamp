@@ -7,7 +7,6 @@ import java.net.ServerSocket;
 import java.util.logging.Logger;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
-import org.astrogrid.samp.Message;
 import org.astrogrid.samp.client.ClientProfile;
 import org.astrogrid.samp.httpd.HttpServer;
 import org.astrogrid.samp.hub.ConfigHubProfile;
@@ -22,6 +21,7 @@ import org.astrogrid.samp.xmlrpc.internal.XmlLoggingInternalServer;
  * HubProfile implementation for Web Profile.
  *
  * @author   Mark Taylor
+ * @author   Laurent Bourges
  * @since    2 Feb 2011
  */
 public class WebHubProfile implements HubProfile, ConfigHubProfile {
@@ -29,10 +29,11 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
     private final ServerFactory serverFactory_;
     private final ClientAuthorizer auth_;
     private final KeyGenerator keyGen_;
+    private final ConfigEnabler configEnabler_;
+    private final ConfigEnabler configDisabler_;
     private MessageRestriction mrestrict_;
     private boolean controlUrls_;
     private InternalServer xServer_;
-    private WebHubXmlRpcHandler wxHandler_;
     private JToggleButton.ToggleButtonModel[] configModels_;
     private static final Logger logger_ =
         Logger.getLogger( WebHubProfile.class.getName() );
@@ -55,6 +56,12 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
         mrestrict_ = mrestrict;
         keyGen_ = keyGen;
         controlUrls_ = controlUrls;
+
+        /* These Runnables are set up here rather than being defined as
+         * anonymous classes where they are used to work round an obscure
+         * JNLP bug related to classloading and JVM shutdown. */
+        configEnabler_ = new ConfigEnabler( true );
+        configDisabler_ = new ConfigEnabler( false );
     }
 
     /**
@@ -92,13 +99,7 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
         hServer.addHandler( wxHandler.getUrlTranslationHandler() );
         hServer.start();
         if ( configModels_ != null ) {
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    for ( int i = 0; i < configModels_.length; i++ ) {
-                        configModels_[ i ].setEnabled( false );
-                    }
-                }
-            } );
+            SwingUtilities.invokeLater( configDisabler_ );
         }
     }
 
@@ -114,13 +115,7 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
         xServer_.getHttpServer().stop();
         xServer_ = null;
         if ( configModels_ != null ) {
-            SwingUtilities.invokeLater( new Runnable() {
-                public void run() {
-                    for ( int i = 0; i < configModels_.length; i++ ) {
-                        configModels_[ i ].setEnabled( true );
-                    }
-                }
-            } );
+            SwingUtilities.invokeLater( configEnabler_ );
         }
     }
 
@@ -196,6 +191,33 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
      */
     public static KeyGenerator createKeyGenerator() {
         return new KeyGenerator( "wk:", 24, KeyGenerator.createRandom() );
+    }
+
+    /**
+     * Runnable to be called on the Event Dispatch Thread which sets the
+     * enabledness of the user controls for configuration of this profile.
+     */
+    private class ConfigEnabler implements Runnable {
+        private final boolean isEnabled_;
+
+        /**
+         * Constructor.
+         *
+         * @param   isEnabled  status assigned to config controls by calling
+         *                     this object's run() method
+         */
+        ConfigEnabler( boolean isEnabled ) {
+            isEnabled_ = isEnabled;
+        }
+
+        public void run() {
+            JToggleButton.ToggleButtonModel[] configModels = configModels_;
+            if ( configModels != null ) {
+                for ( int i = 0; i < configModels.length; i++ ) {
+                    configModels[ i ].setEnabled( isEnabled_ );
+                }
+            }
+        }
     }
 
     /**
