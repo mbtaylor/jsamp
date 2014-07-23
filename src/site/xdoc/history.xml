@@ -887,6 +887,8 @@ for SAMP objects in a few places:
 <li>The Web Profile security dialogue has been adjusted so that long strings
     transmitted as application Name, Origin or URL do not extend the width
     of the popup window indefinitely.</li>
+<li>Updated Standard Profile <code>samp.profile.version</code> value to 1.3.
+    By an oversight it had got stuck at 1.11.</li>
 </ul>
 </subsection>
 
