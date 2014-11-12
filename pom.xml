@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.astrogrid</groupId>
   <artifactId>jsamp</artifactId>
-  <version>1.3.4-post</version>
+  <version>1.3.5</version>
   <name>JSAMP</name>
   <url>http://www.star.bristol.ac.uk/~mbt/jsamp/</url>
   <scm>
@@ -37,7 +37,7 @@
   <distributionManagement>
     <site>
       <id>www.star.bristol.ac.uk</id>
-      <url>file://localhost/homeb/mbt/public_html/~mbt/jsamp/</url>
+      <url>file:///homeb/mbt/public_html/jsamp/</url>
     </site>
   </distributionManagement>
 
