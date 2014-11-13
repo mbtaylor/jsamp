@@ -46,6 +46,12 @@
   <distributionManagement>
     <site>
       <id>www.star.bristol.ac.uk</id>
+
+      <!-- I was hoping that this would cause mvn install to copy the
+       !   site files to the named directory.  It doesn't seem to do that
+       !   (or anything else).
+       !   Currently I'm doing that copying by hand when releasing
+       !   a new version. -->
       <url>file:///homeb/mbt/public_html/jsamp/</url>
     </site>
   </distributionManagement>
