@@ -11,18 +11,15 @@
 <section name="Downloads">
 
 <dl>
-<dt>Current Version ([SAMP-VERSION]):</dt>
+<dt>Current Version (${jsampVersion}):</dt>
 
 <dd><dl>
     <dt>Unsigned jar file:</dt>
-    <dd><a href="jsamp-[SAMP-VERSION].jar"
-                >jsamp-[SAMP-VERSION].jar</a></dd>
+    <dd><a href="jsamp-${jsampVersion}.jar"
+                >jsamp-${jsampVersion}.jar</a></dd>
     <dt>Signed jar file:</dt>
-    <dd><a href="jsamp-[SAMP-VERSION]_signed.jar"
-                >jsamp-[SAMP-VERSION]_signed.jar</a></dd>
-    <dt>Sources zip file:</dt>
-    <dd><a href="jsamp_src-[SAMP-VERSION].zip"
-                >jsamp_src-[SAMP-VERSION].zip</a></dd>
+    <dd><a href="jsamp-${jsampVersion}_signed.jar"
+                >jsamp-${jsampVersion}_signed.jar</a></dd>
     </dl>
     </dd>
 

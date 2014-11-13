@@ -32,6 +32,15 @@
     <builddocdir>${project.build.directory}/docs</builddocdir>
     <maven.build.timestamp.format>yyyy/MM/dd HH:mm:ss</maven.build.timestamp.format>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- Set this to the version number, must be updated by hand
+     !   to match pom.currentVersion.
+     !   It's used for filtering into site/xdoc/downloads.xml.vm.
+     !   That filtering module apparently won't cope with embedded "."
+     !   characters in the name, so I can't use pom.currentVersion.
+     !   Even putting ${pom.currentVersion} in the line below doesn't work.
+     !   There may be a less horrible way to do this. -->
+    <jsampVersion>1.3.5</jsampVersion>
   </properties>
  
   <distributionManagement>
