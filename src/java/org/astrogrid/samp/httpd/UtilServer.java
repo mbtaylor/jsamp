@@ -120,12 +120,29 @@ public class UtilServer {
     }
 
     /**
+     * Exposes a resource from a given URL as a publicly visible URL.
+     * This is typically used if the given <code>localUrl</code> is
+     * only visible locally, for instance on this JVM's classpath.
+     *
+     * @param  localUrl  URL visible at least within this JVM
+     * @return  URL for external reference to the resource
+     */
+    public URL exportResource( URL localUrl ) throws IOException {
+        return getMapperHandler().addLocalUrl( localUrl );
+    }
+
+    /**
      * Exposes a resource from the JVM's classpath as a publicly visible URL.
-     * The classloader of this class is used.
+     * The classloader of this class is used, which may not be the right one
+     * for the resource in question.
+     * For that reason, this utility method is deprecated
+     * in favour of the overloaded method that takes a URL.
      *
      * @param  resource   fully qualified path to a resource in the current
      *                    classpath; separators are "/" characters
      * @return  URL for external reference to the resource
+     * @deprecated  since after 1.3.5,
+     *              use instead {@link #exportResource(java.net.URL)}
      */
     public URL exportResource( String resource ) throws IOException {
         URL localUrl = UtilServer.class.getResource( resource );
