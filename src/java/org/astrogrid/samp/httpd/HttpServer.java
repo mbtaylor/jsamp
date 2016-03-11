@@ -22,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import javax.net.ssl.SSLServerSocket;
 import org.astrogrid.samp.SampUtils;
 
 /**
@@ -83,11 +84,14 @@ public class HttpServer {
         serverSocket_ = socket;
         isDaemon_ = true;
         handlerList_ = Collections.synchronizedList( new ArrayList() );
+        boolean isTls = socket instanceof SSLServerSocket;
+        String scheme = isTls ? "https" : "http";
         StringBuffer ubuf = new StringBuffer()
-            .append( "http://" )
+            .append( scheme )
+            .append( "://" )
             .append( SampUtils.getLocalhost() );
         int port = socket.getLocalPort();
-        if ( port != 80 ) {
+        if ( port != ( isTls ? 443 : 80 ) ) {
             ubuf.append( ':' )
                 .append( port );
         }
@@ -95,7 +99,7 @@ public class HttpServer {
             baseUrl_ = new URL( ubuf.toString() );
         }
         catch ( MalformedURLException e ) {
-            throw new AssertionError( "Bad scheme http:??" );
+            throw new AssertionError( "Bad scheme " + scheme + ": ??" );
         }
     }
 
