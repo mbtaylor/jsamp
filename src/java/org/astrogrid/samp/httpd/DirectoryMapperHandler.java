@@ -10,11 +10,12 @@ import java.net.URL;
  * but it's difficult to get the path right.
  *
  * <p>For if an instance is initialised as
- * <code>new DirectoryMapperHandler("/tmp/files", "/data")</code>
+ * <code>new DirectoryMapperHandler("/files", "/data")</code>
  * and installed on a server running at <code>http://localhost:8000/</code>,
  * then a server request for <code>http://localhost:8000/data/xxx</code>
- * would be fulfilled by returning the content of the file
- * <code>/tmp/files/xxx</code>.
+ * would be fulfilled by returning the content of the resource
+ * <code>/files/xxx</code> available to the JVM's classloader
+ * (for instance within a jar file on the classpath).
  *
  * @author   Mark Taylor
  * @since    11 Mar 2016
