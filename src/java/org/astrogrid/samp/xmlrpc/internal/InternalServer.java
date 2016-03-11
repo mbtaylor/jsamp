@@ -22,7 +22,6 @@ import org.astrogrid.samp.httpd.UtilServer;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcHandler;
 import org.astrogrid.samp.xmlrpc.SampXmlRpcServer;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * SampXmlRpcServer implementation without external dependencies.
@@ -183,24 +182,10 @@ public class InternalServer implements SampXmlRpcServer {
         Document doc = XmlUtils.createDocumentBuilder()
                       .parse( new ByteArrayInputStream( body ) );
 
-        // Extract basic XML-RPC information from DOM.
-        Element call = XmlUtils.getChild( doc, "methodCall" );
-        String methodName = null;
-        Element paramsEl = null;
-        Element[] methodChildren = XmlUtils.getChildren( call );
-        for ( int i = 0; i < methodChildren.length; i++ ) {
-            Element el = methodChildren[ i ];
-            String tagName = el.getTagName();
-            if ( tagName.equals( "methodName" ) ) {
-                methodName = XmlUtils.getTextContent( el );
-            }
-            else if ( tagName.equals( "params" ) ) {
-                paramsEl = el;
-            }
-        }
-        if ( methodName == null ) {
-            throw new XmlRpcFormatException( "No methodName element" );
-        }
+        // Extract XML-RPC information from DOM.
+        XmlRpcCall call = XmlRpcCall.createCall( doc );
+        String methodName = call.getMethodName();
+        List paramList = call.getParams();
 
         // Find one of the registered handlers to handle this request.
         SampXmlRpcHandler handler = null;
@@ -216,23 +201,6 @@ public class InternalServer implements SampXmlRpcServer {
         if ( handler == null ) {
             throw new XmlRpcFormatException( "Unknown XML-RPC method "
                                            + methodName );
-        }
-
-        // Extract parameter values from DOM.
-        Element[] paramEls = paramsEl == null
-                           ? new Element[ 0 ]
-                           : XmlUtils.getChildren( paramsEl );
-        int np = paramEls.length;
-        List paramList = new ArrayList( np );
-        for ( int i = 0; i < np; i++ ) {
-            Element paramEl = paramEls[ i ];
-            if ( ! "param".equals( paramEl.getTagName() ) ) {
-                throw new XmlRpcFormatException( "Non-param child of params" );
-            }
-            else {
-                Element valueEl = XmlUtils.getChild( paramEl, "value" );
-                paramList.add( XmlUtils.parseSampValue( valueEl ) );
-            }
         }
 
         // Pass the call to the handler and return the result.
@@ -262,7 +230,7 @@ public class InternalServer implements SampXmlRpcServer {
      * @param  result  SAMP-friendly object
      * @return   XML methodResponse document as byte array
      */
-    private byte[] getResultBytes( Object result ) throws IOException {
+    public static byte[] getResultBytes( Object result ) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         BufferedOutputStream bout = new BufferedOutputStream( out );
         XmlWriter xout = new XmlWriter( bout, 2 );
@@ -284,7 +252,7 @@ public class InternalServer implements SampXmlRpcServer {
      * @param  error  throwable
      * @return   XML methodResponse document as byte array
      */
-    private byte[] getFaultBytes( Throwable error ) throws IOException {
+    public static byte[] getFaultBytes( Throwable error ) throws IOException {
         int faultCode = 1;
         String faultString = error.toString();
 
