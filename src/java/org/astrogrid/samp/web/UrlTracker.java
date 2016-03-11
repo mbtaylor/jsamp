@@ -30,7 +30,7 @@ import java.util.logging.Logger;
  * @author   Mark Taylor
  * @since    22 Jul 2011
  */
-class UrlTracker {
+public class UrlTracker {
 
     private final Set permittedSet_;
     private final Set blockedSet_;

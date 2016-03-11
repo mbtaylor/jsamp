@@ -30,7 +30,7 @@ import org.astrogrid.samp.xmlrpc.ActorHandler;
  * @author   Mark Taylor
  * @since    2 Feb 2011
  */
-class WebHubXmlRpcHandler extends ActorHandler {
+public class WebHubXmlRpcHandler extends ActorHandler {
 
     private final WebHubActorImpl impl_;
     private static final Logger logger_ =
