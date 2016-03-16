@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.astrogrid.samp.httpd.HttpServer;
@@ -52,6 +53,7 @@ public class CorsHttpServer extends HttpServer {
     private static final Pattern ORIGIN_REGEX =
         Pattern.compile( "https?://[a-zA-Z0-9_-]+"
                        + "(\\.[a-zA-Z0-9_-]+)*(:[0-9]+)?" );
+    private static final InetAddress localHostAddress_ = getLocalHostAddress();
     private static final Logger logger_ =
         Logger.getLogger( CorsHttpServer.class.getName() );
 
@@ -153,7 +155,14 @@ public class CorsHttpServer extends HttpServer {
         };
     }
 
-    private Response createNonLocalErrorResponse( Request request ) {
+    /**
+     * Returns an HTTP error response complaining about attempted access
+     * from a disallowed host.
+     *
+     * @param  request  offending request
+     * @return   HTTP 403 response
+     */
+    public static Response createNonLocalErrorResponse( Request request ) {
         int status = 403;
         String msg = "Forbidden";
         String method = request.getMethod();
@@ -220,29 +229,40 @@ public class CorsHttpServer extends HttpServer {
      * @return  true  iff address is known to be permitted
      */
     public boolean isPermittedHost( SocketAddress address ) {
+        return isLocalHost( address ) || isExtraHost( address );
+    }
+
+    /**
+     * Indicates whether the given socket address is from the local host.
+     *
+     * @param   address  socket to test
+     * @return  true if the socket is known to be local
+     */
+    public static boolean isLocalHost( SocketAddress address ) {
         if ( address instanceof InetSocketAddress ) {
             InetAddress iAddress = ((InetSocketAddress) address).getAddress();
-            if ( iAddress == null ) {
-                return false;
-            }
-            else if ( iAddress.isLoopbackAddress() ) {
-                return true;
-            }
-            else if ( isExtraHost( iAddress ) ) {
-                return true;
-            }
-            else {
-                try {
-                    return iAddress.equals( InetAddress.getLocalHost() );
-                }
-                catch ( UnknownHostException e ) {
-                    return false;
-                }
-            }
+            return iAddress != null
+                && ( iAddress.isLoopbackAddress() ||
+                     iAddress.equals( localHostAddress_ ) );
         }
         else {
-            logger_.warning( "Socket address not from internet? " + address );
             return false;
+        }
+    }
+
+    /**
+     * Returns the inet address of the local host, or null if not available.
+     *
+     * @return  local host address or null
+     */
+    private static InetAddress getLocalHostAddress() {
+        try {
+            return InetAddress.getLocalHost();
+        }
+        catch ( UnknownHostException e ) {
+            logger_.log( Level.WARNING,
+                         "Can't determine local host address", e );
+            return null;
         }
     }
 
@@ -290,11 +310,13 @@ public class CorsHttpServer extends HttpServer {
      * Indicates whether a given address represents one of the "extra" hosts
      * permitted to access this server alongside the localhost.
      *
-     * @param  iaddr   address of non-local host to test
+     * @param  addr   address of non-local host to test
      * @return  true iff host is permitted to access this server
      */
-    private static boolean isExtraHost( InetAddress iaddr ) {
-        return extraAddrSet_.contains( iaddr );
+    public static boolean isExtraHost( SocketAddress addr ) {
+        return addr instanceof InetSocketAddress
+            && extraAddrSet_.contains( ((InetSocketAddress) addr)
+                                      .getAddress() );
     }
 
     /**
