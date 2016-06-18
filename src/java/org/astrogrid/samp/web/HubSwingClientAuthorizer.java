@@ -45,10 +45,12 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
      * Constructor.
      *
      * @param  parent  parent component
+     * @param  presenter   handles credential presentation to the user
      */
-    public HubSwingClientAuthorizer( Component parent ) {
+    public HubSwingClientAuthorizer( Component parent,
+                                     CredentialPresenter presenter ) {
         parent_ = parent;
-        presenter_ = WebCredentialPresenter.INSTANCE;
+        presenter_ = presenter;
         if ( GraphicsEnvironment.isHeadless() ) {
             throw new HeadlessException( "Client authorization dialogues "
                                        + "impossible - no graphics" );

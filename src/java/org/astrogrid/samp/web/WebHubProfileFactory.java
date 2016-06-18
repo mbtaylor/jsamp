@@ -141,10 +141,13 @@ public class WebHubProfileFactory implements HubProfileFactory {
         // Prepare client authorizer.
         final ClientAuthorizer clientAuth;
         if ( "swing".equalsIgnoreCase( authType ) ) {
-            clientAuth = ClientAuthorizers
-                        .createLoggingClientAuthorizer(
-                             new HubSwingClientAuthorizer( null ),
-                             Level.INFO, Level.INFO );
+            clientAuth =
+                ClientAuthorizers
+               .createLoggingClientAuthorizer(
+                    new HubSwingClientAuthorizer( null,
+                                                  WebCredentialPresenter
+                                                 .INSTANCE ),
+                    Level.INFO, Level.INFO );
         }
         else if ( "extreme".equalsIgnoreCase( authType ) ) {
             clientAuth = ClientAuthorizers

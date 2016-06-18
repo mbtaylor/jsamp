@@ -68,7 +68,9 @@ public class WebHubProfile implements HubProfile, ConfigHubProfile {
      * Constructs a profile with default configuration.
      */
     public WebHubProfile() throws IOException {
-        this( new ServerFactory(), new HubSwingClientAuthorizer( null ),
+        this( new ServerFactory(),
+              new HubSwingClientAuthorizer( null,
+                                            WebCredentialPresenter.INSTANCE ),
               ListMessageRestriction.DEFAULT, createKeyGenerator(), true );
     }
 
