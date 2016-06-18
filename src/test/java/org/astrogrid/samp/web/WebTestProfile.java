@@ -74,9 +74,9 @@ public class WebTestProfile extends TestProfile {
         sxfact.setAllowFlash( false );
         sxfact.setAllowSilverlight( false );
         ClientAuthorizer copyAuth = new ClientAuthorizer() {
-            public boolean authorize( HttpServer.Request request,
-                                      String appName ) {
-                return clientAuth_.authorize( request, appName );
+            public void authorize( HttpServer.Request request, Map securityMap )
+                    throws SampException {
+                clientAuth_.authorize( request, securityMap );
             }
         };
         return new WebHubProfile( sxfact, copyAuth, mrestrict_,

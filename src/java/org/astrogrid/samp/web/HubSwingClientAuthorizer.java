@@ -8,12 +8,9 @@ import java.awt.GridBagLayout;
 import java.awt.HeadlessException;
 import java.awt.Insets;
 import java.awt.Window;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -26,6 +23,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.HttpServer;
 
 /**
@@ -38,6 +36,7 @@ import org.astrogrid.samp.httpd.HttpServer;
 public class HubSwingClientAuthorizer implements ClientAuthorizer {
 
     private final Component parent_;
+    private final CredentialPresenter presenter_;
     private static final int MAX_POPUP_WIDTH = 500;
     private static final Logger logger_ =
         Logger.getLogger( HubSwingClientAuthorizer.class.getName() );
@@ -49,20 +48,22 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
      */
     public HubSwingClientAuthorizer( Component parent ) {
         parent_ = parent;
+        presenter_ = WebCredentialPresenter.INSTANCE;
         if ( GraphicsEnvironment.isHeadless() ) {
             throw new HeadlessException( "Client authorization dialogues "
                                        + "impossible - no graphics" );
         }
     }
 
-    public boolean authorize( HttpServer.Request request, String appName ) {
+    public void authorize( HttpServer.Request request, Map securityMap )
+            throws SampException {
 
         // Prepare an internationalised query dialogue.
         AuthResourceBundle.Content authContent =
             AuthResourceBundle
            .getAuthContent( ResourceBundle
                            .getBundle( AuthResourceBundle.class.getName() ) );
-        Object[] qmsg = getMessageLines( request, appName, authContent );
+        Object[] qmsg = getMessageLines( request, securityMap, authContent );
         String noOpt = authContent.noWord();
         String yesOpt = authContent.yesWord();
 
@@ -83,7 +84,9 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
         // this is true however.
         dialog.setVisible( true );
         dialog.dispose();
-        return jop.getValue() == yesOpt;
+        if ( jop.getValue() != yesOpt ) {
+            throw new SampException( "User denied authorization" );
+        }
     }
 
     /**
@@ -92,41 +95,28 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
      * of one of <code>JOptionPane</code>'s methods.
      * 
      * @param  request  HTTP request bearing the application
-     * @param   appName  application name claimed by the applicant
+     * @param   securityMap  information supplied explicitly by application
      * @param   authContent  content of AuthResourceBundle bundle
      * @return   message array describing the applicant to the user
+     * @throws   SampExecution  if registration is to be rejected out of hand
      * @see   javax.swing.JOptionPane
      */
     private Object[] getMessageLines( HttpServer.Request request,
-                                      String appName,
-                                      AuthResourceBundle.Content authContent ) {
+                                      Map securityMap,
+                                      AuthResourceBundle.Content authContent )
+            throws SampException {
         Map headerMap = request.getHeaderMap();
-
-        // Application origin (see http://www.w3.org/TR/cors/,
-        // http://tools.ietf.org/html/draft-abarth-origin);
-        // present if CORS is in use.
-        String origin = HttpServer.getHeader( headerMap, "Origin" );
-
-        // Referer header (RFC2616 sec 14.36) - present at whim of browser.
-        String referer = HttpServer.getHeader( headerMap, "Referer" );
-
+        CredentialPresenter.Presentation presentation =
+            presenter_.createPresentation( request, securityMap, authContent );
         List lineList = new ArrayList();
         lineList.addAll( toLineList( authContent.appIntroductionLines() ) );
         lineList.add( "\n" );
-        Map infoMap = new LinkedHashMap();
-        infoMap.put( authContent.nameWord(), appName );
-        infoMap.put( authContent.originWord(), origin );
-        infoMap.put( "URL", referer );
-        lineList.add( createLabelledFields( infoMap,
+        lineList.add( createLabelledFields( presentation.getAuthEntries(),
                                             authContent.undeclaredWord() ) );
         lineList.add( "\n" );
-        if ( referer != null && origin != null &&
-             ! origin.equals( getOrigin( referer ) ) ) {
-            logger_.warning( "Origin/Referer header mismatch: "
-                           + "\"" + origin + "\" != "
-                           + "\"" + getOrigin( referer ) + "\"" );
-            lineList.add( "WARNING: Origin/Referer header mismatch!" );
-            lineList.add( "WARNING: This looks suspicious." );
+        Object[] lines = presentation.getAuthLines();
+        lineList.addAll( Arrays.asList( lines ) );
+        if ( lines.length > 0 ) {
             lineList.add( "\n" );
         }
         lineList.addAll( toLineList( authContent.privilegeWarningLines() ) );
@@ -188,40 +178,6 @@ public class HubSwingClientAuthorizer implements ClientAuthorizer {
         }
         box.setBorder( BorderFactory.createEmptyBorder( 0, 0, 0, 0 ) );
         return box;
-    }
-
-    /**
-     * Returns the serialized origin for a given URI string.
-     * @see <a href="http://tools.ietf.org/html/draft-abarth-origin-09"
-     *         >The Web Origin Concept</a>
-     *
-     * @param  uri  URI
-     * @return  origin of <code>uri</code>,
-     *          <code>null</code> (note: not "null") if it cannot be determined
-     */
-    private String getOrigin( String uri ) {
-        if ( uri == null ) {
-            return null;
-        }
-        URL url;
-        try {
-            url = new URL( uri );
-        }
-        catch ( MalformedURLException e ) {
-            return null;
-        }
-        String scheme = url.getProtocol();
-        String host = url.getHost();
-        int portnum = url.getPort();
-        StringBuffer sbuf = new StringBuffer()
-            .append( scheme )
-            .append( "://" )
-            .append( host );
-        if ( portnum >= 0 && portnum != url.getDefaultPort() ) {
-            sbuf.append( ":" )
-                .append( Integer.toString( portnum ) );
-        }
-        return sbuf.toString().toLowerCase();
     }
 
     /**

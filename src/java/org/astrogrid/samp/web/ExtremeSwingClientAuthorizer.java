@@ -6,6 +6,7 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.HeadlessException;
 import java.net.URL;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
@@ -14,11 +15,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.border.Border;
 import org.astrogrid.samp.Client;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.gui.IconStore;
 import org.astrogrid.samp.httpd.HttpServer;
 
 /**
- * Client authorizer implementaion that does its very best to discourage
+ * Client authorizer implementation that does its very best to discourage
  * users from accepting regitrations.
  *
  * @author   Mark Taylor
@@ -40,7 +42,8 @@ public class ExtremeSwingClientAuthorizer implements ClientAuthorizer {
         }
     }
 
-    public boolean authorize( HttpServer.Request request, String appName ) {
+    public void authorize( HttpServer.Request request, Map securityMap )
+            throws SampException {
         JComponent panel = Box.createVerticalBox();
         JComponent linePic = Box.createHorizontalBox();
         URL imageUrl = Client.class.getResource( "images/danger.jpeg" );
@@ -50,6 +53,7 @@ public class ExtremeSwingClientAuthorizer implements ClientAuthorizer {
         panel.add( linePic );
         panel.add( Box.createVerticalStrut( 5 ) );
         JComponent line1 = Box.createHorizontalBox();
+        String appName = ClientAuthorizers.getAppName( securityMap );
         line1.add( new JLabel( "Client \"" + appName
                              + "\" is requesting Web Profile registration." ) );
         line1.add( Box.createHorizontalGlue() );
@@ -66,13 +70,15 @@ public class ExtremeSwingClientAuthorizer implements ClientAuthorizer {
         line2.add( Box.createHorizontalGlue() );
         line2.setBorder( createBorder( true ) );
         panel.add( line2 );
-        return JOptionPane
-              .showOptionDialog( parent_, panel, "Registration Request",
-                                 JOptionPane.YES_NO_OPTION,
-                                 JOptionPane.QUESTION_MESSAGE,
-                                 IconStore.createEmptyIcon( 0 ),
-                                 new String[] { "Accept", "Reject" },
-                                 "Reject" ) == 0;
+        if ( JOptionPane
+            .showOptionDialog( parent_, panel, "Registration Request",
+                               JOptionPane.YES_NO_OPTION,
+                               JOptionPane.QUESTION_MESSAGE,
+                               IconStore.createEmptyIcon( 0 ),
+                               new String[] { "Accept", "Reject" },
+                               "Reject" ) != 0 ) {
+            throw new SampException( "User denied authorization as advised" );
+        }
     }
 
     /**

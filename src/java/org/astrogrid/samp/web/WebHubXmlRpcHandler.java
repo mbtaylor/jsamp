@@ -160,43 +160,25 @@ public class WebHubXmlRpcHandler extends ActorHandler {
         public RegInfo register( HttpServer.Request request, Map securityMap )
                 throws SampException {
             if ( profile_.isHubRunning() ) {
-                Object appNameObj = securityMap.get( Metadata.NAME_KEY );
-                final String appName;
-                if ( appNameObj instanceof String ) {
-                    appName = (String) appNameObj;
+                auth_.authorize( request, securityMap );
+                HubConnection connection = profile_.register();
+                if ( connection != null ) {
+                    if ( urlTracker_ != null ) {
+                        connection = new UrlTrackerHubConnection( connection,
+                                                                  urlTracker_ );
+                    }
+                    String clientKey = keyGen_.next();
+                    regMap_.put( clientKey, new Registration( connection ) );
+                    String urlTrans = baseUrl_
+                                    + urlTranslator_
+                                     .getTranslationBasePath( clientKey );
+                    RegInfo regInfo = new RegInfo( connection.getRegInfo() );
+                    regInfo.put( RegInfo.PRIVATEKEY_KEY, clientKey );
+                    regInfo.put( WebClientProfile.URLTRANS_KEY, urlTrans );
+                    return regInfo;
                 }
                 else {
-                    throw new SampException( "Wrong data type (not string) for "
-                                           + Metadata.NAME_KEY + " securityInfo"
-                                           + " entry" );
-                }
-                boolean isAuth = auth_.authorize( request, appName );
-                if ( ! isAuth ) {
-                    throw new SampException( "Registration denied" );
-                }
-                else {
-                    HubConnection connection = profile_.register();
-                    if ( connection != null ) {
-                        if ( urlTracker_ != null ) {
-                            connection =
-                                new UrlTrackerHubConnection( connection,
-                                                             urlTracker_ );
-                        }
-                        String clientKey = keyGen_.next();
-                        regMap_.put( clientKey,
-                                     new Registration( connection ) );
-                        String urlTrans = baseUrl_
-                                        + urlTranslator_
-                                         .getTranslationBasePath( clientKey );
-                        RegInfo regInfo =
-                            new RegInfo( connection.getRegInfo() );
-                        regInfo.put( RegInfo.PRIVATEKEY_KEY, clientKey );
-                        regInfo.put( WebClientProfile.URLTRANS_KEY, urlTrans );
-                        return regInfo;
-                    }
-                    else {
-                        throw new SampException( "Hub is not running" );
-                    }
+                    throw new SampException( "Hub is not running" );
                 }
             }
             else {

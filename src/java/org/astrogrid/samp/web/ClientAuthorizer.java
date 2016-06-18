@@ -1,5 +1,7 @@
 package org.astrogrid.samp.web;
 
+import java.util.Map;
+import org.astrogrid.samp.client.SampException;
 import org.astrogrid.samp.httpd.HttpServer;
 
 /**
@@ -14,18 +16,16 @@ public interface ClientAuthorizer {
     /**
      * Indicates whether an HTTP request representing an otherwise
      * unauthorized connection attempt will be permitted access to
-     * sensitive system resources.
-     * The client submitting the request provides the 
-     * <code>appName</code> parameter by way of additional information about
-     * its identity.  However, the value of this name is supplied by the
-     * (potentially malicious) applicant, so cannot in itself be regarded
-     * as an additional security measure.
+     * sensitive system resources.  If so, the method exits normally.
+     * If authorization is denied, a SampException is thrown,
+     * with a message that indicates the reason for denial.
      *
      * @param   request   incoming HTTP request
-     * @param   appName   name by which the application submitting the request
-     *                    wishes to be known
-     * @return  true iff submitter of the request should be permitted access
-     *          to sensitive system resources in the future
+     * @param   securityMap   credential items supplied explicitly by
+     *                        aspiring client to support its registration
+     *                        request
+     * @throws   SampException  with reason if authorization is denied
      */
-    boolean authorize( HttpServer.Request request, String appName );
+    void authorize( HttpServer.Request request, Map securityMap )
+            throws SampException;
 }
