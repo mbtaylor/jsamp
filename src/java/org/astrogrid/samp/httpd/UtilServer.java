@@ -256,7 +256,8 @@ public class UtilServer {
      * @param  in  input stream
      * @param  out  output stream
      */
-    static void copy( InputStream in, OutputStream out ) throws IOException {
+    public static void copy( InputStream in, OutputStream out )
+            throws IOException {
         byte[] buf = new byte[ BUFSIZ ];
         try {
             for ( int nb; ( nb = in.read( buf ) ) >= 0; ) {
