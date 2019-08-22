@@ -251,7 +251,7 @@ public abstract class SendActionManager {
             public void actionPerformed( ActionEvent evt ) {
                 Object target = targetSelector.getSelectedItem();
                 if ( target instanceof Client ) {
-                    getSendAction( (Client) target );
+                    getSendAction( (Client) target ).actionPerformed( evt );
                 }
                 else if ( BROADCAST_TARGET.equals( target ) ) {
                     getBroadcastAction().actionPerformed( evt );

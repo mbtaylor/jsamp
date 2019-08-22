@@ -915,6 +915,8 @@ for SAMP objects in a few places:
     <code>exportResource(URL)</code>, on the grounds that it's easy to
     end up using the wrong classloader.</li>
 <li>Fix a javadoc error in <code>SelectiveClientListModel</code>.</li>
+<li>Fix a bug in <code>SendActionManager</code>
+    that meant the targeted send action didn't do anything.</li>
 </ul>
 </subsection>
 
