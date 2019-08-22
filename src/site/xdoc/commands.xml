@@ -15,6 +15,7 @@
 <ul>
 <li><a href="#Hub">Hub</a></li>
 <li><a href="#HubMonitor">HubMonitor</a></li>
+<li><a href="#SampLoad">SampLoad</a></li>
 <li><a href="#Snooper">Snooper</a></li>
 <li><a href="#MessageSender">MessageSender</a></li>
 <li><a href="#HubTester">HubTester</a></li>
@@ -370,6 +371,81 @@ See the source code for details.
     </dd>
 </dl>
 
+</subsection>
+
+<subsection name="SampLoad">
+
+<p>The <code>org.astrogrid.samp.util.SampLoad</code> class
+takes a filename or URL on the command line and pops up a window
+allowing the user to load that resource into a selected running SAMP client,
+by sending a message with a load-like MType.
+The main intended use is as a browser helper application:
+you can associate it in your browser with suitable MIME types
+so that it opens e.g. VOTables and FITS files by default,
+or simply select it at a browser's <strong>Open with ...</strong>
+prompt for files that you think or know are e.g. VOTables or FITS files.
+</p>
+
+<p>SampLoader usage is:
+</p>
+<macro name="snippet">
+  <param name="file"
+         value="./target/docs/org.astrogrid.samp.util.SampLoad.usage"/>
+</macro>
+
+<dl>
+<dt><code>-/+verbose</code></dt>
+<dd>See above for the description of verbosity setting.
+    </dd>
+<dt><code>-rtype votable|fits|cdf</code></dt>
+<dd>If provided, this forces the type of resource that the
+    <code>&lt;file-or-url&gt;</code> is presumed to represent,
+    which determines the SAMP message type with which it will be sent.
+    If omitted, SampLoad will work out the resource type itself.
+    </dd>
+<dt><code>&lt;file-or-url&gt;</code></dt>
+<dd>The name of a file or URL at which the resource to load
+    can be found.  When used as a browser helper application,
+    this will normally be a temporary file that has been
+    downloaded by the browser.
+    </dd>
+</dl>
+
+<p>To use it with a browser, you may be able to find a
+<code>sampload</code> executable or <code>sampload.jar</code> jar file;
+otherwise you will need to set up a short shell script or similar, like:
+</p>
+<pre>
+    #!/bin/sh
+    java -jar /path/to/jsamp.jar sampload "$@"
+</pre>
+<p>Then when it is run by the browser to handle a downloaded file,
+you will see something like the following screenshot:
+</p>
+<img src="images/SampLoad.png" alt="SampLoad screenshot"/>
+
+<p>The file types it can currently deal with,
+and the corresponding MTypes it sends are:
+<ul>
+<li>VOTable (<code>table.load.votable</code>)</li>
+<li>FITS image (<code>image.load.fits</code>)</li>
+<li>CDF (<code>table.load.cdf</code>)</li>
+</ul>
+It identifies the file type by examining the file content itself,
+or its HTTP headers if available, though this can be overriden
+by the <code>-rtype</code> flag if required.
+If you want to make SampLoad a default application for certain MIME
+types in your browser, the following types may be useful:
+</p>
+<ul>
+<li><code>application/x-votable+xml</code></li>
+<li><code>application/fits</code></li>
+<li><code>image/fits</code></li>
+</ul>
+<p>though note that data providers do not always annotate their
+data links with these MIME types.
+</p>
+ 
 </subsection>
 
 <subsection name="Snooper">
