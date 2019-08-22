@@ -27,6 +27,7 @@ public class JSamp {
     static final String[] COMMAND_CLASSES = new String[] {
         "org.astrogrid.samp.hub.Hub",
         "org.astrogrid.samp.gui.HubMonitor",
+        "org.astrogrid.samp.util.SampLoad",
         "org.astrogrid.samp.test.Snooper",
         "org.astrogrid.samp.test.MessageSender",
         "org.astrogrid.samp.test.HubTester",
