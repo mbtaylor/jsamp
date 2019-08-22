@@ -498,6 +498,15 @@ public class HubConnector {
     }
 
     /**
+     * Indicates whether this connector is active or not.
+     *
+     * @return  true if this connector is willing to connect
+     */
+    public boolean isActive() {
+        return isActive_;
+    }
+
+    /**
      * Sends a message synchronously to a client, waiting for the response.
      * If more seconds elapse than the value of the <code>timeout</code>
      * parameter, an exception will result.
