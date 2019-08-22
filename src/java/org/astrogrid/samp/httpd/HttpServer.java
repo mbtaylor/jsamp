@@ -289,8 +289,17 @@ public class HttpServer {
                 response = createErrorResponse( 500, e.toString(), e );
             }
         }
-        Level level = response.getStatusCode() == 200 ? Level.CONFIG
-                                                      : Level.WARNING;
+        final Level level;
+        switch ( response.getStatusCode() ) {
+            case 200:
+                level = Level.CONFIG;
+                break;
+            case 404:
+                level = Level.INFO;
+                break;
+            default:
+                level = Level.WARNING;
+        }
         if ( logger_.isLoggable( level ) ) {
             StringBuffer sbuf = new StringBuffer();
             if ( request != null ) {

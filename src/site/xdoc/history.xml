@@ -918,6 +918,8 @@ for SAMP objects in a few places:
 <li>Fix a bug in <code>SendActionManager</code>
     that meant the targeted send action didn't do anything.</li>
 <li>Add <code>HubConnector.isActive</code> method.</li>
+<li>Downgrade internal HTTP server 404 logging messages from WARNING
+    to INFO, so they are generally no longer visible to users.</li>
 </ul>
 </subsection>
 
