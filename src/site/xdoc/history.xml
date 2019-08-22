@@ -914,6 +914,7 @@ for SAMP objects in a few places:
 <li>Deprecate <code>UtilServer.exportResource(String)</code> in favour of
     <code>exportResource(URL)</code>, on the grounds that it's easy to
     end up using the wrong classloader.</li>
+<li>Fix a javadoc error in <code>SelectiveClientListModel</code>.</li>
 </ul>
 </subsection>
 

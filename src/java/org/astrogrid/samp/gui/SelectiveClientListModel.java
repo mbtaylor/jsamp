@@ -18,7 +18,7 @@ import org.astrogrid.samp.Client;
  *     from the base list appear in this one</li>
  * <li>call {@link #init} before the class is used 
  *     (for instance in their constructor)</li>
- * <ol>
+ * </ol>
  *
  * @author   Mark Taylor
  * @since    1 Sep 2008
