@@ -417,6 +417,7 @@ public class SampUtils {
      * Unlike Sun's J2SE, this gives you a URL which conforms to RFC1738 and
      * looks like "<code>file://localhost/abs-path</code>" rather than
      * "<code>file:abs-or-rel-path</code>".
+     * For non-ASCII characters, UTF-8 encoding is used.
      *
      * @param   file   file
      * @return   URL
@@ -427,8 +428,18 @@ public class SampUtils {
      */
     public static URL fileToUrl( File file ) {
         try {
-            return new URL( "file", "localhost",
-                            file.toURI().toURL().getPath() );
+            String path = file.toURI().toURL().getPath();
+            StringBuffer pbuf = new StringBuffer();
+            for ( int ic = 0; ic < path.length(); ic++ ) {
+                char c = path.charAt( ic );
+                if ( c == '/' ) {
+                    pbuf.append( c );
+                }
+                else {
+                    pbuf.append( uriEncode( new String( new char[] { c } ) ) );
+                }
+            }
+            return new URL( "file", "localhost", pbuf.toString() );
         }
         catch ( MalformedURLException e ) {
             throw new AssertionError();
@@ -439,6 +450,7 @@ public class SampUtils {
      * Reverses URI-style character escaping (%xy) on a string.
      * Note, unlike {@link java.net.URLDecoder},
      * this does not turn "+" characters into spaces.
+     * For non-ASCII characters, UTF-8 encoding is used.
      *
      * @see "RFC 2396, Section 2.4"
      * @param  text  escaped text
@@ -458,6 +470,7 @@ public class SampUtils {
      * Performs URI-style character escaping (%xy) on a string.
      * Note, unlike {@link java.net.URLEncoder},
      * this encodes spaces as "%20" and not "+".
+     * For non-ASCII characters, UTF-8 encoding is used.
      *
      * @see "RFC 2396, Section 2.4"
      * @param  text  unescaped text

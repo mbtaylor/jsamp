@@ -920,6 +920,8 @@ for SAMP objects in a few places:
 <li>Add <code>HubConnector.isActive</code> method.</li>
 <li>Downgrade internal HTTP server 404 logging messages from WARNING
     to INFO, so they are generally no longer visible to users.</li>
+<li>Fix <code>SampUtil.fileToUrl</code> to cope with non-URL-safe
+    characters in filenames (UTF-8 encoding is used).</li>
 </ul>
 </subsection>
 
