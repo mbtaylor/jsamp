@@ -862,7 +862,8 @@ for SAMP objects in a few places:
     no good reason(?).
     Developers of applications which may run the JSAMP hub are encouraged
     to upgrade to this version to avoid penalising use of HTTPS in
-    third-party SAMP web applications.</li>
+    third-party SAMP web applications.
+    <em>Note added later: the HTTPS problem is not so easily solved.</em></li>
 <li>Add new system property <code>jsamp.web.extrahosts</code> to allow
     trusted non-local hosts to register with the Web Profile
     (for instance near-local mobile devices).</li>
