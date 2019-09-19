@@ -925,6 +925,13 @@ for SAMP objects in a few places:
     to INFO, so they are generally no longer visible to users.</li>
 <li>Fix <code>SampUtil.fileToUrl</code> to cope with non-URL-safe
     characters in filenames (UTF-8 encoding is used).</li>
+<li>Various changes to the code to facilitate implementation of the
+    (experimental, not included here) TLS profile.  These mostly
+    involve publicising previously private methods, but there are a
+    few changes to the client authorization for the Web Profile,
+    including a backwardly-incompatible change to signature of
+    the <code>web.ClientAuthorizer.authorize</code> method.
+    Library users are not expected to notice these changes.</li>
 </ul>
 </subsection>
 
