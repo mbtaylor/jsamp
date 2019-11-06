@@ -942,6 +942,8 @@ for SAMP objects in a few places:
 </p>
 
 <ul>
+<li>Relax Origin restrictions in CORS web server
+    to allow e.g. browser extensions.</li>
 </ul>
 </subsection>
 
