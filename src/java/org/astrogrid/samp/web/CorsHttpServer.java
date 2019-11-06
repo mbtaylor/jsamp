@@ -50,10 +50,13 @@ public class CorsHttpServer extends HttpServer {
         "Access-Control-Allow-Methods";
     private static final String ALLOW_HEADERS_KEY =
         "Access-Control-Allow-Headers";
+
+    // This regex is constructed with reference to RFC6454 and RFC3986.
+    // It is less rigorous than those, since the host production in RFC3986
+    // is quite complex, but the required checking is not all that critical.
     private static final Pattern ORIGIN_REGEX =
-        Pattern.compile( "(https?://[a-zA-Z0-9_-]+"
-                       + "(\\.[a-zA-Z0-9_-]+)*(:[0-9]+)?)"
-                       + "|(.+-extension://[a-zA-Z0-9_-]+)" );
+        Pattern.compile( "[A-Za-z][A-Za-z0-9+.-]*://.+" );
+
     private static final InetAddress localHostAddress_ = getLocalHostAddress();
     private static final Logger logger_ =
         Logger.getLogger( CorsHttpServer.class.getName() );
