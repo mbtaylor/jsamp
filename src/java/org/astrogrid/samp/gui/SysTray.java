@@ -21,6 +21,12 @@ import java.util.logging.Logger;
  */
 public abstract class SysTray {
 
+    /**
+     * Name of system property ({@value}) to inhibit use of system tray;
+     * if set "true" the system tray will not be used even if it is
+     * apparently supported. */
+    public static final String NOTRAY_PROP = "jsamp.nosystray";
+
     private static SysTray instance_;
     private static final Logger logger_ =
         Logger.getLogger( SysTray.class.getName() );
@@ -70,14 +76,22 @@ public abstract class SysTray {
                             + " (java version < 1.6)" );
             }
             SysTray instance;
-            try {
-                instance = new Java6SysTray();
-            }
-            catch ( Throwable e ) {
-                if ( isJava6 ) {
-                    logger_.info( "No system tray support: " + e );
-                }
+            String notrayProp = System.getProperty( NOTRAY_PROP );
+            if ( "true".equalsIgnoreCase( notrayProp ) ) {
+                logger_.info( "No system tray support by explicit request"
+                            + " (" + NOTRAY_PROP + ")" );
                 instance = new NoSysTray();
+            }
+            else {
+                try {
+                    instance = new Java6SysTray();
+                }
+                catch ( Throwable e ) {
+                    if ( isJava6 ) {
+                        logger_.info( "No system tray support: " + e );
+                    }
+                    instance = new NoSysTray();
+                }
             }
             instance_ = instance;
         }

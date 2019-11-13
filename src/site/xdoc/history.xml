@@ -944,6 +944,8 @@ for SAMP objects in a few places:
 <ul>
 <li>Relax Origin restrictions in CORS web server
     to allow e.g. browser extensions.</li>
+<li><code>jsamp.notray</code> system property introduced to prevent
+    the hub appearing in the System Tray.</li>
 </ul>
 </subsection>
 

@@ -114,6 +114,20 @@ detail on use.
     </dd>
 
 <dt><strong>
+    <a name="jsamp.notray"/>
+    <code>jsamp.notray</code>
+    (<a target="samp-javadoc"
+        href="apidocs/org/astrogrid/samp/gui/SysTray.html#NOTRAY_PROP"
+                                            >SysTray.NOTRAY_PROP</a>):
+    </strong></dt>
+<dd>Prevents the hub appearing in the System Tray if set "<code>true</code>".
+    Normally when the hub runs it sits in the system tray on platforms
+    that support a system tray, and otherwise it appears in a window
+    on the desktop.  But if this property is set, the system tray is
+    never used.
+    </dd>
+
+<dt><strong>
     <a name="jsamp.server.port"/>
     <code>jsamp.server.port</code>
     (<a target="samp-javadoc"
