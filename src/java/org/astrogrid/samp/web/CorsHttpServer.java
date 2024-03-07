@@ -50,6 +50,8 @@ public class CorsHttpServer extends HttpServer {
         "Access-Control-Allow-Methods";
     private static final String ALLOW_HEADERS_KEY =
         "Access-Control-Allow-Headers";
+    private static final String ALLOW_PRIVATE_NETWORK =
+        "Access-Control-Allow-Private-Network";
 
     // This regex is constructed with reference to RFC6454 and RFC3986.
     // It is less rigorous than those, since the host production in RFC3986
@@ -152,6 +154,7 @@ public class CorsHttpServer extends HttpServer {
             hdrMap.put( ALLOW_ORIGIN_KEY, originTxt );
             hdrMap.put( ALLOW_METHOD_KEY, reqMethod );
             hdrMap.put( ALLOW_HEADERS_KEY, "Content-Type" ); // allow all here?
+            hdrMap.put( ALLOW_PRIVATE_NETWORK, "true" );
         }
         return new Response( 200, "OK", hdrMap ) {
             public void writeBody( OutputStream out ) {
