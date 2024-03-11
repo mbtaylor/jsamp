@@ -50,7 +50,9 @@ public class CorsHttpServer extends HttpServer {
         "Access-Control-Allow-Methods";
     private static final String ALLOW_HEADERS_KEY =
         "Access-Control-Allow-Headers";
-    private static final String ALLOW_PRIVATE_NETWORK =
+    private static final String REQUEST_PRIVATE_NETWORK_KEY =
+        "Access-Control-Request-Private-Network";
+    private static final String ALLOW_PRIVATE_NETWORK_KEY =
         "Access-Control-Allow-Private-Network";
 
     // This regex is constructed with reference to RFC6454 and RFC3986.
@@ -154,8 +156,20 @@ public class CorsHttpServer extends HttpServer {
             hdrMap.put( ALLOW_ORIGIN_KEY, originTxt );
             hdrMap.put( ALLOW_METHOD_KEY, reqMethod );
             hdrMap.put( ALLOW_HEADERS_KEY, "Content-Type" ); // allow all here?
-            hdrMap.put( ALLOW_PRIVATE_NETWORK, "true" );
         }
+
+        /* Manipulate headers according to the "Private Network Access"
+         * proposal - see https://wicg.github.io/private-network-access/.
+         * At time of writing (2024) it's not clear how widespread browser
+         * implementation of this security feature will be, but it's likely
+         * this behaviour will be either beneficial or harmless in the
+         * context of future browser development. */
+        if ( "true".equals( getHeader( request.getHeaderMap(),
+                                       REQUEST_PRIVATE_NETWORK_KEY ) ) ) {
+            hdrMap.put( ALLOW_PRIVATE_NETWORK_KEY, "true" );
+        }
+
+        /* Return results. */
         return new Response( 200, "OK", hdrMap ) {
             public void writeBody( OutputStream out ) {
             }
