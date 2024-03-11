@@ -160,8 +160,11 @@ public class CorsHttpServer extends HttpServer {
 
         /* Manipulate headers according to the "Private Network Access"
          * proposal - see https://wicg.github.io/private-network-access/.
+         * Note the Private-Network-Access-Name and Private-Network-Access-ID 
+         * keys also defined in PNA should not be required here, since
+         * the localhost origin is defined as "potentially trustworthy".
          * At time of writing (2024) it's not clear how widespread browser
-         * implementation of this security feature will be, but it's likely
+         * implementation of the PNA specification will be, but it's likely
          * this behaviour will be either beneficial or harmless in the
          * context of future browser development. */
         if ( "true".equals( getHeader( request.getHeaderMap(),
