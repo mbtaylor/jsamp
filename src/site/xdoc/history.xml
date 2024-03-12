@@ -964,6 +964,7 @@ for SAMP objects in a few places:
     At time of writing this prevents some warnings when using Web SAMP
     from Google Chrome; in future it may avoid browser blocking of
     Web SAMP communications.</li>
+<li>A signed jar file may no longer be available at this release.</li>
 </ul>
 </subsection>
 
