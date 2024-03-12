@@ -196,6 +196,7 @@
               <location>${project.build.sourceDirectory}/../docs/packagelists/xmlrpc</location>
             </offlineLink>
           </offlineLinks>
+          <additionalparam>-Xdoclint:none</additionalparam>
           <source>1.4</source>
         </configuration>
       </plugin>
