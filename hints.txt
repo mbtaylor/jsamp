@@ -1,0 +1,58 @@
+Notes:
+------
+   mvn clean
+   mvn package
+   mvn site
+   mvn -DskipTests
+
+On release:
+-----------
+
+(I'm pretty sure I'm comprehensively missing the point of maven by
+having to do this manually).
+
+update version number in pom.xml in TWO places:
+   <project>/<version>
+   <project>/<properties>/<jsampVersion>
+
+mvn clean package site install
+
+# 2024 I no longer have a code-signing certificate, so can't do this.
+jarsigner 
+   -keystore /home/mbt/certs/comodo-uob.p12
+   -storetype pkcs12
+   -tsa http://timestamp.comodoca.com
+   -signedjar target/jsamp-${pom.currentVersion}_signed.jar
+   target/jsamp-${pom.currentVersion}.jar
+   uob
+
+cp target/jsamp-x.x.x.jar /home/mbt/public_html/releases/jsamp/
+
+rm -rf /home/mbt/public_html/jsamp
+mkdir /home/mbt/public_html/jsamp
+cp target/jsamp-x.x.x.jar /home/mbt/public_html/jsamp/
+cp -r target/site/* /home/mbt/public_html/jsamp
+
+tag and add jar file to github release
+
+# mvn deploy seems to work to deploy the thing to the central repo
+# at https://central.sonatype.com/search?q=g:uk.ac.starlink
+# I followed instructions at
+# https://central.sonatype.org/publish/publish-maven/
+# This can also be done manually in the same way as for
+# /mbt/devel/stil/makefile, as below.
+
+mvn gpg:sign-and-deploy-file -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=ossrh -DpomFile=pom.xml -Dfile=target/jsamp-x.x.x.jar
+mvn gpg:sign-and-deploy-file -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=ossrh -DpomFile=pom.xml -Dfile=target/jsamp-x.x.x-sources.jar -Dclassifier=sources
+mvn gpg:sign-and-deploy-file -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=ossrh -DpomFile=pom.xml -Dfile=target/jsamp-x.x.x-javadoc.jar -Dclassifier=javadoc
+
+# This uses ~/.m2/settings.xml, which looks like:
+<settings>
+  <servers>
+    <server>
+      <id>ossrh</id>
+      <username>mbtaylor</username>
+      <password>xxx</password>
+    </server>
+  </servers>
+</settings>
