@@ -26,7 +26,7 @@ public class ListMessageRestriction implements MessageRestriction {
     public static String[] DEFAULT_SAFE_MTYPES = new String[] {
         "samp.app.*", "samp.msg.progress",
         "table.*", "image.*", "coord.*", "spectrum.*",
-        "bibcode.*", "voresource.*",
+        "bibcode.*", "voresource.*", "coverage.*",
     };
 
     /**

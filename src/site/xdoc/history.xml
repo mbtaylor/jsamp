@@ -968,6 +968,17 @@ for SAMP objects in a few places:
 </ul>
 </subsection>
 
+<subsection name="next version">
+<p>
+<strong>Date:</strong> ??<br/>
+</p>
+
+<ul>
+<li>Add <code>coverage.*</code> MTypes to list of safe
+    MTypes for web clients.</li>
+</ul>
+</subsection>
+
 </section>
 
 </body>
