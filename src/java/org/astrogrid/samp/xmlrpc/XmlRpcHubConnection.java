@@ -203,18 +203,6 @@ public abstract class XmlRpcHubConnection implements HubConnection {
     }
 
     /**
-     * Unregisters if not already unregistered.
-     */
-    public void finalize() throws Throwable {
-        try {
-            finish();
-        }
-        finally {
-            super.finalize();
-        }
-    }
-
-    /**
      * Utility method to cast an object to a given SAMP-like type.
      *
      * @param  obj  object to cast
