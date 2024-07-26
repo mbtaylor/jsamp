@@ -114,6 +114,17 @@ detail on use.
     </dd>
 
 <dt><strong>
+    <a name="jsamp.mtypes.safe"/>
+    <code>jsamp.mtypes.safe</code>
+    (<a target="samp-javadoc"
+        href="apidocs/org/astrogrid/samp/web/ListMessageRestriction.html#SAFE_MTYPE_PROP"
+             >ListMessageRestriction.SAFE_MTYPE_PROP</a>):
+    </strong></dt>
+<dd>Provides a comma-separated list of MTypes that web clients are permitted
+    to send; others may be blocked for security reasons.
+    </dd>
+
+<dt><strong>
     <a name="jsamp.notray"/>
     <code>jsamp.notray</code>
     (<a target="samp-javadoc"

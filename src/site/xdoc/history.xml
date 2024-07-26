@@ -979,6 +979,8 @@ for SAMP objects in a few places:
 <li>Remove some deprecated usages from the source code;
     the code now contains no constructions that are deprecated for
     removal as of JDK 21.</li>
+<li>Add missing package-level <a href="sysprops.html">documentation</a>
+    for <code>jsamp.mtypes.safe</code> system property.</li>
 </ul>
 </subsection>
 
