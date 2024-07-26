@@ -463,7 +463,7 @@ public abstract class HubServiceMode {
             exitAct_.putValue( Action.SHORT_DESCRIPTION,
                                "Shut down SAMP hub" );
             exitAct_.putValue( Action.MNEMONIC_KEY,
-                               new Integer( KeyEvent.VK_T ) );
+                               Integer.valueOf( KeyEvent.VK_T ) );
         }
 
         /**

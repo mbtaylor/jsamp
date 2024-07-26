@@ -1223,7 +1223,7 @@ public class BasicHubService implements HubService {
                 try {
                     int iseq =
                         Integer.parseInt( id.substring( prefix_.length() ) );
-                    return new Integer( iseq );
+                    return Integer.valueOf( iseq );
                 }
                 catch ( NumberFormatException e ) {
                     return null;
