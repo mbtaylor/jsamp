@@ -273,7 +273,7 @@ public class JSamp {
            .append( "\n   " )
            .append( "WWW:" )
            .append( "\n      " )
-           .append( "http://www.star.bristol.ac.uk/~mbt/jsamp" )
+           .append( "http://www.star.bristol.ac.uk/mbt/jsamp/" )
            .toString();
     }
 
