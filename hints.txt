@@ -35,24 +35,31 @@ cp -r target/site/* /home/mbt/public_html/jsamp
 
 tag and add jar file to github release
 
-# mvn deploy seems to work to deploy the thing to the central repo
-# at https://central.sonatype.com/search?q=g:uk.ac.starlink
-# I followed instructions at
-# https://central.sonatype.org/publish/publish-maven/
-# This can also be done manually in the same way as for
-# /mbt/devel/stil/makefile, as below.
+# mvn deploy should then do the publishing to maven central.
+# It used to go to OSSRSH but was forced to migrate to central in May 2025.
+# Since then I've done a dry run of this, and it shows up at
+# https://central.sonatype.com/publishing/deployments
+# where you have to hit the publish button: see
+# https://central.sonatype.org/publish/publish-portal-maven/
+
+# It should be possible to do it manually as well, in the same way
+# as for the STIL makefile; something like below, but I haven't updated
+# that post migration.
 
 mvn gpg:sign-and-deploy-file -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=ossrh -DpomFile=pom.xml -Dfile=target/jsamp-x.x.x.jar
 mvn gpg:sign-and-deploy-file -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=ossrh -DpomFile=pom.xml -Dfile=target/jsamp-x.x.x-sources.jar -Dclassifier=sources
 mvn gpg:sign-and-deploy-file -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=ossrh -DpomFile=pom.xml -Dfile=target/jsamp-x.x.x-javadoc.jar -Dclassifier=javadoc
 
-# This uses ~/.m2/settings.xml, which looks like:
+# This uses ~/.m2/settings.xml, which looks like this, with the
+# token generated from https://central.sonatype.com/account
+# (see https://central.sonatype.org/publish/publish-portal-maven/)
 <settings>
   <servers>
     <server>
-      <id>ossrh</id>
+      <id>central</id>
       <username>token-username</username>
       <password>token-password</password>
     </server>
   </servers>
 </settings>
+
