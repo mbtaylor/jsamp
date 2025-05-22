@@ -43,12 +43,7 @@ tag and add jar file to github release
 # https://central.sonatype.org/publish/publish-portal-maven/
 
 # It should be possible to do it manually as well, in the same way
-# as for the STIL makefile; something like below, but I haven't updated
-# that post migration.
-
-mvn gpg:sign-and-deploy-file -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=ossrh -DpomFile=pom.xml -Dfile=target/jsamp-x.x.x.jar
-mvn gpg:sign-and-deploy-file -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=ossrh -DpomFile=pom.xml -Dfile=target/jsamp-x.x.x-sources.jar -Dclassifier=sources
-mvn gpg:sign-and-deploy-file -Durl=https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/ -DrepositoryId=ossrh -DpomFile=pom.xml -Dfile=target/jsamp-x.x.x-javadoc.jar -Dclassifier=javadoc
+# as for the STIL makefile.
 
 # This uses ~/.m2/settings.xml, which looks like this, with the
 # token generated from https://central.sonatype.com/account
