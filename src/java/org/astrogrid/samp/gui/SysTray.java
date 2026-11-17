@@ -67,14 +67,6 @@ public abstract class SysTray {
      */
     public static SysTray getInstance() {
         if ( instance_ == null ) {
-            String jvers = System.getProperty( "java.specification.version" );
-            boolean isJava6 =
-                jvers != null && jvers.matches( "^[0-9]+\\.[0-9]+$" )
-                              && Double.parseDouble( jvers ) > 1.5999;
-            if ( ! isJava6 ) {
-                logger_.info( "Not expecting system tray support"
-                            + " (java version < 1.6)" );
-            }
             SysTray instance;
             String notrayProp = System.getProperty( NOTRAY_PROP );
             if ( "true".equalsIgnoreCase( notrayProp ) ) {
@@ -87,9 +79,7 @@ public abstract class SysTray {
                     instance = new Java6SysTray();
                 }
                 catch ( Throwable e ) {
-                    if ( isJava6 ) {
-                        logger_.info( "No system tray support: " + e );
-                    }
+                    logger_.info( "No system tray support: " + e );
                     instance = new NoSysTray();
                 }
             }
