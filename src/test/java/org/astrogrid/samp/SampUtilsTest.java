@@ -1,6 +1,8 @@
 package org.astrogrid.samp;
 
+import java.io.File;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,6 +54,24 @@ public class SampUtilsTest extends TestCase {
                               SampUtils.uriDecode(
                                   SampUtils.uriEncode(
                                       SampUtils.uriEncode( txt ) ) ) ) );
+        }
+    }
+
+    public void testFileUrls() {
+        String[] fnames = {
+            "/home/mbt/.samp",
+            "/tmp/T\u00e9l\u00e9chargements",
+            "/Users/Name With Spaces",
+        };
+        for ( int i = 0; i < fnames.length; i++ ) {
+            File f0 = new File( fnames[ i ] );
+            URL url = SampUtils.fileToUrl( f0 );
+            File f1 = SampUtils.urlToFile( url );
+            assertEquals( f0, f1 );
+            String us = url.toString();
+            for ( int ic = 0; ic < us.length(); ic++ ) {
+                assertTrue( us.charAt( ic ) <= 0x7f );
+            }
         }
     }
 

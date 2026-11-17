@@ -413,7 +413,7 @@ public class SampUtils {
     }
 
     /**
-     * Turns a File into a URL.
+     * Turns a File into a 7-bit ASCII URL.
      * Unlike Sun's J2SE, this gives you a URL which conforms to RFC1738 and
      * looks like "<code>file://localhost/abs-path</code>" rather than
      * "<code>file:abs-or-rel-path</code>".
@@ -428,11 +428,17 @@ public class SampUtils {
      */
     public static URL fileToUrl( File file ) {
         try {
+
+            /* This turns the filename into a URL including percent-encoding
+             * of some reserved/unreserved characters, but does not
+             * restrict to ASCII. */
             String path = file.toURI().toURL().getPath();
+
+            /* Now percent-encode non-ASCII characters using UTF-8. */
             StringBuffer pbuf = new StringBuffer();
             for ( int ic = 0; ic < path.length(); ic++ ) {
                 char c = path.charAt( ic );
-                if ( c == '/' ) {
+                if ( c < 0x7f ) {
                     pbuf.append( c );
                 }
                 else {
