@@ -37,7 +37,7 @@ tag and add jar file to github release
 
 # mvn deploy should then do the publishing to maven central.
 # It used to go to OSSRSH but was forced to migrate to central in May 2025.
-# Since then I've done a dry run of this, and it shows up at
+# The publish itself is not done automatically, you have to go to
 # https://central.sonatype.com/publishing/deployments
 # where you have to hit the publish button: see
 # https://central.sonatype.org/publish/publish-portal-maven/
