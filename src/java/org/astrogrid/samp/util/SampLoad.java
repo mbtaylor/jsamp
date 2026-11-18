@@ -94,8 +94,7 @@ public class SampLoad extends JDialog {
      *
      * @param  connector   connector
      * @param  rtype   resource type
-     * @param  URL     resource URL
-     * @param  sendType   type of item being sent (for user info)
+     * @param  url     resource URL
      * @param  location   location of item being sent (for user info)
      */
     public SampLoad( GuiHubConnector connector, final ResourceType rtype,
